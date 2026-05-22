@@ -1,0 +1,1376 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Casa Oliveira</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #faf8f5;
+  --surface: #ffffff;
+  --surface2: #f3f0eb;
+  --border: #e8e2d9;
+  --ink: #1c1a17;
+  --ink2: #6b6560;
+  --ink3: #a09890;
+  --teal: #1d6b58;
+  --teal-lt: #e8f4f0;
+  --amber: #c4600a;
+  --amber-lt: #fef3e8;
+  --rose: #b81a3a;
+  --rose-lt: #fde8ee;
+  --violet: #5b21b6;
+  --violet-lt: #ede8fd;
+  --sky: #1355a0;
+  --sky-lt: #e8eeff;
+  --gold: #92700a;
+  --gold-lt: #fdf6dc;
+  --sage: #3d6b3a;
+  --sage-lt: #eaf4e8;
+  --r: 14px; --r-sm: 8px; --r-lg: 20px;
+  --sh: 0 1px 4px rgba(28,26,23,.06), 0 4px 16px rgba(28,26,23,.06);
+  --sh-lg: 0 4px 24px rgba(28,26,23,.12);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);overflow-x:hidden;}
+button,input,select,textarea{font-family:'DM Sans',sans-serif;}
+button{cursor:pointer;border:none;outline:none;}
+input,select,textarea{outline:none;}
+
+/* ── LOADING ── */
+#splash{position:fixed;inset:0;background:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .4s;}
+#splash.hide{opacity:0;pointer-events:none;}
+.splash-logo{font-family:'Fraunces',serif;font-size:48px;color:#faf8f5;letter-spacing:-1px;}
+.splash-sub{font-size:12px;color:#666;letter-spacing:3px;text-transform:uppercase;margin-top:6px;}
+.splash-spin{width:28px;height:28px;border:2px solid #333;border-top-color:#faf8f5;border-radius:50%;animation:spin .7s linear infinite;margin-top:32px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── LOGIN ── */
+#loginScreen{display:none;min-height:100vh;background:var(--ink);align-items:center;justify-content:center;padding:24px;flex-direction:column;}
+.login-logo{font-family:'Fraunces',serif;font-size:52px;color:#faf8f5;text-align:center;letter-spacing:-1px;}
+.login-tagline{font-size:11px;color:#555;letter-spacing:3px;text-transform:uppercase;text-align:center;margin-top:4px;margin-bottom:40px;}
+.login-card{width:100%;max-width:360px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--r-lg);padding:28px 24px;}
+.lf{margin-bottom:16px;}
+.lf label{display:block;font-size:11px;font-weight:600;color:#666;text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px;}
+.lf input{width:100%;padding:13px 15px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:var(--r-sm);color:#faf8f5;font-size:15px;}
+.lf input::placeholder{color:#444;}
+.lf input:focus{border-color:#2d9175;}
+.login-btn{width:100%;padding:15px;background:var(--teal);color:#faf8f5;border-radius:var(--r-sm);font-size:15px;font-weight:600;margin-top:6px;transition:background .2s;}
+.login-btn:active{background:#155a47;}
+.login-error{background:rgba(184,26,58,.15);border:1px solid rgba(184,26,58,.3);border-radius:6px;padding:9px 13px;font-size:13px;color:#f88;margin-bottom:14px;display:none;}
+.demo-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:20px;}
+.demo-pill{padding:6px 14px;border:1px solid rgba(255,255,255,.12);border-radius:20px;font-size:12px;color:#888;cursor:pointer;transition:all .2s;}
+.demo-pill:hover{border-color:#2d9175;color:#2d9175;}
+
+/* ── APP ── */
+#app{display:none;min-height:100vh;padding-bottom:72px;}
+
+/* TOP BAR */
+.topbar{position:sticky;top:0;z-index:200;height:56px;background:rgba(250,248,245,.94);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 18px;backdrop-filter:blur(12px);}
+.topbar-logo{font-family:'Fraunces',serif;font-size:20px;color:var(--ink);letter-spacing:-.5px;}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.topbar-role{font-size:10px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:.8px;}
+.tb-btn{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;cursor:pointer;background:var(--surface2);border:1px solid var(--border);position:relative;transition:background .15s;}
+.tb-btn:active{background:var(--border);}
+.tb-dot{position:absolute;top:6px;right:6px;width:7px;height:7px;background:var(--rose);border-radius:50%;border:1.5px solid var(--bg);}
+
+/* BOTTOM NAV */
+.bnav{position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(250,248,245,.96);border-top:1px solid var(--border);display:flex;padding:6px 0 max(6px,env(safe-area-inset-bottom));backdrop-filter:blur(16px);}
+.bnt{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 4px;cursor:pointer;color:var(--ink3);font-size:10px;font-weight:500;letter-spacing:.2px;position:relative;transition:color .15s;}
+.bnt.active{color:var(--teal);}
+.bnt-icon{font-size:20px;line-height:1;}
+.bnt-bar{position:absolute;top:-1px;left:50%;transform:translateX(-50%);width:24px;height:3px;border-radius:2px;background:var(--teal);display:none;border-radius:0 0 3px 3px;}
+.bnt.active .bnt-bar{display:block;}
+.bnt-badge{position:absolute;top:3px;right:calc(50% - 18px);width:7px;height:7px;background:var(--rose);border-radius:50%;border:1.5px solid var(--bg);}
+
+/* PAGES */
+.page{display:none;padding:18px 18px 0;animation:pi .22s ease;}
+.page.active{display:block;}
+@keyframes pi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.ph{margin-bottom:18px;}
+.ph-title{font-family:'Fraunces',serif;font-size:30px;color:var(--ink);letter-spacing:-.5px;}
+.ph-sub{font-size:13px;color:var(--ink3);margin-top:3px;}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;margin-bottom:12px;box-shadow:var(--sh);}
+.card-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--ink2);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.ct-bar{width:3px;height:14px;border-radius:2px;flex-shrink:0;}
+
+/* STATS */
+.stats2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.stats3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px;}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 14px;box-shadow:var(--sh);position:relative;overflow:hidden;cursor:pointer;transition:box-shadow .15s;}
+.stat:active{box-shadow:var(--sh-lg);}
+.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:var(--r) var(--r) 0 0;}
+.stat.teal::before{background:var(--teal);}
+.stat.amber::before{background:var(--amber);}
+.stat.violet::before{background:var(--violet);}
+.stat.sky::before{background:var(--sky);}
+.stat.rose::before{background:var(--rose);}
+.stat.sage::before{background:var(--sage);}
+.stat-e{font-size:22px;margin-bottom:8px;}
+.stat-n{font-family:'Fraunces',serif;font-size:32px;line-height:1;}
+.stat-l{font-size:11px;color:var(--ink3);margin-top:3px;font-weight:500;}
+.stat-d{font-size:11px;font-weight:600;margin-top:4px;}
+.up{color:var(--teal);} .warn{color:var(--amber);} .dn{color:var(--rose);}
+
+/* CHIPS */
+.chip{display:inline-flex;align-items:center;gap:3px;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;}
+.ch-teal{background:var(--teal-lt);color:var(--teal);}
+.ch-amber{background:var(--amber-lt);color:var(--amber);}
+.ch-rose{background:var(--rose-lt);color:var(--rose);}
+.ch-violet{background:var(--violet-lt);color:var(--violet);}
+.ch-sky{background:var(--sky-lt);color:var(--sky);}
+.ch-gold{background:var(--gold-lt);color:var(--gold);}
+.ch-sage{background:var(--sage-lt);color:var(--sage);}
+.ch-gray{background:var(--surface2);color:var(--ink3);}
+
+/* ALERT STRIP */
+.astrip{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border-radius:var(--r-sm);margin-bottom:8px;cursor:pointer;}
+.astrip.critical{background:var(--rose-lt);border:1px solid #f5b0c0;}
+.astrip.warn{background:var(--amber-lt);border:1px solid #f5d5b0;}
+.astrip.info{background:var(--sky-lt);border:1px solid #b0c8f5;}
+.astrip-icon{font-size:18px;flex-shrink:0;margin-top:1px;}
+.astrip-title{font-size:13px;font-weight:600;color:var(--ink);}
+.astrip-meta{font-size:11px;color:var(--ink3);margin-top:2px;}
+
+/* TIMELINE */
+.tl-item{display:flex;gap:12px;padding-bottom:14px;position:relative;}
+.tl-item::before{content:'';position:absolute;left:10px;top:22px;bottom:0;width:1px;background:var(--border);}
+.tl-item:last-child::before{display:none;}
+.tl-dot{width:22px;height:22px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;}
+.tl-dot.done{background:var(--teal);}
+.tl-dot.soon{background:var(--amber);}
+.tl-dot.future{background:var(--sky);}
+.tl-title{font-size:13px;font-weight:600;color:var(--ink);}
+.tl-meta{font-size:11px;color:var(--ink3);margin-top:1px;}
+
+/* PATIENT CARDS */
+.pc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:10px;box-shadow:var(--sh);cursor:pointer;transition:box-shadow .15s;}
+.pc:active{box-shadow:var(--sh-lg);}
+.pc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:8px;}
+.pc-name{font-size:15px;font-weight:600;color:var(--ink);}
+.pc-meta{font-size:12px;color:var(--ink3);margin-top:2px;}
+.pc-prog-label{display:flex;justify-content:space-between;font-size:11px;color:var(--ink3);margin-bottom:3px;}
+.pbar{height:4px;background:var(--surface2);border-radius:2px;overflow:hidden;margin-bottom:8px;}
+.pfill{height:100%;border-radius:2px;}
+.pteal{background:var(--teal);} .pamber{background:var(--amber);} .pviolet{background:var(--violet);}
+.pc-chips{display:flex;gap:5px;flex-wrap:wrap;}
+
+/* SHEET */
+.soverlay{position:fixed;inset:0;background:rgba(28,26,23,.5);z-index:500;display:none;align-items:flex-end;backdrop-filter:blur(3px);}
+.soverlay.open{display:flex;animation:oi .2s ease;}
+@keyframes oi{from{opacity:0}to{opacity:1}}
+.sheet{background:var(--bg);border-radius:22px 22px 0 0;width:100%;max-height:94vh;overflow-y:auto;animation:su .3s cubic-bezier(.32,.72,0,1);}
+@keyframes su{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sheet-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0;}
+.sheet-hd{padding:18px 18px 0;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+.sheet-title{font-family:'Fraunces',serif;font-size:26px;letter-spacing:-.5px;}
+.sheet-close{width:30px;height:30px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--ink3);cursor:pointer;flex-shrink:0;margin-top:4px;}
+.sheet-body{padding:18px;}
+
+/* TABS */
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;margin-bottom:18px;scrollbar-width:none;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{flex-shrink:0;padding:7px 15px;border-radius:20px;font-size:13px;font-weight:600;background:var(--surface2);color:var(--ink3);cursor:pointer;border:1px solid var(--border);transition:all .15s;}
+.tab.active{background:var(--teal);color:#fff;border-color:var(--teal);}
+
+/* FORM */
+.fg{margin-bottom:14px;}
+.fl{display:block;font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;}
+.fi,.fs,.ft{width:100%;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--ink);font-size:14px;transition:border-color .15s;}
+.fi:focus,.fs:focus,.ft:focus{border-color:var(--teal);}
+.ft{resize:vertical;min-height:72px;line-height:1.5;}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.fa{grid-column:1/-1;}
+
+/* CHECKLIST */
+.crow{display:flex;align-items:center;gap:11px;padding:12px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:7px;cursor:pointer;transition:border-color .15s;}
+.crow:active{border-color:var(--teal);}
+.cbox{width:20px;height:20px;border-radius:5px;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;transition:all .15s;}
+.cbox.on{background:var(--teal);border-color:var(--teal);color:#fff;}
+.ctxt{flex:1;font-size:14px;}
+.crow.done .ctxt{color:var(--ink3);text-decoration:line-through;}
+.cst{font-size:11px;font-weight:600;}
+.cst.ok{color:var(--teal);} .cst.pend{color:var(--amber);}
+
+/* PTS BLOCK */
+.pts-b{border-left:3px solid var(--teal);background:var(--teal-lt);border-radius:0 var(--r-sm) var(--r-sm) 0;padding:12px 14px;margin-bottom:10px;}
+.pts-b.amber{border-color:var(--amber);background:var(--amber-lt);}
+.pts-b.violet{border-color:var(--violet);background:var(--violet-lt);}
+.pts-b.rose{border-color:var(--rose);background:var(--rose-lt);}
+.pts-bl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--teal);margin-bottom:6px;}
+.pts-b.amber .pts-bl{color:var(--amber);}
+.pts-b.violet .pts-bl{color:var(--violet);}
+.pts-b.rose .pts-bl{color:var(--rose);}
+
+/* PTS VERSION HISTORY */
+.pts-ver{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-sm);margin-bottom:8px;}
+.pts-ver-badge{font-family:'Fraunces',serif;font-size:16px;color:var(--ink2);min-width:40px;}
+.pts-ver-info{flex:1;}
+.pts-ver-date{font-size:12px;color:var(--ink3);}
+.pts-ver-status{font-size:11px;font-weight:600;}
+
+/* SAVE BTN */
+.savebtn{width:100%;padding:15px;background:var(--teal);color:#fff;border-radius:var(--r-sm);font-size:15px;font-weight:700;box-shadow:0 4px 20px rgba(29,107,88,.25);transition:background .15s;margin-top:6px;}
+.savebtn:active{background:#155a47;}
+
+/* ADD BTN */
+.addbtn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:var(--teal);color:#fff;border-radius:20px;font-size:13px;font-weight:600;transition:background .15s;}
+.addbtn:active{background:#155a47;}
+
+/* LINES PAGE */
+.line-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;margin-bottom:10px;box-shadow:var(--sh);cursor:pointer;display:flex;align-items:center;gap:14px;transition:box-shadow .15s;}
+.line-card:active{box-shadow:var(--sh-lg);}
+.line-emoji{font-size:28px;flex-shrink:0;}
+.line-info{flex:1;}
+.line-name{font-family:'Fraunces',serif;font-size:18px;color:var(--ink);}
+.line-services{font-size:12px;color:var(--ink3);margin-top:2px;}
+.line-stats{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;}
+.line-arrow{color:var(--ink3);font-size:18px;}
+
+/* PROFISSIONAIS */
+.prof-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;box-shadow:var(--sh);}
+.prof-av{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;flex-shrink:0;}
+.prof-nm{font-size:14px;font-weight:600;}
+.prof-rl{font-size:12px;color:var(--ink3);margin-top:1px;}
+
+/* INVITE CARD */
+.invite-card{background:var(--teal-lt);border:1px solid #b0ddd5;border-radius:var(--r);padding:18px;margin-bottom:14px;}
+.invite-title{font-size:13px;font-weight:700;color:var(--teal);margin-bottom:14px;}
+
+/* FINANCEIRO */
+.fin-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);}
+.fin-row:last-child{border-bottom:none;}
+.fin-lbl{font-size:14px;color:var(--ink2);}
+.fin-val{font-size:14px;font-weight:700;}
+.fin-val.green{color:var(--teal);} .fin-val.red{color:var(--rose);} .fin-val.big{font-family:'Fraunces',serif;font-size:22px;}
+
+.scen{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:10px;border-left:4px solid var(--border);}
+.scen.curr{border-left-color:var(--teal);}
+.scen.good{border-left-color:var(--sky);}
+.scen.warn2{border-left-color:var(--amber);}
+.scen-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--ink3);margin-bottom:6px;}
+.scen-val{font-family:'Fraunces',serif;font-size:26px;}
+.scen-meta{font-size:12px;color:var(--ink3);margin-top:3px;}
+
+/* DESKTOP */
+@media(min-width:768px){
+  #app{display:grid;grid-template-columns:240px 1fr;grid-template-rows:56px 1fr;padding-bottom:0;min-height:100vh;}
+  .topbar{grid-column:1/-1;}
+  .bnav{display:none;}
+  .sidebar{display:flex!important;flex-direction:column;background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;}
+  .page,.sheet-body{padding:28px;}
+  .stats2{grid-template-columns:repeat(4,1fr);}
+  .patient-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .patient-grid .pc{margin-bottom:0;}
+  .soverlay.open{align-items:center;}
+  .sheet{max-width:580px;margin:auto;border-radius:var(--r-lg);}
+}
+.sidebar{display:none;}
+.sd-logo{font-family:'Fraunces',serif;font-size:20px;padding:16px 18px 14px;border-bottom:1px solid var(--border);}
+.sd-sec{font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:1px;padding:10px 18px 3px;}
+.sd-item{display:flex;align-items:center;gap:9px;padding:11px 18px;cursor:pointer;color:var(--ink2);font-size:13px;font-weight:500;border-left:3px solid transparent;transition:all .15s;}
+.sd-item:hover{background:var(--surface2);}
+.sd-item.active{color:var(--teal);background:var(--teal-lt);border-left-color:var(--teal);}
+.sd-icon{font-size:17px;width:20px;text-align:center;}
+
+/* TOAST */
+.toast{position:fixed;top:68px;left:50%;transform:translateX(-50%) translateY(-16px);background:var(--ink);color:#faf8f5;padding:10px 18px;border-radius:30px;font-size:13px;font-weight:600;z-index:9990;white-space:nowrap;opacity:0;transition:all .25s;pointer-events:none;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.ok{background:var(--teal);}
+.toast.err{background:var(--rose);}
+
+/* USER MENU */
+.umenu-item{display:flex;align-items:center;gap:12px;padding:15px 18px;border-bottom:1px solid var(--border);cursor:pointer;font-size:14px;font-weight:500;transition:background .15s;}
+.umenu-item:last-child{border-bottom:none;}
+.umenu-item:active{background:var(--surface2);}
+.umenu-item.danger{color:var(--rose);}
+.umenu-icon{font-size:18px;width:24px;text-align:center;}
+</style>
+</head>
+<body>
+
+<div id="splash">
+  <div class="splash-logo">Casa Oliveira</div>
+  <div class="splash-sub">Sistema Clínico</div>
+  <div class="splash-spin"></div>
+</div>
+
+<div id="loginScreen">
+  <div class="login-logo">Casa Oliveira</div>
+  <div class="login-tagline">Sistema Clínico</div>
+  <div class="login-card">
+    <div id="loginErr" class="login-error"></div>
+    <div class="lf"><label>E-mail</label><input id="lEmail" type="email" placeholder="seu@email.com"></div>
+    <div class="lf"><label>Senha</label><input id="lPass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button class="login-btn" onclick="doLogin()">Entrar →</button>
+  </div>
+  <div class="demo-row">
+    <div class="demo-pill" onclick="demoLogin('admin')">👑 Gestora</div>
+    <div class="demo-pill" onclick="demoLogin('coordenador')">📋 Coordenadora</div>
+    <div class="demo-pill" onclick="demoLogin('profissional')">👩‍⚕️ Profissional</div>
+  </div>
+</div>
+
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-logo">Casa Oliveira</div>
+    <div class="topbar-right">
+      <div class="topbar-role" id="roleLabel"></div>
+      <div class="tb-btn" onclick="gotoAlerts()">🔔<div class="tb-dot" id="notifDot"></div></div>
+      <div class="tb-btn" id="avatarBtn" onclick="openUserMenu()">A</div>
+    </div>
+  </div>
+  <div class="sidebar" id="sidebarEl"></div>
+  <div id="mainArea" style="overflow-y:auto;min-width:0;">
+    <div id="pgHome" class="page"></div>
+    <div id="pgLinhas" class="page"></div>
+    <div id="pgEquipe" class="page"></div>
+    <div id="pgFinanceiro" class="page"></div>
+    <div id="pgAlertas" class="page"></div>
+  </div>
+  <nav class="bnav" id="bnavEl"></nav>
+</div>
+
+<!-- SHEET -->
+<div class="soverlay" id="sheetOv" onclick="maybeCloseSheet(event)">
+  <div class="sheet" id="sheetEl">
+    <div class="sheet-handle"></div>
+    <div class="sheet-hd">
+      <div class="sheet-title" id="sheetTitle"></div>
+      <div class="sheet-close" onclick="closeSheet()">✕</div>
+    </div>
+    <div class="sheet-body" id="sheetBody"></div>
+  </div>
+</div>
+
+<!-- USER MENU -->
+<div class="soverlay" id="umenuOv" onclick="maybeCloseMenu(event)">
+  <div class="sheet" style="max-height:44vh;">
+    <div class="sheet-handle"></div>
+    <div style="padding:16px 18px 0;">
+      <div style="font-family:'Fraunces',serif;font-size:22px;" id="umName"></div>
+      <div style="font-size:12px;color:var(--ink3);margin-top:2px;" id="umEmail"></div>
+    </div>
+    <div style="margin-top:12px;">
+      <div class="umenu-item" id="umEquipeItem" onclick="loadPage('equipe');closeMenu();"><span class="umenu-icon">👥</span>Gerenciar equipe</div>
+      <div class="umenu-item danger" onclick="doLogout()"><span class="umenu-icon">🚪</span>Sair</div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toastEl"></div>
+
+<script>
+// ═══════════════════════════════════════
+// CONFIG SUPABASE
+// ═══════════════════════════════════════
+const SB_URL = 'https://argsbzdypwjgrusvmskx.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFyZ3NiemR5cHdqZ3J1c3Ztc2t4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkxMTkzNzAsImV4cCI6MjA5NDY5NTM3MH0.IdCMj2w416kBmMVvbZsWoME7Qwi7V68rWkRVtNS11K8';
+
+let currentUser = null;
+let currentRole = null;
+let demoMode = false;
+let sbToken = null;
+
+// ═══════════════════════════════════════
+// SUPABASE REST API
+// ═══════════════════════════════════════
+const SB = {
+  headers(auth=true) {
+    const h = {'Content-Type':'application/json','apikey':SB_KEY};
+    if(auth && sbToken) h['Authorization'] = 'Bearer '+sbToken;
+    return h;
+  },
+  async signIn(email, pass) {
+    try {
+      const r = await fetch(SB_URL+'/auth/v1/token?grant_type=password',{
+        method:'POST', headers:this.headers(false),
+        body:JSON.stringify({email,password:pass})
+      });
+      const d = await r.json();
+      if(!r.ok) return {error: d.error_description||'Credenciais inválidas'};
+      sbToken = d.access_token;
+      localStorage.setItem('co_token', sbToken);
+      return {data:d};
+    } catch(e) { return {error:'Erro de rede: '+e.message}; }
+  },
+  async signOut() {
+    try { await fetch(SB_URL+'/auth/v1/logout',{method:'POST',headers:this.headers()}); } catch(e){}
+    sbToken=null; localStorage.removeItem('co_token');
+  },
+  async query(table, params='') {
+    try {
+      const r = await fetch(`${SB_URL}/rest/v1/${table}?${params}`,{headers:this.headers()});
+      if(!r.ok) return [];
+      return await r.json();
+    } catch(e){ return []; }
+  },
+  async insert(table, body) {
+    try {
+      const r = await fetch(`${SB_URL}/rest/v1/${table}`,{
+        method:'POST', headers:{...this.headers(),'Prefer':'return=representation'},
+        body:JSON.stringify(body)
+      });
+      const d = await r.json();
+      return r.ok ? {data:d} : {error:d};
+    } catch(e){ return {error:e.message}; }
+  },
+  async update(table, match, body) {
+    try {
+      const r = await fetch(`${SB_URL}/rest/v1/${table}?${match}`,{
+        method:'PATCH', headers:{...this.headers(),'Prefer':'return=representation'},
+        body:JSON.stringify(body)
+      });
+      const d = await r.json();
+      return r.ok ? {data:d} : {error:d};
+    } catch(e){ return {error:e.message}; }
+  }
+};
+
+// ═══════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════
+async function doLogin() {
+  const email = document.getElementById('lEmail').value.trim();
+  const pass = document.getElementById('lPass').value;
+  if(!email||!pass){showErr('Preencha e-mail e senha.');return;}
+  showToast('Entrando...','');
+  const {data,error} = await SB.signIn(email,pass);
+  if(error){showErr(error);return;}
+  const profiles = await SB.query('profissionais',`email=eq.${encodeURIComponent(email)}&select=*&limit=1`);
+  const profile = profiles[0]||null;
+  currentUser = {email, nome:profile?.nome||email.split('@')[0], role:profile?.nivel_acesso||'profissional', modulo:profile?.modulo||'Todos'};
+  currentRole = currentUser.role;
+  localStorage.setItem('co_user', JSON.stringify(currentUser));
+  startApp();
+}
+
+function demoLogin(role) {
+  demoMode=true;
+  const m = {admin:{email:'admin@casaoliveira.com',nome:'Dra. Ana Paula',role:'admin'},coordenador:{email:'coord@casaoliveira.com',nome:'TO Juliana',role:'coordenador'},profissional:{email:'fisio@casaoliveira.com',nome:'Dr. Carlos',role:'profissional'}};
+  currentUser=m[role]; currentRole=role;
+  startApp();
+}
+
+function doLogout() {
+  if(!demoMode) SB.signOut();
+  currentUser=null; currentRole=null; demoMode=false;
+  sbToken=null;
+  localStorage.removeItem('co_token');
+  localStorage.removeItem('co_user');
+  document.getElementById('app').style.display='none';
+  document.getElementById('loginScreen').style.display='flex';
+  closeMenu();
+}
+
+function showErr(msg){const e=document.getElementById('loginErr');e.textContent=msg;e.style.display='block';setTimeout(()=>e.style.display='none',4000);}
+
+// ═══════════════════════════════════════
+// APP
+// ═══════════════════════════════════════
+function startApp() {
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('splash').classList.add('hide');
+  const app = document.getElementById('app');
+  app.style.display = window.innerWidth>=768 ? 'grid' : 'block';
+  document.getElementById('avatarBtn').textContent = currentUser.nome.split(' ').pop()[0].toUpperCase();
+  document.getElementById('roleLabel').textContent = roleLabel(currentRole);
+  buildNav(); buildSidebar();
+  loadPage('home');
+}
+
+function roleLabel(r){return{admin:'Gestora',coordenador:'Coordenadora',profissional:'Profissional'}[r]||r;}
+
+const LINHA_CONFIG = {
+  infantil:    {emoji:'🧩',label:'Infantil',       color:'violet', servicos:['TO Infantil','Terapia Floral','Acupuntura']},
+  mulher:      {emoji:'🌸',label:'Saúde da Mulher', color:'rose',   servicos:['Fisio Pélvica','Acupuntura','Amamentação','Taping','Massagem','Prep. Parto','Pós-Parto','Rodas']},
+  reabilitacao:{emoji:'🦴',label:'Reabilitação',    color:'amber',  servicos:['Fisioterapia','Palmilha','RPG','Massagem','TO de Mão']},
+  pilates:     {emoji:'🧘',label:'Pilates',         color:'sage',   servicos:['Pilates']},
+  geriatria:   {emoji:'👴',label:'Geriatria',       color:'sky',    servicos:['TO Individual','Convivência','Casa Segura']},
+  mental:      {emoji:'🧠',label:'Saúde Mental',    color:'teal',   servicos:['TO','Acupuntura','Terapia Floral','Ateliê Expressivo']},
+};
+
+// NAV
+const NAV = {
+  admin:[{id:'home',icon:'🏠',label:'Início'},{id:'linhas',icon:'🩺',label:'Linhas'},{id:'equipe',icon:'👥',label:'Equipe'},{id:'financeiro',icon:'💰',label:'Financeiro'}],
+  coordenador:[{id:'home',icon:'🏠',label:'Início'},{id:'linhas',icon:'🩺',label:'Pacientes'},{id:'alertas',icon:'🔔',label:'Alertas',badge:true}],
+  profissional:[{id:'home',icon:'🏠',label:'Hoje'},{id:'linhas',icon:'🩺',label:'Meus Pacientes'},{id:'alertas',icon:'🔔',label:'Pendências',badge:true}],
+};
+
+function buildNav() {
+  const items = NAV[currentRole]||NAV.profissional;
+  document.getElementById('bnavEl').innerHTML = items.map(i=>`
+    <div class="bnt" id="bn-${i.id}" onclick="loadPage('${i.id}')">
+      <div class="bnt-bar"></div>
+      <div class="bnt-icon">${i.icon}</div>
+      <div>${i.label}</div>
+      ${i.badge?'<div class="bnt-badge"></div>':''}
+    </div>`).join('');
+}
+
+function buildSidebar() {
+  const items = NAV[currentRole]||NAV.profissional;
+  document.getElementById('sidebarEl').innerHTML =
+    `<div class="sd-logo">Casa Oliveira</div><div class="sd-sec">Menu</div>`+
+    items.map(i=>`<div class="sd-item" id="sd-${i.id}" onclick="loadPage('${i.id}')"><span class="sd-icon">${i.icon}</span>${i.label}</div>`).join('')+
+    `<div style="flex:1"></div><div style="padding:14px 18px;border-top:1px solid var(--border);font-size:13px;font-weight:600;">${currentUser.nome}<div style="font-size:11px;color:var(--ink3);font-weight:400;margin-top:2px;">${currentUser.email}</div></div>`;
+}
+
+function loadPage(id) {
+  document.querySelectorAll('.bnt,.sd-item').forEach(e=>e.classList.remove('active'));
+  ['bn-','sd-'].forEach(p=>{const e=document.getElementById(p+id);if(e)e.classList.add('active');});
+  const map={home:'pgHome',linhas:'pgLinhas',equipe:'pgEquipe',financeiro:'pgFinanceiro',alertas:'pgAlertas'};
+  document.querySelectorAll('.page').forEach(e=>{e.classList.remove('active');e.innerHTML='';});
+  const target=document.getElementById(map[id]);
+  if(!target)return;
+  const renders={home:renderHome,linhas:renderLinhas,equipe:renderEquipe,financeiro:renderFinanceiro,alertas:renderAlertas};
+  if(renders[id]){target.innerHTML=renders[id]();target.classList.add('active');}
+}
+
+function gotoAlerts(){loadPage('alertas');}
+
+// ═══════════════════════════════════════
+// MOCK DATA
+// ═══════════════════════════════════════
+const MOCK = {
+  pacientes: {
+    infantil:[
+      {id:1,nome:'Lucas Oliveira',idade:7,responsavel:'Fernanda Oliveira',escola:'E.M. Monteiro Lobato',terapeuta:'TO Juliana',status:'Ativo',servicos:['TO Infantil'],
+       cl:{conversa:true,avaliacao:true,anamnese:true,escola:false,pts:true,aprovado:true,devolutiva:true},
+       pts_atual:{versao:2,status:'aprovado',prazo_reav:'2025-07-10',hipotese:'Atraso neuromotor fino'},
+       pts_historico:[{versao:1,data:'10/02/2025',status:'aprovado',elaborado:'TO Juliana'},{versao:2,data:'15/04/2025',status:'aprovado',elaborado:'TO Juliana'}]},
+      {id:2,nome:'Sofia Campos',idade:5,responsavel:'Roberto Campos',escola:'CEI Pequeno Príncipe',terapeuta:'TO Juliana',status:'Ativo',servicos:['TO Infantil'],
+       cl:{conversa:true,avaliacao:true,anamnese:true,escola:true,pts:true,aprovado:false,devolutiva:false},
+       pts_atual:{versao:1,status:'aguardando_aprovacao',prazo_reav:'2025-08-01',hipotese:'Transtorno processamento sensorial'},
+       pts_historico:[{versao:1,data:'01/05/2025',status:'aguardando_aprovacao',elaborado:'TO Juliana'}]},
+    ],
+    mulher:[
+      {id:3,nome:'Maria Santos',idade:42,terapeuta:'Dr. Carlos',status:'Ativo',servicos:['Fisio Pélvica','Acupuntura'],
+       cl:{anamnese:true,pts:true,servicos_sugeridos:true},sugestao_servicos:'Acupuntura para dor + Roda puerpério'},
+      {id:4,nome:'Joana Ferreira',idade:55,terapeuta:'Dra. Lucia',status:'Ativo',servicos:['Fisio Pélvica'],
+       cl:{anamnese:true,pts:false,servicos_sugeridos:false},sugestao_servicos:''},
+    ],
+    reabilitacao:[
+      {id:5,nome:'Antônio Silva',idade:62,terapeuta:'Dr. Paulo',status:'Ativo',servicos:['Fisioterapia'],programa:'Estrutural 3M',sessoes:10,totalSessoes:24,
+       cl:{avaliacao:true,rel_aval:false,programacao:true,reav1:false,reav2:false,rel_alta:false,orientacoes:true}},
+    ],
+    pilates:[
+      {id:6,nome:'Patricia Rocha',idade:35,terapeuta:'Dra. Paula',status:'Ativo',inicio:'20/04/2025',
+       myscore:[{data:'20/04/2025',score_geral:6.5,bem_estar:7,mobilidade:6,flexibilidade:5.5,forca:6,vo2:7,proxima:'20/07/2025'}]},
+    ],
+    geriatria:[
+      {id:7,nome:'Roberto Lima',idade:78,responsavel:'Ana Lima',terapeuta:'TO Marcia',status:'Ativo',servicos:['TO Individual','Casa Segura'],
+       cl:{avaliacao:true,cognitiva:true,myscore:false,mobilidade:false,pts:true},
+       casa_segura:{visita:true,reuniao_inicial:true,relatorio:false,reparos:false,prazo:'30/06/2025'}},
+    ],
+    mental:[
+      {id:8,nome:'Clara Mendes',idade:38,terapeuta:'TO Beatriz',status:'Ativo',servicos:['TO','Ateliê Expressivo'],
+       cl:{acolhimento:true,pts:true,aprovado:false,sugestao_servicos:true}},
+    ],
+  }
+};
+
+// ═══════════════════════════════════════
+// RENDER HOME
+// ═══════════════════════════════════════
+function renderHome() {
+  const h = new Date().getHours();
+  const g = h<12?'Bom dia':h<18?'Boa tarde':'Boa noite';
+  const nome = currentUser.nome.split(' ')[0];
+  const totalPac = Object.values(MOCK.pacientes).flat().length;
+
+  return `
+  <div class="page active">
+    <div class="ph">
+      <div class="ph-title">${g}, ${nome} 👋</div>
+      <div class="ph-sub">${new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'})}</div>
+    </div>
+
+    <div class="stats2">
+      ${Object.entries(LINHA_CONFIG).map(([k,v],i)=>{
+        const pacs = MOCK.pacientes[k]||[];
+        const colors=['violet','rose','amber','sage','sky','teal'];
+        return `<div class="stat ${colors[i]}" onclick="openLinha('${k}')">
+          <div class="stat-e">${v.emoji}</div>
+          <div class="stat-n">${pacs.length}</div>
+          <div class="stat-l">${v.label}</div>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <div class="card">
+      <div class="card-title"><div class="ct-bar" style="background:var(--rose)"></div>Pendências Críticas</div>
+      <div class="astrip critical" onclick="loadPage('alertas')">
+        <div class="astrip-icon">🔴</div>
+        <div><div class="astrip-title">Sofia Campos — PTS aguardando aprovação</div><div class="astrip-meta">Infantil • TO Juliana</div></div>
+      </div>
+      <div class="astrip warn" onclick="loadPage('alertas')">
+        <div class="astrip-icon">🟡</div>
+        <div><div class="astrip-title">Antônio Silva — Relatório de avaliação vence hoje</div><div class="astrip-meta">Reabilitação • Dr. Paulo • Prazo: 3 dias após avaliação</div></div>
+      </div>
+      <div class="astrip warn" onclick="loadPage('alertas')">
+        <div class="astrip-icon">🟡</div>
+        <div><div class="astrip-title">Roberto Lima — Casa Segura: relatório pendente</div><div class="astrip-meta">Geriatria • TO Marcia • Prazo: 30/06/2025</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><div class="ct-bar" style="background:var(--sky)"></div>Próximos Eventos</div>
+      <div class="tl-item"><div class="tl-dot soon">!</div><div><div class="tl-title">Reavaliação PTS — Lucas Oliveira</div><div class="tl-meta">10 Jul 2025 • Infantil</div></div></div>
+      <div class="tl-item"><div class="tl-dot soon">!</div><div><div class="tl-title">My Score — Patricia Rocha</div><div class="tl-meta">20 Jul 2025 • Pilates</div></div></div>
+      <div class="tl-item"><div class="tl-dot future">📅</div><div><div class="tl-title">Devolutiva família — Sofia Campos</div><div class="tl-meta">20 Jun 2025 • Infantil</div></div></div>
+      <div class="tl-item"><div class="tl-dot future">📅</div><div><div class="tl-title">Monitoramento pós-alta — Maria Santos</div><div class="tl-meta">01 Jun 2025 • Saúde da Mulher</div></div></div>
+    </div>
+
+    ${currentRole==='admin'?`<div class="card" onclick="loadPage('financeiro')" style="cursor:pointer">
+      <div class="card-title"><div class="ct-bar" style="background:var(--teal)"></div>Financeiro</div>
+      <div class="fin-row"><div class="fin-lbl">Faturamento Bruto</div><div class="fin-val" style="color:var(--sky)">R$ 46.400</div></div>
+      <div class="fin-row"><div class="fin-lbl">Lucro Líquido</div><div class="fin-val green">R$ 30.016</div></div>
+      <div class="fin-row" style="border:none"><div class="fin-lbl">Pro-labore / Sócia</div><div class="fin-val big green">R$ 15.008</div></div>
+    </div>`:''}
+  </div>`;
+}
+
+// ═══════════════════════════════════════
+// RENDER LINHAS
+// ═══════════════════════════════════════
+function renderLinhas() {
+  return `
+  <div class="page active">
+    <div class="ph"><div class="ph-title">Linhas Clínicas</div><div class="ph-sub">Selecione para ver pacientes</div></div>
+    ${Object.entries(LINHA_CONFIG).map(([k,v])=>{
+      const pacs = MOCK.pacientes[k]||[];
+      const pend = pacs.filter(p=>Object.values(p.cl||{}).some(x=>!x)).length;
+      return `<div class="line-card" onclick="openLinha('${k}')">
+        <div class="line-emoji">${v.emoji}</div>
+        <div class="line-info">
+          <div class="line-name">${v.label}</div>
+          <div class="line-services">${v.servicos.join(' · ')}</div>
+          <div class="line-stats">
+            <span class="chip ch-${v.color}">${pacs.length} pacientes</span>
+            ${pend>0?`<span class="chip ch-amber">${pend} pendências</span>`:`<span class="chip ch-teal">Em dia</span>`}
+          </div>
+        </div>
+        <div class="line-arrow">›</div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function openLinha(linha) {
+  const cfg = LINHA_CONFIG[linha];
+  let pacs = MOCK.pacientes[linha]||[];
+  // Profissional only sees their own patients
+  if(currentRole==='profissional') {
+    pacs = pacs.filter(p=>p.terapeuta && currentUser.nome.toLowerCase().includes(p.terapeuta.split(' ').pop().toLowerCase()));
+  }
+  document.getElementById('sheetTitle').textContent = cfg.emoji+' '+cfg.label;
+  document.getElementById('sheetBody').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <span style="font-size:13px;color:var(--ink3)">${pacs.length} pacientes ativos</span>
+      <button class="addbtn" onclick="openNovoPaciente('${linha}')">+ Novo</button>
+    </div>
+    <div class="patient-grid">
+      ${pacs.map(p=>renderPC(p,linha)).join('')}
+    </div>`;
+  // Store current linha for back navigation
+  window._currentLinha = linha;
+  openSheet();
+}
+
+function renderPC(p, linha) {
+  const cl = p.cl||{};
+  const done = Object.values(cl).filter(Boolean).length;
+  const total = Object.keys(cl).length;
+  const pct = total>0?Math.round(done/total*100):100;
+  return `<div class="pc" onclick="openPaciente('${linha}',${p.id})">
+    <div class="pc-top">
+      <div>
+        <div class="pc-name">${p.nome}</div>
+        <div class="pc-meta">${p.idade} anos${p.terapeuta?' • '+p.terapeuta:''}</div>
+      </div>
+      <span class="chip ${pct===100?'ch-teal':pct>60?'ch-gold':'ch-amber'}">${done}/${total}</span>
+    </div>
+    ${p.sessoes!==undefined?`<div class="pc-prog-label"><span>Sessões</span><span>${p.sessoes}/${p.totalSessoes}</span></div>
+    <div class="pbar"><div class="pfill pteal" style="width:${Math.round(p.sessoes/p.totalSessoes*100)}%"></div></div>`:''}
+    <div class="pc-chips">
+      ${(p.servicos||[]).map(s=>`<span class="chip ch-gray">${s}</span>`).join('')}
+      ${p.status==='Ativo'?`<span class="chip ch-teal">Ativo</span>`:`<span class="chip ch-amber">${p.status}</span>`}
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════
+// PACIENTE DETAIL — por linha
+// ═══════════════════════════════════════
+function openPaciente(linha, id) {
+  const p = (MOCK.pacientes[linha]||[]).find(x=>x.id===id);
+  if(!p) return;
+  const cfg = LINHA_CONFIG[linha];
+  document.getElementById('sheetTitle').textContent = p.nome;
+
+  let tabs = [], bodies = {};
+  if(linha==='infantil') { tabs=['📋 Checklist','🎯 PTS','🔬 Avaliações','📅 Reuniões']; bodies={0:infantilChecklist(p),1:infantilPTS(p),2:avaliacoesPanel(p),3:reunioesPanel(p)}; }
+  else if(linha==='mulher') { tabs=['📋 Checklist','🎯 PTS','📆 Serviços','🔔 Pós-Alta']; bodies={0:mulherChecklist(p),1:ptsGenerico(p),2:mulherServicos(p),3:posAltaPanel(p)}; }
+  else if(linha==='reabilitacao') { tabs=['📋 Checklist','🎯 PTS','🏠 Orientações','🔔 Pós-Alta']; bodies={0:reabChecklist(p),1:ptsGenerico(p),2:orientacoesPanel(p),3:posAltaPanel(p)}; }
+  else if(linha==='pilates') { tabs=['📊 My Score','📋 Dados','🔗 Indicações']; bodies={0:pilatesMyScore(p),1:pilatesDados(p),2:pilatesIndicacoes(p)}; }
+  else if(linha==='geriatria') { tabs=['📋 Checklist','🎯 PTS','🏠 Casa Segura','📅 Reuniões']; bodies={0:geriatriaChecklist(p),1:ptsGenerico(p),2:casaSegura(p),3:reunioesPanel(p)}; }
+  else if(linha==='mental') { tabs=['📋 Checklist','🎯 PTS','🎨 Ateliê']; bodies={0:mentalChecklist(p),1:infantilPTS(p),2:ateliePanel()}; }
+
+  document.getElementById('sheetBody').innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <button onclick="openLinha(window._currentLinha||'${linha}')" style="background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:6px 14px;font-size:13px;font-weight:600;color:var(--ink2);">‹ Voltar</button>
+      <span style="font-size:13px;color:var(--ink3);">${(p.servicos||[]).join(' · ')}</span>
+    </div>
+    <div class="tabs">${tabs.map((t,i)=>`<div class="tab ${i===0?'active':''}" onclick="switchTab('pt-${i}',this)">${t}</div>`).join('')}</div>
+    ${tabs.map((t,i)=>`<div id="pt-${i}" style="display:${i===0?'block':'none'}">${bodies[i]||''}<button class="savebtn" onclick="saveOk()">💾 Salvar</button></div>`).join('')}`;
+  openSheet();
+}
+
+// ── INFANTIL ──
+function infantilChecklist(p) {
+  const c = p.cl;
+  return checkRows([
+    ['Conversa inicial com pais',c.conversa],
+    ['Avaliação da criança realizada',c.avaliacao],
+    ['Anamnese com responsáveis',c.anamnese],
+    ['Contato com a escola',c.escola],
+    ['PTS elaborado',c.pts],
+    ['PTS aprovado pelo coordenador',c.aprovado],
+    ['Devolutiva com família realizada',c.devolutiva],
+  ]);
+}
+
+function infantilPTS(p) {
+  const pts = p.pts_atual||{};
+  const hist = p.pts_historico||[];
+  const isAprov = pts.status==='aprovado';
+  const isAguard = pts.status==='aguardando_aprovacao';
+  return `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <span class="chip ${isAprov?'ch-teal':isAguard?'ch-amber':'ch-gray'}">${isAprov?'✓ Aprovado':isAguard?'⏳ Aguardando aprovação':'Rascunho'} • v${pts.versao||1}</span>
+      ${currentRole!=='profissional'&&isAguard?`<button class="addbtn" style="background:var(--teal);font-size:12px;padding:6px 12px;" onclick="aprovarPTS()">✓ Aprovar PTS</button>`:''}
+    </div>
+    <div class="pts-b"><div class="pts-bl">🎯 Hipótese Diagnóstica</div><textarea class="ft" style="background:transparent;border:none;padding:0">${pts.hipotese||''}</textarea></div>
+    <div class="fg"><label class="fl">Prazo de Reavaliação</label><input class="fi" type="date" value="${pts.prazo_reav||''}"></div>
+    <div class="pts-b amber"><div class="pts-bl">📌 Objetivos</div><textarea class="ft" style="background:transparent;border:none;padding:0" placeholder="Ex: Melhorar coordenação motora fina; Promover autorregulação sensorial...">${pts.objetivos||''}</textarea></div>
+    <div class="pts-b violet"><div class="pts-bl">🔧 Ações e Intervenções</div><textarea class="ft" style="background:transparent;border:none;padding:0" placeholder="Ex: Atividades de preensão; Integração sensorial; Parceria com escola...">${pts.acoes||''}</textarea></div>
+    <div class="pts-b"><div class="pts-bl">🏆 Metas</div>
+      <div style="display:grid;grid-template-columns:1fr;gap:6px;margin-top:4px;">
+        <textarea class="ft" style="min-height:50px" placeholder="Curto prazo (3 meses)...">${pts.metas_curto||''}</textarea>
+        <textarea class="ft" style="min-height:50px" placeholder="Médio prazo (6 meses)...">${pts.metas_medio||''}</textarea>
+        <textarea class="ft" style="min-height:50px" placeholder="Longo prazo (12 meses)...">${pts.metas_longo||''}</textarea>
+      </div>
+    </div>
+    <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:14px;">
+      <div style="font-size:12px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;">Histórico de Versões</div>
+      ${hist.map(v=>`<div class="pts-ver">
+        <div class="pts-ver-badge">v${v.versao}</div>
+        <div class="pts-ver-info">
+          <div style="font-size:13px;font-weight:600">${v.elaborado}</div>
+          <div class="pts-ver-date">${v.data}</div>
+        </div>
+        <span class="chip ${v.status==='aprovado'?'ch-teal':'ch-amber'}">${v.status==='aprovado'?'Aprovado':'Aguardando'}</span>
+      </div>`).join('')}
+      <button class="addbtn" style="width:100%;justify-content:center;margin-top:8px;background:var(--violet);" onclick="showToast('Nova versão criada com base na atual','ok')">+ Nova Versão do PTS</button>
+    </div>`;
+}
+
+function avaliacoesPanel(p) {
+  return `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <span style="font-size:13px;color:var(--ink3)">Instrumentos utilizados</span>
+      <button class="addbtn" onclick="openNovaAvaliacao()">+ Adicionar</button>
+    </div>
+    <div class="card" style="margin-bottom:10px;">
+      <div style="font-size:14px;font-weight:600">PDMS-2</div>
+      <div style="font-size:12px;color:var(--ink3);margin-top:2px;">Aplicado em 15/02/2025 • TO Juliana</div>
+      <div style="font-size:12px;color:var(--ink2);margin-top:6px;font-style:italic;">Motivo: Avaliar motricidade fina e grossa</div>
+      <div style="font-size:13px;margin-top:6px;">Resultado: Escore abaixo do esperado em motricidade fina (percentil 12). Motricidade grossa adequada.</div>
+    </div>
+    <div class="card">
+      <div style="font-size:14px;font-weight:600">Perfil Sensorial de Dunn</div>
+      <div style="font-size:12px;color:var(--ink3);margin-top:2px;">Aplicado em 01/03/2025 • TO Juliana</div>
+      <div style="font-size:12px;color:var(--ink2);margin-top:6px;font-style:italic;">Motivo: Investigar processamento sensorial</div>
+      <div style="font-size:13px;margin-top:6px;">Resultado: Hipersensibilidade tátil e auditiva. Baixo registro vestibular.</div>
+    </div>`;
+}
+
+function reunioesPanel(p) {
+  return `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <span style="font-size:13px;color:var(--ink3)">Reuniões agendadas e realizadas</span>
+      <button class="addbtn" onclick="openNovaReuniao()">+ Agendar</button>
+    </div>
+    <div class="tl-item"><div class="tl-dot done">✓</div><div><div class="tl-title">Devolutiva com família</div><div class="tl-meta">10/04/2025 • Realizada • Fernanda + Roberto</div></div></div>
+    <div class="tl-item"><div class="tl-dot done">✓</div><div><div class="tl-title">Contato com escola</div><div class="tl-meta">15/03/2025 • Realizado • Profa. Carmen</div></div></div>
+    <div class="tl-item"><div class="tl-dot future">📅</div><div><div class="tl-title">Próxima devolutiva</div><div class="tl-meta">15/07/2025 • Agendada</div></div></div>
+    <div style="margin-top:16px;border-top:1px solid var(--border);padding-top:14px;">
+      <label class="fl">Agendar nova reunião</label>
+      <div class="f2">
+        <div class="fg"><label class="fl">Data</label><input class="fi" type="date"></div>
+        <div class="fg"><label class="fl">Tipo</label><select class="fs"><option>Família</option><option>Escola</option><option>Equipe</option></select></div>
+        <div class="fg fa"><label class="fl">Participantes</label><input class="fi" placeholder="Nomes dos participantes"></div>
+      </div>
+    </div>`;
+}
+
+// ── SAÚDE DA MULHER ──
+function mulherChecklist(p) {
+  const c = p.cl;
+  return `
+    ${checkRows([['Anamnese realizada',c.anamnese],['PTS elaborado',c.pts],['Serviços sugeridos',c.servicos_sugeridos]])}
+    <div class="fg" style="margin-top:12px;"><label class="fl">Sugestão de Serviços</label><textarea class="ft">${p.sugestao_servicos||''}</textarea></div>
+    <div class="fg"><label class="fl">Resposta da Paciente</label><textarea class="ft" placeholder="O que a paciente disse sobre a sugestão..."></textarea></div>`;
+}
+
+function mulherServicos(p) {
+  return `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <span style="font-size:13px;color:var(--ink3)">Serviços previstos e agendados</span>
+      <button class="addbtn" onclick="showToast('Serviço adicionado','ok')">+ Serviço</button>
+    </div>
+    ${[{s:'Fisio Pélvica',dt:'10/04/2025',st:'Realizado'},{s:'Acupuntura',dt:'15/05/2025',st:'Agendado'},{s:'Roda Puerpério',dt:'01/06/2025',st:'Previsto'}].map(s=>`
+    <div class="card" style="margin-bottom:8px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div style="font-size:14px;font-weight:600">${s.s}</div>
+        <span class="chip ${s.st==='Realizado'?'ch-teal':s.st==='Agendado'?'ch-sky':'ch-gray'}">${s.st}</span>
+      </div>
+      <div style="font-size:12px;color:var(--ink3);margin-top:4px;">📅 ${s.dt}</div>
+    </div>`).join('')}`;
+}
+
+function posAltaPanel(p) {
+  return `
+    <div class="astrip info" style="margin-bottom:14px;">
+      <div class="astrip-icon">ℹ️</div>
+      <div><div class="astrip-title">Monitoramento ativo</div><div class="astrip-meta">Contato mensal programado</div></div>
+    </div>
+    <div class="fg"><label class="fl">Responsável pelo monitoramento</label><input class="fi" placeholder="Nome do profissional"></div>
+    <div class="fg"><label class="fl">Periodicidade</label><select class="fs"><option>Mensal</option><option>Quinzenal</option><option>Trimestral</option></select></div>
+    <div style="margin-top:4px;">
+      ${[{d:'01/06/2025',r:'Sem queixas. Mantendo exercícios.',ok:false},{d:'01/05/2025',r:'Paciente relatou melhora significativa.',ok:true}].map(m=>`
+      <div class="card" style="margin-bottom:8px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div style="font-size:13px;font-weight:600">Contato ${m.d}</div>
+          <span class="chip ${m.ok?'ch-teal':'ch-amber'}">${m.ok?'✓ Realizado':'Pendente'}</span>
+        </div>
+        ${m.ok?`<div style="font-size:13px;color:var(--ink2);margin-top:6px;">${m.r}</div>`:''}
+      </div>`).join('')}
+    </div>`;
+}
+
+// ── REABILITAÇÃO ──
+function reabChecklist(p) {
+  const c = p.cl;
+  return `
+    ${checkRows([
+      ['Avaliação inicial realizada',c.avaliacao],
+      ['Relatório de avaliação (prazo 3 dias)',c.rel_aval],
+      ['Programação de atendimento definida',c.programacao],
+      ['Reavaliação Mês 1',c.reav1],
+      ['Reavaliação Mês 2',c.reav2],
+      ['Orientações domiciliares entregues',c.orientacoes],
+      ['Relatório de alta (no dia da alta)',c.rel_alta],
+    ])}
+    <div class="fg" style="margin-top:12px;">
+      <label class="fl">Programa</label>
+      <select class="fs"><option ${p.programa==='Intensivo 1M'?'selected':''}>Intensivo 1M — R$ 1.800</option><option ${p.programa==='Estrutural 3M'?'selected':''}>Estrutural 3M — R$ 3.600</option><option>Cuidado Contínuo — R$ 1.120/mês</option></select>
+    </div>
+    <div class="f2">
+      <div class="fg"><label class="fl">Sessões realizadas</label><input class="fi" type="number" value="${p.sessoes||0}"></div>
+      <div class="fg"><label class="fl">Total previsto</label><input class="fi" type="number" value="${p.totalSessoes||0}"></div>
+    </div>`;
+}
+
+function orientacoesPanel(p) {
+  return `
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('or-0',this)">Durante Tratamento</div>
+      <div class="tab" onclick="switchTab('or-1',this)">Para Alta</div>
+    </div>
+    <div id="or-0">
+      <div class="fg"><label class="fl">Orientações durante o tratamento</label><textarea class="ft" style="min-height:120px" placeholder="Ex: Evitar carregar peso acima de 5kg. Fazer os exercícios 2x ao dia..."></textarea></div>
+    </div>
+    <div id="or-1" style="display:none">
+      <div class="fg"><label class="fl">Orientações de alta e manutenção</label><textarea class="ft" style="min-height:120px" placeholder="Ex: Continuar os exercícios de fortalecimento. Retornar se houver recidiva..."></textarea></div>
+    </div>`;
+}
+
+// ── PILATES ──
+function pilatesDados(p) {
+  const dias = p.inicio ? Math.floor((new Date()-new Date(p.inicio.split('/').reverse().join('-')))/(1000*60*60*24)) : 0;
+  const meses = Math.floor(dias/30);
+  return `
+    <div class="card" style="text-align:center;margin-bottom:14px;">
+      <div style="font-family:'Fraunces',serif;font-size:42px;color:var(--teal)">${meses}</div>
+      <div style="font-size:13px;color:var(--ink3)">meses praticando Pilates</div>
+      <div style="font-size:12px;color:var(--ink3);margin-top:2px;">Desde ${p.inicio||'—'}</div>
+    </div>
+    <div class="fg"><label class="fl">Data de início</label><input class="fi" type="date" value="${p.inicio?p.inicio.split('/').reverse().join('-'):''}"></div>`;
+}
+
+function pilatesMyScore(p) {
+  const ms = (p.myscore||[])[0]||{};
+  const scores = [{k:'score_geral',l:'Score Geral'},{k:'bem_estar',l:'Bem-estar'},{k:'mobilidade',l:'Mobilidade'},{k:'flexibilidade',l:'Flexibilidade'},{k:'forca',l:'Força'},{k:'vo2',l:'VO2'}];
+  return `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <span class="chip ch-sage">Última: ${ms.data||'—'}</span>
+      <span class="chip ch-amber">Próxima: ${ms.proxima||'—'}</span>
+    </div>
+    <div class="f2" style="margin-bottom:12px;">
+      ${scores.map(s=>`<div class="fg">
+        <label class="fl">${s.l}</label>
+        <input class="fi" type="number" step="0.1" min="0" max="10" value="${ms[s.k]||''}">
+      </div>`).join('')}
+    </div>
+    <div class="fg"><label class="fl">Achados — Avaliação Postural</label><textarea class="ft" placeholder="Descreva os achados posturais...">${ms.achados_postural||''}</textarea></div>
+    <div class="fg"><label class="fl">Achados — Palmilha</label><textarea class="ft" placeholder="Observações sobre palmilha...">${ms.achados_palmilha||''}</textarea></div>
+    <div class="fg"><label class="fl">Próxima Avaliação</label><input class="fi" type="date" value="${ms.proxima?ms.proxima.split('/').reverse().join('-'):''}"></div>`;
+}
+
+function pilatesIndicacoes(p) {
+  return `
+    <div class="card" style="margin-bottom:12px;">
+      <div class="card-title" style="margin-bottom:10px;"><div class="ct-bar" style="background:var(--amber)"></div>Indicações Clínicas</div>
+      <div class="crow" onclick="this.querySelector('.cbox').classList.toggle('on');this.classList.toggle('done');">
+        <div class="cbox">✓</div>
+        <div class="ctxt">Indicação de Palmilha Ortopédica</div>
+      </div>
+      <div class="crow" onclick="this.querySelector('.cbox').classList.toggle('on');this.classList.toggle('done');">
+        <div class="cbox">✓</div>
+        <div class="ctxt">Indicação de Fisioterapia</div>
+      </div>
+    </div>
+    <div class="fg"><label class="fl">Observações sobre as indicações</label><textarea class="ft" placeholder="Descreva o motivo das indicações e encaminhamentos feitos..."></textarea></div>`;
+}
+
+// ── GERIATRIA ──
+function geriatriaChecklist(p) {
+  const c = p.cl;
+  return checkRows([
+    ['Avaliação inicial realizada',c.avaliacao],
+    ['Avaliação cognitiva sinalizada',c.cognitiva],
+    ['My Score aplicado',c.myscore],
+    ['Avaliação de mobilidade',c.mobilidade],
+    ['PTS elaborado',c.pts],
+    ['Serviços adicionais sugeridos',!!c.servicos_sugeridos],
+  ]);
+}
+
+function casaSegura(p) {
+  const cs = p.casa_segura||{};
+  return `
+    <div class="astrip info" style="margin-bottom:14px;">
+      <div class="astrip-icon">🏠</div>
+      <div><div class="astrip-title">Programa Casa Segura</div><div class="astrip-meta">Avaliação Domiciliar · Prazo: ${cs.prazo||'—'}</div></div>
+    </div>
+    ${checkRows([
+      ['Visita domiciliar realizada',cs.visita],
+      ['Reunião familiar inicial',cs.reuniao_inicial],
+      ['Relatório enviado',cs.relatorio],
+      ['Família contratou reparos',cs.reparos],
+      ['Laudo de entrega de adaptações',false],
+      ['Reunião final com família',false],
+    ])}
+    <div class="f2" style="margin-top:12px;">
+      <div class="fg"><label class="fl">Prazo do processo</label><input class="fi" type="date" value="${cs.prazo?cs.prazo.split('/').reverse().join('-'):''}"></div>
+      <div class="fg"><label class="fl">Responsável reparos</label><input class="fi" placeholder="Nome" value="${cs.responsavel_reparos||''}"></div>
+      <div class="fg fa"><label class="fl">Recursos utilizados</label><textarea class="ft" placeholder="Listar adaptações e recursos..."></textarea></div>
+      <div class="fg fa"><label class="fl">Pendências</label><textarea class="ft" placeholder="Sinalizar pendências..."></textarea></div>
+    </div>`;
+}
+
+// ── SAÚDE MENTAL ──
+function mentalChecklist(p) {
+  const c = p.cl;
+  return `
+    ${checkRows([
+      ['Acolhimento inicial realizado',c.acolhimento],
+      ['PTS elaborado',c.pts],
+      ['PTS aprovado pelo coordenador',c.aprovado],
+      ['Sugestão de serviços feita',c.sugestao_servicos],
+    ])}
+    <div class="fg" style="margin-top:12px;"><label class="fl">Sugestão de Serviços</label><textarea class="ft" placeholder="Ex: Indicar ateliê expressivo + acupuntura para ansiedade..."></textarea></div>`;
+}
+
+function ateliePanel() {
+  return `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <span style="font-size:13px;color:var(--ink3)">Memórias do Ateliê</span>
+      <button class="addbtn" onclick="openNovaMemoria()">+ Nova Memória</button>
+    </div>
+    <div class="card" style="margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <div style="font-size:14px;font-weight:600">Sessão 15/05/2025</div>
+        <span class="chip ch-teal">Registrada</span>
+      </div>
+      <div style="font-size:12px;color:var(--ink3);margin-bottom:6px;">Presentes: Clara, João, Ana, Pedro, Sofia</div>
+      <div style="font-size:13px;"><strong>Atividade:</strong> Colagem expressiva com revistas</div>
+      <div style="font-size:13px;margin-top:4px;"><strong>Motivo:</strong> Explorar narrativas pessoais e identidade</div>
+      <div style="font-size:13px;margin-top:4px;"><strong>Materiais:</strong> Revistas, tesoura, cola, cartolina</div>
+      <div style="font-size:13px;margin-top:4px;"><strong>Engajamento:</strong> Alto. Grupo participativo e comunicativo.</div>
+      <div style="font-size:13px;margin-top:4px;font-style:italic;color:var(--ink2)"><strong>Percepções:</strong> Clara trouxe imagens relacionadas a liberdade. João demonstrou dificuldade em escolhas.</div>
+    </div>`;
+}
+
+// ── GENERICOS ──
+function ptsGenerico(p) {
+  return `
+    <div class="pts-b"><div class="pts-bl">🎯 Hipótese Diagnóstica</div><textarea class="ft" style="background:transparent;border:none;padding:0" placeholder="Hipótese diagnóstica..."></textarea></div>
+    <div class="pts-b amber"><div class="pts-bl">📌 Objetivos</div><textarea class="ft" style="background:transparent;border:none;padding:0" placeholder="Objetivos terapêuticos..."></textarea></div>
+    <div class="pts-b violet"><div class="pts-bl">🔧 Ações</div><textarea class="ft" style="background:transparent;border:none;padding:0" placeholder="Ações planejadas..."></textarea></div>
+    <div class="pts-b"><div class="pts-bl">🏆 Metas</div><textarea class="ft" style="background:transparent;border:none;padding:0" placeholder="Metas de curto, médio e longo prazo..."></textarea></div>
+    <div class="fg" style="margin-top:8px;"><label class="fl">Prazo de Reavaliação</label><input class="fi" type="date"></div>`;
+}
+
+function checkRows(rows) {
+  return rows.map(([label,checked])=>`
+    <div class="crow ${checked?'done':''}" onclick="toggleCheck(this)">
+      <div class="cbox ${checked?'on':''}">${checked?'✓':''}</div>
+      <div class="ctxt">${label}</div>
+      <div class="cst ${checked?'ok':'pend'}">${checked?'Feito':'Pendente'}</div>
+    </div>`).join('');
+}
+
+function toggleCheck(el) {
+  el.classList.toggle('done');
+  const box = el.querySelector('.cbox');
+  const st = el.querySelector('.cst');
+  const on = box.classList.toggle('on');
+  box.textContent = on?'✓':'';
+  st.textContent = on?'Feito':'Pendente';
+  st.className = 'cst '+(on?'ok':'pend');
+}
+
+// ═══════════════════════════════════════
+// NOVO PACIENTE
+// ═══════════════════════════════════════
+function openNovoPaciente(linha) {
+  const cfg = LINHA_CONFIG[linha];
+  // Buscar profissionais da linha para o select
+  const profsLinha = MOCK.profissionais || [
+    {nome:'TO Juliana'},{nome:'Dr. Carlos'},{nome:'Dra. Paula'},{nome:'Dr. Paulo'},{nome:'TO Marcia'},{nome:'TO Beatriz'}
+  ];
+  document.getElementById('sheetTitle').textContent = '+ Novo Paciente — '+cfg.label;
+  document.getElementById('sheetBody').innerHTML = `
+    <div class="f2">
+      <div class="fg fa">
+        <label class="fl">Nome completo *</label>
+        <input class="fi" id="np_nome" placeholder="Nome completo do paciente">
+      </div>
+      <div class="fg">
+        <label class="fl">Data de nascimento</label>
+        <input class="fi" id="np_nasc" type="date">
+      </div>
+      <div class="fg">
+        <label class="fl">Telefone</label>
+        <input class="fi" id="np_tel" type="tel" placeholder="(11) 99999-9999">
+      </div>
+      ${linha==='infantil'||linha==='geriatria'?`
+      <div class="fg fa">
+        <label class="fl">Responsável</label>
+        <input class="fi" id="np_resp" placeholder="Nome e parentesco (ex: Maria — mãe)">
+      </div>`:''}
+      ${linha==='infantil'?`
+      <div class="fg fa">
+        <label class="fl">Escola</label>
+        <input class="fi" id="np_escola" placeholder="Nome da escola">
+      </div>`:''}
+      <div class="fg fa">
+        <label class="fl">Terapeuta responsável *</label>
+        <select class="fs" id="np_terapeuta">
+          <option value="">Selecionar...</option>
+          ${profsLinha.map(p=>`<option value="${p.nome}">${p.nome}</option>`).join('')}
+        </select>
+      </div>
+      <div class="fg fa">
+        <label class="fl">Serviços</label>
+        <div id="np_servicos" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
+          ${cfg.servicos.map(s=>`<label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;background:var(--surface2);padding:6px 12px;border-radius:20px;border:1px solid var(--border);">
+            <input type="checkbox" value="${s}" style="accent-color:var(--teal)"> ${s}
+          </label>`).join('')}
+        </div>
+      </div>
+      <div class="fg fa">
+        <label class="fl">Observações iniciais</label>
+        <textarea class="ft" id="np_obs" placeholder="Queixa principal, motivo do encaminhamento..."></textarea>
+      </div>
+    </div>
+    <div id="np_erro" style="display:none;background:var(--rose-lt);border:1px solid #f5b0c0;border-radius:8px;padding:10px 14px;font-size:13px;color:var(--rose);margin-bottom:10px;"></div>
+    <button class="savebtn" onclick="salvarNovoPaciente('${linha}')">Cadastrar Paciente</button>`;
+}
+
+async function salvarNovoPaciente(linha) {
+  const nome = document.getElementById('np_nome')?.value?.trim();
+  const terapeuta = document.getElementById('np_terapeuta')?.value;
+  const erro = document.getElementById('np_erro');
+
+  // Validação
+  if(!nome) { erro.textContent='Preencha o nome do paciente.'; erro.style.display='block'; return; }
+  if(!terapeuta) { erro.textContent='Selecione o terapeuta responsável.'; erro.style.display='block'; return; }
+  erro.style.display='none';
+
+  const nasc    = document.getElementById('np_nasc')?.value || null;
+  const tel     = document.getElementById('np_tel')?.value?.trim() || null;
+  const resp    = document.getElementById('np_resp')?.value?.trim() || null;
+  const escola  = document.getElementById('np_escola')?.value?.trim() || null;
+  const obs     = document.getElementById('np_obs')?.value?.trim() || null;
+  const servicos = [...(document.getElementById('np_servicos')?.querySelectorAll('input:checked')||[])].map(x=>x.value);
+
+  const btn = document.querySelector('.savebtn');
+  btn.textContent = 'Cadastrando...';
+  btn.disabled = true;
+
+  // Calcular idade a partir da data de nascimento
+  let idade = null;
+  if(nasc) {
+    const diff = Date.now() - new Date(nasc).getTime();
+    idade = Math.floor(diff / (1000*60*60*24*365.25));
+  }
+
+  const paciente = {
+    nome, linha,
+    data_nascimento: nasc,
+    telefone: tel,
+    responsavel: resp,
+    escola: escola,
+    servicos: servicos.length > 0 ? servicos : null,
+    observacoes: obs,
+    status: 'Ativo',
+    created_by: currentUser?.email || null
+  };
+
+  if(!demoMode && sbToken) {
+    // Salvar no Supabase
+    const {data, error} = await SB.insert('pacientes', paciente);
+    if(error) {
+      btn.textContent = 'Cadastrar Paciente';
+      btn.disabled = false;
+      erro.textContent = 'Erro ao salvar. Tente novamente.';
+      erro.style.display = 'block';
+      return;
+    }
+  }
+
+  // Adicionar ao mock local para aparecer imediatamente na tela
+  const novoPac = {
+    id: Date.now(),
+    nome, idade: idade||'—',
+    terapeuta, status:'Ativo',
+    servicos: servicos.length>0 ? servicos : [linha],
+    responsavel: resp, escola,
+    cl: {}
+  };
+  if(!MOCK.pacientes[linha]) MOCK.pacientes[linha] = [];
+  MOCK.pacientes[linha].push(novoPac);
+
+  showToast('✅ '+nome+' cadastrado!','ok');
+  // Voltar para lista da linha
+  openLinha(linha);
+}
+
+// ═══════════════════════════════════════
+// EQUIPE
+// ═══════════════════════════════════════
+function renderEquipe() {
+  if(currentRole==='profissional') return `<div class="page active"><div class="ph"><div class="ph-title">Acesso restrito</div></div></div>`;
+  // Coordenador can view team but not invite
+  const profs = [
+    {nome:'Dra. Ana Paula',email:'clinicaoliveira20@gmail.com',funcao:'Gestora/Sócia',nivel:'admin',linhas:'Todas',cor:'#1d6b58'},
+    {nome:'Dr. Carlos',email:'carlos@casaoliveira.com',funcao:'Fisioterapeuta Sênior',nivel:'profissional',linhas:'Reabilitação, Saúde da Mulher',cor:'#5b21b6'},
+    {nome:'TO Juliana',email:'juliana@casaoliveira.com',funcao:'Terapeuta Ocupacional',nivel:'coordenador',linhas:'Infantil, Geriatria',cor:'#c4600a'},
+    {nome:'Dra. Paula',email:'paula@casaoliveira.com',funcao:'Fisioterapeuta',nivel:'profissional',linhas:'Reabilitação',cor:'#1355a0'},
+  ];
+  return `
+  <div class="page active">
+    <div class="ph"><div class="ph-title">Equipe</div><div class="ph-sub">${profs.length} profissionais</div></div>
+    ${currentRole==='admin'?`
+    <div class="invite-card">
+      <div class="invite-title">✉️ Convidar Profissional</div>
+      <div class="f2">
+        <div class="fg fa"><label class="fl">Nome</label><input class="fi" id="invNome" placeholder="Nome completo"></div>
+        <div class="fg"><label class="fl">E-mail</label><input class="fi" id="invEmail" type="email" placeholder="email@casaoliveira.com"></div>
+        <div class="fg"><label class="fl">Nível</label><select class="fs" id="invNivel"><option value="profissional">Profissional</option><option value="coordenador">Coordenador(a)</option><option value="admin">Admin</option></select></div>
+        <div class="fg fa"><label class="fl">Linhas</label>
+          <div id="invLinhas" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
+            ${Object.entries(LINHA_CONFIG).map(([k,v])=>`<label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;"><input type="checkbox" value="${k}"> ${v.emoji} ${v.label}</label>`).join('')}
+          </div>
+        </div>
+      </div>
+      <button class="savebtn" style="margin-top:4px;" onclick="inviteProf()">📧 Enviar Convite</button>
+    </div>`:''}
+    ${profs.map(p=>`
+    <div class="prof-card">
+      <div class="prof-av" style="background:${p.cor}">${p.nome.split(' ').pop()[0]}</div>
+      <div style="flex:1">
+        <div class="prof-nm">${p.nome}</div>
+        <div class="prof-rl">${p.funcao}</div>
+        <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;">
+          <span class="chip ${p.nivel==='admin'?'ch-teal':p.nivel==='coordenador'?'ch-violet':'ch-sky'}">${roleLabel(p.nivel)}</span>
+          <span class="chip ch-gray">${p.linhas}</span>
+        </div>
+      </div>
+    </div>`).join('')}
+  </div>`;
+}
+
+// ═══════════════════════════════════════
+// ALERTAS
+// ═══════════════════════════════════════
+function renderAlertas() {
+  return `
+  <div class="page active">
+    <div class="ph"><div class="ph-title">Alertas</div><div class="ph-sub">Pendências e prazos</div></div>
+    <div class="card">
+      <div class="card-title"><div class="ct-bar" style="background:var(--rose)"></div>Críticos</div>
+      <div class="astrip critical"><div class="astrip-icon">🔴</div><div><div class="astrip-title">Sofia Campos — PTS aguardando aprovação</div><div class="astrip-meta">Infantil • TO Juliana → Coordenador</div></div></div>
+      <div class="astrip critical"><div class="astrip-icon">🔴</div><div><div class="astrip-title">Antônio Silva — Relatório de avaliação vence HOJE</div><div class="astrip-meta">Reabilitação • Prazo: 3 dias após avaliação</div></div></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><div class="ct-bar" style="background:var(--amber)"></div>Alta Prioridade</div>
+      <div class="astrip warn"><div class="astrip-icon">🟡</div><div><div class="astrip-title">Roberto Lima — Relatório Casa Segura pendente</div><div class="astrip-meta">Geriatria • Prazo: 30/06/2025</div></div></div>
+      <div class="astrip warn"><div class="astrip-icon">🟡</div><div><div class="astrip-title">Clara Mendes — PTS aguardando aprovação</div><div class="astrip-meta">Saúde Mental • TO Beatriz → Coordenador</div></div></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><div class="ct-bar" style="background:var(--sky)"></div>Próximos 30 dias</div>
+      <div class="tl-item"><div class="tl-dot soon">!</div><div><div class="tl-title">Reavaliação PTS — Lucas Oliveira</div><div class="tl-meta">10/07/2025 • Infantil</div></div></div>
+      <div class="tl-item"><div class="tl-dot soon">!</div><div><div class="tl-title">My Score — Patricia Rocha</div><div class="tl-meta">20/07/2025 • Pilates</div></div></div>
+      <div class="tl-item"><div class="tl-dot future">📅</div><div><div class="tl-title">Devolutiva família — Sofia Campos</div><div class="tl-meta">20/06/2025 • Infantil</div></div></div>
+      <div class="tl-item"><div class="tl-dot future">📅</div><div><div class="tl-title">Monitoramento pós-alta — Maria Santos</div><div class="tl-meta">01/06/2025 • Saúde da Mulher</div></div></div>
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════
+// FINANCEIRO
+// ═══════════════════════════════════════
+function renderFinanceiro() {
+  if(currentRole!=='admin') return `<div class="page active"><div class="ph"><div class="ph-title">Acesso restrito</div></div></div>`;
+  return `
+  <div class="page active">
+    <div class="ph"><div class="ph-title">Financeiro</div><div class="ph-sub">Cenários e DRE</div></div>
+    <div class="card">
+      <div class="card-title"><div class="ct-bar" style="background:var(--teal)"></div>DRE — Mês Atual</div>
+      ${[['Faturamento Bruto (48 pac.)','R$ 46.400','sky'],['(-) Imposto 6%','- R$ 2.784','red'],['(-) Equipe','- R$ 11.400','red'],['(-) Marketing','- R$ 2.000','red'],['(-) Insumos','- R$ 200','red'],['Lucro Líquido','R$ 30.016','green'],['Pro-labore / Sócia','R$ 15.008','green']].map(([l,v,c])=>`
+      <div class="fin-row"><div class="fin-lbl">${l}</div><div class="fin-val ${c}" style="${c==='green'?"font-family:'Fraunces',serif;font-size:20px":''}">${v}</div></div>`).join('')}
+    </div>
+    <div class="ph-sub" style="margin:4px 0 10px;font-weight:700;color:var(--ink);">Cenários de Crescimento</div>
+    <div class="scen curr"><div class="scen-lbl">🟡 Atual — 48 pacientes</div><div class="scen-val">R$ 15.008 / sócia</div><div class="scen-meta">4 pac/h • Confortável • Fat. R$ 46.400</div></div>
+    <div class="scen good"><div class="scen-lbl">✅ + Sextas-Feiras — 60 pacientes</div><div class="scen-val" style="color:var(--teal)">R$ 20.010 / sócia</div><div class="scen-meta">4 pac/h • Meta atingida • Fat. R$ 58.000</div></div>
+    <div class="scen warn2"><div class="scen-lbl">⚠️ 6 pac/hora — 72 pacientes</div><div class="scen-val">R$ 25.212 / sócia</div><div class="scen-meta">Densidade crítica • Fat. R$ 69.600</div></div>
+    <div class="scen warn2"><div class="scen-lbl">⚠️ Escala Máxima — 90 pacientes</div><div class="scen-val">R$ 32.890 / sócia</div><div class="scen-meta">Limite operacional • Fat. R$ 87.000</div></div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════
+// SHEET HELPERS
+// ═══════════════════════════════════════
+function openSheet(){document.getElementById('sheetOv').classList.add('open');}
+function closeSheet(){document.getElementById('sheetOv').classList.remove('open');}
+function maybeCloseSheet(e){if(e.target===document.getElementById('sheetOv'))closeSheet();}
+function openUserMenu(){
+  document.getElementById('umName').textContent=currentUser.nome;
+  document.getElementById('umEmail').textContent=currentUser.email;
+  document.getElementById('umEquipeItem').style.display=currentRole==='admin'?'flex':'none';
+  document.getElementById('umenuOv').classList.add('open');
+}
+function closeMenu(){document.getElementById('umenuOv').classList.remove('open');}
+function maybeCloseMenu(e){if(e.target===document.getElementById('umenuOv'))closeMenu();}
+function switchTab(id,el){
+  // Find the closest tab container to scope hiding correctly
+  const target = document.getElementById(id);
+  if(!target) return;
+  // Determine prefix (pt- or or-) and only hide siblings with same prefix
+  const prefix = id.replace(/\d+$/,'');
+  const parent = target.parentElement;
+  // Hide all siblings with same prefix
+  parent.querySelectorAll('[id]').forEach(x=>{
+    if(x.id.startsWith(prefix)) x.style.display='none';
+  });
+  target.style.display='block';
+  // Only deactivate tabs in the same tab bar (closest .tabs sibling)
+  let tabBar = parent.querySelector('.tabs');
+  if(!tabBar){
+    // tabs bar is a sibling before the content divs
+    let sib = parent.previousElementSibling;
+    while(sib){ if(sib.classList&&sib.classList.contains('tabs')){tabBar=sib;break;} sib=sib.previousElementSibling; }
+  }
+  if(tabBar) tabBar.querySelectorAll('.tab').forEach(e=>e.classList.remove('active'));
+  el.classList.add('active');
+}
+function showToast(msg,type){
+  const t=document.getElementById('toastEl');
+  t.textContent=msg; t.className='toast show'+(type?' '+type:'');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),3000);
+}
+function saveOk(msg){showToast(msg||'✅ Salvo!','ok');}
+function aprovarPTS(){showToast('✅ PTS aprovado!','ok');}
+async function inviteProf(){
+  const email = document.getElementById('invEmail')?.value?.trim();
+  const nome  = document.getElementById('invNome')?.value?.trim();
+  const nivel = document.getElementById('invNivel')?.value || 'profissional';
+  if(!email){showToast('Preencha o e-mail','err');return;}
+  if(!nome){showToast('Preencha o nome','err');return;}
+  showToast('Enviando convite...','');
+  // 1. Create user in Supabase Auth via invite
+  try {
+    const r = await fetch(SB_URL+'/auth/v1/invite', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':SB_KEY,'Authorization':'Bearer '+sbToken},
+      body:JSON.stringify({email})
+    });
+    const d = await r.json();
+    if(!r.ok && !d.id) {
+      // If invite fails (user may already exist), still add to profissionais table
+    }
+  } catch(e){}
+  // 2. Add to profissionais table
+  const linhasSel = [...document.querySelectorAll('#invLinhas input:checked')].map(x=>x.value);
+  await SB.insert('profissionais',{nome, email, nivel_acesso:nivel});
+  showToast('📧 Convite enviado para '+email,'ok');
+}
+function openNovaAvaliacao(){showToast('Em breve: adicionar avaliação','ok');}
+function openNovaReuniao(){showToast('Em breve: agendar reunião','ok');}
+function openNovaMemoria(){showToast('Em breve: nova memória de ateliê','ok');}
+
+// ═══════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════
+window.addEventListener('DOMContentLoaded', async ()=>{
+  // Try to restore session from localStorage
+  const savedToken = localStorage.getItem('co_token');
+  const savedUser  = localStorage.getItem('co_user');
+  if(savedToken && savedUser) {
+    try {
+      sbToken = savedToken;
+      currentUser = JSON.parse(savedUser);
+      currentRole = currentUser.role;
+      // Verify token is still valid
+      const check = await SB.query('profissionais', `email=eq.${encodeURIComponent(currentUser.email)}&select=nivel_acesso&limit=1`);
+      if(check && check.length > 0) {
+        // Token valid - go straight to app
+        document.getElementById('splash').classList.add('hide');
+        startApp();
+        return;
+      }
+    } catch(e) {}
+    // Token invalid - clear and show login
+    localStorage.removeItem('co_token');
+    localStorage.removeItem('co_user');
+  }
+  setTimeout(()=>{
+    document.getElementById('splash').classList.add('hide');
+    document.getElementById('loginScreen').style.display='flex';
+  },1200);
+});
+window.addEventListener('resize',()=>{
+  const app=document.getElementById('app');
+  if(app.style.display!=='none') app.style.display=window.innerWidth>=768?'grid':'block';
+});
+</script>
+</body>
+</html>
