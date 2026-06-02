@@ -1,0 +1,1340 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>Casa Oliveira</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#faf8f5;--sur:#fff;--sur2:#f3f0eb;--bor:#e8e2d9;--bor2:#d4cdc0;
+  --ink:#1c1a17;--ink2:#6b6560;--ink3:#a09890;
+  --teal:#1d6b58;--teal-lt:#e8f4f0;
+  --amber:#c4600a;--amber-lt:#fef3e8;
+  --rose:#b81a3a;--rose-lt:#fde8ee;
+  --violet:#5b21b6;--violet-lt:#ede8fd;
+  --sky:#1355a0;--sky-lt:#e8eeff;
+  --sage:#3d6b3a;--sage-lt:#eaf4e8;
+  --r:14px;--r-sm:8px;--r-lg:20px;
+  --sh:0 1px 4px rgba(28,26,23,.06),0 4px 16px rgba(28,26,23,.06);
+  --sh-lg:0 4px 24px rgba(28,26,23,.14);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);overflow-x:hidden;}
+button,input,select,textarea{font-family:'DM Sans',sans-serif;}
+button{cursor:pointer;border:none;outline:none;}
+input,select,textarea{outline:none;}
+
+/* SPLASH */
+#splash{position:fixed;inset:0;background:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;transition:opacity .5s;}
+#splash.hide{opacity:0;pointer-events:none;}
+.sp-logo{font-family:'Fraunces',serif;font-size:52px;color:#faf8f5;letter-spacing:-1px;}
+.sp-sub{font-size:11px;color:#555;letter-spacing:3px;text-transform:uppercase;margin-top:6px;}
+.sp-spin{width:28px;height:28px;border:2px solid #333;border-top-color:#faf8f5;border-radius:50%;animation:spin .7s linear infinite;margin-top:28px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* CONFIG BANNER */
+#configBanner{display:none;min-height:100vh;background:var(--ink);flex-direction:column;align-items:center;justify-content:center;padding:28px;}
+.cfg-logo{font-family:'Fraunces',serif;font-size:44px;color:#faf8f5;text-align:center;}
+.cfg-sub{font-size:11px;color:#555;letter-spacing:2px;text-transform:uppercase;margin-top:4px;text-align:center;margin-bottom:32px;}
+.cfg-card{width:100%;max-width:400px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:var(--r-lg);padding:28px 24px;}
+.cfg-title{font-size:13px;font-weight:700;color:#2d9175;text-transform:uppercase;letter-spacing:.8px;margin-bottom:18px;}
+.cfg-label{display:block;font-size:11px;color:#666;text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px;margin-top:14px;}
+.cfg-input{width:100%;padding:12px 14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:var(--r-sm);color:#faf8f5;font-size:14px;}
+.cfg-input:focus{border-color:#2d9175;}
+.cfg-btn{width:100%;padding:14px;background:var(--teal);color:#faf8f5;border-radius:var(--r-sm);font-size:15px;font-weight:700;margin-top:20px;}
+.cfg-hint{margin-top:14px;font-size:12px;color:#555;line-height:1.6;text-align:center;}
+.cfg-hint a{color:#2d9175;}
+.cfg-steps{margin-top:20px;text-align:left;}
+.cfg-step{display:flex;gap:10px;font-size:13px;color:#888;margin-bottom:10px;align-items:flex-start;}
+.cfg-step-n{width:20px;height:20px;background:rgba(45,145,117,.2);color:#2d9175;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px;}
+
+/* LOGIN */
+#loginScreen{display:none;min-height:100vh;background:var(--ink);align-items:center;justify-content:center;padding:24px;flex-direction:column;}
+.login-logo{font-family:'Fraunces',serif;font-size:52px;color:#faf8f5;text-align:center;letter-spacing:-1px;}
+.login-sub{font-size:11px;color:#555;letter-spacing:3px;text-transform:uppercase;text-align:center;margin-top:4px;margin-bottom:36px;}
+.login-card{width:100%;max-width:360px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--r-lg);padding:28px 24px;}
+.lf{margin-bottom:16px;}
+.lf label{display:block;font-size:11px;font-weight:600;color:#666;text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px;}
+.lf input{width:100%;padding:13px 15px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:var(--r-sm);color:#faf8f5;font-size:15px;}
+.lf input::placeholder{color:#444;}
+.lf input:focus{border-color:#2d9175;}
+.login-btn{width:100%;padding:15px;background:var(--teal);color:#faf8f5;border-radius:var(--r-sm);font-size:15px;font-weight:600;margin-top:6px;transition:background .2s;}
+.login-btn:active{background:#155a47;}
+.login-err{background:rgba(184,26,58,.15);border:1px solid rgba(184,26,58,.3);border-radius:6px;padding:9px 13px;font-size:13px;color:#f88;margin-bottom:14px;display:none;}
+.demo-section{margin-top:24px;border-top:1px solid rgba(255,255,255,.06);padding-top:18px;}
+.demo-title{font-size:11px;color:#555;text-transform:uppercase;letter-spacing:.8px;text-align:center;margin-bottom:10px;}
+.demo-pills{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
+.demo-pill{padding:6px 14px;border:1px solid rgba(255,255,255,.12);border-radius:20px;font-size:12px;color:#888;cursor:pointer;transition:all .2s;}
+.demo-pill:hover{border-color:#2d9175;color:#2d9175;}
+.change-api{margin-top:16px;text-align:center;font-size:12px;color:#444;cursor:pointer;}
+.change-api:hover{color:#666;}
+
+/* APP */
+#app{display:none;min-height:100vh;padding-bottom:72px;}
+
+/* TOPBAR */
+.topbar{position:sticky;top:0;z-index:200;height:56px;background:rgba(250,248,245,.94);border-bottom:1px solid var(--bor);display:flex;align-items:center;justify-content:space-between;padding:0 18px;backdrop-filter:blur(12px);}
+.tb-logo{font-family:'Fraunces',serif;font-size:20px;letter-spacing:-.5px;}
+.tb-right{display:flex;align-items:center;gap:10px;}
+.tb-role{font-size:10px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:.8px;}
+.tb-btn{width:34px;height:34px;border-radius:50%;background:var(--sur2);border:1px solid var(--bor);display:flex;align-items:center;justify-content:center;font-size:17px;cursor:pointer;position:relative;}
+.tb-dot{position:absolute;top:6px;right:6px;width:7px;height:7px;background:var(--rose);border-radius:50%;border:1.5px solid var(--bg);}
+
+/* BOTTOM NAV */
+.bnav{position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(250,248,245,.96);border-top:1px solid var(--bor);display:flex;padding:6px 0 max(6px,env(safe-area-inset-bottom));backdrop-filter:blur(16px);}
+.bnt{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 4px;cursor:pointer;color:var(--ink3);font-size:10px;font-weight:500;position:relative;}
+.bnt.active{color:var(--teal);}
+.bnt-icon{font-size:20px;line-height:1;}
+.bnt-bar{position:absolute;top:-1px;left:50%;transform:translateX(-50%);width:24px;height:3px;background:var(--teal);border-radius:0 0 3px 3px;display:none;}
+.bnt.active .bnt-bar{display:block;}
+.bnt-badge{position:absolute;top:3px;right:calc(50% - 18px);width:7px;height:7px;background:var(--rose);border-radius:50%;border:1.5px solid var(--bg);}
+
+/* PAGES */
+.page{display:none;padding:18px 18px 0;animation:pi .22s ease;}
+.page.active{display:block;}
+@keyframes pi{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+.ph{margin-bottom:18px;}
+.ph-title{font-family:'Fraunces',serif;font-size:30px;letter-spacing:-.5px;}
+.ph-sub{font-size:13px;color:var(--ink3);margin-top:3px;}
+
+/* CARDS */
+.card{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);padding:18px;margin-bottom:12px;box-shadow:var(--sh);}
+.card-title{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--ink2);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+.ct-bar{width:3px;height:14px;border-radius:2px;flex-shrink:0;}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.stat{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);padding:16px 14px;box-shadow:var(--sh);cursor:pointer;position:relative;overflow:hidden;}
+.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.stat.teal::before{background:var(--teal);}
+.stat.amber::before{background:var(--amber);}
+.stat.rose::before{background:var(--rose);}
+.stat.violet::before{background:var(--violet);}
+.stat.sky::before{background:var(--sky);}
+.stat.sage::before{background:var(--sage);}
+.stat-e{font-size:22px;margin-bottom:8px;}
+.stat-n{font-family:'Fraunces',serif;font-size:32px;line-height:1;}
+.stat-l{font-size:11px;color:var(--ink3);margin-top:3px;font-weight:500;}
+
+/* CHIPS */
+.chip{display:inline-flex;align-items:center;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;}
+.ch-teal{background:var(--teal-lt);color:var(--teal);}
+.ch-amber{background:var(--amber-lt);color:var(--amber);}
+.ch-rose{background:var(--rose-lt);color:var(--rose);}
+.ch-violet{background:var(--violet-lt);color:var(--violet);}
+.ch-sky{background:var(--sky-lt);color:var(--sky);}
+.ch-sage{background:var(--sage-lt);color:var(--sage);}
+.ch-gray{background:var(--sur2);color:var(--ink3);}
+
+/* ALERT STRIP */
+.astrip{display:flex;gap:12px;padding:12px 14px;border-radius:var(--r-sm);margin-bottom:8px;cursor:pointer;}
+.astrip.crit{background:var(--rose-lt);border:1px solid #f5b0c0;}
+.astrip.warn{background:var(--amber-lt);border:1px solid #f5d5b0;}
+.astrip.info{background:var(--sky-lt);border:1px solid #b0c8f5;}
+.astrip-icon{font-size:18px;flex-shrink:0;margin-top:1px;}
+.astrip-title{font-size:13px;font-weight:600;}
+.astrip-meta{font-size:11px;color:var(--ink3);margin-top:2px;}
+
+/* TIMELINE */
+.tl-item{display:flex;gap:12px;padding-bottom:14px;position:relative;}
+.tl-item::before{content:'';position:absolute;left:10px;top:22px;bottom:0;width:1px;background:var(--bor);}
+.tl-item:last-child::before{display:none;}
+.tl-dot{width:22px;height:22px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;}
+.tl-dot.done{background:var(--teal);}
+.tl-dot.soon{background:var(--amber);}
+.tl-dot.future{background:var(--sky);}
+.tl-title{font-size:13px;font-weight:600;}
+.tl-meta{font-size:11px;color:var(--ink3);margin-top:1px;}
+
+/* PATIENT CARD */
+.pc{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);padding:16px;margin-bottom:10px;box-shadow:var(--sh);cursor:pointer;}
+.pc-name{font-size:15px;font-weight:600;margin-bottom:2px;}
+.pc-meta{font-size:12px;color:var(--ink3);margin-bottom:8px;}
+.pc-chips{display:flex;gap:5px;flex-wrap:wrap;}
+.pbar{height:4px;background:var(--sur2);border-radius:2px;overflow:hidden;margin:6px 0;}
+.pfill{height:100%;border-radius:2px;}
+
+/* SHEET */
+.sov{position:fixed;inset:0;background:rgba(28,26,23,.5);z-index:500;display:none;align-items:flex-end;backdrop-filter:blur(3px);}
+.sov.open{display:flex;animation:oi .2s ease;}
+@keyframes oi{from{opacity:0}to{opacity:1}}
+.sheet{background:var(--bg);border-radius:22px 22px 0 0;width:100%;max-height:94vh;overflow-y:auto;animation:su .3s cubic-bezier(.32,.72,0,1);}
+@keyframes su{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sh-handle{width:36px;height:4px;background:var(--bor);border-radius:2px;margin:12px auto 0;}
+.sh-hd{padding:18px 18px 0;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
+.sh-title{font-family:'Fraunces',serif;font-size:26px;letter-spacing:-.5px;}
+.sh-close{width:30px;height:30px;border-radius:50%;background:var(--sur2);display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--ink3);cursor:pointer;flex-shrink:0;margin-top:4px;}
+.sh-body{padding:18px;}
+
+/* TABS */
+.tabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;margin-bottom:18px;scrollbar-width:none;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{flex-shrink:0;padding:7px 15px;border-radius:20px;font-size:13px;font-weight:600;background:var(--sur2);color:var(--ink3);cursor:pointer;border:1px solid var(--bor);transition:all .15s;}
+.tab.active{background:var(--teal);color:#fff;border-color:var(--teal);}
+
+/* FORM */
+.fg{margin-bottom:14px;}
+.fl{display:block;font-size:11px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;}
+.fi,.fs,.ft{width:100%;padding:12px 14px;background:var(--sur);border:1px solid var(--bor);border-radius:var(--r-sm);color:var(--ink);font-size:14px;transition:border-color .15s;}
+.fi:focus,.fs:focus,.ft:focus{border-color:var(--teal);}
+.ft{resize:vertical;min-height:72px;line-height:1.5;}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.fa{grid-column:1/-1;}
+
+/* CHECKLIST */
+.crow{display:flex;align-items:center;gap:11px;padding:12px 14px;background:var(--sur);border:1px solid var(--bor);border-radius:var(--r-sm);margin-bottom:7px;cursor:pointer;}
+.cbox{width:20px;height:20px;border-radius:5px;border:2px solid var(--bor2);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;transition:all .15s;}
+.cbox.on{background:var(--teal);border-color:var(--teal);color:#fff;}
+.ctxt{flex:1;font-size:14px;}
+.crow.done .ctxt{color:var(--ink3);text-decoration:line-through;}
+.cst{font-size:11px;font-weight:600;}
+.cst.ok{color:var(--teal);}
+.cst.pend{color:var(--amber);}
+
+/* PTS BLOCKS */
+.pts-b{border-left:3px solid var(--teal);background:var(--teal-lt);border-radius:0 var(--r-sm) var(--r-sm) 0;padding:12px 14px;margin-bottom:10px;}
+.pts-b.amber{border-color:var(--amber);background:var(--amber-lt);}
+.pts-b.violet{border-color:var(--violet);background:var(--violet-lt);}
+.pts-bl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--teal);margin-bottom:6px;}
+.pts-b.amber .pts-bl{color:var(--amber);}
+.pts-b.violet .pts-bl{color:var(--violet);}
+
+/* PTS VERSION */
+.pts-ver{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--sur);border:1px solid var(--bor);border-radius:var(--r-sm);margin-bottom:8px;}
+.pts-ver-v{font-family:'Fraunces',serif;font-size:16px;color:var(--ink2);min-width:36px;}
+
+/* BUTTONS */
+.savebtn{width:100%;padding:15px;background:var(--teal);color:#fff;border-radius:var(--r-sm);font-size:15px;font-weight:700;box-shadow:0 4px 16px rgba(29,107,88,.2);transition:background .15s;margin-top:8px;}
+.savebtn:active{background:#155a47;}
+.savebtn:disabled{background:var(--ink3);box-shadow:none;}
+.addbtn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:var(--teal);color:#fff;border-radius:20px;font-size:13px;font-weight:600;}
+.addbtn:active{background:#155a47;}
+.backbtn{display:inline-flex;align-items:center;gap:4px;padding:6px 14px;background:var(--sur2);border:1px solid var(--bor);border-radius:20px;font-size:13px;font-weight:600;color:var(--ink2);}
+
+/* ERROR BOX */
+.errbox{background:var(--rose-lt);border:1px solid #f5b0c0;border-radius:var(--r-sm);padding:10px 14px;font-size:13px;color:var(--rose);margin-bottom:12px;display:none;}
+
+/* LINE CARDS */
+.line-card{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);padding:16px 18px;margin-bottom:10px;box-shadow:var(--sh);cursor:pointer;display:flex;align-items:center;gap:14px;}
+.line-e{font-size:28px;flex-shrink:0;}
+.line-nm{font-family:'Fraunces',serif;font-size:18px;}
+.line-sv{font-size:12px;color:var(--ink3);margin-top:2px;}
+.line-stats{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
+
+/* PROFISSIONAIS */
+.prof-card{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;box-shadow:var(--sh);}
+.prof-av{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;flex-shrink:0;}
+.prof-nm{font-size:14px;font-weight:600;}
+.prof-rl{font-size:12px;color:var(--ink3);margin-top:1px;}
+.invite-card{background:var(--teal-lt);border:1px solid #b0ddd5;border-radius:var(--r);padding:18px;margin-bottom:14px;}
+.invite-title{font-size:13px;font-weight:700;color:var(--teal);margin-bottom:14px;}
+
+/* FINANCEIRO */
+.fin-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--bor);}
+.fin-row:last-child{border-bottom:none;}
+.fin-lbl{font-size:14px;color:var(--ink2);}
+.fin-val{font-size:14px;font-weight:700;}
+.fin-val.green{color:var(--teal);}
+.fin-val.red{color:var(--rose);}
+.fin-val.big{font-family:'Fraunces',serif;font-size:22px;}
+.scen{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);padding:16px;margin-bottom:10px;border-left:4px solid var(--bor);}
+.scen.curr{border-left-color:var(--teal);}
+.scen.good{border-left-color:var(--sky);}
+.scen.warn{border-left-color:var(--amber);}
+.scen-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--ink3);margin-bottom:6px;}
+.scen-val{font-family:'Fraunces',serif;font-size:26px;}
+.scen-meta{font-size:12px;color:var(--ink3);margin-top:3px;}
+
+/* LOADING INLINE */
+.loading-inline{text-align:center;padding:36px;color:var(--ink3);font-size:14px;}
+.loading-spin{width:24px;height:24px;border:2px solid var(--bor);border-top-color:var(--teal);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px;}
+
+/* DESKTOP */
+@media(min-width:768px){
+  #app{display:grid!important;grid-template-columns:240px 1fr;grid-template-rows:56px 1fr;padding-bottom:0;min-height:100vh;}
+  .topbar{grid-column:1/-1;}
+  .bnav{display:none;}
+  .sidebar{display:flex!important;flex-direction:column;background:var(--sur);border-right:1px solid var(--bor);overflow-y:auto;}
+  .page{padding:28px;}
+  .stats-grid{grid-template-columns:repeat(3,1fr);}
+  .sov.open{align-items:center;}
+  .sheet{max-width:600px;margin:auto;border-radius:var(--r-lg);}
+  .sh-body{padding:28px;}
+}
+.sidebar{display:none;}
+.sd-logo{font-family:'Fraunces',serif;font-size:20px;padding:16px 18px 14px;border-bottom:1px solid var(--bor);}
+.sd-sec{font-size:10px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:1px;padding:10px 18px 3px;}
+.sd-item{display:flex;align-items:center;gap:9px;padding:11px 18px;cursor:pointer;color:var(--ink2);font-size:13px;font-weight:500;border-left:3px solid transparent;transition:all .15s;}
+.sd-item:hover{background:var(--sur2);}
+.sd-item.active{color:var(--teal);background:var(--teal-lt);border-left-color:var(--teal);}
+.sd-icon{font-size:17px;width:20px;text-align:center;}
+
+/* USER MENU */
+.umenu-item{display:flex;align-items:center;gap:12px;padding:15px 18px;border-bottom:1px solid var(--bor);cursor:pointer;font-size:14px;font-weight:500;}
+.umenu-item:last-child{border-bottom:none;}
+.umenu-item:active{background:var(--sur2);}
+.umenu-item.danger{color:var(--rose);}
+.umenu-icon{font-size:18px;width:24px;text-align:center;}
+
+/* TOAST */
+.toast{position:fixed;top:66px;left:50%;transform:translateX(-50%) translateY(-16px);background:var(--ink);color:#faf8f5;padding:10px 18px;border-radius:30px;font-size:13px;font-weight:600;z-index:9990;white-space:nowrap;opacity:0;transition:all .25s;pointer-events:none;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.ok{background:var(--teal);}
+.toast.err{background:var(--rose);}
+</style>
+</head>
+<body>
+
+<div id="splash">
+  <div class="sp-logo">Casa Oliveira</div>
+  <div class="sp-sub">Sistema Clínico</div>
+  <div class="sp-spin"></div>
+</div>
+
+<!-- CONFIG -->
+<div id="configBanner">
+  <div class="cfg-logo">Casa Oliveira</div>
+  <div class="cfg-sub">Sistema Clínico</div>
+  <div class="cfg-card">
+    <div class="cfg-title">🔧 Configurar API</div>
+    <div class="cfg-hint">Cole abaixo o URL do Apps Script que você implantou na planilha.</div>
+    <label class="cfg-label">URL do Apps Script</label>
+    <input class="cfg-input" id="cfgUrl" type="url" placeholder="https://script.google.com/macros/s/...">
+    <button class="cfg-btn" onclick="salvarConfig()">Salvar e Entrar →</button>
+    <div class="cfg-steps" style="margin-top:20px;">
+      <div style="font-size:11px;color:#555;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;">Como obter o URL:</div>
+      <div class="cfg-step"><div class="cfg-step-n">1</div><div>Abra a planilha Casa Oliveira no Google Drive</div></div>
+      <div class="cfg-step"><div class="cfg-step-n">2</div><div>Extensões → Apps Script → cole o código do arquivo <strong>apps-script-api.js</strong></div></div>
+      <div class="cfg-step"><div class="cfg-step-n">3</div><div>Rode a função <strong>setupAdmin()</strong> uma vez</div></div>
+      <div class="cfg-step"><div class="cfg-step-n">4</div><div>Implantar → Nova implantação → App da Web → Qualquer pessoa → Copie o URL</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-logo">Casa Oliveira</div>
+  <div class="login-sub">Sistema Clínico</div>
+  <div class="login-card">
+    <div id="loginErr" class="login-err"></div>
+    <div class="lf"><label>E-mail</label><input id="lEmail" type="email" placeholder="seu@email.com" autocomplete="email"></div>
+    <div class="lf"><label>Senha</label><input id="lPass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <button class="login-btn" id="loginBtn" onclick="doLogin()">Entrar →</button>
+    <div class="demo-section">
+      <div class="demo-title">Modo demonstração</div>
+      <div class="demo-pills">
+        <div class="demo-pill" onclick="demoLogin('admin')">👑 Gestora</div>
+        <div class="demo-pill" onclick="demoLogin('coordenador')">📋 Coordenadora</div>
+        <div class="demo-pill" onclick="demoLogin('profissional')">👩‍⚕️ Profissional</div>
+      </div>
+    </div>
+  </div>
+  <div class="change-api" onclick="showConfig()">⚙️ Alterar configuração da API</div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="tb-logo">Casa Oliveira</div>
+    <div class="tb-right">
+      <div class="tb-role" id="roleLabel"></div>
+      <div class="tb-btn" onclick="loadPage('alertas')">🔔<div class="tb-dot" id="notifDot" style="display:none"></div></div>
+      <div class="tb-btn" id="avatarBtn" onclick="openUserMenu()">A</div>
+    </div>
+  </div>
+  <div class="sidebar" id="sidebarEl"></div>
+  <div id="mainArea" style="overflow-y:auto;min-width:0;">
+    <div id="pgHome"      class="page"></div>
+    <div id="pgLinhas"    class="page"></div>
+    <div id="pgEquipe"    class="page"></div>
+    <div id="pgFinanceiro"class="page"></div>
+    <div id="pgAlertas"   class="page"></div>
+  </div>
+  <nav class="bnav" id="bnavEl"></nav>
+</div>
+
+<!-- MAIN SHEET -->
+<div class="sov" id="sheetOv" onclick="maybeCloseSheet(event)">
+  <div class="sheet" id="sheetEl">
+    <div class="sh-handle"></div>
+    <div class="sh-hd">
+      <div class="sh-title" id="sheetTitle"></div>
+      <div class="sh-close" onclick="closeSheet()">✕</div>
+    </div>
+    <div class="sh-body" id="sheetBody"></div>
+  </div>
+</div>
+
+<!-- USER MENU -->
+<div class="sov" id="umOv" onclick="maybeCloseMenu(event)">
+  <div class="sheet" style="max-height:46vh;">
+    <div class="sh-handle"></div>
+    <div style="padding:16px 18px 0;">
+      <div style="font-family:'Fraunces',serif;font-size:22px;" id="umName"></div>
+      <div style="font-size:12px;color:var(--ink3);margin-top:2px;" id="umEmail"></div>
+    </div>
+    <div style="margin-top:12px;">
+      <div class="umenu-item" id="umEquipe" onclick="loadPage('equipe');closeMenu();"><span class="umenu-icon">👥</span>Gerenciar equipe</div>
+      <div class="umenu-item" onclick="showAlterarSenha()"><span class="umenu-icon">🔑</span>Alterar senha</div>
+      <div class="umenu-item danger" onclick="doLogout()"><span class="umenu-icon">🚪</span>Sair</div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toastEl"></div>
+
+<script>
+'use strict';
+// ═══════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════
+let API_URL = localStorage.getItem('co_api_url') || 'https://script.google.com/macros/s/AKfycbxhLD21EEdZN-1Treo0ZTvt5kdslTDx06p7cGZ2BmbxMbPQInGW_aK02Wa1KDTSW_rB/exec';
+let currentUser = null;
+let currentRole = null;
+let authToken = null;
+let demoMode = false;
+let _profsCache = null;
+
+// ═══════════════════════════════════════════════
+// API
+// ═══════════════════════════════════════════════
+async function api(action, body={}) {
+  if(demoMode) return demoApi(action, body);
+  if(!API_URL) return {ok:false, erro:'API não configurada'};
+  try {
+    // GET request — sem CORS preflight, funciona com Apps Script
+    const payload = {...body, action, token: authToken};
+    const encoded = encodeURIComponent(JSON.stringify(payload));
+    const url = API_URL + '?data=' + encoded;
+    const r = await fetch(url, {method:'GET', redirect:'follow'});
+    if(!r.ok) return {ok:false, erro:'Erro HTTP '+r.status};
+    const text = await r.text();
+    try { return JSON.parse(text); }
+    catch(pe) { console.error('Parse error:', text); return {ok:false, erro:'Resposta inválida'}; }
+  } catch(e) {
+    console.error('API error:', e);
+    return {ok:false, erro:'Erro de conexão: '+e.message};
+  }
+}
+
+// ═══════════════════════════════════════════════
+// DEMO API (funciona offline)
+// ═══════════════════════════════════════════════
+const DEMO_DB = {
+  pacientes: [
+    {id:'p1', nome:'Lucas Oliveira', linha:'infantil', data_nascimento:'2017-03-15', responsavel:'Fernanda Oliveira', escola:'E.M. Monteiro Lobato', terapeuta_nome:'TO Juliana', servicos:'TO Infantil', status:'Ativo', criado_em:'2025-01-10'},
+    {id:'p2', nome:'Sofia Campos',   linha:'infantil', data_nascimento:'2019-08-20', responsavel:'Roberto Campos', escola:'CEI Pequeno Príncipe', terapeuta_nome:'TO Juliana', servicos:'TO Infantil', status:'Ativo', criado_em:'2025-02-01'},
+    {id:'p3', nome:'Maria Santos',   linha:'mulher',   data_nascimento:'1982-05-10', terapeuta_nome:'Dr. Carlos', servicos:'Fisio Pélvica, Acupuntura', status:'Ativo', criado_em:'2025-03-01'},
+    {id:'p4', nome:'Antônio Silva',  linha:'reabilitacao', data_nascimento:'1962-11-03', terapeuta_nome:'Dr. Paulo', servicos:'Fisioterapia', status:'Ativo', criado_em:'2025-04-01'},
+    {id:'p5', nome:'Patricia Rocha', linha:'pilates', data_nascimento:'1989-07-22', terapeuta_nome:'Dra. Paula', servicos:'Pilates', status:'Ativo', criado_em:'2025-04-20'},
+    {id:'p6', nome:'Roberto Lima',   linha:'geriatria', data_nascimento:'1946-02-14', responsavel:'Ana Lima', terapeuta_nome:'TO Marcia', servicos:'TO Individual, Casa Segura', status:'Ativo', criado_em:'2025-03-10'},
+    {id:'p7', nome:'Clara Mendes',   linha:'mental', data_nascimento:'1986-09-05', terapeuta_nome:'TO Beatriz', servicos:'TO, Ateliê Expressivo', status:'Ativo', criado_em:'2025-03-20'},
+  ],
+  profissionais: [
+    {id:'prof_admin',  nome:'Dra. Ana Paula', email:'clinicaoliveira20@gmail.com', funcao:'Gestora/Sócia',      nivel_acesso:'admin',       linhas:'Todos',   status:'Ativo'},
+    {id:'prof_2',      nome:'TO Juliana',      email:'juliana@casaoliveira.com',    funcao:'Terapeuta Ocup.',    nivel_acesso:'coordenador', linhas:'infantil,geriatria', status:'Ativo'},
+    {id:'prof_3',      nome:'Dr. Carlos',      email:'carlos@casaoliveira.com',     funcao:'Fisioterapeuta Sênior', nivel_acesso:'profissional', linhas:'mulher,reabilitacao', status:'Ativo'},
+    {id:'prof_4',      nome:'Dra. Paula',      email:'paula@casaoliveira.com',      funcao:'Fisioterapeuta',     nivel_acesso:'profissional', linhas:'pilates,reabilitacao', status:'Ativo'},
+    {id:'prof_5',      nome:'Dr. Paulo',       email:'paulo@casaoliveira.com',      funcao:'Fisioterapeuta Sênior', nivel_acesso:'profissional', linhas:'reabilitacao', status:'Ativo'},
+    {id:'prof_6',      nome:'TO Marcia',       email:'marcia@casaoliveira.com',     funcao:'Terapeuta Ocup.',    nivel_acesso:'profissional', linhas:'geriatria', status:'Ativo'},
+    {id:'prof_7',      nome:'TO Beatriz',      email:'beatriz@casaoliveira.com',    funcao:'Terapeuta Ocup.',    nivel_acesso:'profissional', linhas:'mental', status:'Ativo'},
+  ]
+};
+
+function demoApi(action, body) {
+  switch(action) {
+    case 'login': {
+      const u = DEMO_DB.profissionais.find(p=>p.email.toLowerCase()===body.email.toLowerCase());
+      if(!u) return {ok:false, erro:'E-mail não encontrado'};
+      return {ok:true, token:'demo_token', usuario:{id:u.id, nome:u.nome, email:u.email, role:u.nivel_acesso}};
+    }
+    case 'listar': {
+      if(body.tabela==='pacientes') {
+        let pacs = [...DEMO_DB.pacientes];
+        if(body.filtros) Object.entries(body.filtros).forEach(([k,v])=>{pacs=pacs.filter(p=>(p[k]||'').toLowerCase()===(v||'').toLowerCase());});
+        if(body.role==='profissional' && body.nome_usuario) {
+          pacs = pacs.filter(p=>(p.terapeuta_nome||'').toLowerCase()===(body.nome_usuario||'').toLowerCase());
+        }
+        return {ok:true, dados:pacs};
+      }
+      if(body.tabela==='profissionais') return {ok:true, dados:DEMO_DB.profissionais};
+      return {ok:true, dados:[]};
+    }
+    case 'listar_profs': return {ok:true, dados:DEMO_DB.profissionais};
+    case 'salvar': {
+      const id = 'demo_'+Date.now();
+      const obj = {...body.dados, id, criado_em:new Date().toISOString()};
+      if(body.tabela==='pacientes') DEMO_DB.pacientes.push(obj);
+      return {ok:true, id, dados:obj};
+    }
+    case 'atualizar': return {ok:true, id:body.id};
+    case 'deletar': return {ok:true};
+    default: return {ok:false, erro:'Ação desconhecida no modo demo'};
+  }
+}
+
+// ═══════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════
+function salvarConfig() {
+  const url = document.getElementById('cfgUrl').value.trim();
+  if(!url.startsWith('https://script.google.com/')) {
+    alert('URL inválida. Deve começar com https://script.google.com/');
+    return;
+  }
+  API_URL = url;
+  localStorage.setItem('co_api_url', url);
+  document.getElementById('configBanner').style.display='none';
+  document.getElementById('loginScreen').style.display='flex';
+  showToast('✅ API configurada!','ok');
+}
+function showConfig() {
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('configBanner').style.display='flex';
+  if(API_URL) document.getElementById('cfgUrl').value = API_URL;
+}
+
+// ═══════════════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════════════
+async function doLogin() {
+  const email = document.getElementById('lEmail').value.trim();
+  const senha = document.getElementById('lPass').value;
+  if(!email||!senha){showLoginErr('Preencha e-mail e senha.');return;}
+  const btn = document.getElementById('loginBtn');
+  btn.textContent='Entrando...'; btn.disabled=true;
+  const res = await api('login',{email, senha});
+  btn.textContent='Entrar →'; btn.disabled=false;
+  if(!res.ok){showLoginErr(res.erro||'Erro ao entrar');return;}
+  authToken = res.token;
+  currentUser = res.usuario;
+  currentRole = currentUser.role;
+  localStorage.setItem('co_token', authToken);
+  localStorage.setItem('co_user', JSON.stringify(currentUser));
+  startApp();
+}
+
+function demoLogin(role) {
+  demoMode = true;
+  const m = {
+    admin:        {id:'prof_admin',nome:'Dra. Ana Paula',email:'clinicaoliveira20@gmail.com',role:'admin'},
+    coordenador:  {id:'prof_2',    nome:'TO Juliana',    email:'juliana@casaoliveira.com',   role:'coordenador'},
+    profissional: {id:'prof_3',    nome:'Dr. Carlos',    email:'carlos@casaoliveira.com',    role:'profissional'},
+  };
+  currentUser = m[role];
+  currentRole = role;
+  startApp();
+}
+
+async function tryRestoreSession() {
+  const savedToken = localStorage.getItem('co_token');
+  const savedUser  = localStorage.getItem('co_user');
+  if(savedToken && savedUser && API_URL) {
+    try {
+      authToken = savedToken;
+      currentUser = JSON.parse(savedUser);
+      currentRole = currentUser.role;
+      // Quick validation
+      const res = await api('listar',{tabela:'profissionais'});
+      if(res.ok) { startApp(); return true; }
+    } catch(e){}
+  }
+  return false;
+}
+
+function doLogout() {
+  authToken=null; currentUser=null; currentRole=null; demoMode=false; _profsCache=null;
+  localStorage.removeItem('co_token');
+  localStorage.removeItem('co_user');
+  document.getElementById('app').style.display='none';
+  document.getElementById('loginScreen').style.display='flex';
+  closeMenu();
+}
+
+function showLoginErr(msg){
+  const e=document.getElementById('loginErr');
+  e.textContent=msg; e.style.display='block';
+  setTimeout(()=>e.style.display='none',5000);
+}
+
+// ═══════════════════════════════════════════════
+// APP INIT
+// ═══════════════════════════════════════════════
+const LINHAS = {
+  infantil:     {emoji:'🧩',label:'Infantil',      color:'violet', servicos:'TO Infantil · Terapia Floral · Acupuntura'},
+  mulher:       {emoji:'🌸',label:'Saúde da Mulher',color:'rose',   servicos:'Fisio Pélvica · Acupuntura · Amamentação · Massagem · Rodas'},
+  reabilitacao: {emoji:'🦴',label:'Reabilitação',   color:'amber',  servicos:'Fisioterapia · Palmilha · RPG · Massagem · TO de Mão'},
+  pilates:      {emoji:'🧘',label:'Pilates',        color:'sage',   servicos:'Pilates'},
+  geriatria:    {emoji:'👴',label:'Geriatria',       color:'sky',    servicos:'TO Individual · Convivência · Casa Segura'},
+  mental:       {emoji:'🧠',label:'Saúde Mental',   color:'teal',   servicos:'TO · Acupuntura · Terapia Floral · Ateliê'},
+};
+
+const NAVS = {
+  admin:        [{id:'home',icon:'🏠',label:'Início'},{id:'linhas',icon:'🩺',label:'Linhas'},{id:'equipe',icon:'👥',label:'Equipe'},{id:'financeiro',icon:'💰',label:'Financeiro'}],
+  coordenador:  [{id:'home',icon:'🏠',label:'Início'},{id:'linhas',icon:'🩺',label:'Pacientes'},{id:'alertas',icon:'🔔',label:'Alertas',badge:true}],
+  profissional: [{id:'home',icon:'🏠',label:'Hoje'}, {id:'linhas',icon:'🩺',label:'Meus Pcts'},{id:'alertas',icon:'🔔',label:'Pendências',badge:true}],
+};
+
+function startApp() {
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('splash').classList.add('hide');
+  const app = document.getElementById('app');
+  app.style.display = window.innerWidth>=768 ? 'grid' : 'block';
+  document.getElementById('avatarBtn').textContent = currentUser.nome.charAt(0).toUpperCase();
+  document.getElementById('roleLabel').textContent = {admin:'Gestora',coordenador:'Coordenadora',profissional:'Profissional'}[currentRole]||currentRole;
+  buildNav(); buildSidebar();
+  loadPage('home');
+}
+
+function buildNav() {
+  const items = NAVS[currentRole]||NAVS.profissional;
+  document.getElementById('bnavEl').innerHTML = items.map(i=>`
+    <div class="bnt" id="bn-${i.id}" onclick="loadPage('${i.id}')">
+      <div class="bnt-bar"></div>
+      <div class="bnt-icon">${i.icon}</div>
+      <div>${i.label}</div>
+      ${i.badge?'<div class="bnt-badge"></div>':''}
+    </div>`).join('');
+}
+
+function buildSidebar() {
+  const items = NAVS[currentRole]||NAVS.profissional;
+  document.getElementById('sidebarEl').innerHTML =
+    `<div class="sd-logo">Casa Oliveira</div><div class="sd-sec">Menu</div>`+
+    items.map(i=>`<div class="sd-item" id="sd-${i.id}" onclick="loadPage('${i.id}')"><span class="sd-icon">${i.icon}</span>${i.label}</div>`).join('')+
+    `<div style="flex:1"></div>
+     <div style="padding:14px 18px;border-top:1px solid var(--bor);font-size:13px;font-weight:600;">${currentUser.nome}
+       <div style="font-size:11px;color:var(--ink3);font-weight:400;margin-top:1px;">${currentUser.email}</div>
+     </div>`;
+}
+
+// ═══════════════════════════════════════════════
+// ROUTER
+// ═══════════════════════════════════════════════
+let _activePage = '';
+function loadPage(id) {
+  _activePage = id;
+  document.querySelectorAll('.bnt,.sd-item').forEach(e=>e.classList.remove('active'));
+  ['bn-','sd-'].forEach(p=>{const e=document.getElementById(p+id);if(e)e.classList.add('active');});
+  const map={home:'pgHome',linhas:'pgLinhas',equipe:'pgEquipe',financeiro:'pgFinanceiro',alertas:'pgAlertas'};
+  document.querySelectorAll('.page').forEach(e=>{e.classList.remove('active');e.innerHTML='';});
+  const el = document.getElementById(map[id]);
+  if(!el) return;
+  const renders={home:renderHome,linhas:renderLinhas,equipe:renderEquipe,financeiro:renderFinanceiro,alertas:renderAlertas};
+  if(renders[id]){el.innerHTML=renders[id]();el.classList.add('active');}
+}
+
+// ═══════════════════════════════════════════════
+// PAGES
+// ═══════════════════════════════════════════════
+function renderHome() {
+  const h=new Date().getHours(), g=h<12?'Bom dia':h<18?'Boa tarde':'Boa noite';
+  return `<div class="ph">
+    <div class="ph-title">${g}, ${currentUser.nome.split(' ')[0]} 👋</div>
+    <div class="ph-sub">${new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'})}</div>
+  </div>
+  <div class="stats-grid" id="statsGrid">
+    ${Object.entries(LINHAS).map(([k,v],i)=>`
+    <div class="stat ${v.color}" onclick="openLinha('${k}')">
+      <div class="stat-e">${v.emoji}</div>
+      <div class="stat-n" id="cnt-${k}">—</div>
+      <div class="stat-l">${v.label}</div>
+    </div>`).join('')}
+  </div>
+  <div class="card">
+    <div class="card-title"><div class="ct-bar" style="background:var(--amber)"></div>Pendências</div>
+    <div class="astrip warn" onclick="loadPage('alertas')">
+      <div class="astrip-icon">🟡</div>
+      <div><div class="astrip-title">Veja os alertas e pendências</div><div class="astrip-meta">Clique para ver detalhes</div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><div class="ct-bar" style="background:var(--sky)"></div>Próximos Eventos</div>
+    <div class="tl-item"><div class="tl-dot soon">!</div><div><div class="tl-title">Reavaliação PTS — Lucas Oliveira</div><div class="tl-meta">10 Jul 2025 • Infantil</div></div></div>
+    <div class="tl-item"><div class="tl-dot future">📅</div><div><div class="tl-title">Devolutiva família — Sofia Campos</div><div class="tl-meta">20 Jun 2025 • Infantil</div></div></div>
+    <div class="tl-item"><div class="tl-dot future">📅</div><div><div class="tl-title">Monitoramento pós-alta — Maria Santos</div><div class="tl-meta">01 Jun 2025 • Saúde da Mulher</div></div></div>
+  </div>
+  ${currentRole==='admin'?`<div class="card" onclick="loadPage('financeiro')" style="cursor:pointer">
+    <div class="card-title"><div class="ct-bar" style="background:var(--teal)"></div>Financeiro</div>
+    <div class="fin-row"><div class="fin-lbl">Faturamento Bruto</div><div class="fin-val" style="color:var(--sky)">R$ 46.400</div></div>
+    <div class="fin-row" style="border:none"><div class="fin-lbl">Pro-labore / Sócia</div><div class="fin-val big green">R$ 15.008</div></div>
+  </div>`:''}`;
+}
+
+function renderLinhas() {
+  return `<div class="ph"><div class="ph-title">Linhas Clínicas</div><div class="ph-sub">Toque para ver pacientes</div></div>
+  ${Object.entries(LINHAS).map(([k,v])=>`
+  <div class="line-card" onclick="openLinha('${k}')">
+    <div class="line-e">${v.emoji}</div>
+    <div style="flex:1">
+      <div class="line-nm">${v.label}</div>
+      <div class="line-sv">${v.servicos}</div>
+      <div class="line-stats"><span class="chip ch-${v.color}" id="lc-${k}">Carregando...</span></div>
+    </div>
+    <div style="color:var(--ink3);font-size:18px;">›</div>
+  </div>`).join('')}`;
+}
+
+function renderAlertas() {
+  return `<div class="ph"><div class="ph-title">Alertas</div><div class="ph-sub">Pendências e prazos</div></div>
+  <div class="card">
+    <div class="card-title"><div class="ct-bar" style="background:var(--rose)"></div>Críticos</div>
+    <div class="astrip crit"><div class="astrip-icon">🔴</div><div><div class="astrip-title">PTS aguardando aprovação</div><div class="astrip-meta">Sofia Campos • Infantil • TO Juliana</div></div></div>
+    <div class="astrip crit"><div class="astrip-icon">🔴</div><div><div class="astrip-title">Relatório de avaliação vence hoje</div><div class="astrip-meta">Antônio Silva • Reabilitação • Dr. Paulo</div></div></div>
+  </div>
+  <div class="card">
+    <div class="card-title"><div class="ct-bar" style="background:var(--amber)"></div>Alta Prioridade</div>
+    <div class="astrip warn"><div class="astrip-icon">🟡</div><div><div class="astrip-title">Relatório Casa Segura pendente</div><div class="astrip-meta">Roberto Lima • Geriatria • Prazo: 30/06/2025</div></div></div>
+    <div class="astrip warn"><div class="astrip-icon">🟡</div><div><div class="astrip-title">PTS aguardando aprovação</div><div class="astrip-meta">Clara Mendes • Saúde Mental • TO Beatriz</div></div></div>
+  </div>
+  <div class="card">
+    <div class="card-title"><div class="ct-bar" style="background:var(--sky)"></div>Próximos 30 dias</div>
+    <div class="tl-item"><div class="tl-dot soon">!</div><div><div class="tl-title">Reavaliação PTS — Lucas Oliveira</div><div class="tl-meta">10/07/2025 • Infantil</div></div></div>
+    <div class="tl-item"><div class="tl-dot future">📅</div><div><div class="tl-title">Devolutiva família — Sofia Campos</div><div class="tl-meta">20/06/2025 • Infantil</div></div></div>
+    <div class="tl-item"><div class="tl-dot future">📅</div><div><div class="tl-title">My Score — Patricia Rocha</div><div class="tl-meta">20/07/2025 • Pilates</div></div></div>
+  </div>`;
+}
+
+function renderEquipe() {
+  if(currentRole==='profissional') return `<div class="ph"><div class="ph-title">Acesso restrito</div></div>`;
+  return `<div class="ph"><div class="ph-title">Equipe</div></div>
+  ${currentRole==='admin'?`
+  <div class="invite-card">
+    <div class="invite-title">✉️ Convidar Profissional</div>
+    <div class="f2">
+      <div class="fg fa"><label class="fl">Nome *</label><input class="fi" id="invNome" placeholder="Nome completo"></div>
+      <div class="fg"><label class="fl">E-mail *</label><input class="fi" id="invEmail" type="email" placeholder="email@casaoliveira.com"></div>
+      <div class="fg"><label class="fl">Senha inicial</label><input class="fi" id="invSenha" placeholder="casa2025"></div>
+      <div class="fg"><label class="fl">Nível</label>
+        <select class="fs" id="invNivel">
+          <option value="profissional">Profissional</option>
+          <option value="coordenador">Coordenador(a)</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <div class="fg"><label class="fl">Função</label><input class="fi" id="invFuncao" placeholder="Ex: Fisioterapeuta"></div>
+      <div class="fg fa"><label class="fl">Linhas</label>
+        <div id="invLinhas" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
+          ${Object.entries(LINHAS).map(([k,v])=>`
+          <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;background:var(--sur2);padding:6px 11px;border-radius:20px;border:1px solid var(--bor);">
+            <input type="checkbox" value="${k}" style="accent-color:var(--teal)"> ${v.emoji} ${v.label}
+          </label>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div id="invErr" class="errbox"></div>
+    <button class="savebtn" id="invBtn" onclick="convidarProf()">📧 Cadastrar e Enviar Convite</button>
+  </div>`:''}
+  <div id="listaProfs"><div class="loading-inline"><div class="loading-spin"></div>Carregando equipe...</div></div>`;
+}
+
+function renderFinanceiro() {
+  if(currentRole!=='admin') return `<div class="ph"><div class="ph-title">Acesso restrito</div></div>`;
+  return `<div class="ph"><div class="ph-title">Financeiro</div></div>
+  <div class="card">
+    <div class="card-title"><div class="ct-bar" style="background:var(--teal)"></div>DRE — Mês Atual</div>
+    ${[['Faturamento Bruto (48 pac.)','R$ 46.400','sky'],['(-) Imposto 6%','- R$ 2.784','red'],['(-) Equipe','- R$ 11.400','red'],['(-) Marketing','- R$ 2.000','red'],['(-) Insumos','- R$ 200','red'],['Lucro Líquido','R$ 30.016','green'],['Pro-labore / Sócia','R$ 15.008','green']].map(([l,v,c])=>`
+    <div class="fin-row"><div class="fin-lbl">${l}</div><div class="fin-val ${c}" style="${c==='green'?"font-family:'Fraunces',serif;font-size:20px":''}">${v}</div></div>`).join('')}
+  </div>
+  <div class="scen curr"><div class="scen-lbl">🟡 Atual — 48 pacientes</div><div class="scen-val">R$ 15.008 / sócia</div><div class="scen-meta">4 pac/h • Confortável • Fat. R$ 46.400</div></div>
+  <div class="scen good"><div class="scen-lbl">✅ + Sextas — 60 pacientes</div><div class="scen-val" style="color:var(--teal)">R$ 20.010 / sócia</div><div class="scen-meta">Meta atingida • Fat. R$ 58.000</div></div>
+  <div class="scen warn"><div class="scen-lbl">⚠️ 6 pac/hora — 72 pacientes</div><div class="scen-val">R$ 25.212 / sócia</div><div class="scen-meta">Crítico • Fat. R$ 69.600</div></div>`;
+}
+
+// ═══════════════════════════════════════════════
+// LINHAS — PACIENTES
+// ═══════════════════════════════════════════════
+let _pacientesCache = {};
+let _currentLinha = '';
+
+async function openLinha(linha) {
+  _currentLinha = linha;
+  const cfg = LINHAS[linha];
+  document.getElementById('sheetTitle').textContent = cfg.emoji+' '+cfg.label;
+  document.getElementById('sheetBody').innerHTML = loadingHTML();
+  openSheet();
+  await carregarPacientes(linha);
+}
+
+async function carregarPacientes(linha) {
+  const cfg = LINHAS[linha];
+  const filtros = {linha};
+  const res = await api('listar',{
+    tabela:'pacientes', filtros,
+    role: currentRole,
+    nome_usuario: currentUser.nome
+  });
+
+  let pacs = [];
+  if(res.ok) {
+    pacs = res.dados || [];
+    _pacientesCache[linha] = pacs;
+  }
+
+  // Atualizar contador no dashboard/linhas
+  const cntEl = document.getElementById('cnt-'+linha);
+  if(cntEl) cntEl.textContent = pacs.length;
+  const lcEl = document.getElementById('lc-'+linha);
+  if(lcEl) lcEl.textContent = pacs.length+' pacientes';
+
+  document.getElementById('sheetBody').innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <span style="font-size:13px;color:var(--ink3)">${pacs.length} paciente${pacs.length!==1?'s':''}</span>
+      <button class="addbtn" onclick="openFormNovoPaciente('${linha}')">+ Novo</button>
+    </div>
+    ${pacs.length===0
+      ? `<div style="text-align:center;padding:48px 20px;color:var(--ink3)">
+          <div style="font-size:48px;margin-bottom:12px">${cfg.emoji}</div>
+          <div style="font-size:15px;font-weight:600;margin-bottom:6px">Nenhum paciente cadastrado</div>
+          <div style="font-size:13px">Clique em + Novo para adicionar</div>
+        </div>`
+      : pacs.map(p=>renderPC(p,linha)).join('')
+    }`;
+}
+
+function renderPC(p, linha) {
+  const cfg = LINHAS[linha];
+  const nasc = p.data_nascimento;
+  const idade = nasc ? Math.floor((Date.now()-new Date(nasc))/(1000*60*60*24*365.25)) : null;
+  return `<div class="pc" onclick="openPaciente('${linha}','${p.id}')">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
+      <div class="pc-name">${p.nome}</div>
+      <span class="chip ch-${cfg.color}">${p.status||'Ativo'}</span>
+    </div>
+    <div class="pc-meta">${idade?idade+' anos · ':'' }${p.terapeuta_nome||'—'}${p.escola?' · '+p.escola:''}</div>
+    <div class="pc-chips">
+      ${(p.servicos||'').split(',').filter(Boolean).map(s=>`<span class="chip ch-gray">${s.trim()}</span>`).join('')}
+    </div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════
+// NOVO PACIENTE
+// ═══════════════════════════════════════════════
+async function openFormNovoPaciente(linha) {
+  const cfg = LINHAS[linha];
+  // Carregar profissionais
+  const resProfs = await api('listar_profs',{});
+  const profs = resProfs.ok ? resProfs.dados : [];
+
+  document.getElementById('sheetTitle').textContent = '+ Novo Paciente';
+  document.getElementById('sheetBody').innerHTML = `
+    <div style="margin-bottom:14px;">
+      <button class="backbtn" onclick="openLinha('${linha}')">‹ Voltar</button>
+    </div>
+    <div class="f2">
+      <div class="fg fa"><label class="fl">Nome completo *</label><input class="fi" id="np_nome" placeholder="Nome do paciente" autocomplete="off"></div>
+      <div class="fg"><label class="fl">Data de nascimento</label><input class="fi" id="np_nasc" type="date"></div>
+      <div class="fg"><label class="fl">Telefone</label><input class="fi" id="np_tel" type="tel" placeholder="(11) 99999-9999"></div>
+      ${linha==='infantil'||linha==='geriatria'?`
+      <div class="fg fa"><label class="fl">Responsável</label><input class="fi" id="np_resp" placeholder="Nome e parentesco"></div>`:``}
+      ${linha==='infantil'?`
+      <div class="fg fa"><label class="fl">Escola</label><input class="fi" id="np_escola" placeholder="Nome da escola"></div>`:``}
+      <div class="fg fa"><label class="fl">Terapeuta responsável *</label>
+        <select class="fs" id="np_terapeuta">
+          <option value="">Selecione...</option>
+          ${profs.map(p=>`<option value="${p.nome}">${p.nome} (${p.funcao||p.nivel_acesso})</option>`).join('')}
+        </select>
+      </div>
+      <div class="fg fa"><label class="fl">Serviços</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
+          ${cfg.servicos.split(' · ').map(s=>`
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;background:var(--sur2);padding:6px 12px;border-radius:20px;border:1px solid var(--bor);">
+            <input type="checkbox" value="${s}" id="srv_${s.replace(/\s/g,'_')}" style="accent-color:var(--teal)"> ${s}
+          </label>`).join('')}
+        </div>
+      </div>
+      <div class="fg fa"><label class="fl">Observações</label><textarea class="ft" id="np_obs" placeholder="Queixa principal, motivo do encaminhamento..."></textarea></div>
+    </div>
+    <div id="np_err" class="errbox"></div>
+    <button class="savebtn" id="np_btn" onclick="salvarPaciente('${linha}')">Cadastrar Paciente</button>`;
+}
+
+async function salvarPaciente(linha) {
+  const nome      = (document.getElementById('np_nome')?.value||'').trim();
+  const terapeuta = document.getElementById('np_terapeuta')?.value||'';
+  const errEl     = document.getElementById('np_err');
+  const btn       = document.getElementById('np_btn');
+
+  if(!nome){ errEl.textContent='Nome é obrigatório.'; errEl.style.display='block'; return; }
+  if(!terapeuta){ errEl.textContent='Selecione o terapeuta.'; errEl.style.display='block'; return; }
+  errEl.style.display='none';
+
+  btn.textContent='Salvando...'; btn.disabled=true;
+
+  const nasc   = document.getElementById('np_nasc')?.value||null;
+  const tel    = document.getElementById('np_tel')?.value?.trim()||null;
+  const resp   = document.getElementById('np_resp')?.value?.trim()||null;
+  const escola = document.getElementById('np_escola')?.value?.trim()||null;
+  const obs    = document.getElementById('np_obs')?.value?.trim()||null;
+  const srvInputs = document.querySelectorAll('[id^="srv_"]:checked');
+  const servicos = [...srvInputs].map(x=>x.value).join(', ');
+
+  const dados = {
+    nome, linha,
+    data_nascimento: nasc,
+    telefone: tel,
+    responsavel: resp,
+    escola: escola,
+    terapeuta_nome: terapeuta,
+    servicos: servicos,
+    observacoes: obs,
+    status: 'Ativo',
+    criado_por: currentUser.email
+  };
+
+  const res = await api('salvar',{tabela:'pacientes', dados});
+
+  if(!res.ok) {
+    errEl.textContent = 'Erro ao salvar: '+(res.erro||'Tente novamente');
+    errEl.style.display='block';
+    btn.textContent='Cadastrar Paciente'; btn.disabled=false;
+    console.error('Erro salvar paciente:', res);
+    return;
+  }
+
+  showToast('✅ '+nome+' cadastrado!','ok');
+  delete _pacientesCache[linha];
+  openLinha(linha);
+}
+
+// ═══════════════════════════════════════════════
+// DETALHE DO PACIENTE
+// ═══════════════════════════════════════════════
+async function openPaciente(linha, id) {
+  const pacs = _pacientesCache[linha]||[];
+  let p = pacs.find(x=>String(x.id)===String(id));
+  if(!p) return;
+
+  const cfg = LINHAS[linha];
+  const nasc = p.data_nascimento;
+  const idade = nasc ? Math.floor((Date.now()-new Date(nasc))/(1000*60*60*24*365.25)) : '—';
+
+  document.getElementById('sheetTitle').textContent = p.nome;
+
+  const tabsDef = {
+    infantil:     ['📋 Checklist','🎯 PTS','🔬 Avaliações','📅 Reuniões'],
+    mulher:       ['📋 Checklist','🎯 PTS','📆 Serviços','🔔 Pós-Alta'],
+    reabilitacao: ['📋 Dados','🎯 PTS','🏠 Orientações','🔔 Pós-Alta'],
+    pilates:      ['📊 My Score','📋 Dados','🔗 Indicações'],
+    geriatria:    ['📋 Checklist','🎯 PTS','🏠 Casa Segura','📅 Reuniões'],
+    mental:       ['📋 Checklist','🎯 PTS','🎨 Ateliê'],
+  };
+  const tabs = tabsDef[linha]||['📋 Dados'];
+
+  document.getElementById('sheetBody').innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+      <button class="backbtn" onclick="openLinha('${_currentLinha}')">‹ Voltar</button>
+      <span style="font-size:12px;color:var(--ink3)">${idade !== '—' ? idade+' anos · ' : ''}${p.terapeuta_nome||'—'}</span>
+    </div>
+    <div class="tabs">
+      ${tabs.map((t,i)=>`<div class="tab ${i===0?'active':''}" onclick="swTab('tb${i}',this)">${t}</div>`).join('')}
+    </div>
+    ${tabs.map((t,i)=>`<div id="tb${i}" style="display:${i===0?'block':'none'}">
+      ${renderTabContent(linha, p, i)}
+      ${currentRole!=='admin'?`<button class="savebtn" onclick="salvarEvolucao('${linha}','${id}',${i})">💾 Salvar</button>`:''}
+    </div>`).join('')}`;
+}
+
+function renderTabContent(linha, p, idx) {
+  if(linha==='infantil') {
+    if(idx===0) return checklistInfantil(p);
+    if(idx===1) return ptsContent(p);
+    if(idx===2) return avaliacoesContent(p);
+    if(idx===3) return reunioesContent(p);
+  }
+  if(linha==='mulher') {
+    if(idx===0) return checklistMulher(p);
+    if(idx===1) return ptsContent(p);
+    if(idx===2) return servicosMulher(p);
+    if(idx===3) return posAltaContent(p,'mensal');
+  }
+  if(linha==='reabilitacao') {
+    if(idx===0) return checklistReab(p);
+    if(idx===1) return ptsContent(p);
+    if(idx===2) return orientacoesContent();
+    if(idx===3) return posAltaContent(p,'mensal');
+  }
+  if(linha==='pilates') {
+    if(idx===0) return myScoreContent(p);
+    if(idx===1) return pilatesDadosContent(p);
+    if(idx===2) return indicacoesPilates(p);
+  }
+  if(linha==='geriatria') {
+    if(idx===0) return checklistGeriatria(p);
+    if(idx===1) return ptsContent(p);
+    if(idx===2) return casaSeguraContent(p);
+    if(idx===3) return reunioesContent(p);
+  }
+  if(linha==='mental') {
+    if(idx===0) return checklistMental(p);
+    if(idx===1) return ptsContent(p);
+    if(idx===2) return atelieContent();
+  }
+  return '<p style="color:var(--ink3)">Em construção</p>';
+}
+
+// ── CHECKLISTS ──────────────────────────────────
+function checkRows(rows) {
+  return rows.map(([l,v])=>`
+  <div class="crow ${v?'done':''}" onclick="toggleCrow(this)">
+    <div class="cbox ${v?'on':''}">${v?'✓':''}</div>
+    <div class="ctxt">${l}</div>
+    <div class="cst ${v?'ok':'pend'}">${v?'Feito':'Pendente'}</div>
+  </div>`).join('');
+}
+
+function checklistInfantil(p) {
+  return checkRows([
+    ['Conversa inicial com pais',false],
+    ['Avaliação da criança realizada',false],
+    ['Anamnese com responsáveis',false],
+    ['Contato com a escola',false],
+    ['PTS elaborado',false],
+    ['PTS aprovado pelo coordenador',false],
+    ['Devolutiva com família',false],
+  ]);
+}
+
+function checklistMulher(p) {
+  return checkRows([['Anamnese',false],['PTS elaborado',false],['Serviços sugeridos',false]])+
+  `<div class="fg" style="margin-top:12px"><label class="fl">Sugestão de serviços</label><textarea class="ft" placeholder="Ex: Indicar acupuntura + roda puerpério..."></textarea></div>
+   <div class="fg"><label class="fl">Resposta da paciente</label><textarea class="ft" placeholder="O que a paciente disse..."></textarea></div>`;
+}
+
+function checklistReab(p) {
+  return checkRows([
+    ['Avaliação inicial',false],
+    ['Relatório de avaliação (prazo 3 dias)',false],
+    ['Programação definida',false],
+    ['Reavaliação Mês 1',false],
+    ['Reavaliação Mês 2',false],
+    ['Orientações domiciliares entregues',false],
+    ['Relatório de alta (no dia)',false],
+  ])+`<div class="f2" style="margin-top:12px">
+    <div class="fg"><label class="fl">Programa</label><select class="fs"><option>Intensivo 1M</option><option>Estrutural 3M</option><option>Cuidado Contínuo</option></select></div>
+    <div class="fg"><label class="fl">Sessões</label><input class="fi" type="number" placeholder="0"></div>
+  </div>`;
+}
+
+function checklistGeriatria(p) {
+  return checkRows([
+    ['Avaliação inicial',false],
+    ['Avaliação cognitiva',false],
+    ['My Score aplicado',false],
+    ['Avaliação de mobilidade',false],
+    ['PTS elaborado',false],
+  ])+`<div class="fg" style="margin-top:12px"><label class="fl">Sugestão de serviços</label><textarea class="ft" placeholder="Ex: Indicar espaço de convivência..."></textarea></div>`;
+}
+
+function checklistMental(p) {
+  return checkRows([
+    ['Acolhimento realizado',false],
+    ['PTS elaborado',false],
+    ['PTS aprovado pelo coordenador',false],
+    ['Sugestão de serviços',false],
+  ])+`<div class="fg" style="margin-top:12px"><label class="fl">Sugestão de serviços</label><textarea class="ft" placeholder="Ex: Indicar ateliê expressivo..."></textarea></div>`;
+}
+
+// ── PTS ──────────────────────────────────────────
+function ptsContent(p) {
+  return `
+  <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap;">
+    <span class="chip ch-gray">v1 • Rascunho</span>
+    ${currentRole!=='profissional'?`<button class="addbtn" style="font-size:12px;padding:5px 12px;background:var(--teal)" onclick="showToast('PTS aprovado!','ok')">✓ Aprovar</button>`:''}
+    <button class="addbtn" style="font-size:12px;padding:5px 12px;background:var(--violet)" onclick="showToast('Nova versão criada','ok')">+ Nova versão</button>
+  </div>
+  <div class="fg"><label class="fl">Prazo de reavaliação</label><input class="fi" type="date"></div>
+  <div class="pts-b"><div class="pts-bl">🎯 Hipótese Diagnóstica</div><textarea class="ft" style="background:transparent;border:none;padding:0" placeholder="Hipótese diagnóstica..."></textarea></div>
+  <div class="pts-b amber"><div class="pts-bl">📌 Objetivos</div><textarea class="ft" style="background:transparent;border:none;padding:0" placeholder="Objetivos terapêuticos..."></textarea></div>
+  <div class="pts-b violet"><div class="pts-bl">🔧 Ações</div><textarea class="ft" style="background:transparent;border:none;padding:0" placeholder="Ações e intervenções..."></textarea></div>
+  <div class="pts-b"><div class="pts-bl">🏆 Metas</div>
+    <textarea class="ft" style="background:transparent;border:none;padding:0;margin-bottom:6px" placeholder="Curto prazo (3 meses)..."></textarea>
+    <textarea class="ft" style="background:transparent;border:none;padding:0;margin-bottom:6px" placeholder="Médio prazo (6 meses)..."></textarea>
+    <textarea class="ft" style="background:transparent;border:none;padding:0" placeholder="Longo prazo (12 meses)..."></textarea>
+  </div>`;
+}
+
+// ── OUTROS CONTEÚDOS ──────────────────────────────
+function avaliacoesContent(p) {
+  return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+    <span style="font-size:13px;color:var(--ink3)">Instrumentos utilizados</span>
+    <button class="addbtn" onclick="showToast('Em breve','ok')">+ Adicionar</button>
+  </div>
+  <div class="fg"><label class="fl">Avaliação</label><input class="fi" placeholder="Ex: PDMS-2, Perfil Sensorial..."></div>
+  <div class="f2">
+    <div class="fg"><label class="fl">Data</label><input class="fi" type="date"></div>
+    <div class="fg"><label class="fl">Motivo</label><input class="fi" placeholder="Por quê foi escolhida"></div>
+  </div>
+  <div class="fg"><label class="fl">Resumo dos resultados</label><textarea class="ft" placeholder="Descreva os resultados principais..."></textarea></div>`;
+}
+
+function reunioesContent(p) {
+  return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+    <span style="font-size:13px;color:var(--ink3)">Reuniões</span>
+    <button class="addbtn" onclick="showToast('Em breve','ok')">+ Agendar</button>
+  </div>
+  <div class="fg"><label class="fl">Data</label><input class="fi" type="date"></div>
+  <div class="fg"><label class="fl">Tipo</label><select class="fs"><option>Família</option><option>Escola</option><option>Equipe</option></select></div>
+  <div class="fg"><label class="fl">Participantes</label><input class="fi" placeholder="Nomes..."></div>
+  <div class="fg"><label class="fl">Resumo</label><textarea class="ft" placeholder="O que foi discutido..."></textarea></div>`;
+}
+
+function servicosMulher(p) {
+  return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+    <span style="font-size:13px;color:var(--ink3)">Serviços agendados</span>
+    <button class="addbtn" onclick="showToast('Em breve','ok')">+ Serviço</button>
+  </div>
+  <div class="fg"><label class="fl">Serviço</label><select class="fs"><option>Fisio Pélvica</option><option>Acupuntura</option><option>Massagem</option><option>Roda Amamentação</option><option>Roda Parto</option><option>Roda Puerpério</option></select></div>
+  <div class="f2">
+    <div class="fg"><label class="fl">Data prevista</label><input class="fi" type="date"></div>
+    <div class="fg"><label class="fl">Status</label><select class="fs"><option>Previsto</option><option>Agendado</option><option>Realizado</option></select></div>
+  </div>`;
+}
+
+function posAltaContent(p, periodicidade) {
+  return `<div class="fg"><label class="fl">Data da alta</label><input class="fi" type="date"></div>
+  <div class="fg"><label class="fl">Responsável pelo monitoramento</label><input class="fi" placeholder="Nome do profissional"></div>
+  <div class="fg"><label class="fl">Próximo contato</label><input class="fi" type="date"></div>
+  <div class="fg"><label class="fl">Relato do paciente</label><textarea class="ft" placeholder="Como o paciente está..."></textarea></div>
+  <div class="fg"><label class="fl">Observações</label><textarea class="ft" placeholder="Notas do monitoramento..."></textarea></div>`;
+}
+
+function orientacoesContent() {
+  return `<div class="tabs" id="oriTabs">
+    <div class="tab active" onclick="swTab('ori0',this)">Durante Tratamento</div>
+    <div class="tab" onclick="swTab('ori1',this)">Para Alta</div>
+  </div>
+  <div id="ori0"><div class="fg"><label class="fl">Orientações durante o tratamento</label><textarea class="ft" style="min-height:120px" placeholder="Ex: Evitar carregar peso. Fazer exercícios 2x ao dia..."></textarea></div></div>
+  <div id="ori1" style="display:none"><div class="fg"><label class="fl">Orientações de alta</label><textarea class="ft" style="min-height:120px" placeholder="Ex: Continuar fortalecimento. Retornar se houver recidiva..."></textarea></div></div>`;
+}
+
+function myScoreContent(p) {
+  const scores=[['score_geral','Score Geral'],['bem_estar','Bem-Estar'],['mobilidade','Mobilidade'],['flexibilidade','Flexibilidade'],['forca','Força'],['vo2','VO2']];
+  return `<div class="f2">
+    ${scores.map(([k,l])=>`<div class="fg"><label class="fl">${l}</label><input class="fi" type="number" step="0.1" min="0" max="10" placeholder="0-10"></div>`).join('')}
+    <div class="fg"><label class="fl">Data</label><input class="fi" type="date"></div>
+    <div class="fg"><label class="fl">Próxima avaliação</label><input class="fi" type="date"></div>
+    <div class="fg fa"><label class="fl">Achados posturais</label><textarea class="ft" placeholder="Descreva..."></textarea></div>
+    <div class="fg fa"><label class="fl">Achados — Palmilha</label><textarea class="ft" placeholder="Observações..."></textarea></div>
+  </div>`;
+}
+
+function pilatesDadosContent(p) {
+  const nasc = p.data_nascimento;
+  const inicio = p.data_inicio;
+  const meses = inicio ? Math.floor((Date.now()-new Date(inicio))/(1000*60*60*24*30)) : null;
+  return `${meses!==null?`<div class="card" style="text-align:center;margin-bottom:14px">
+    <div style="font-family:'Fraunces',serif;font-size:48px;color:var(--sage)">${meses}</div>
+    <div style="font-size:13px;color:var(--ink3)">meses praticando Pilates</div>
+  </div>`:``}
+  <div class="fg"><label class="fl">Data de início</label><input class="fi" type="date" value="${inicio||''}"></div>`;
+}
+
+function indicacoesPilates(p) {
+  return `<div class="card" style="margin-bottom:12px">
+    <div class="card-title" style="margin-bottom:10px"><div class="ct-bar" style="background:var(--amber)"></div>Indicações Clínicas</div>
+    <div class="crow" onclick="toggleCrow(this)"><div class="cbox"></div><div class="ctxt">Indicação de Palmilha Ortopédica</div><div class="cst pend">Pendente</div></div>
+    <div class="crow" onclick="toggleCrow(this)"><div class="cbox"></div><div class="ctxt">Indicação de Fisioterapia</div><div class="cst pend">Pendente</div></div>
+  </div>
+  <div class="fg"><label class="fl">Observações</label><textarea class="ft" placeholder="Detalhes das indicações..."></textarea></div>`;
+}
+
+function casaSeguraContent(p) {
+  return `<div class="astrip info" style="margin-bottom:14px"><div class="astrip-icon">🏠</div><div><div class="astrip-title">Programa Casa Segura</div><div class="astrip-meta">Avaliação Domiciliar</div></div></div>
+  ${checkRows([
+    ['Visita domiciliar realizada',false],
+    ['Reunião familiar inicial',false],
+    ['Relatório enviado',false],
+    ['Família contratou reparos',false],
+    ['Laudo de entrega de adaptações',false],
+    ['Reunião final com família',false],
+  ])}
+  <div class="f2" style="margin-top:12px">
+    <div class="fg"><label class="fl">Prazo do processo</label><input class="fi" type="date"></div>
+    <div class="fg"><label class="fl">Responsável pelos reparos</label><input class="fi" placeholder="Nome"></div>
+    <div class="fg fa"><label class="fl">Recursos utilizados</label><textarea class="ft" placeholder="Adaptações e recursos..."></textarea></div>
+    <div class="fg fa"><label class="fl">Pendências</label><textarea class="ft" placeholder="Sinalizar pendências..."></textarea></div>
+  </div>`;
+}
+
+function atelieContent() {
+  return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+    <span style="font-size:13px;color:var(--ink3)">Memória do Ateliê</span>
+    <button class="addbtn" onclick="showToast('Em breve','ok')">+ Nova Memória</button>
+  </div>
+  <div class="fg"><label class="fl">Data da sessão</label><input class="fi" type="date"></div>
+  <div class="fg"><label class="fl">Presentes</label><input class="fi" placeholder="Nomes dos participantes"></div>
+  <div class="fg"><label class="fl">Atividade realizada</label><textarea class="ft" placeholder="Descreva a atividade..."></textarea></div>
+  <div class="fg"><label class="fl">Motivo da atividade</label><textarea class="ft" placeholder="Por quê esta atividade foi escolhida..."></textarea></div>
+  <div class="fg"><label class="fl">Materiais utilizados</label><input class="fi" placeholder="Ex: tintas, papel, argila..."></div>
+  <div class="fg"><label class="fl">Engajamento do grupo</label><textarea class="ft" placeholder="Como o grupo se engajou..."></textarea></div>
+  <div class="fg"><label class="fl">Percepções e observações</label><textarea class="ft" placeholder="Observações clínicas relevantes..."></textarea></div>`;
+}
+
+async function salvarEvolucao(linha, id, tabIdx) {
+  showToast('✅ Evolução salva!','ok');
+  // TODO: implementar salvamento real de evolução/checklist via API
+}
+
+// ═══════════════════════════════════════════════
+// EQUIPE
+// ═══════════════════════════════════════════════
+async function loadEquipe() {
+  const res = await api('listar_profs',{});
+  const el = document.getElementById('listaProfs');
+  if(!el) return;
+  if(!res.ok){el.innerHTML=`<div style="color:var(--rose);padding:16px">${res.erro}</div>`;return;}
+  const profs = res.dados||[];
+  const cores = ['#1d6b58','#5b21b6','#1355a0','#c4600a','#3d6b3a','#b81a3a','#92700a'];
+  el.innerHTML = profs.map((p,i)=>`
+  <div class="prof-card">
+    <div class="prof-av" style="background:${cores[i%cores.length]}">${(p.nome||'?')[0]}</div>
+    <div style="flex:1">
+      <div class="prof-nm">${p.nome}</div>
+      <div class="prof-rl">${p.funcao||''}</div>
+      <div style="margin-top:6px;display:flex;gap:5px;flex-wrap:wrap;">
+        <span class="chip ${p.nivel_acesso==='admin'?'ch-teal':p.nivel_acesso==='coordenador'?'ch-violet':'ch-sky'}">${{admin:'Gestora',coordenador:'Coordenadora',profissional:'Profissional'}[p.nivel_acesso]||p.nivel_acesso}</span>
+        <span class="chip ch-gray">${p.linhas||'—'}</span>
+      </div>
+    </div>
+  </div>`).join('');
+}
+
+async function convidarProf() {
+  const nome  = (document.getElementById('invNome')?.value||'').trim();
+  const email = (document.getElementById('invEmail')?.value||'').trim();
+  const nivel = document.getElementById('invNivel')?.value||'profissional';
+  const funcao = document.getElementById('invFuncao')?.value?.trim()||'';
+  const senha = document.getElementById('invSenha')?.value?.trim()||'casa2025';
+  const linhas = [...document.querySelectorAll('#invLinhas input:checked')].map(x=>x.value);
+  const errEl = document.getElementById('invErr');
+  const btn   = document.getElementById('invBtn');
+
+  if(!nome){errEl.textContent='Nome obrigatório.';errEl.style.display='block';return;}
+  if(!email){errEl.textContent='E-mail obrigatório.';errEl.style.display='block';return;}
+  errEl.style.display='none';
+  btn.textContent='Cadastrando...'; btn.disabled=true;
+
+  const res = await api('convidar_prof',{nome, email, nivel, funcao, senha_inicial:senha, linhas});
+  btn.textContent='📧 Cadastrar e Enviar Convite'; btn.disabled=false;
+
+  if(!res.ok){errEl.textContent=res.erro||'Erro ao cadastrar.';errEl.style.display='block';return;}
+  showToast('✅ '+nome+' cadastrado!','ok');
+  document.getElementById('invNome').value='';
+  document.getElementById('invEmail').value='';
+  document.getElementById('invSenha').value='';
+  document.getElementById('invFuncao').value='';
+  document.querySelectorAll('#invLinhas input').forEach(x=>x.checked=false);
+  loadEquipe();
+}
+
+async function showAlterarSenha() {
+  closeMenu();
+  document.getElementById('sheetTitle').textContent = '🔑 Alterar Senha';
+  document.getElementById('sheetBody').innerHTML = `
+    <div class="fg"><label class="fl">Senha atual</label><input class="fi" id="senhaAtual" type="password" placeholder="••••••••"></div>
+    <div class="fg"><label class="fl">Nova senha</label><input class="fi" id="senhaNova" type="password" placeholder="••••••••"></div>
+    <div class="fg"><label class="fl">Confirmar nova senha</label><input class="fi" id="senhaConf" type="password" placeholder="••••••••"></div>
+    <div id="senhaErr" class="errbox"></div>
+    <button class="savebtn" onclick="salvarSenha()">Salvar Nova Senha</button>`;
+  openSheet();
+}
+
+async function salvarSenha() {
+  const nova = document.getElementById('senhaNova')?.value||'';
+  const conf = document.getElementById('senhaConf')?.value||'';
+  const errEl = document.getElementById('senhaErr');
+  if(nova.length<6){errEl.textContent='Senha deve ter ao menos 6 caracteres.';errEl.style.display='block';return;}
+  if(nova!==conf){errEl.textContent='As senhas não coincidem.';errEl.style.display='block';return;}
+  const res = await api('alterar_senha',{nova_senha:nova});
+  if(!res.ok){errEl.textContent=res.erro||'Erro.';errEl.style.display='block';return;}
+  showToast('✅ Senha alterada!','ok');
+  closeSheet();
+}
+
+// ═══════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════
+function loadingHTML() {
+  return `<div class="loading-inline"><div class="loading-spin"></div>Carregando...</div>`;
+}
+
+function toggleCrow(el) {
+  el.classList.toggle('done');
+  const box=el.querySelector('.cbox'), st=el.querySelector('.cst');
+  const on=box.classList.toggle('on');
+  box.textContent=on?'✓':''; 
+  st.textContent=on?'Feito':'Pendente';
+  st.className='cst '+(on?'ok':'pend');
+}
+
+function swTab(id, el) {
+  const body = document.getElementById('sheetBody');
+  body.querySelectorAll('[id^="tb"],[id^="ori"]').forEach(x=>{
+    if(/^(tb\d+|ori\d+)$/.test(x.id)) x.style.display='none';
+  });
+  const t=document.getElementById(id); if(t) t.style.display='block';
+  el.closest('.tabs').querySelectorAll('.tab').forEach(e=>e.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function openSheet(){document.getElementById('sheetOv').classList.add('open');}
+function closeSheet(){document.getElementById('sheetOv').classList.remove('open');}
+function maybeCloseSheet(e){if(e.target===document.getElementById('sheetOv'))closeSheet();}
+function openUserMenu(){
+  document.getElementById('umName').textContent=currentUser.nome;
+  document.getElementById('umEmail').textContent=currentUser.email;
+  document.getElementById('umEquipe').style.display=currentRole!=='profissional'?'flex':'none';
+  document.getElementById('umOv').classList.add('open');
+}
+function closeMenu(){document.getElementById('umOv').classList.remove('open');}
+function maybeCloseMenu(e){if(e.target===document.getElementById('umOv'))closeMenu();}
+
+function showToast(msg,type){
+  const t=document.getElementById('toastEl');
+  t.textContent=msg; t.className='toast show'+(type?' '+type:'');
+  clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ── HOOKS para carregar dados dinâmicos após render ──
+const _afterRender = {
+  equipe: ()=>setTimeout(loadEquipe,50),
+};
+
+const _origLoadPage = loadPage;
+// Override to trigger post-render hooks
+window.loadPage = function(id) {
+  _origLoadPage(id);
+  if(_afterRender[id]) _afterRender[id]();
+};
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', async()=>{
+  // Try session restore
+  if(API_URL) {
+    const restored = await tryRestoreSession();
+    if(restored) return;
+  }
+  setTimeout(()=>{
+    document.getElementById('splash').classList.add('hide');
+    if(API_URL) {
+      document.getElementById('loginScreen').style.display='flex';
+    } else {
+      document.getElementById('configBanner').style.display='flex';
+    }
+  }, 1000);
+});
+
+window.addEventListener('resize',()=>{
+  const app=document.getElementById('app');
+  if(app.style.display!=='none'&&app.style.display!==''){
+    app.style.display=window.innerWidth>=768?'grid':'block';
+  }
+});
+</script>
+</body>
+</html>
