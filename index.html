@@ -481,7 +481,16 @@ function demoApi(action, body) {
       if(alvo) Object.assign(alvo, body.dados);
       return {ok:true, id:body.id};
     }
-    case 'deletar': return {ok:true};
+    case 'deletar': {
+      const lista = DEMO_DB[body.tabela]||[];
+      const i = lista.findIndex(r=>String(r.id)===String(body.id));
+      if(i===-1) return {ok:false, erro:'Não encontrado'};
+      lista.splice(i,1);
+      return {ok:true};
+    }
+    case 'logout': return {ok:true};
+    case 'alterar_senha': return {ok:false, erro:'Não disponível no modo demonstração.'};
+    case 'convidar_prof': return {ok:false, erro:'Não disponível no modo demonstração.'};
     default: return {ok:false, erro:'Ação desconhecida no modo demo'};
   }
 }
@@ -556,6 +565,9 @@ async function tryRestoreSession() {
 }
 
 function doLogout() {
+  // Invalida o token no servidor também — só limpar o navegador deixa ele
+  // valendo por 7 dias na aba Tokens
+  if(authToken && !demoMode) api('logout',{});
   authToken=null; currentUser=null; currentRole=null; demoMode=false; _profsCache=null;
   limparCaches();
   localStorage.removeItem('co_token');
@@ -701,7 +713,7 @@ function renderEquipe() {
     <div class="f2">
       <div class="fg fa"><label class="fl">Nome *</label><input class="fi" id="invNome" placeholder="Nome completo"></div>
       <div class="fg"><label class="fl">E-mail *</label><input class="fi" id="invEmail" type="email" placeholder="email@casaoliveira.com"></div>
-      <div class="fg"><label class="fl">Senha inicial</label><input class="fi" id="invSenha" placeholder="casa2025"></div>
+      <div class="fg"><label class="fl">Senha inicial</label><input class="fi" id="invSenha" placeholder="deixe vazio para gerar"></div>
       <div class="fg"><label class="fl">Nível</label>
         <select class="fs" id="invNivel">
           <option value="profissional">Profissional</option>
@@ -805,46 +817,82 @@ function renderPC(p, linha) {
 // ═══════════════════════════════════════════════
 // NOVO PACIENTE
 // ═══════════════════════════════════════════════
-async function openFormNovoPaciente(linha) {
+// Serve para cadastro e edição — `existente` vindo preenchido liga o modo edição
+async function openFormNovoPaciente(linha, existente) {
   const cfg = LINHAS[linha];
   // Carregar profissionais
   const resProfs = await api('listar_profs',{});
   const profs = resProfs.ok ? resProfs.dados : [];
+  const p = existente || {};
+  const editando = !!(existente && existente.id);
+  const servicosAtuais = String(p.servicos||'').split(',').map(s=>s.trim()).filter(Boolean);
+  const nascVal = /^(\d{4}-\d{2}-\d{2})/.exec(String(p.data_nascimento||''));
 
-  document.getElementById('sheetTitle').textContent = '+ Novo Paciente';
+  document.getElementById('sheetTitle').textContent = editando ? '✏️ Editar Paciente' : '+ Novo Paciente';
   document.getElementById('sheetBody').innerHTML = `
     <div style="margin-bottom:14px;">
-      <button class="backbtn" onclick="openLinha('${linha}')">‹ Voltar</button>
+      <button class="backbtn" onclick="${editando?`openPaciente('${linha}','${p.id}')`:`openLinha('${linha}')`}">‹ Voltar</button>
     </div>
     <div class="f2">
-      <div class="fg fa"><label class="fl">Nome completo *</label><input class="fi" id="np_nome" placeholder="Nome do paciente" autocomplete="off"></div>
-      <div class="fg"><label class="fl">Data de nascimento</label><input class="fi" id="np_nasc" type="date"></div>
-      <div class="fg"><label class="fl">Telefone</label><input class="fi" id="np_tel" type="tel" placeholder="(11) 99999-9999"></div>
+      <div class="fg fa"><label class="fl">Nome completo *</label><input class="fi" id="np_nome" placeholder="Nome do paciente" autocomplete="off" value="${esc(p.nome)}"></div>
+      <div class="fg"><label class="fl">Data de nascimento</label><input class="fi" id="np_nasc" type="date" value="${nascVal?nascVal[1]:''}"></div>
+      <div class="fg"><label class="fl">Telefone</label><input class="fi" id="np_tel" type="tel" placeholder="(11) 99999-9999" value="${esc(p.telefone)}"></div>
       ${linha==='infantil'||linha==='geriatria'?`
-      <div class="fg fa"><label class="fl">Responsável</label><input class="fi" id="np_resp" placeholder="Nome e parentesco"></div>`:``}
+      <div class="fg fa"><label class="fl">Responsável</label><input class="fi" id="np_resp" placeholder="Nome e parentesco" value="${esc(p.responsavel)}"></div>`:``}
       ${linha==='infantil'?`
-      <div class="fg fa"><label class="fl">Escola</label><input class="fi" id="np_escola" placeholder="Nome da escola"></div>`:``}
+      <div class="fg fa"><label class="fl">Escola</label><input class="fi" id="np_escola" placeholder="Nome da escola" value="${esc(p.escola)}"></div>`:``}
       <div class="fg fa"><label class="fl">Terapeuta responsável *</label>
         <select class="fs" id="np_terapeuta">
           <option value="">Selecione...</option>
-          ${profs.map(p=>`<option value="${p.nome}">${p.nome} (${p.funcao||p.nivel_acesso})</option>`).join('')}
+          ${profs.map(x=>`<option value="${esc(x.nome)}"${x.nome===p.terapeuta_nome?' selected':''}>${esc(x.nome)} (${esc(x.funcao||x.nivel_acesso)})</option>`).join('')}
         </select>
       </div>
+      ${editando?`<div class="fg"><label class="fl">Status</label>
+        <select class="fs" id="np_status">
+          ${['Ativo','Em alta','Inativo'].map(s=>`<option${String(p.status||'Ativo')===s?' selected':''}>${s}</option>`).join('')}
+        </select>
+      </div>`:''}
       <div class="fg fa"><label class="fl">Serviços</label>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
           ${cfg.servicos.split(' · ').map(s=>`
           <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;background:var(--sur2);padding:6px 12px;border-radius:20px;border:1px solid var(--bor);">
-            <input type="checkbox" value="${s}" id="srv_${s.replace(/\s/g,'_')}" style="accent-color:var(--teal)"> ${s}
+            <input type="checkbox" value="${esc(s)}" id="srv_${s.replace(/\s/g,'_')}" style="accent-color:var(--teal)"${servicosAtuais.includes(s)?' checked':''}> ${s}
           </label>`).join('')}
         </div>
       </div>
-      <div class="fg fa"><label class="fl">Observações</label><textarea class="ft" id="np_obs" placeholder="Queixa principal, motivo do encaminhamento..."></textarea></div>
+      <div class="fg fa"><label class="fl">Observações</label><textarea class="ft" id="np_obs" placeholder="Queixa principal, motivo do encaminhamento...">${esc(p.observacoes)}</textarea></div>
     </div>
     <div id="np_err" class="errbox"></div>
-    <button class="savebtn" id="np_btn" onclick="salvarPaciente('${linha}')">Cadastrar Paciente</button>`;
+    <button class="savebtn" id="np_btn" onclick="salvarPaciente('${linha}'${editando?`,'${p.id}'`:''})">${editando?'Salvar alterações':'Cadastrar Paciente'}</button>
+    ${editando&&currentRole==='admin'?`<button class="savebtn" id="np_del" style="background:var(--rose);margin-top:8px" onclick="excluirPaciente('${linha}','${p.id}')">🗑 Excluir paciente</button>`:''}`;
 }
 
-async function salvarPaciente(linha) {
+async function excluirPaciente(linha, id) {
+  const pacs = _pacientesCache[linha]||[];
+  const p = pacs.find(x=>String(x.id)===String(id));
+  const nome = p ? p.nome : 'este paciente';
+  if(!confirm('Excluir '+nome+' definitivamente?\n\nO cadastro e as fichas clínicas serão apagados e isso não pode ser desfeito.\n\nPara apenas encerrar o acompanhamento, use o status "Inativo".')) return;
+
+  const btn = document.getElementById('np_del');
+  if(btn){ btn.textContent='Excluindo...'; btn.disabled=true; }
+
+  // Apaga também as fichas, senão elas viram lixo órfão na planilha
+  const resF = await api('listar',{tabela:'checklists', filtros:{paciente_id:id}});
+  if(resF.ok) for(const f of (resF.dados||[])) await api('deletar',{tabela:'checklists', id:f.id});
+
+  const res = await api('deletar',{tabela:'pacientes', id});
+  if(!res.ok){
+    showToast('Erro ao excluir: '+(res.erro||'tente novamente'),'err');
+    if(btn){ btn.textContent='🗑 Excluir paciente'; btn.disabled=false; }
+    return;
+  }
+  showToast('🗑 '+nome+' excluído','ok');
+  delete _pacientesCache[linha];
+  _todosPacientes = null;
+  openLinha(linha);
+}
+
+async function salvarPaciente(linha, idExistente) {
   const nome      = (document.getElementById('np_nome')?.value||'').trim();
   const terapeuta = document.getElementById('np_terapeuta')?.value||'';
   const errEl     = document.getElementById('np_err');
@@ -873,21 +921,23 @@ async function salvarPaciente(linha) {
     terapeuta_nome: terapeuta,
     servicos: servicos,
     observacoes: obs,
-    status: 'Ativo',
-    criado_por: currentUser.email
+    status: idExistente ? (document.getElementById('np_status')?.value||'Ativo') : 'Ativo',
+    ...(idExistente ? {atualizado_por: currentUser.email} : {criado_por: currentUser.email})
   };
 
-  const res = await api('salvar',{tabela:'pacientes', dados});
+  const res = idExistente
+    ? await api('atualizar',{tabela:'pacientes', id:idExistente, dados})
+    : await api('salvar',{tabela:'pacientes', dados});
 
   if(!res.ok) {
     errEl.textContent = 'Erro ao salvar: '+(res.erro||'Tente novamente');
     errEl.style.display='block';
-    btn.textContent='Cadastrar Paciente'; btn.disabled=false;
+    btn.textContent = idExistente?'Salvar alterações':'Cadastrar Paciente'; btn.disabled=false;
     console.error('Erro salvar paciente:', res);
     return;
   }
 
-  showToast('✅ '+nome+' cadastrado!','ok');
+  showToast('✅ '+nome+(idExistente?' atualizado!':' cadastrado!'),'ok');
   delete _pacientesCache[linha];
   _todosPacientes = null;
   openLinha(linha);
@@ -924,7 +974,8 @@ async function openPaciente(linha, id) {
   document.getElementById('sheetBody').innerHTML = `
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
       <button class="backbtn" onclick="openLinha('${_currentLinha}')">‹ Voltar</button>
-      <span style="font-size:12px;color:var(--ink3)">${idade !== '—' ? idade+' anos · ' : ''}${p.terapeuta_nome||'—'}</span>
+      <span style="font-size:12px;color:var(--ink3);flex:1">${idade !== '—' ? idade+' anos · ' : ''}${esc(p.terapeuta_nome||'—')}${p.status&&p.status!=='Ativo'?' · '+esc(p.status):''}</span>
+      <button class="backbtn" onclick="editarPaciente('${linha}','${id}')">✏️ Editar</button>
     </div>
     <div class="tabs">
       ${tabs.map((t,i)=>`<div class="tab ${i===0?'active':''}" onclick="swTab('tb${i}',this)">${t}</div>`).join('')}
@@ -933,6 +984,11 @@ async function openPaciente(linha, id) {
       ${renderTabContent(linha, p, i)}
       <button class="savebtn" id="sv${i}" onclick="salvarEvolucao('${linha}','${id}',${i})">💾 Salvar</button>
     </div>`).join('')}`;
+}
+
+function editarPaciente(linha, id) {
+  const p = (_pacientesCache[linha]||[]).find(x=>String(x.id)===String(id));
+  if(p) openFormNovoPaciente(linha, p);
 }
 
 // Fichas (checklists/PTS/avaliações) do paciente aberto — chave: índice da aba
@@ -1263,7 +1319,8 @@ async function convidarProf() {
   const email = (document.getElementById('invEmail')?.value||'').trim();
   const nivel = document.getElementById('invNivel')?.value||'profissional';
   const funcao = document.getElementById('invFuncao')?.value?.trim()||'';
-  const senha = document.getElementById('invSenha')?.value?.trim()||'casa2025';
+  // Vazio: o backend sorteia uma senha e envia por e-mail
+  const senha = document.getElementById('invSenha')?.value?.trim()||'';
   const linhas = [...document.querySelectorAll('#invLinhas input:checked')].map(x=>x.value);
   const errEl = document.getElementById('invErr');
   const btn   = document.getElementById('invBtn');
@@ -1299,13 +1356,19 @@ async function showAlterarSenha() {
 }
 
 async function salvarSenha() {
+  const atual = document.getElementById('senhaAtual')?.value||'';
   const nova = document.getElementById('senhaNova')?.value||'';
   const conf = document.getElementById('senhaConf')?.value||'';
   const errEl = document.getElementById('senhaErr');
-  if(nova.length<6){errEl.textContent='Senha deve ter ao menos 6 caracteres.';errEl.style.display='block';return;}
-  if(nova!==conf){errEl.textContent='As senhas não coincidem.';errEl.style.display='block';return;}
-  const res = await api('alterar_senha',{nova_senha:nova});
-  if(!res.ok){errEl.textContent=res.erro||'Erro.';errEl.style.display='block';return;}
+  const erro = m=>{errEl.textContent=m;errEl.style.display='block';};
+  if(!atual){erro('Informe a senha atual.');return;}
+  if(nova.length<6){erro('Senha deve ter ao menos 6 caracteres.');return;}
+  if(nova!==conf){erro('As senhas não coincidem.');return;}
+  if(nova===atual){erro('A nova senha deve ser diferente da atual.');return;}
+  errEl.style.display='none';
+  // O backend confere a senha atual — sem isso, quem pegar a sessão aberta troca a senha
+  const res = await api('alterar_senha',{senha_atual:atual, nova_senha:nova});
+  if(!res.ok){erro(res.erro||'Erro.');return;}
   showToast('✅ Senha alterada!','ok');
   closeSheet();
 }
