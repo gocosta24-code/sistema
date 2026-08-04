@@ -11,10 +11,16 @@ alertas e financeiro.
 |---|---|
 | `index.html` | **O sistema.** É o único arquivo que roda em produção — toda alteração é aqui. |
 | `apps-script/Code.gs` | Cópia do backend (Google Apps Script). Serve de referência e histórico; o que roda de verdade é o código colado na planilha. |
+| `sistema.html` | Redirecionamento para a raiz, só para não quebrar links antigos. |
 
-Os demais `.html` na raiz (`casa-oliveira-v2 (2)`, `v3 (1)`, `geral`, `corrirlogin`…)
-são versões antigas, mantidas só por histórico. **Não edite nenhuma delas** — não
-estão publicadas e as mudanças não teriam efeito.
+As versões antigas (`casa-oliveira-v2`, `v3`, `geral`, `corrirlogin`, a tentativa
+com Supabase) foram removidas da raiz por serem cópias quase idênticas em que era
+fácil editar o arquivo errado. Continuam no histórico do Git:
+
+```bash
+git log --diff-filter=D --name-only    # ver o que saiu e em qual commit
+git show <commit>^:'<arquivo>'         # ler o conteúdo de uma delas
+```
 
 ## Como funciona
 
