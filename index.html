@@ -50,7 +50,7 @@ input,select,textarea{outline:none;}
 .cfg-step-n{width:20px;height:20px;background:rgba(45,145,117,.2);color:#2d9175;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px;}
 
 /* LOGIN */
-#loginScreen{display:none;min-height:100vh;background:var(--ink);align-items:center;justify-content:center;padding:24px;flex-direction:column;}
+#loginScreen,#esqueciScreen,#resetScreen{display:none;min-height:100vh;background:var(--ink);align-items:center;justify-content:center;padding:24px;flex-direction:column;}
 .login-logo{font-family:'Fraunces',serif;font-size:52px;color:#faf8f5;text-align:center;letter-spacing:-1px;}
 .login-sub{font-size:11px;color:#555;letter-spacing:3px;text-transform:uppercase;text-align:center;margin-top:4px;margin-bottom:36px;}
 .login-card{width:100%;max-width:360px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--r-lg);padding:28px 24px;}
@@ -62,6 +62,9 @@ input,select,textarea{outline:none;}
 .login-btn{width:100%;padding:15px;background:var(--teal);color:#faf8f5;border-radius:var(--r-sm);font-size:15px;font-weight:600;margin-top:6px;transition:background .2s;}
 .login-btn:active{background:#155a47;}
 .login-err{background:rgba(184,26,58,.15);border:1px solid rgba(184,26,58,.3);border-radius:6px;padding:9px 13px;font-size:13px;color:#f88;margin-bottom:14px;display:none;}
+.forgot{margin-top:14px;text-align:center;font-size:13px;color:#7a7a7a;cursor:pointer;}
+.forgot:hover{color:#aaa;text-decoration:underline;}
+.login-ok{background:rgba(45,145,117,.15);border:1px solid rgba(45,145,117,.35);border-radius:6px;padding:11px 13px;font-size:13px;color:#7ecfb4;margin-bottom:14px;line-height:1.5;}
 .demo-section{margin-top:24px;border-top:1px solid rgba(255,255,255,.06);padding-top:18px;}
 .demo-title{font-size:11px;color:#555;text-transform:uppercase;letter-spacing:.8px;text-align:center;margin-bottom:10px;}
 .demo-pills{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
@@ -321,6 +324,7 @@ input,select,textarea{outline:none;}
     <div class="lf"><label>E-mail</label><input id="lEmail" type="email" placeholder="seu@email.com" autocomplete="email"></div>
     <div class="lf"><label>Senha</label><input id="lPass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <button class="login-btn" id="loginBtn" onclick="doLogin()">Entrar →</button>
+    <div class="forgot" onclick="showEsqueciSenha()">Esqueci minha senha</div>
     <div class="demo-section">
       <div class="demo-title">Modo demonstração</div>
       <div class="demo-pills">
@@ -331,6 +335,41 @@ input,select,textarea{outline:none;}
     </div>
   </div>
   <div class="change-api" onclick="showConfig()">⚙️ Alterar configuração da API</div>
+</div>
+
+<!-- ESQUECI MINHA SENHA -->
+<div id="esqueciScreen" style="display:none">
+  <div class="login-logo">Casa Oliveira</div>
+  <div class="login-sub">Recuperar acesso</div>
+  <div class="login-card">
+    <div id="esqErr" class="login-err"></div>
+    <div id="esqOk" class="login-ok" style="display:none"></div>
+    <div id="esqForm">
+      <div class="lf"><label>E-mail cadastrado</label>
+        <input id="esqEmail" type="email" placeholder="seu@email.com" autocomplete="email"
+               onkeydown="if(event.key==='Enter')pedirResetSenha()"></div>
+      <button class="login-btn" id="esqBtn" onclick="pedirResetSenha()">Enviar link →</button>
+    </div>
+    <div class="forgot" onclick="voltarAoLogin()">‹ Voltar para o login</div>
+  </div>
+</div>
+
+<!-- DEFINIR NOVA SENHA (link do e-mail) -->
+<div id="resetScreen" style="display:none">
+  <div class="login-logo">Casa Oliveira</div>
+  <div class="login-sub">Criar nova senha</div>
+  <div class="login-card">
+    <div id="rstErr" class="login-err"></div>
+    <div id="rstForm">
+      <div class="lf"><label>Nova senha</label>
+        <input id="rstNova" type="password" placeholder="mínimo 6 caracteres" autocomplete="new-password"></div>
+      <div class="lf"><label>Confirmar nova senha</label>
+        <input id="rstConf" type="password" placeholder="••••••••" autocomplete="new-password"
+               onkeydown="if(event.key==='Enter')confirmarNovaSenha()"></div>
+      <button class="login-btn" id="rstBtn" onclick="confirmarNovaSenha()">Salvar nova senha</button>
+    </div>
+    <div class="forgot" onclick="voltarAoLogin()">‹ Voltar para o login</div>
+  </div>
 </div>
 
 <!-- APP -->
@@ -490,6 +529,8 @@ function demoApi(action, body) {
     }
     case 'logout': return {ok:true};
     case 'alterar_senha': return {ok:false, erro:'Não disponível no modo demonstração.'};
+    case 'solicitar_reset': return {ok:true};
+    case 'redefinir_senha': return {ok:false, erro:'Não disponível no modo demonstração.'};
     case 'convidar_prof': return {ok:false, erro:'Não disponível no modo demonstração.'};
     default: return {ok:false, erro:'Ação desconhecida no modo demo'};
   }
@@ -575,6 +616,85 @@ function doLogout() {
   document.getElementById('app').style.display='none';
   document.getElementById('loginScreen').style.display='flex';
   closeMenu();
+}
+
+// ── RECUPERAÇÃO DE SENHA ────────────────────────
+let _resetToken = null;
+
+function mostrarTela(id) {
+  ['loginScreen','esqueciScreen','resetScreen'].forEach(t=>{
+    document.getElementById(t).style.display = (t===id) ? 'flex' : 'none';
+  });
+  document.getElementById('configBanner').style.display='none';
+}
+
+function showEsqueciSenha() {
+  document.getElementById('esqErr').style.display='none';
+  document.getElementById('esqOk').style.display='none';
+  document.getElementById('esqForm').style.display='block';
+  document.getElementById('esqEmail').value = document.getElementById('lEmail').value.trim();
+  mostrarTela('esqueciScreen');
+  document.getElementById('esqEmail').focus();
+}
+
+function voltarAoLogin() {
+  _resetToken = null;
+  limparParamReset();
+  mostrarTela('loginScreen');
+}
+
+// Tira o token da barra de endereços para não ficar no histórico do navegador
+function limparParamReset() {
+  if(location.search.indexOf('reset=') !== -1) {
+    history.replaceState(null,'',location.pathname);
+  }
+}
+
+async function pedirResetSenha() {
+  const email = document.getElementById('esqEmail').value.trim();
+  const errEl = document.getElementById('esqErr');
+  const btn = document.getElementById('esqBtn');
+  errEl.style.display='none';
+  if(!email || email.indexOf('@')===-1) {
+    errEl.textContent='Digite um e-mail válido.'; errEl.style.display='block'; return;
+  }
+  btn.textContent='Enviando...'; btn.disabled=true;
+  const res = await api('solicitar_reset',{email});
+  btn.textContent='Enviar link →'; btn.disabled=false;
+
+  if(!res.ok) { errEl.textContent=res.erro||'Não foi possível enviar.'; errEl.style.display='block'; return; }
+
+  // Mensagem igual para e-mail cadastrado ou não — o backend responde igual
+  // nos dois casos, para não revelar quem tem conta
+  const okEl = document.getElementById('esqOk');
+  okEl.innerHTML = '📧 Se <strong>'+esc(email)+'</strong> estiver cadastrado, o link para criar '+
+                   'uma nova senha chegou na caixa de entrada.<br><br>O link vale por 1 hora. '+
+                   'Confira também o spam.';
+  okEl.style.display='block';
+  document.getElementById('esqForm').style.display='none';
+}
+
+async function confirmarNovaSenha() {
+  const nova = document.getElementById('rstNova').value;
+  const conf = document.getElementById('rstConf').value;
+  const errEl = document.getElementById('rstErr');
+  const btn = document.getElementById('rstBtn');
+  const erro = m=>{errEl.textContent=m; errEl.style.display='block';};
+  errEl.style.display='none';
+
+  if(nova.length<6){ erro('A senha precisa ter ao menos 6 caracteres.'); return; }
+  if(nova!==conf){ erro('As senhas não coincidem.'); return; }
+
+  btn.textContent='Salvando...'; btn.disabled=true;
+  const res = await api('redefinir_senha',{token_reset:_resetToken, nova_senha:nova});
+  btn.textContent='Salvar nova senha'; btn.disabled=false;
+
+  if(!res.ok){ erro(res.erro||'Não foi possível redefinir.'); return; }
+
+  _resetToken = null;
+  limparParamReset();
+  mostrarTela('loginScreen');
+  showToast('✅ Senha alterada! Entre com a nova senha.','ok');
 }
 
 function showLoginErr(msg){
@@ -1638,6 +1758,17 @@ window.loadPage = function(id) {
 // INIT
 // ═══════════════════════════════════════════════
 window.addEventListener('DOMContentLoaded', async()=>{
+  // Link de redefinição de senha vem antes de tudo: quem chegou por ele
+  // provavelmente não consegue entrar, então restaurar sessão não ajuda
+  const tokenReset = new URLSearchParams(location.search).get('reset');
+  if(tokenReset) {
+    _resetToken = tokenReset;
+    document.getElementById('splash').classList.add('hide');
+    mostrarTela('resetScreen');
+    document.getElementById('rstNova').focus();
+    return;
+  }
+
   // Try session restore
   if(API_URL) {
     const restored = await tryRestoreSession();

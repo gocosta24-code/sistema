@@ -28,10 +28,21 @@ O front-end é um HTML único, sem build nem dependências. O backend é um Goog
 Apps Script publicado como app da web, gravando numa planilha do Google Sheets:
 
 - Planilha: `12HfN3lxg-JVC-vT7_4FXC334xAakItc5jjYQt8lyCWk`
-- Abas: `Profissionais`, `Tokens`, `Pacientes`, `Checklists` (fichas do prontuário)
+- Abas: `Profissionais`, `Tokens`, `Resets`, `Pacientes`, `Checklists` (fichas do prontuário)
 
 O prontuário grava uma linha por aba do paciente em `Checklists`, com os campos
 serializados em JSON na coluna `dados`.
+
+### Senhas
+
+Ficam como SHA-256 com o e-mail como salt — nunca em texto legível, nem para
+quem abre a planilha. Senhas antigas em texto puro são convertidas sozinhas no
+primeiro login de cada pessoa; `migrarSenhasParaHash()` converte todas de uma vez.
+
+**Esqueci minha senha** manda um link de uso único (`?reset=<token>`), válido por
+1 hora, registrado na aba `Resets`. Ao redefinir, as sessões abertas daquela conta
+são derrubadas. O pedido responde a mesma coisa para e-mail cadastrado ou não, de
+propósito: a resposta não deve revelar quem tem conta.
 
 ### Rodar localmente
 

@@ -56,13 +56,17 @@ function handle(e) {
     const action = body.action || params.action;
     const token  = body.token  || params.token;
 
-    if (action !== 'login' && !validarToken(token)) {
+    // Recuperação de senha roda sem sessão — quem esqueceu a senha não tem token
+    const SEM_LOGIN = ['login','solicitar_reset','redefinir_senha'];
+    if (SEM_LOGIN.indexOf(action) === -1 && !validarToken(token)) {
       return resp({ok:false, erro:'Token inválido ou expirado'});
     }
 
     switch(action) {
-      case 'login':         return resp(login(body));
-      case 'logout':        return resp(logout(token));
+      case 'login':           return resp(login(body));
+      case 'logout':          return resp(logout(token));
+      case 'solicitar_reset': return resp(solicitarReset(body));
+      case 'redefinir_senha': return resp(redefinirSenha(body));
       case 'listar':        return resp(listar(body));
       case 'salvar':        return resp(salvar(body));
       case 'atualizar':     return resp(atualizar(body));
@@ -224,6 +228,132 @@ function alterarSenha(body, token) {
     }
   }
   return {ok:false,erro:'Usuário não encontrado'};
+}
+
+// ─── RECUPERAÇÃO DE SENHA ─────────────────────────────────────
+// Link de uso único por e-mail, válido por 1 hora. Enviar uma senha nova
+// pronta deixaria ela guardada na caixa de entrada para sempre.
+const RESET_VALIDADE_MIN = 60;
+const RESET_INTERVALO_MIN = 2;   // espera mínima entre dois pedidos
+
+function acharProfissional(email) {
+  const ss = getSpreadsheet();
+  const sheet = getOuCria(ss,'Profissionais');
+  const dados = sheet.getDataRange().getValues();
+  const h = dados[0];
+  const iEmail = h.indexOf('email');
+  for (let i=1;i<dados.length;i++) {
+    if ((dados[i][iEmail]||'').toLowerCase().trim() === String(email).toLowerCase().trim()) {
+      return {linha:i+1, row:dados[i], h:h, sheet:sheet};
+    }
+  }
+  return null;
+}
+
+function solicitarReset(body) {
+  const email = String(body.email||'').toLowerCase().trim();
+  // Resposta sempre igual: dizer "e-mail não encontrado" revelaria quem
+  // tem conta para qualquer pessoa que chutasse endereços.
+  const generica = {ok:true};
+  if (!email) return generica;
+
+  const prof = acharProfissional(email);
+  if (!prof) return generica;
+
+  const iStatus = prof.h.indexOf('status');
+  if ((prof.row[iStatus]||'').toLowerCase() === 'inativo') return generica;
+
+  const ss = getSpreadsheet();
+  const sheet = getOuCria(ss,'Resets');
+  if (sheet.getLastRow() === 0) sheet.appendRow(['token','email','expira','usado','criado_em']);
+
+  const dados = sheet.getDataRange().getValues();
+  const agora = new Date();
+
+  // Trava simples contra alguém disparar dezenas de e-mails
+  for (let i=1;i<dados.length;i++) {
+    if (String(dados[i][1]||'').toLowerCase() === email && dados[i][4]) {
+      const criado = new Date(dados[i][4]);
+      if (!isNaN(criado) && (agora - criado) < RESET_INTERVALO_MIN*60*1000) return generica;
+    }
+  }
+
+  // Invalida pedidos anteriores desta pessoa
+  for (let i=dados.length-1;i>=1;i--) {
+    if (String(dados[i][1]||'').toLowerCase() === email) sheet.deleteRow(i+1);
+  }
+
+  const token = gerarTokenReset();
+  const expira = new Date(agora.getTime() + RESET_VALIDADE_MIN*60*1000);
+  sheet.appendRow([token, email, expira.toISOString(), '', agora.toISOString()]);
+
+  const iNome = prof.h.indexOf('nome');
+  const link = URL_SISTEMA + '?reset=' + encodeURIComponent(token);
+  try {
+    MailApp.sendEmail({
+      to: email,
+      subject: 'Redefinir sua senha — Sistema Casa Oliveira',
+      htmlBody: '<div style="font-family:Arial,sans-serif;max-width:480px">' +
+        '<h2 style="color:#1d6b58">Casa Oliveira</h2>' +
+        '<p>Olá, <strong>' + (prof.row[iNome]||'') + '</strong>!</p>' +
+        '<p>Recebemos um pedido para redefinir sua senha do sistema clínico.</p>' +
+        '<p style="margin:24px 0"><a href="' + link + '" ' +
+        'style="background:#1d6b58;color:#fff;padding:12px 22px;border-radius:8px;' +
+        'text-decoration:none;display:inline-block">Criar nova senha</a></p>' +
+        '<p style="color:#666;font-size:13px">O link vale por ' + RESET_VALIDADE_MIN +
+        ' minutos e só pode ser usado uma vez.</p>' +
+        '<p style="color:#666;font-size:13px">Se não foi você que pediu, ignore este ' +
+        'e-mail — sua senha atual continua valendo.</p>' +
+        '</div>'
+    });
+  } catch(e) { /* sem cota de e-mail: o pedido fica registrado mesmo assim */ }
+
+  return generica;
+}
+
+function gerarTokenReset() {
+  const bytes = Utilities.getUuid().replace(/-/g,'');
+  return bytes + Math.floor(Math.random()*1e9).toString(36);
+}
+
+function redefinirSenha(body) {
+  const token = String(body.token_reset||'');
+  const nova  = String(body.nova_senha||'');
+  if (!token) return {ok:false, erro:'Link inválido'};
+  if (nova.length < 6) return {ok:false, erro:'A nova senha precisa ter ao menos 6 caracteres'};
+
+  const ss = getSpreadsheet();
+  const sheet = ss.getSheetByName('Resets');
+  if (!sheet) return {ok:false, erro:'Link inválido ou expirado'};
+
+  const dados = sheet.getDataRange().getValues();
+  for (let i=1;i<dados.length;i++) {
+    if (String(dados[i][0]) !== token) continue;
+
+    if (dados[i][3]) return {ok:false, erro:'Este link já foi usado. Peça um novo.'};
+    if (new Date() >= new Date(dados[i][2])) return {ok:false, erro:'Este link expirou. Peça um novo.'};
+
+    const email = String(dados[i][1]||'');
+    const prof = acharProfissional(email);
+    if (!prof) return {ok:false, erro:'Usuário não encontrado'};
+
+    const iSenha = prof.h.indexOf('senha_hash');
+    prof.sheet.getRange(prof.linha, iSenha+1).setValue(hashSenha(email, nova));
+
+    sheet.getRange(i+1, 4).setValue(new Date().toISOString());   // marca como usado
+
+    // Derruba as sessões abertas: se a conta foi acessada por outra pessoa,
+    // trocar a senha sozinho não a colocaria para fora.
+    const st = ss.getSheetByName('Tokens');
+    if (st) {
+      const td = st.getDataRange().getValues();
+      for (let j=td.length-1;j>=1;j--) {
+        if (String(td[j][1]||'').toLowerCase() === email.toLowerCase()) st.deleteRow(j+1);
+      }
+    }
+    return {ok:true};
+  }
+  return {ok:false, erro:'Link inválido ou expirado'};
 }
 
 // ─── CRUD ─────────────────────────────────────────────────────
@@ -440,6 +570,11 @@ function setupAdmin() {
   const st = getOuCria(ss,'Tokens');
   st.clear();
   st.getRange(1,1,1,4).setValues([['token','email','role','expira']]);
+
+  // Pedidos de redefinição de senha
+  const sr = getOuCria(ss,'Resets');
+  sr.clear();
+  sr.getRange(1,1,1,5).setValues([['token','email','expira','usado','criado_em']]);
 
   // Abas de dados
   const abas = ['Pacientes','PTS','Avaliacoes','Reunioes','Alertas','Monitoramentos','Checklists'];
