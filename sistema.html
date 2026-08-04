@@ -403,11 +403,14 @@ async function api(action, body={}) {
   if(demoMode) return demoApi(action, body);
   if(!API_URL) return {ok:false, erro:'API não configurada'};
   try {
-    // GET request — sem CORS preflight, funciona com Apps Script
+    // Tudo vai por GET: esta implantação do Apps Script responde HTML a POST.
+    // O Google recusa URLs acima de ~6 KB, então barramos antes para não perder o texto.
     const payload = {...body, action, token: authToken};
     const encoded = encodeURIComponent(JSON.stringify(payload));
-    const url = API_URL + '?data=' + encoded;
-    const r = await fetch(url, {method:'GET', redirect:'follow'});
+    if(encoded.length > 4500) {
+      return {ok:false, erro:'Texto longo demais para salvar de uma vez. Encurte as anotações desta aba e salve novamente.'};
+    }
+    const r = await fetch(API_URL + '?data=' + encoded, {method:'GET', redirect:'follow'});
     if(!r.ok) return {ok:false, erro:'Erro HTTP '+r.status};
     const text = await r.text();
     try { return JSON.parse(text); }
@@ -439,7 +442,8 @@ const DEMO_DB = {
     {id:'prof_5',      nome:'Dr. Paulo',       email:'paulo@casaoliveira.com',      funcao:'Fisioterapeuta Sênior', nivel_acesso:'profissional', linhas:'reabilitacao', status:'Ativo'},
     {id:'prof_6',      nome:'TO Marcia',       email:'marcia@casaoliveira.com',     funcao:'Terapeuta Ocup.',    nivel_acesso:'profissional', linhas:'geriatria', status:'Ativo'},
     {id:'prof_7',      nome:'TO Beatriz',      email:'beatriz@casaoliveira.com',    funcao:'Terapeuta Ocup.',    nivel_acesso:'profissional', linhas:'mental', status:'Ativo'},
-  ]
+  ],
+  checklists: []
 };
 
 function demoApi(action, body) {
@@ -459,16 +463,24 @@ function demoApi(action, body) {
         return {ok:true, dados:pacs};
       }
       if(body.tabela==='profissionais') return {ok:true, dados:DEMO_DB.profissionais};
-      return {ok:true, dados:[]};
+      let rows = [...(DEMO_DB[body.tabela]||[])];
+      if(body.filtros) Object.entries(body.filtros).forEach(([k,v])=>{rows=rows.filter(r=>String(r[k]||'')===String(v||''));});
+      return {ok:true, dados:rows};
     }
     case 'listar_profs': return {ok:true, dados:DEMO_DB.profissionais};
     case 'salvar': {
       const id = 'demo_'+Date.now();
       const obj = {...body.dados, id, criado_em:new Date().toISOString()};
-      if(body.tabela==='pacientes') DEMO_DB.pacientes.push(obj);
+      if(!DEMO_DB[body.tabela]) DEMO_DB[body.tabela] = [];
+      DEMO_DB[body.tabela].push(obj);
       return {ok:true, id, dados:obj};
     }
-    case 'atualizar': return {ok:true, id:body.id};
+    case 'atualizar': {
+      const lista = DEMO_DB[body.tabela]||[];
+      const alvo = lista.find(r=>String(r.id)===String(body.id));
+      if(alvo) Object.assign(alvo, body.dados);
+      return {ok:true, id:body.id};
+    }
     case 'deletar': return {ok:true};
     default: return {ok:false, erro:'Ação desconhecida no modo demo'};
   }
@@ -545,6 +557,7 @@ async function tryRestoreSession() {
 
 function doLogout() {
   authToken=null; currentUser=null; currentRole=null; demoMode=false; _profsCache=null;
+  limparCaches();
   localStorage.removeItem('co_token');
   localStorage.removeItem('co_user');
   document.getElementById('app').style.display='none';
@@ -576,7 +589,15 @@ const NAVS = {
   profissional: [{id:'home',icon:'🏠',label:'Hoje'}, {id:'linhas',icon:'🩺',label:'Meus Pcts'},{id:'alertas',icon:'🔔',label:'Pendências',badge:true}],
 };
 
+// Os caches são por usuário — cada papel enxerga um conjunto diferente de pacientes
+function limparCaches() {
+  _todosPacientes = null;
+  _pacientesCache = {};
+  _fichasCache = {};
+}
+
 function startApp() {
+  limparCaches();
   document.getElementById('loginScreen').style.display='none';
   document.getElementById('splash').classList.add('hide');
   const app = document.getElementById('app');
@@ -644,21 +665,11 @@ function renderHome() {
   </div>
   <div class="card">
     <div class="card-title"><div class="ct-bar" style="background:var(--amber)"></div>Pendências</div>
-    <div class="astrip warn" onclick="loadPage('alertas')">
-      <div class="astrip-icon">🟡</div>
-      <div><div class="astrip-title">Veja os alertas e pendências</div><div class="astrip-meta">Clique para ver detalhes</div></div>
-    </div>
-  </div>
-  <div class="card">
-    <div class="card-title"><div class="ct-bar" style="background:var(--sky)"></div>Próximos Eventos</div>
-    <div class="tl-item"><div class="tl-dot soon">!</div><div><div class="tl-title">Reavaliação PTS — Lucas Oliveira</div><div class="tl-meta">10 Jul 2025 • Infantil</div></div></div>
-    <div class="tl-item"><div class="tl-dot future">📅</div><div><div class="tl-title">Devolutiva família — Sofia Campos</div><div class="tl-meta">20 Jun 2025 • Infantil</div></div></div>
-    <div class="tl-item"><div class="tl-dot future">📅</div><div><div class="tl-title">Monitoramento pós-alta — Maria Santos</div><div class="tl-meta">01 Jun 2025 • Saúde da Mulher</div></div></div>
+    <div id="homePendencias">${loadingHTML()}</div>
   </div>
   ${currentRole==='admin'?`<div class="card" onclick="loadPage('financeiro')" style="cursor:pointer">
     <div class="card-title"><div class="ct-bar" style="background:var(--teal)"></div>Financeiro</div>
-    <div class="fin-row"><div class="fin-lbl">Faturamento Bruto</div><div class="fin-val" style="color:var(--sky)">R$ 46.400</div></div>
-    <div class="fin-row" style="border:none"><div class="fin-lbl">Pro-labore / Sócia</div><div class="fin-val big green">R$ 15.008</div></div>
+    <div id="homeFin">${loadingHTML()}</div>
   </div>`:''}`;
 }
 
@@ -678,22 +689,7 @@ function renderLinhas() {
 
 function renderAlertas() {
   return `<div class="ph"><div class="ph-title">Alertas</div><div class="ph-sub">Pendências e prazos</div></div>
-  <div class="card">
-    <div class="card-title"><div class="ct-bar" style="background:var(--rose)"></div>Críticos</div>
-    <div class="astrip crit"><div class="astrip-icon">🔴</div><div><div class="astrip-title">PTS aguardando aprovação</div><div class="astrip-meta">Sofia Campos • Infantil • TO Juliana</div></div></div>
-    <div class="astrip crit"><div class="astrip-icon">🔴</div><div><div class="astrip-title">Relatório de avaliação vence hoje</div><div class="astrip-meta">Antônio Silva • Reabilitação • Dr. Paulo</div></div></div>
-  </div>
-  <div class="card">
-    <div class="card-title"><div class="ct-bar" style="background:var(--amber)"></div>Alta Prioridade</div>
-    <div class="astrip warn"><div class="astrip-icon">🟡</div><div><div class="astrip-title">Relatório Casa Segura pendente</div><div class="astrip-meta">Roberto Lima • Geriatria • Prazo: 30/06/2025</div></div></div>
-    <div class="astrip warn"><div class="astrip-icon">🟡</div><div><div class="astrip-title">PTS aguardando aprovação</div><div class="astrip-meta">Clara Mendes • Saúde Mental • TO Beatriz</div></div></div>
-  </div>
-  <div class="card">
-    <div class="card-title"><div class="ct-bar" style="background:var(--sky)"></div>Próximos 30 dias</div>
-    <div class="tl-item"><div class="tl-dot soon">!</div><div><div class="tl-title">Reavaliação PTS — Lucas Oliveira</div><div class="tl-meta">10/07/2025 • Infantil</div></div></div>
-    <div class="tl-item"><div class="tl-dot future">📅</div><div><div class="tl-title">Devolutiva família — Sofia Campos</div><div class="tl-meta">20/06/2025 • Infantil</div></div></div>
-    <div class="tl-item"><div class="tl-dot future">📅</div><div><div class="tl-title">My Score — Patricia Rocha</div><div class="tl-meta">20/07/2025 • Pilates</div></div></div>
-  </div>`;
+  <div id="alertasBody">${loadingHTML()}</div>`;
 }
 
 function renderEquipe() {
@@ -734,12 +730,9 @@ function renderFinanceiro() {
   return `<div class="ph"><div class="ph-title">Financeiro</div></div>
   <div class="card">
     <div class="card-title"><div class="ct-bar" style="background:var(--teal)"></div>DRE — Mês Atual</div>
-    ${[['Faturamento Bruto (48 pac.)','R$ 46.400','sky'],['(-) Imposto 6%','- R$ 2.784','red'],['(-) Equipe','- R$ 11.400','red'],['(-) Marketing','- R$ 2.000','red'],['(-) Insumos','- R$ 200','red'],['Lucro Líquido','R$ 30.016','green'],['Pro-labore / Sócia','R$ 15.008','green']].map(([l,v,c])=>`
-    <div class="fin-row"><div class="fin-lbl">${l}</div><div class="fin-val ${c}" style="${c==='green'?"font-family:'Fraunces',serif;font-size:20px":''}">${v}</div></div>`).join('')}
+    <div id="finBody">${loadingHTML()}</div>
   </div>
-  <div class="scen curr"><div class="scen-lbl">🟡 Atual — 48 pacientes</div><div class="scen-val">R$ 15.008 / sócia</div><div class="scen-meta">4 pac/h • Confortável • Fat. R$ 46.400</div></div>
-  <div class="scen good"><div class="scen-lbl">✅ + Sextas — 60 pacientes</div><div class="scen-val" style="color:var(--teal)">R$ 20.010 / sócia</div><div class="scen-meta">Meta atingida • Fat. R$ 58.000</div></div>
-  <div class="scen warn"><div class="scen-lbl">⚠️ 6 pac/hora — 72 pacientes</div><div class="scen-val">R$ 25.212 / sócia</div><div class="scen-meta">Crítico • Fat. R$ 69.600</div></div>`;
+  <div id="finCenarios"></div>`;
 }
 
 // ═══════════════════════════════════════════════
@@ -796,7 +789,7 @@ async function carregarPacientes(linha) {
 function renderPC(p, linha) {
   const cfg = LINHAS[linha];
   const nasc = p.data_nascimento;
-  const idade = nasc ? Math.floor((Date.now()-new Date(nasc))/(1000*60*60*24*365.25)) : null;
+  const idade = calcIdade(nasc);
   return `<div class="pc" onclick="openPaciente('${linha}','${p.id}')">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
       <div class="pc-name">${p.nome}</div>
@@ -896,6 +889,7 @@ async function salvarPaciente(linha) {
 
   showToast('✅ '+nome+' cadastrado!','ok');
   delete _pacientesCache[linha];
+  _todosPacientes = null;
   openLinha(linha);
 }
 
@@ -907,9 +901,13 @@ async function openPaciente(linha, id) {
   let p = pacs.find(x=>String(x.id)===String(id));
   if(!p) return;
 
+  document.getElementById('sheetTitle').textContent = p.nome;
+  document.getElementById('sheetBody').innerHTML = loadingHTML();
+  await carregarFichas(id);
+
   const cfg = LINHAS[linha];
   const nasc = p.data_nascimento;
-  const idade = nasc ? Math.floor((Date.now()-new Date(nasc))/(1000*60*60*24*365.25)) : '—';
+  const idade = calcIdade(nasc) ?? '—';
 
   document.getElementById('sheetTitle').textContent = p.nome;
 
@@ -933,11 +931,27 @@ async function openPaciente(linha, id) {
     </div>
     ${tabs.map((t,i)=>`<div id="tb${i}" style="display:${i===0?'block':'none'}">
       ${renderTabContent(linha, p, i)}
-      ${currentRole!=='admin'?`<button class="savebtn" onclick="salvarEvolucao('${linha}','${id}',${i})">💾 Salvar</button>`:''}
+      <button class="savebtn" id="sv${i}" onclick="salvarEvolucao('${linha}','${id}',${i})">💾 Salvar</button>
     </div>`).join('')}`;
 }
 
+// Fichas (checklists/PTS/avaliações) do paciente aberto — chave: índice da aba
+let _fichasCache = {};
+let _F = {};
+
+async function carregarFichas(pacienteId) {
+  _fichasCache = {};
+  const res = await api('listar',{tabela:'checklists', filtros:{paciente_id:pacienteId}});
+  if(!res.ok) return;
+  (res.dados||[]).forEach(r=>{
+    let d = {};
+    try { d = JSON.parse(r.dados||'{}'); } catch(e){}
+    _fichasCache[String(r.aba)] = {id:r.id, dados:d};
+  });
+}
+
 function renderTabContent(linha, p, idx) {
+  _F = (_fichasCache[String(idx)]||{}).dados || {};
   if(linha==='infantil') {
     if(idx===0) return checklistInfantil(p);
     if(idx===1) return ptsContent(p);
@@ -977,128 +991,132 @@ function renderTabContent(linha, p, idx) {
 
 // ── CHECKLISTS ──────────────────────────────────
 function checkRows(rows) {
-  return rows.map(([l,v])=>`
-  <div class="crow ${v?'done':''}" onclick="toggleCrow(this)">
+  return rows.map(([k,l])=>{
+    const v = !!_F[k];
+    return `
+  <div class="crow ${v?'done':''}" data-k="${k}" onclick="toggleCrow(this)">
     <div class="cbox ${v?'on':''}">${v?'✓':''}</div>
     <div class="ctxt">${l}</div>
     <div class="cst ${v?'ok':'pend'}">${v?'Feito':'Pendente'}</div>
-  </div>`).join('');
+  </div>`;
+  }).join('');
+}
+
+function campoTexto(k, label, ph, extraStyle) {
+  return `<div class="fg"><label class="fl">${label}</label><textarea class="ft" data-k="${k}"${extraStyle?` style="${extraStyle}"`:''} placeholder="${esc(ph)}">${esc(_F[k])}</textarea></div>`;
+}
+
+function campoInput(k, label, ph, tipo) {
+  return `<div class="fg"><label class="fl">${label}</label><input class="fi" data-k="${k}" type="${tipo||'text'}" placeholder="${esc(ph||'')}" value="${esc(_F[k])}"></div>`;
 }
 
 function checklistInfantil(p) {
   return checkRows([
-    ['Conversa inicial com pais',false],
-    ['Avaliação da criança realizada',false],
-    ['Anamnese com responsáveis',false],
-    ['Contato com a escola',false],
-    ['PTS elaborado',false],
-    ['PTS aprovado pelo coordenador',false],
-    ['Devolutiva com família',false],
+    ['conversa_pais','Conversa inicial com pais'],
+    ['avaliacao_crianca','Avaliação da criança realizada'],
+    ['anamnese','Anamnese com responsáveis'],
+    ['contato_escola','Contato com a escola'],
+    ['pts_elaborado','PTS elaborado'],
+    ['pts_aprovado','PTS aprovado pelo coordenador'],
+    ['devolutiva_familia','Devolutiva com família'],
   ]);
 }
 
 function checklistMulher(p) {
-  return checkRows([['Anamnese',false],['PTS elaborado',false],['Serviços sugeridos',false]])+
-  `<div class="fg" style="margin-top:12px"><label class="fl">Sugestão de serviços</label><textarea class="ft" placeholder="Ex: Indicar acupuntura + roda puerpério..."></textarea></div>
-   <div class="fg"><label class="fl">Resposta da paciente</label><textarea class="ft" placeholder="O que a paciente disse..."></textarea></div>`;
+  return checkRows([['anamnese','Anamnese'],['pts_elaborado','PTS elaborado'],['servicos_sugeridos','Serviços sugeridos']])+
+  campoTexto('sugestao_servicos','Sugestão de serviços','Ex: Indicar acupuntura + roda puerpério...')+
+  campoTexto('resposta_paciente','Resposta da paciente','O que a paciente disse...');
 }
 
 function checklistReab(p) {
   return checkRows([
-    ['Avaliação inicial',false],
-    ['Relatório de avaliação (prazo 3 dias)',false],
-    ['Programação definida',false],
-    ['Reavaliação Mês 1',false],
-    ['Reavaliação Mês 2',false],
-    ['Orientações domiciliares entregues',false],
-    ['Relatório de alta (no dia)',false],
+    ['avaliacao_inicial','Avaliação inicial'],
+    ['relatorio_avaliacao','Relatório de avaliação (prazo 3 dias)'],
+    ['programacao','Programação definida'],
+    ['reav_mes1','Reavaliação Mês 1'],
+    ['reav_mes2','Reavaliação Mês 2'],
+    ['orientacoes_domiciliares','Orientações domiciliares entregues'],
+    ['relatorio_alta','Relatório de alta (no dia)'],
   ])+`<div class="f2" style="margin-top:12px">
-    <div class="fg"><label class="fl">Programa</label><select class="fs"><option>Intensivo 1M</option><option>Estrutural 3M</option><option>Cuidado Contínuo</option></select></div>
-    <div class="fg"><label class="fl">Sessões</label><input class="fi" type="number" placeholder="0"></div>
+    <div class="fg"><label class="fl">Programa</label>${selOpts('programa',['Intensivo 1M','Estrutural 3M','Cuidado Contínuo'])}</div>
+    ${campoInput('sessoes','Sessões','0','number')}
   </div>`;
 }
 
 function checklistGeriatria(p) {
   return checkRows([
-    ['Avaliação inicial',false],
-    ['Avaliação cognitiva',false],
-    ['My Score aplicado',false],
-    ['Avaliação de mobilidade',false],
-    ['PTS elaborado',false],
-  ])+`<div class="fg" style="margin-top:12px"><label class="fl">Sugestão de serviços</label><textarea class="ft" placeholder="Ex: Indicar espaço de convivência..."></textarea></div>`;
+    ['avaliacao_inicial','Avaliação inicial'],
+    ['avaliacao_cognitiva','Avaliação cognitiva'],
+    ['my_score','My Score aplicado'],
+    ['avaliacao_mobilidade','Avaliação de mobilidade'],
+    ['pts_elaborado','PTS elaborado'],
+  ])+campoTexto('sugestao_servicos','Sugestão de serviços','Ex: Indicar espaço de convivência...');
 }
 
 function checklistMental(p) {
   return checkRows([
-    ['Acolhimento realizado',false],
-    ['PTS elaborado',false],
-    ['PTS aprovado pelo coordenador',false],
-    ['Sugestão de serviços',false],
-  ])+`<div class="fg" style="margin-top:12px"><label class="fl">Sugestão de serviços</label><textarea class="ft" placeholder="Ex: Indicar ateliê expressivo..."></textarea></div>`;
+    ['acolhimento','Acolhimento realizado'],
+    ['pts_elaborado','PTS elaborado'],
+    ['pts_aprovado','PTS aprovado pelo coordenador'],
+    ['servicos_sugeridos','Sugestão de serviços'],
+  ])+campoTexto('sugestao_servicos','Sugestão de serviços','Ex: Indicar ateliê expressivo...');
 }
 
 // ── PTS ──────────────────────────────────────────
 function ptsContent(p) {
   return `
   <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap;">
-    <span class="chip ch-gray">v1 • Rascunho</span>
-    ${currentRole!=='profissional'?`<button class="addbtn" style="font-size:12px;padding:5px 12px;background:var(--teal)" onclick="showToast('PTS aprovado!','ok')">✓ Aprovar</button>`:''}
-    <button class="addbtn" style="font-size:12px;padding:5px 12px;background:var(--violet)" onclick="showToast('Nova versão criada','ok')">+ Nova versão</button>
+    <span class="chip ${_F.pts_status==='Aprovado'?'ch-teal':'ch-gray'}">v${_F.pts_versao||1} • ${esc(_F.pts_status||'Rascunho')}</span>
+    <input type="hidden" data-k="pts_status" value="${esc(_F.pts_status||'Rascunho')}">
+    <input type="hidden" data-k="pts_versao" value="${esc(_F.pts_versao||1)}">
+    ${currentRole!=='profissional'&&_F.pts_status!=='Aprovado'?`<button class="addbtn" style="font-size:12px;padding:5px 12px;background:var(--teal)" onclick="marcarPts(this,'Aprovado')">✓ Aprovar</button>`:''}
+    <button class="addbtn" style="font-size:12px;padding:5px 12px;background:var(--violet)" onclick="novaVersaoPts(this)">+ Nova versão</button>
   </div>
-  <div class="fg"><label class="fl">Prazo de reavaliação</label><input class="fi" type="date"></div>
-  <div class="pts-b"><div class="pts-bl">🎯 Hipótese Diagnóstica</div><textarea class="ft" style="background:transparent;border:none;padding:0" placeholder="Hipótese diagnóstica..."></textarea></div>
-  <div class="pts-b amber"><div class="pts-bl">📌 Objetivos</div><textarea class="ft" style="background:transparent;border:none;padding:0" placeholder="Objetivos terapêuticos..."></textarea></div>
-  <div class="pts-b violet"><div class="pts-bl">🔧 Ações</div><textarea class="ft" style="background:transparent;border:none;padding:0" placeholder="Ações e intervenções..."></textarea></div>
+  ${campoInput('prazo_reavaliacao','Prazo de reavaliação','','date')}
+  <div class="pts-b"><div class="pts-bl">🎯 Hipótese Diagnóstica</div><textarea class="ft" data-k="hipotese" style="background:transparent;border:none;padding:0" placeholder="Hipótese diagnóstica...">${esc(_F.hipotese)}</textarea></div>
+  <div class="pts-b amber"><div class="pts-bl">📌 Objetivos</div><textarea class="ft" data-k="objetivos" style="background:transparent;border:none;padding:0" placeholder="Objetivos terapêuticos...">${esc(_F.objetivos)}</textarea></div>
+  <div class="pts-b violet"><div class="pts-bl">🔧 Ações</div><textarea class="ft" data-k="acoes" style="background:transparent;border:none;padding:0" placeholder="Ações e intervenções...">${esc(_F.acoes)}</textarea></div>
   <div class="pts-b"><div class="pts-bl">🏆 Metas</div>
-    <textarea class="ft" style="background:transparent;border:none;padding:0;margin-bottom:6px" placeholder="Curto prazo (3 meses)..."></textarea>
-    <textarea class="ft" style="background:transparent;border:none;padding:0;margin-bottom:6px" placeholder="Médio prazo (6 meses)..."></textarea>
-    <textarea class="ft" style="background:transparent;border:none;padding:0" placeholder="Longo prazo (12 meses)..."></textarea>
+    <textarea class="ft" data-k="meta_curto" style="background:transparent;border:none;padding:0;margin-bottom:6px" placeholder="Curto prazo (3 meses)...">${esc(_F.meta_curto)}</textarea>
+    <textarea class="ft" data-k="meta_medio" style="background:transparent;border:none;padding:0;margin-bottom:6px" placeholder="Médio prazo (6 meses)...">${esc(_F.meta_medio)}</textarea>
+    <textarea class="ft" data-k="meta_longo" style="background:transparent;border:none;padding:0" placeholder="Longo prazo (12 meses)...">${esc(_F.meta_longo)}</textarea>
   </div>`;
 }
 
 // ── OUTROS CONTEÚDOS ──────────────────────────────
 function avaliacoesContent(p) {
-  return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-    <span style="font-size:13px;color:var(--ink3)">Instrumentos utilizados</span>
-    <button class="addbtn" onclick="showToast('Em breve','ok')">+ Adicionar</button>
-  </div>
-  <div class="fg"><label class="fl">Avaliação</label><input class="fi" placeholder="Ex: PDMS-2, Perfil Sensorial..."></div>
+  return `<div style="font-size:13px;color:var(--ink3);margin-bottom:14px;">Instrumentos utilizados</div>
+  ${campoInput('av_instrumento','Avaliação','Ex: PDMS-2, Perfil Sensorial...')}
   <div class="f2">
-    <div class="fg"><label class="fl">Data</label><input class="fi" type="date"></div>
-    <div class="fg"><label class="fl">Motivo</label><input class="fi" placeholder="Por quê foi escolhida"></div>
+    ${campoInput('av_data','Data','','date')}
+    ${campoInput('av_motivo','Motivo','Por quê foi escolhida')}
   </div>
-  <div class="fg"><label class="fl">Resumo dos resultados</label><textarea class="ft" placeholder="Descreva os resultados principais..."></textarea></div>`;
+  ${campoTexto('av_resumo','Resumo dos resultados','Descreva os resultados principais...')}`;
 }
 
 function reunioesContent(p) {
-  return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-    <span style="font-size:13px;color:var(--ink3)">Reuniões</span>
-    <button class="addbtn" onclick="showToast('Em breve','ok')">+ Agendar</button>
-  </div>
-  <div class="fg"><label class="fl">Data</label><input class="fi" type="date"></div>
-  <div class="fg"><label class="fl">Tipo</label><select class="fs"><option>Família</option><option>Escola</option><option>Equipe</option></select></div>
-  <div class="fg"><label class="fl">Participantes</label><input class="fi" placeholder="Nomes..."></div>
-  <div class="fg"><label class="fl">Resumo</label><textarea class="ft" placeholder="O que foi discutido..."></textarea></div>`;
+  return `<div style="font-size:13px;color:var(--ink3);margin-bottom:14px;">Reuniões</div>
+  ${campoInput('reu_data','Data','','date')}
+  <div class="fg"><label class="fl">Tipo</label>${selOpts('reu_tipo',['Família','Escola','Equipe'])}</div>
+  ${campoInput('reu_participantes','Participantes','Nomes...')}
+  ${campoTexto('reu_resumo','Resumo','O que foi discutido...')}`;
 }
 
 function servicosMulher(p) {
-  return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-    <span style="font-size:13px;color:var(--ink3)">Serviços agendados</span>
-    <button class="addbtn" onclick="showToast('Em breve','ok')">+ Serviço</button>
-  </div>
-  <div class="fg"><label class="fl">Serviço</label><select class="fs"><option>Fisio Pélvica</option><option>Acupuntura</option><option>Massagem</option><option>Roda Amamentação</option><option>Roda Parto</option><option>Roda Puerpério</option></select></div>
+  return `<div style="font-size:13px;color:var(--ink3);margin-bottom:14px;">Serviços agendados</div>
+  <div class="fg"><label class="fl">Serviço</label>${selOpts('srv_nome',['Fisio Pélvica','Acupuntura','Massagem','Roda Amamentação','Roda Parto','Roda Puerpério'])}</div>
   <div class="f2">
-    <div class="fg"><label class="fl">Data prevista</label><input class="fi" type="date"></div>
-    <div class="fg"><label class="fl">Status</label><select class="fs"><option>Previsto</option><option>Agendado</option><option>Realizado</option></select></div>
+    ${campoInput('srv_data','Data prevista','','date')}
+    <div class="fg"><label class="fl">Status</label>${selOpts('srv_status',['Previsto','Agendado','Realizado'])}</div>
   </div>`;
 }
 
 function posAltaContent(p, periodicidade) {
-  return `<div class="fg"><label class="fl">Data da alta</label><input class="fi" type="date"></div>
-  <div class="fg"><label class="fl">Responsável pelo monitoramento</label><input class="fi" placeholder="Nome do profissional"></div>
-  <div class="fg"><label class="fl">Próximo contato</label><input class="fi" type="date"></div>
-  <div class="fg"><label class="fl">Relato do paciente</label><textarea class="ft" placeholder="Como o paciente está..."></textarea></div>
-  <div class="fg"><label class="fl">Observações</label><textarea class="ft" placeholder="Notas do monitoramento..."></textarea></div>`;
+  return `${campoInput('alta_data','Data da alta','','date')}
+  ${campoInput('alta_responsavel','Responsável pelo monitoramento','Nome do profissional')}
+  ${campoInput('alta_proximo_contato','Próximo contato','','date')}
+  ${campoTexto('alta_relato','Relato do paciente','Como o paciente está...')}
+  ${campoTexto('alta_obs','Observações','Notas do monitoramento...')}`;
 }
 
 function orientacoesContent() {
@@ -1106,76 +1124,114 @@ function orientacoesContent() {
     <div class="tab active" onclick="swTab('ori0',this)">Durante Tratamento</div>
     <div class="tab" onclick="swTab('ori1',this)">Para Alta</div>
   </div>
-  <div id="ori0"><div class="fg"><label class="fl">Orientações durante o tratamento</label><textarea class="ft" style="min-height:120px" placeholder="Ex: Evitar carregar peso. Fazer exercícios 2x ao dia..."></textarea></div></div>
-  <div id="ori1" style="display:none"><div class="fg"><label class="fl">Orientações de alta</label><textarea class="ft" style="min-height:120px" placeholder="Ex: Continuar fortalecimento. Retornar se houver recidiva..."></textarea></div></div>`;
+  <div id="ori0">${campoTexto('ori_durante','Orientações durante o tratamento','Ex: Evitar carregar peso. Fazer exercícios 2x ao dia...','min-height:120px')}</div>
+  <div id="ori1" style="display:none">${campoTexto('ori_alta','Orientações de alta','Ex: Continuar fortalecimento. Retornar se houver recidiva...','min-height:120px')}</div>`;
 }
 
 function myScoreContent(p) {
   const scores=[['score_geral','Score Geral'],['bem_estar','Bem-Estar'],['mobilidade','Mobilidade'],['flexibilidade','Flexibilidade'],['forca','Força'],['vo2','VO2']];
   return `<div class="f2">
-    ${scores.map(([k,l])=>`<div class="fg"><label class="fl">${l}</label><input class="fi" type="number" step="0.1" min="0" max="10" placeholder="0-10"></div>`).join('')}
-    <div class="fg"><label class="fl">Data</label><input class="fi" type="date"></div>
-    <div class="fg"><label class="fl">Próxima avaliação</label><input class="fi" type="date"></div>
-    <div class="fg fa"><label class="fl">Achados posturais</label><textarea class="ft" placeholder="Descreva..."></textarea></div>
-    <div class="fg fa"><label class="fl">Achados — Palmilha</label><textarea class="ft" placeholder="Observações..."></textarea></div>
+    ${scores.map(([k,l])=>`<div class="fg"><label class="fl">${l}</label><input class="fi" data-k="${k}" type="number" step="0.1" min="0" max="10" placeholder="0-10" value="${esc(_F[k])}"></div>`).join('')}
+    ${campoInput('ms_data','Data','','date')}
+    ${campoInput('ms_proxima','Próxima avaliação','','date')}
+    <div class="fg fa">${campoTexto('ms_posturais','Achados posturais','Descreva...')}</div>
+    <div class="fg fa">${campoTexto('ms_palmilha','Achados — Palmilha','Observações...')}</div>
   </div>`;
 }
 
 function pilatesDadosContent(p) {
   const nasc = p.data_nascimento;
   const inicio = p.data_inicio;
-  const meses = inicio ? Math.floor((Date.now()-new Date(inicio))/(1000*60*60*24*30)) : null;
+  const d0 = dataLocal(inicio);
+  const meses = d0 ? Math.floor((Date.now()-d0)/(1000*60*60*24*30)) : null;
   return `${meses!==null?`<div class="card" style="text-align:center;margin-bottom:14px">
     <div style="font-family:'Fraunces',serif;font-size:48px;color:var(--sage)">${meses}</div>
     <div style="font-size:13px;color:var(--ink3)">meses praticando Pilates</div>
   </div>`:``}
-  <div class="fg"><label class="fl">Data de início</label><input class="fi" type="date" value="${inicio||''}"></div>`;
+  <div class="fg"><label class="fl">Data de início</label><input class="fi" data-k="data_inicio" type="date" value="${esc(_F.data_inicio||inicio||'')}"></div>`;
 }
 
 function indicacoesPilates(p) {
   return `<div class="card" style="margin-bottom:12px">
     <div class="card-title" style="margin-bottom:10px"><div class="ct-bar" style="background:var(--amber)"></div>Indicações Clínicas</div>
-    <div class="crow" onclick="toggleCrow(this)"><div class="cbox"></div><div class="ctxt">Indicação de Palmilha Ortopédica</div><div class="cst pend">Pendente</div></div>
-    <div class="crow" onclick="toggleCrow(this)"><div class="cbox"></div><div class="ctxt">Indicação de Fisioterapia</div><div class="cst pend">Pendente</div></div>
+    ${checkRows([['ind_palmilha','Indicação de Palmilha Ortopédica'],['ind_fisioterapia','Indicação de Fisioterapia']])}
   </div>
-  <div class="fg"><label class="fl">Observações</label><textarea class="ft" placeholder="Detalhes das indicações..."></textarea></div>`;
+  ${campoTexto('ind_obs','Observações','Detalhes das indicações...')}`;
 }
 
 function casaSeguraContent(p) {
   return `<div class="astrip info" style="margin-bottom:14px"><div class="astrip-icon">🏠</div><div><div class="astrip-title">Programa Casa Segura</div><div class="astrip-meta">Avaliação Domiciliar</div></div></div>
   ${checkRows([
-    ['Visita domiciliar realizada',false],
-    ['Reunião familiar inicial',false],
-    ['Relatório enviado',false],
-    ['Família contratou reparos',false],
-    ['Laudo de entrega de adaptações',false],
-    ['Reunião final com família',false],
+    ['cs_visita','Visita domiciliar realizada'],
+    ['cs_reuniao_inicial','Reunião familiar inicial'],
+    ['cs_relatorio','Relatório enviado'],
+    ['cs_contratou','Família contratou reparos'],
+    ['cs_laudo','Laudo de entrega de adaptações'],
+    ['cs_reuniao_final','Reunião final com família'],
   ])}
   <div class="f2" style="margin-top:12px">
-    <div class="fg"><label class="fl">Prazo do processo</label><input class="fi" type="date"></div>
-    <div class="fg"><label class="fl">Responsável pelos reparos</label><input class="fi" placeholder="Nome"></div>
-    <div class="fg fa"><label class="fl">Recursos utilizados</label><textarea class="ft" placeholder="Adaptações e recursos..."></textarea></div>
-    <div class="fg fa"><label class="fl">Pendências</label><textarea class="ft" placeholder="Sinalizar pendências..."></textarea></div>
+    ${campoInput('cs_prazo','Prazo do processo','','date')}
+    ${campoInput('cs_responsavel','Responsável pelos reparos','Nome')}
+    <div class="fg fa">${campoTexto('cs_recursos','Recursos utilizados','Adaptações e recursos...')}</div>
+    <div class="fg fa">${campoTexto('cs_pendencias','Pendências','Sinalizar pendências...')}</div>
   </div>`;
 }
 
 function atelieContent() {
-  return `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-    <span style="font-size:13px;color:var(--ink3)">Memória do Ateliê</span>
-    <button class="addbtn" onclick="showToast('Em breve','ok')">+ Nova Memória</button>
-  </div>
-  <div class="fg"><label class="fl">Data da sessão</label><input class="fi" type="date"></div>
-  <div class="fg"><label class="fl">Presentes</label><input class="fi" placeholder="Nomes dos participantes"></div>
-  <div class="fg"><label class="fl">Atividade realizada</label><textarea class="ft" placeholder="Descreva a atividade..."></textarea></div>
-  <div class="fg"><label class="fl">Motivo da atividade</label><textarea class="ft" placeholder="Por quê esta atividade foi escolhida..."></textarea></div>
-  <div class="fg"><label class="fl">Materiais utilizados</label><input class="fi" placeholder="Ex: tintas, papel, argila..."></div>
-  <div class="fg"><label class="fl">Engajamento do grupo</label><textarea class="ft" placeholder="Como o grupo se engajou..."></textarea></div>
-  <div class="fg"><label class="fl">Percepções e observações</label><textarea class="ft" placeholder="Observações clínicas relevantes..."></textarea></div>`;
+  return `<div style="font-size:13px;color:var(--ink3);margin-bottom:14px;">Memória do Ateliê</div>
+  ${campoInput('at_data','Data da sessão','','date')}
+  ${campoInput('at_presentes','Presentes','Nomes dos participantes')}
+  ${campoTexto('at_atividade','Atividade realizada','Descreva a atividade...')}
+  ${campoTexto('at_motivo','Motivo da atividade','Por quê esta atividade foi escolhida...')}
+  ${campoInput('at_materiais','Materiais utilizados','Ex: tintas, papel, argila...')}
+  ${campoTexto('at_engajamento','Engajamento do grupo','Como o grupo se engajou...')}
+  ${campoTexto('at_percepcoes','Percepções e observações','Observações clínicas relevantes...')}`;
+}
+
+function marcarPts(btn, status) {
+  const cont = btn.closest('[id^="tb"]');
+  cont.querySelector('[data-k="pts_status"]').value = status;
+  btn.remove();
+  showToast('PTS marcado como '+status+' — clique em Salvar','ok');
+}
+
+function novaVersaoPts(btn) {
+  const cont = btn.closest('[id^="tb"]');
+  const vEl = cont.querySelector('[data-k="pts_versao"]');
+  vEl.value = (parseInt(vEl.value,10)||1) + 1;
+  cont.querySelector('[data-k="pts_status"]').value = 'Rascunho';
+  showToast('Versão '+vEl.value+' — clique em Salvar','ok');
 }
 
 async function salvarEvolucao(linha, id, tabIdx) {
+  const cont = document.getElementById('tb'+tabIdx);
+  if(!cont) return;
+  const btn = document.getElementById('sv'+tabIdx);
+
+  const dados = {};
+  cont.querySelectorAll('[data-k]').forEach(el=>{
+    dados[el.dataset.k] = el.classList.contains('crow')
+      ? el.classList.contains('done')
+      : el.value;
+  });
+
+  btn.textContent='Salvando...'; btn.disabled=true;
+
+  const existente = _fichasCache[String(tabIdx)];
+  const res = existente && existente.id
+    ? await api('atualizar',{tabela:'checklists', id:existente.id, dados:{dados:JSON.stringify(dados)}})
+    : await api('salvar',{tabela:'checklists', dados:{
+        paciente_id: id, linha, aba: String(tabIdx),
+        dados: JSON.stringify(dados),
+        atualizado_por: currentUser.email
+      }});
+
+  btn.textContent='💾 Salvar'; btn.disabled=false;
+
+  if(!res.ok) { showToast('Erro ao salvar: '+(res.erro||'tente novamente'),'err'); return; }
+
+  _fichasCache[String(tabIdx)] = {id: existente?.id || res.id, dados};
   showToast('✅ Evolução salva!','ok');
-  // TODO: implementar salvamento real de evolução/checklist via API
 }
 
 // ═══════════════════════════════════════════════
@@ -1261,6 +1317,16 @@ function loadingHTML() {
   return `<div class="loading-inline"><div class="loading-spin"></div>Carregando...</div>`;
 }
 
+function esc(v) {
+  if(v===undefined||v===null) return '';
+  return String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function selOpts(k, opts) {
+  const atual = _F[k];
+  return `<select class="fs" data-k="${k}">${opts.map(o=>`<option${String(atual)===String(o)?' selected':''}>${esc(o)}</option>`).join('')}</select>`;
+}
+
 function toggleCrow(el) {
   el.classList.toggle('done');
   const box=el.querySelector('.cbox'), st=el.querySelector('.cst');
@@ -1298,9 +1364,204 @@ function showToast(msg,type){
   clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove('show'),3000);
 }
 
+// ═══════════════════════════════════════════════
+// DADOS AGREGADOS (contadores, alertas, financeiro)
+// ═══════════════════════════════════════════════
+let _todosPacientes = null;
+
+// "2026-07-01" vira meia-noite UTC no construtor padrão e volta um dia no fuso do Brasil
+function calcIdade(nasc) {
+  const d = dataLocal(nasc);
+  if(!d) return null;
+  return Math.floor((Date.now()-d)/(1000*60*60*24*365.25));
+}
+
+function dataLocal(s) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(s||''));
+  if(!m) return null;
+  const d = new Date(+m[1], +m[2]-1, +m[3]);
+  return isNaN(d) ? null : d;
+}
+
+async function carregarTodosPacientes(forcar) {
+  if(_todosPacientes && !forcar) return _todosPacientes;
+  const res = await api('listar',{tabela:'pacientes', role:currentRole, nome_usuario:currentUser.nome});
+  _todosPacientes = res.ok ? (res.dados||[]) : [];
+  return _todosPacientes;
+}
+
+async function loadContadores() {
+  const pacs = await carregarTodosPacientes();
+  Object.keys(LINHAS).forEach(k=>{
+    const n = pacs.filter(p=>(p.linha||'')===k).length;
+    const cnt = document.getElementById('cnt-'+k);
+    if(cnt) cnt.textContent = n;
+    const lc = document.getElementById('lc-'+k);
+    if(lc) lc.textContent = n+' paciente'+(n!==1?'s':'');
+  });
+}
+
+// Percorre as fichas de todos os pacientes e deriva pendências reais
+async function calcularAlertas() {
+  const pacs = await carregarTodosPacientes();
+  const res = await api('listar',{tabela:'checklists'});
+  const fichas = res.ok ? (res.dados||[]) : [];
+
+  const porPaciente = {};
+  fichas.forEach(f=>{
+    let d={}; try{ d=JSON.parse(f.dados||'{}'); }catch(e){}
+    const pid = String(f.paciente_id);
+    porPaciente[pid] = Object.assign(porPaciente[pid]||{}, d);
+  });
+
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const criticos = [], altos = [], proximos = [];
+
+  pacs.forEach(p=>{
+    const d = porPaciente[String(p.id)] || {};
+    const cfg = LINHAS[p.linha] || {label:p.linha};
+    const meta = `${p.nome} • ${cfg.label} • ${p.terapeuta_nome||'sem terapeuta'}`;
+
+    if(d.pts_elaborado && !d.pts_aprovado)
+      criticos.push({titulo:'PTS aguardando aprovação', meta});
+    if(!Object.keys(d).length)
+      altos.push({titulo:'Ficha ainda não iniciada', meta});
+    else if(!d.pts_elaborado)
+      altos.push({titulo:'PTS pendente de elaboração', meta});
+    if(p.linha==='geriatria' && d.cs_visita && !d.cs_relatorio)
+      altos.push({titulo:'Relatório Casa Segura pendente', meta});
+
+    [['prazo_reavaliacao','Reavaliação PTS'],['alta_proximo_contato','Contato pós-alta'],
+     ['cs_prazo','Prazo Casa Segura'],['ms_proxima','Reavaliação My Score']].forEach(([k,rotulo])=>{
+      if(!d[k]) return;
+      const dt = dataLocal(d[k]); if(!dt) return;
+      const dias = Math.round((dt-hoje)/86400000);
+      const quando = dt.toLocaleDateString('pt-BR');
+      if(dias < 0)       criticos.push({titulo:rotulo+' vencida', meta:`${p.nome} • ${quando}`});
+      else if(dias <= 7) criticos.push({titulo:rotulo+' vence em '+dias+'d', meta:`${p.nome} • ${quando}`});
+      else if(dias <= 30) proximos.push({titulo:rotulo+' — '+p.nome, meta:`${quando} • ${cfg.label}`});
+    });
+  });
+
+  return {criticos, altos, proximos};
+}
+
+function blocoAlertas(titulo, cor, itens, classe, icone) {
+  if(!itens.length) return '';
+  return `<div class="card">
+    <div class="card-title"><div class="ct-bar" style="background:var(${cor})"></div>${titulo}</div>
+    ${itens.map(a=>`<div class="astrip ${classe}"><div class="astrip-icon">${icone}</div>
+      <div><div class="astrip-title">${esc(a.titulo)}</div><div class="astrip-meta">${esc(a.meta)}</div></div></div>`).join('')}
+  </div>`;
+}
+
+async function loadAlertas() {
+  const el = document.getElementById('pgAlertas') || document.getElementById('mainArea');
+  const alvo = document.getElementById('alertasBody');
+  if(!alvo) return;
+  const {criticos, altos, proximos} = await calcularAlertas();
+
+  if(!criticos.length && !altos.length && !proximos.length) {
+    alvo.innerHTML = `<div class="card" style="text-align:center;padding:36px 20px;color:var(--ink3)">
+      <div style="font-size:40px;margin-bottom:10px">✅</div>
+      <div style="font-weight:600;color:var(--ink)">Nenhuma pendência</div>
+      <div style="font-size:13px;margin-top:4px">Tudo em dia por aqui.</div></div>`;
+    return;
+  }
+
+  alvo.innerHTML =
+    blocoAlertas('Críticos','--rose',criticos,'crit','🔴') +
+    blocoAlertas('Alta Prioridade','--amber',altos,'warn','🟡') +
+    (proximos.length?`<div class="card">
+      <div class="card-title"><div class="ct-bar" style="background:var(--sky)"></div>Próximos 30 dias</div>
+      ${proximos.map(a=>`<div class="tl-item"><div class="tl-dot future">📅</div>
+        <div><div class="tl-title">${esc(a.titulo)}</div><div class="tl-meta">${esc(a.meta)}</div></div></div>`).join('')}
+    </div>`:'');
+
+  const dot = document.getElementById('notifDot');
+  if(dot) dot.style.display = (criticos.length+altos.length) ? 'block' : 'none';
+}
+
+async function loadHomeResumo() {
+  await loadContadores();
+  const {criticos, altos} = await calcularAlertas();
+  const el = document.getElementById('homePendencias');
+  if(el) {
+    const n = criticos.length + altos.length;
+    el.innerHTML = n
+      ? `<div class="astrip ${criticos.length?'crit':'warn'}" onclick="loadPage('alertas')">
+          <div class="astrip-icon">${criticos.length?'🔴':'🟡'}</div>
+          <div><div class="astrip-title">${n} pendência${n!==1?'s':''} — ${criticos.length} crítica${criticos.length!==1?'s':''}</div>
+          <div class="astrip-meta">Clique para ver detalhes</div></div></div>`
+      : `<div style="padding:14px;color:var(--ink3);font-size:13px">✅ Nenhuma pendência aberta.</div>`;
+  }
+  const fin = document.getElementById('homeFin');
+  if(fin) {
+    const f = calcularFinanceiro(await carregarTodosPacientes());
+    fin.innerHTML = `<div class="fin-row"><div class="fin-lbl">Faturamento Bruto (${f.n} pac.)</div><div class="fin-val" style="color:var(--sky)">${brl(f.bruto)}</div></div>
+      <div class="fin-row" style="border:none"><div class="fin-lbl">Pro-labore / Sócia</div><div class="fin-val big green">${brl(f.prolabore)}</div></div>`;
+  }
+}
+
+// ── FINANCEIRO ──────────────────────────────────
+// Premissas de negócio — ajustar aqui se mudarem
+const FIN = {
+  ticket_medio: 966.67,   // faturamento mensal por paciente ativo
+  imposto: 0.06,
+  custo_equipe: 11400,
+  marketing: 2000,
+  insumos: 200,
+  socias: 2,
+};
+
+function brl(v) {
+  return 'R$ ' + Math.round(v).toLocaleString('pt-BR');
+}
+
+function calcularFinanceiro(pacs) {
+  const n = pacs.filter(p=>(p.status||'Ativo')!=='Inativo').length;
+  const bruto = n * FIN.ticket_medio;
+  const imposto = bruto * FIN.imposto;
+  const liquido = bruto - imposto - FIN.custo_equipe - FIN.marketing - FIN.insumos;
+  return {n, bruto, imposto, liquido, prolabore: liquido / FIN.socias};
+}
+
+async function loadFinanceiro() {
+  const alvo = document.getElementById('finBody');
+  if(!alvo) return;
+  const pacs = await carregarTodosPacientes();
+  const f = calcularFinanceiro(pacs);
+  const linhas = [
+    [`Faturamento Bruto (${f.n} pac.)`, brl(f.bruto), 'sky'],
+    [`(-) Imposto ${FIN.imposto*100}%`, '- '+brl(f.imposto), 'red'],
+    ['(-) Equipe',    '- '+brl(FIN.custo_equipe), 'red'],
+    ['(-) Marketing', '- '+brl(FIN.marketing), 'red'],
+    ['(-) Insumos',   '- '+brl(FIN.insumos), 'red'],
+    ['Lucro Líquido', brl(f.liquido), 'green'],
+    [`Pro-labore / Sócia`, brl(f.prolabore), 'green'],
+  ];
+  alvo.innerHTML = linhas.map(([l,v,c])=>`
+    <div class="fin-row"><div class="fin-lbl">${l}</div><div class="fin-val ${c}" style="${c==='green'?"font-family:'Fraunces',serif;font-size:20px":''}">${v}</div></div>`).join('');
+
+  const cen = document.getElementById('finCenarios');
+  if(cen) {
+    const metas = [[f.n,'Atual','curr'],[Math.round(f.n*1.25),'+ Sextas','good'],[Math.round(f.n*1.5),'6 pac/hora','warn']];
+    cen.innerHTML = metas.map(([qtd,rotulo,cls],i)=>{
+      const s = calcularFinanceiro(new Array(qtd).fill({status:'Ativo'}));
+      return `<div class="scen ${cls}"><div class="scen-lbl">${i===0?'🟡':i===1?'✅':'⚠️'} ${rotulo} — ${qtd} pacientes</div>
+        <div class="scen-val"${i===1?' style="color:var(--teal)"':''}>${brl(s.prolabore)} / sócia</div>
+        <div class="scen-meta">Fat. ${brl(s.bruto)}</div></div>`;
+    }).join('');
+  }
+}
+
 // ── HOOKS para carregar dados dinâmicos após render ──
 const _afterRender = {
   equipe: ()=>setTimeout(loadEquipe,50),
+  home: ()=>setTimeout(loadHomeResumo,50),
+  linhas: ()=>setTimeout(loadContadores,50),
+  alertas: ()=>setTimeout(loadAlertas,50),
+  financeiro: ()=>setTimeout(loadFinanceiro,50),
 };
 
 const _origLoadPage = loadPage;
