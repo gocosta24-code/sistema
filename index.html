@@ -515,7 +515,19 @@ input,select,textarea{outline:none;}
 // ═══════════════════════════════════════════════
 // CONFIG
 // ═══════════════════════════════════════════════
-let API_URL = localStorage.getItem('co_api_url') || 'https://script.google.com/macros/s/AKfycbxhLD21EEdZN-1Treo0ZTvt5kdslTDx06p7cGZ2BmbxMbPQInGW_aK02Wa1KDTSW_rB/exec';
+// Implantação em uso do Apps Script
+const API_PADRAO = 'https://script.google.com/macros/s/AKfycbz4tAJ5IlxjXdrujlMwbqPSBd9FIRL-0rWVeHRpnh52V2aNl5H9s6U-9lMJbi_mTV8x/exec';
+// Implantações antigas que ficaram para trás: quem tiver uma delas guardada no
+// navegador passa para a atual sozinho, senão continuaria numa versão sem a
+// área do paciente e sem a lista de espera
+const API_ANTIGAS = [
+  'https://script.google.com/macros/s/AKfycbxhLD21EEdZN-1Treo0ZTvt5kdslTDx06p7cGZ2BmbxMbPQInGW_aK02Wa1KDTSW_rB/exec',
+];
+let API_URL = localStorage.getItem('co_api_url') || API_PADRAO;
+if(API_ANTIGAS.indexOf(API_URL) !== -1) {
+  API_URL = API_PADRAO;
+  localStorage.removeItem('co_api_url');
+}
 let currentUser = null;
 let currentRole = null;
 let authToken = null;
