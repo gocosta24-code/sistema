@@ -70,8 +70,6 @@ input,select,textarea{outline:none;}
 .demo-pills{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
 .demo-pill{padding:6px 14px;border:1px solid rgba(255,255,255,.12);border-radius:20px;font-size:12px;color:#888;cursor:pointer;transition:all .2s;}
 .demo-pill:hover{border-color:#2d9175;color:#2d9175;}
-.change-api{margin-top:16px;text-align:center;font-size:12px;color:#444;cursor:pointer;}
-.change-api:hover{color:#666;}
 
 /* APP */
 #app{display:none;min-height:100vh;padding-bottom:72px;}
@@ -286,13 +284,17 @@ input,select,textarea{outline:none;}
   <div class="cfg-card">
     <div class="cfg-title">🔧 Configurar API</div>
     <div class="cfg-hint">Cole abaixo o URL do Apps Script que você implantou na planilha.</div>
+    <div class="cfg-hint" style="background:rgba(184,92,26,.15);border:1px solid rgba(184,92,26,.4);border-radius:8px;padding:11px 13px;color:#e0a06a;margin-bottom:16px;">
+      ⚠️ Só altere se você mesma implantou o Apps Script. Apontar para outro
+      endereço entrega o e-mail e a senha de quem entrar neste aparelho.
+    </div>
     <label class="cfg-label">URL do Apps Script</label>
     <input class="cfg-input" id="cfgUrl" type="url" placeholder="https://script.google.com/macros/s/...">
     <button class="cfg-btn" onclick="salvarConfig()">Salvar e Entrar →</button>
     <div class="cfg-steps" style="margin-top:20px;">
       <div style="font-size:11px;color:#555;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;">Como obter o URL:</div>
       <div class="cfg-step"><div class="cfg-step-n">1</div><div>Abra a planilha Casa Oliveira no Google Drive</div></div>
-      <div class="cfg-step"><div class="cfg-step-n">2</div><div>Extensões → Apps Script → cole o código do arquivo <strong>apps-script-api.js</strong></div></div>
+      <div class="cfg-step"><div class="cfg-step-n">2</div><div>Extensões → Apps Script → cole o código de <strong>apps-script/Code.gs</strong></div></div>
       <div class="cfg-step"><div class="cfg-step-n">3</div><div>Rode a função <strong>setupAdmin()</strong> uma vez</div></div>
       <div class="cfg-step"><div class="cfg-step-n">4</div><div>Implantar → Nova implantação → App da Web → Qualquer pessoa → Copie o URL</div></div>
     </div>
@@ -318,7 +320,6 @@ input,select,textarea{outline:none;}
       </div>
     </div>
   </div>
-  <div class="change-api" onclick="showConfig()">⚙️ Alterar configuração da API</div>
 </div>
 
 <!-- ESQUECI MINHA SENHA -->
@@ -530,12 +531,19 @@ function salvarConfig() {
   }
   API_URL = url;
   localStorage.setItem('co_api_url', url);
+  // Tira ?config=1 da barra de endereços para não ficar no histórico
+  if(location.search.indexOf('config=') !== -1) history.replaceState(null,'',location.pathname);
   document.getElementById('configBanner').style.display='none';
   document.getElementById('loginScreen').style.display='flex';
   showToast('✅ API configurada!','ok');
 }
+// Fora da tela de login de proposito: quem apontasse o sistema para outro
+// servidor capturaria o e-mail e a senha de quem entrasse neste aparelho.
+// Chega-se aqui so por ?config=1, para o caso do URL do Apps Script mudar.
 function showConfig() {
-  document.getElementById('loginScreen').style.display='none';
+  ['loginScreen','esqueciScreen','resetScreen'].forEach(t=>{
+    document.getElementById(t).style.display='none';
+  });
   document.getElementById('configBanner').style.display='flex';
   if(API_URL) document.getElementById('cfgUrl').value = API_URL;
 }
@@ -1671,7 +1679,18 @@ window.loadPage = function(id) {
 window.addEventListener('DOMContentLoaded', async()=>{
   // Link de redefinição de senha vem antes de tudo: quem chegou por ele
   // provavelmente não consegue entrar, então restaurar sessão não ajuda
-  const tokenReset = new URLSearchParams(location.search).get('reset');
+  const params = new URLSearchParams(location.search);
+
+  // Saída de emergência para trocar o URL do Apps Script, caso ele mude.
+  // Não fica na tela de login para ninguém apontar o sistema para outro
+  // servidor e colher as senhas de quem entrar neste aparelho.
+  if(params.get('config') === '1') {
+    document.getElementById('splash').classList.add('hide');
+    showConfig();
+    return;
+  }
+
+  const tokenReset = params.get('reset');
   if(tokenReset) {
     _resetToken = tokenReset;
     document.getElementById('splash').classList.add('hide');
