@@ -35,6 +35,7 @@ const ABAS = {
   monitoramentos: 'Monitoramentos',
   checklists:     'Checklists',
   evolucoes:      'Evolucoes',
+  espera:         'ListaEspera',
 };
 
 // ─── ENTRY POINTS ────────────────────────────────────────────
@@ -58,16 +59,36 @@ function handle(e) {
     const token  = body.token  || params.token;
 
     // Recuperação de senha roda sem sessão — quem esqueceu a senha não tem token
-    const SEM_LOGIN = ['login','solicitar_reset','redefinir_senha'];
+    const SEM_LOGIN = ['login','login_paciente','solicitar_reset','redefinir_senha'];
     if (SEM_LOGIN.indexOf(action) === -1 && !validarToken(token)) {
       return resp({ok:false, erro:'Token inválido ou expirado'});
     }
 
+    // Conta de paciente só alcança o próprio prontuário. A permissão é
+    // decidida aqui pelo que está gravado no token, nunca pelo que o
+    // navegador diz ser — senão bastaria forjar o pedido para ler a ficha
+    // de outra pessoa.
+    const ACOES_PACIENTE = ['logout','meu_prontuario','minha_posicao','alterar_senha_paciente'];
+    if (SEM_LOGIN.indexOf(action) === -1) {
+      const info = getInfoToken(token);
+      const ehPaciente = info && info.role === 'paciente';
+      if (ehPaciente && ACOES_PACIENTE.indexOf(action) === -1) {
+        return resp({ok:false, erro:'Sem permissão'});
+      }
+      if (!ehPaciente && ACOES_PACIENTE.indexOf(action) !== -1 && action !== 'logout') {
+        return resp({ok:false, erro:'Esta área é do paciente'});
+      }
+    }
+
     switch(action) {
       case 'login':           return resp(login(body));
+      case 'login_paciente':  return resp(loginPaciente(body));
       case 'logout':          return resp(logout(token));
       case 'solicitar_reset': return resp(solicitarReset(body));
       case 'redefinir_senha': return resp(redefinirSenha(body));
+      case 'meu_prontuario':  return resp(meuProntuario(token));
+      case 'minha_posicao':   return resp(minhaPosicao(token));
+      case 'alterar_senha_paciente': return resp(alterarSenhaPaciente(body, token));
       case 'listar':        return resp(listar(body));
       case 'salvar':        return resp(salvar(body));
       case 'atualizar':     return resp(atualizar(body));
@@ -75,6 +96,7 @@ function handle(e) {
       case 'listar_profs':  return resp(listarProfs(token));
       case 'convidar_prof': return resp(convidarProf(body, token));
       case 'alterar_senha': return resp(alterarSenha(body, token));
+      case 'dar_acesso_paciente': return resp(darAcessoPaciente(body, token));
       default:              return resp({ok:false, erro:'Ação desconhecida: '+action});
     }
   } catch(err) {
@@ -165,16 +187,21 @@ function logout(token) {
   return {ok:true};
 }
 
-function salvarToken(token, email, role) {
+function salvarToken(token, email, role, refId) {
   const ss = getSpreadsheet();
   const sheet = getOuCria(ss,'Tokens');
+  if (sheet.getLastRow() === 0) {
+    sheet.getRange(1,1,1,5).setValues([['token','email','role','expira','ref_id']]);
+  }
   const dados = sheet.getDataRange().getValues();
-  // Remover tokens antigos deste email
+  // Remover tokens antigos deste email no mesmo papel: a equipe e o paciente
+  // podem usar o mesmo e-mail sem derrubar um ao outro
   for (let i=dados.length-1;i>=1;i--) {
-    if ((dados[i][1]||'').toLowerCase()===email.toLowerCase()) sheet.deleteRow(i+1);
+    if ((dados[i][1]||'').toLowerCase()===email.toLowerCase() &&
+        String(dados[i][2]||'')===String(role)) sheet.deleteRow(i+1);
   }
   const expira = new Date(); expira.setDate(expira.getDate()+7);
-  sheet.appendRow([token,email,role,expira.toISOString()]);
+  sheet.appendRow([token,email,role,expira.toISOString(), refId||'']);
 }
 
 function validarToken(token) {
@@ -199,7 +226,7 @@ function getInfoToken(token) {
     if (!sheet) return null;
     const dados = sheet.getDataRange().getValues();
     for (let i=1;i<dados.length;i++) {
-      if (dados[i][0]===token) return {email:dados[i][1], role:dados[i][2]};
+      if (dados[i][0]===token) return {email:dados[i][1], role:dados[i][2], refId:dados[i][4]||''};
     }
   } catch(e){}
   return null;
@@ -355,6 +382,222 @@ function redefinirSenha(body) {
     return {ok:true};
   }
   return {ok:false, erro:'Link inválido ou expirado'};
+}
+
+
+// ─── ÁREA DO PACIENTE ─────────────────────────────────────────
+// Regra que sustenta tudo aqui: o paciente é identificado pelo ref_id
+// gravado no token no momento do login. Nenhuma função desta seção aceita
+// id vindo do navegador — é o que impede alguém de pedir a ficha alheia.
+
+function acharPacientePorEmail(email) {
+  const ss = getSpreadsheet();
+  const sheet = getOuCria(ss,'Pacientes');
+  const dados = sheet.getDataRange().getValues();
+  if (dados.length < 2) return null;
+  const h = dados[0];
+  const iEmail = h.indexOf('email');
+  if (iEmail === -1) return null;
+  const alvo = String(email).toLowerCase().trim();
+  for (let i=1;i<dados.length;i++) {
+    if (String(dados[i][iEmail]||'').toLowerCase().trim() === alvo) {
+      const o = {}; h.forEach((k,j)=>o[k]=dados[i][j]);
+      return {obj:o, linha:i+1, h:h, sheet:sheet};
+    }
+  }
+  return null;
+}
+
+function acharPacientePorId(id) {
+  const ss = getSpreadsheet();
+  const sheet = getOuCria(ss,'Pacientes');
+  const dados = sheet.getDataRange().getValues();
+  if (dados.length < 2) return null;
+  const h = dados[0];
+  const iId = h.indexOf('id');
+  for (let i=1;i<dados.length;i++) {
+    if (String(dados[i][iId]) === String(id)) {
+      const o = {}; h.forEach((k,j)=>o[k]=dados[i][j]);
+      return {obj:o, linha:i+1, h:h, sheet:sheet};
+    }
+  }
+  return null;
+}
+
+function loginPaciente(body) {
+  const email = String(body.email||'').toLowerCase().trim();
+  const senha = String(body.senha||'');
+  if (!email || !senha) return {ok:false, erro:'Informe e-mail e senha'};
+
+  const achado = acharPacientePorEmail(email);
+  // Mesma mensagem para e-mail inexistente e senha errada: dizer qual dos
+  // dois falhou revelaria quem é paciente da clínica
+  const generico = {ok:false, erro:'E-mail ou senha incorretos'};
+  if (!achado) return generico;
+
+  const p = achado.obj;
+  if (!p.senha_hash) return {ok:false, erro:'Seu acesso ainda não foi liberado. Fale com a clínica.'};
+  if (String(p.acesso||'').toLowerCase() === 'bloqueado') return {ok:false, erro:'Acesso bloqueado. Fale com a clínica.'};
+
+  const check = conferirSenha(email, p.senha_hash, senha);
+  if (!check.ok) return generico;
+  if (check.migrar) {
+    const iSenha = achado.h.indexOf('senha_hash');
+    achado.sheet.getRange(achado.linha, iSenha+1).setValue(hashSenha(email, senha));
+  }
+
+  const token = Utilities.base64Encode('pac:'+email+':'+Date.now()+':'+Math.random());
+  salvarToken(token, email, 'paciente', p.id);
+  return {ok:true, token, usuario:{nome:p.nome, email:p.email, role:'paciente'}};
+}
+
+// Devolve só o que a clínica escolheu comunicar. O prontuário técnico —
+// checklists, PTS interno, evoluções — não sai daqui.
+function meuProntuario(token) {
+  const info = getInfoToken(token);
+  if (!info || info.role !== 'paciente' || !info.refId) return {ok:false, erro:'Sessão inválida'};
+
+  const achado = acharPacientePorId(info.refId);
+  if (!achado) return {ok:false, erro:'Cadastro não encontrado'};
+  const p = achado.obj;
+
+  return {ok:true, dados:{
+    nome: p.nome,
+    linha: p.linha,
+    terapeuta_nome: p.terapeuta_nome,
+    servicos: p.servicos,
+    status: p.status,
+    plano: p.plano_paciente || '',
+    plano_atualizado_em: p.plano_atualizado_em || '',
+    orientacoes: p.orientacoes_paciente || '',
+    proximo_contato: p.proximo_contato || '',
+  }};
+}
+
+function minhaPosicao(token) {
+  const info = getInfoToken(token);
+  if (!info || info.role !== 'paciente') return {ok:false, erro:'Sessão inválida'};
+
+  const ss = getSpreadsheet();
+  const sheet = ss.getSheetByName('ListaEspera');
+  if (!sheet || sheet.getLastRow() < 2) return {ok:true, dados:null};
+
+  const dados = sheet.getDataRange().getValues();
+  const h = dados[0];
+  const iEmail = h.indexOf('email');
+  const iStatus = h.indexOf('status');
+  const iEntrada = h.indexOf('data_entrada');
+  const iPrior = h.indexOf('prioridade');
+  const iLinha = h.indexOf('linha');
+  const iId = h.indexOf('id');
+  if (iEmail === -1) return {ok:true, dados:null};
+
+  const email = String(info.email||'').toLowerCase().trim();
+
+  const fila = [];
+  for (let i=1;i<dados.length;i++) {
+    const r = {}; h.forEach((k,j)=>r[k]=dados[i][j]);
+    if (!r.id) continue;
+    if (String(r.status||'Aguardando').toLowerCase() !== 'aguardando') continue;
+    fila.push(r);
+  }
+
+  // Mesma ordem que a clínica vê: prioridade primeiro, depois quem chegou antes
+  const peso = s => String(s||'').toLowerCase()==='alta' ? 0 : (String(s||'').toLowerCase()==='baixa' ? 2 : 1);
+  fila.sort(function(a,b){
+    const d = peso(a.prioridade) - peso(b.prioridade);
+    if (d !== 0) return d;
+    return String(a.data_entrada||'').localeCompare(String(b.data_entrada||''));
+  });
+
+  const meuIdx = fila.findIndex(function(r){
+    return String(r.email||'').toLowerCase().trim() === email;
+  });
+  if (meuIdx === -1) return {ok:true, dados:null};
+
+  const meu = fila[meuIdx];
+  const naLinha = fila.filter(function(r){ return String(r.linha||'')===String(meu.linha||''); });
+  const posLinha = naLinha.findIndex(function(r){ return String(r.id)===String(meu.id); }) + 1;
+
+  return {ok:true, dados:{
+    posicao: posLinha,
+    total_na_linha: naLinha.length,
+    linha: meu.linha || '',
+    desde: meu.data_entrada || '',
+    observacao: meu.aviso_paciente || '',
+  }};
+}
+
+function alterarSenhaPaciente(body, token) {
+  const info = getInfoToken(token);
+  if (!info || info.role !== 'paciente' || !info.refId) return {ok:false, erro:'Sessão inválida'};
+  const nova = String(body.nova_senha||'');
+  if (nova.length < 6) return {ok:false, erro:'A nova senha precisa ter ao menos 6 caracteres'};
+
+  const achado = acharPacientePorId(info.refId);
+  if (!achado) return {ok:false, erro:'Cadastro não encontrado'};
+
+  const check = conferirSenha(info.email, achado.obj.senha_hash, String(body.senha_atual||''));
+  if (!check.ok) return {ok:false, erro:'Senha atual incorreta'};
+
+  const iSenha = achado.h.indexOf('senha_hash');
+  achado.sheet.getRange(achado.linha, iSenha+1).setValue(hashSenha(info.email, nova));
+  return {ok:true};
+}
+
+// A clínica libera o acesso e o paciente recebe a senha por e-mail
+function darAcessoPaciente(body, token) {
+  const info = getInfoToken(token);
+  if (!info || info.role !== 'admin') return {ok:false, erro:'Sem permissão de admin'};
+
+  const email = String(body.email||'').toLowerCase().trim();
+  if (!email || email.indexOf('@') === -1) return {ok:false, erro:'E-mail inválido'};
+  if (!body.paciente_id) return {ok:false, erro:'Paciente não informado'};
+
+  const achado = acharPacientePorId(body.paciente_id);
+  if (!achado) return {ok:false, erro:'Paciente não encontrado'};
+
+  // Um e-mail não pode servir a dois cadastros: o login ficaria ambíguo e
+  // a pessoa errada poderia acabar vendo a ficha errada
+  const outro = acharPacientePorEmail(email);
+  if (outro && String(outro.obj.id) !== String(body.paciente_id)) {
+    return {ok:false, erro:'Este e-mail já está em uso por outro paciente'};
+  }
+
+  const senha = gerarSenha();
+  const setar = (coluna, valor) => {
+    let idx = achado.h.indexOf(coluna);
+    if (idx === -1) {
+      achado.h.push(coluna);
+      idx = achado.h.length - 1;
+      achado.sheet.getRange(1, idx+1).setValue(coluna);
+    }
+    achado.sheet.getRange(achado.linha, idx+1).setValue(valor);
+  };
+  setar('email', email);
+  setar('senha_hash', hashSenha(email, senha));
+  setar('acesso', 'Liberado');
+
+  try {
+    MailApp.sendEmail({
+      to: email,
+      subject: 'Seu acesso — Casa Oliveira',
+      htmlBody: '<div style="font-family:Arial,sans-serif;max-width:480px">' +
+        '<h2 style="color:#1d6b58">Casa Oliveira</h2>' +
+        '<p>Olá, <strong>' + (achado.obj.nome||'') + '</strong>!</p>' +
+        '<p>Você já pode acompanhar seu atendimento pela internet.</p>' +
+        '<div style="background:#f5f5f5;padding:16px;border-radius:8px;margin:16px 0">' +
+        '<p>📧 E-mail: <strong>' + email + '</strong></p>' +
+        '<p>🔑 Senha: <strong>' + senha + '</strong></p>' +
+        '</div>' +
+        '<p>Acesse: <a href="' + URL_SISTEMA + '?area=paciente">Minha área</a></p>' +
+        '<p style="color:#666;font-size:13px">Troque a senha no primeiro acesso. ' +
+        'Se não reconhece este e-mail, avise a clínica.</p>' +
+        '</div>'
+    });
+  } catch(e) { /* sem cota de e-mail: o acesso fica criado do mesmo jeito */ }
+
+  return {ok:true, senha: senha};
 }
 
 // ─── CRUD ─────────────────────────────────────────────────────
@@ -578,7 +821,7 @@ function setupAdmin() {
   sr.getRange(1,1,1,5).setValues([['token','email','expira','usado','criado_em']]);
 
   // Abas de dados
-  const abas = ['Pacientes','PTS','Avaliacoes','Reunioes','Alertas','Monitoramentos','Checklists','Evolucoes'];
+  const abas = ['Pacientes','PTS','Avaliacoes','Reunioes','Alertas','Monitoramentos','Checklists','Evolucoes','ListaEspera'];
   abas.forEach(nome => {
     const s = getOuCria(ss,nome);
     if (s.getLastRow()===0) s.appendRow(['id','criado_em']);

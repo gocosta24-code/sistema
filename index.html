@@ -50,7 +50,7 @@ input,select,textarea{outline:none;}
 .cfg-step-n{width:20px;height:20px;background:rgba(45,145,117,.2);color:#2d9175;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px;}
 
 /* LOGIN */
-#loginScreen,#esqueciScreen,#resetScreen{display:none;min-height:100vh;background:var(--ink);align-items:center;justify-content:center;padding:24px;flex-direction:column;}
+#loginScreen,#esqueciScreen,#resetScreen,#pacLoginScreen{display:none;min-height:100vh;background:var(--ink);align-items:center;justify-content:center;padding:24px;flex-direction:column;}
 .login-logo{font-family:'Fraunces',serif;font-size:52px;color:#faf8f5;text-align:center;letter-spacing:-1px;}
 .login-sub{font-size:11px;color:#555;letter-spacing:3px;text-transform:uppercase;text-align:center;margin-top:4px;margin-bottom:36px;}
 .login-card{width:100%;max-width:360px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--r-lg);padding:28px 24px;}
@@ -264,6 +264,38 @@ input,select,textarea{outline:none;}
 .evo-orig{font-size:11px;color:var(--ink3);margin-top:7px;font-style:italic;}
 .evo-form{background:var(--sur2);border:1px solid var(--bor);border-radius:var(--r);padding:14px;margin-bottom:14px;}
 
+.esp{display:flex;gap:12px;align-items:flex-start;background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);padding:13px 15px;margin-bottom:9px;}
+.esp-off{opacity:.55;}
+.esp-pos{font-family:'Fraunces',serif;font-size:19px;color:var(--teal);min-width:30px;text-align:center;flex-shrink:0;}
+.esp-nome{font-size:14px;font-weight:700;color:var(--ink);}
+.esp-meta{font-size:12px;color:var(--ink3);margin-top:2px;}
+.esp-obs{font-size:12px;color:var(--ink2);margin-top:6px;padding-top:6px;border-top:1px solid var(--bor);}
+.esp-acoes{display:flex;flex-direction:column;gap:5px;flex-shrink:0;}
+
+/* ÁREA DO PACIENTE */
+#portalScreen{min-height:100vh;background:var(--bg);}
+.pt-topo{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:var(--sur);border-bottom:1px solid var(--bor);position:sticky;top:0;z-index:10;}
+.pt-marca{font-family:'Fraunces',serif;font-size:19px;}
+.pt-corpo{max-width:620px;margin:0 auto;padding:20px 16px 40px;}
+.pt-ola{font-family:'Fraunces',serif;font-size:27px;margin-bottom:3px;}
+.pt-sub{font-size:13px;color:var(--ink3);margin-bottom:20px;}
+.pt-card{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);padding:17px;margin-bottom:13px;}
+.pt-t{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--ink3);margin-bottom:11px;}
+.pt-p{font-size:14px;line-height:1.65;color:var(--ink);white-space:pre-wrap;word-break:break-word;}
+.pt-linha{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--bor);font-size:14px;}
+.pt-linha:last-child{border-bottom:none;}
+.pt-linha span{color:var(--ink3);}
+.pt-fila{text-align:center;border-color:var(--teal);}
+.pt-fila-n{font-family:'Fraunces',serif;font-size:52px;color:var(--teal);line-height:1;}
+.pt-fila-d{font-size:13px;color:var(--ink2);margin-top:5px;}
+.pt-aviso{background:var(--teal-lt);border-radius:9px;padding:11px;margin-top:12px;font-size:13px;color:var(--ink);}
+.pt-nota{font-size:11.5px;color:var(--ink3);margin-top:12px;line-height:1.5;}
+.pt-rodape{text-align:center;font-size:12px;color:var(--ink3);margin-top:26px;}
+
+.pac-status{background:var(--sur2);border:1px solid var(--bor);border-radius:9px;padding:11px 13px;font-size:13px;margin-bottom:14px;line-height:1.5;}
+.pac-status.on{background:var(--teal-lt);border-color:var(--teal);}
+.pac-acesso{background:var(--sur2);border:1px solid var(--bor);border-radius:var(--r);padding:14px;margin-top:16px;}
+
 /* LOADING INLINE */
 .loading-inline{text-align:center;padding:36px;color:var(--ink3);font-size:14px;}
 .loading-spin{width:24px;height:24px;border:2px solid var(--bor);border-top-color:var(--teal);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px;}
@@ -391,6 +423,31 @@ input,select,textarea{outline:none;}
   </div>
 </div>
 
+
+<!-- ÁREA DO PACIENTE — LOGIN -->
+<div id="pacLoginScreen" style="display:none">
+  <div class="login-logo">Casa Oliveira</div>
+  <div class="login-sub">Área do paciente</div>
+  <div class="login-card">
+    <div id="pacErr" class="login-err"></div>
+    <div class="lf"><label>E-mail</label>
+      <input id="pacEmail" type="email" placeholder="seu@email.com" autocomplete="email"></div>
+    <div class="lf"><label>Senha</label>
+      <input id="pacPass" type="password" placeholder="••••••••"
+             onkeydown="if(event.key==='Enter')doLoginPaciente()"></div>
+    <button class="login-btn" id="pacBtn" onclick="doLoginPaciente()">Entrar →</button>
+    <div class="forgot" style="margin-top:18px">
+      Ainda não tem acesso? Peça à clínica.
+    </div>
+  </div>
+  <div class="change-api" onclick="voltarAoLogin()" style="margin-top:16px;text-align:center;font-size:12px;color:#555;cursor:pointer">
+    Sou da equipe
+  </div>
+</div>
+
+<!-- ÁREA DO PACIENTE — PORTAL -->
+<div id="portalScreen" style="display:none"></div>
+
 <!-- APP -->
 <div id="app">
   <div class="topbar">
@@ -407,6 +464,7 @@ input,select,textarea{outline:none;}
     <div id="pgLinhas"    class="page"></div>
     <div id="pgEquipe"    class="page"></div>
     <div id="pgAlertas"   class="page"></div>
+    <div id="pgEspera"    class="page"></div>
   </div>
   <nav class="bnav" id="bnavEl"></nav>
 </div>
@@ -453,6 +511,7 @@ let currentRole = null;
 let authToken = null;
 let demoMode = false;
 let _profsCache = null;
+let _demoPacienteId = null;
 
 // ═══════════════════════════════════════════════
 // API
@@ -608,6 +667,44 @@ function demoApi(action, body) {
     case 'logout': return {ok:true};
     case 'alterar_senha': return {ok:false, erro:'Não disponível no modo demonstração.'};
     case 'solicitar_reset': return {ok:true};
+    case 'login_paciente': {
+      const p = DEMO_DB.pacientes.find(x=>(x.email||'').toLowerCase()===String(body.email||'').toLowerCase());
+      if(!p) return {ok:false, erro:'E-mail ou senha incorretos'};
+      _demoPacienteId = p.id;
+      return {ok:true, token:'demo_pac', usuario:{nome:p.nome, email:p.email, role:'paciente'}};
+    }
+    case 'meu_prontuario': {
+      const p = DEMO_DB.pacientes.find(x=>String(x.id)===String(_demoPacienteId));
+      if(!p) return {ok:false, erro:'Sessão inválida'};
+      return {ok:true, dados:{
+        nome:p.nome, linha:p.linha, terapeuta_nome:p.terapeuta_nome, servicos:p.servicos,
+        status:p.status, plano:p.plano_paciente||'', plano_atualizado_em:p.plano_atualizado_em||'',
+        orientacoes:p.orientacoes_paciente||'', proximo_contato:p.proximo_contato||'',
+      }};
+    }
+    case 'minha_posicao': {
+      const p = DEMO_DB.pacientes.find(x=>String(x.id)===String(_demoPacienteId));
+      if(!p || !p.email) return {ok:true, dados:null};
+      const peso = s => String(s||'').toLowerCase()==='alta'?0:(String(s||'').toLowerCase()==='baixa'?2:1);
+      const fila = (DEMO_DB.espera||[])
+        .filter(e=>String(e.status||'Aguardando').toLowerCase()==='aguardando')
+        .sort((a,b)=>{const d=peso(a.prioridade)-peso(b.prioridade); return d!==0?d:String(a.data_entrada||'').localeCompare(String(b.data_entrada||''));});
+      const meu = fila.find(e=>(e.email||'').toLowerCase()===(p.email||'').toLowerCase());
+      if(!meu) return {ok:true, dados:null};
+      const naLinha = fila.filter(e=>String(e.linha)===String(meu.linha));
+      return {ok:true, dados:{
+        posicao: naLinha.findIndex(e=>String(e.id)===String(meu.id))+1,
+        total_na_linha: naLinha.length, linha: meu.linha,
+        desde: meu.data_entrada, observacao: meu.aviso_paciente||'',
+      }};
+    }
+    case 'dar_acesso_paciente': {
+      const p = DEMO_DB.pacientes.find(x=>String(x.id)===String(body.paciente_id));
+      if(!p) return {ok:false, erro:'Paciente não encontrado'};
+      p.email = body.email; p.acesso = 'Liberado';
+      return {ok:true, senha:'demo1234'};
+    }
+    case 'alterar_senha_paciente': return {ok:false, erro:'Não disponível no modo demonstração.'};
     case 'redefinir_senha': return {ok:false, erro:'Não disponível no modo demonstração.'};
     case 'convidar_prof': return {ok:false, erro:'Não disponível no modo demonstração.'};
     default: return {ok:false, erro:'Ação desconhecida no modo demo'};
@@ -709,10 +806,13 @@ function doLogout() {
 let _resetToken = null;
 
 function mostrarTela(id) {
-  ['loginScreen','esqueciScreen','resetScreen'].forEach(t=>{
-    document.getElementById(t).style.display = (t===id) ? 'flex' : 'none';
+  ['loginScreen','esqueciScreen','resetScreen','pacLoginScreen'].forEach(t=>{
+    const el = document.getElementById(t);
+    if(el) el.style.display = (t===id) ? 'flex' : 'none';
   });
   document.getElementById('configBanner').style.display='none';
+  const p = document.getElementById('portalScreen');
+  if(p) p.style.display='none';
 }
 
 function showEsqueciSenha() {
@@ -727,6 +827,9 @@ function showEsqueciSenha() {
 function voltarAoLogin() {
   _resetToken = null;
   limparParamReset();
+  if(location.search.indexOf('area=paciente') !== -1) {
+    history.replaceState(null,'',location.pathname);
+  }
   mostrarTela('loginScreen');
 }
 
@@ -803,8 +906,8 @@ const LINHAS = {
 };
 
 const NAVS = {
-  admin:        [{id:'home',icon:'🏠',label:'Início'},{id:'linhas',icon:'🩺',label:'Linhas'},{id:'equipe',icon:'👥',label:'Equipe'},{id:'alertas',icon:'🔔',label:'Alertas',badge:true}],
-  coordenador:  [{id:'home',icon:'🏠',label:'Início'},{id:'linhas',icon:'🩺',label:'Pacientes'},{id:'alertas',icon:'🔔',label:'Alertas',badge:true}],
+  admin:        [{id:'home',icon:'🏠',label:'Início'},{id:'linhas',icon:'🩺',label:'Linhas'},{id:'espera',icon:'🪑',label:'Espera'},{id:'equipe',icon:'👥',label:'Equipe'},{id:'alertas',icon:'🔔',label:'Alertas',badge:true}],
+  coordenador:  [{id:'home',icon:'🏠',label:'Início'},{id:'linhas',icon:'🩺',label:'Pacientes'},{id:'espera',icon:'🪑',label:'Espera'},{id:'alertas',icon:'🔔',label:'Alertas',badge:true}],
   profissional: [{id:'home',icon:'🏠',label:'Hoje'}, {id:'linhas',icon:'🩺',label:'Meus Pcts'},{id:'alertas',icon:'🔔',label:'Pendências',badge:true}],
 };
 
@@ -856,11 +959,11 @@ function loadPage(id) {
   _activePage = id;
   document.querySelectorAll('.bnt,.sd-item').forEach(e=>e.classList.remove('active'));
   ['bn-','sd-'].forEach(p=>{const e=document.getElementById(p+id);if(e)e.classList.add('active');});
-  const map={home:'pgHome',linhas:'pgLinhas',equipe:'pgEquipe',alertas:'pgAlertas'};
+  const map={home:'pgHome',linhas:'pgLinhas',equipe:'pgEquipe',alertas:'pgAlertas',espera:'pgEspera'};
   document.querySelectorAll('.page').forEach(e=>{e.classList.remove('active');e.innerHTML='';});
   const el = document.getElementById(map[id]);
   if(!el) return;
-  const renders={home:renderHome,linhas:renderLinhas,equipe:renderEquipe,alertas:renderAlertas};
+  const renders={home:renderHome,linhas:renderLinhas,equipe:renderEquipe,alertas:renderAlertas,espera:renderEspera};
   if(renders[id]){el.innerHTML=renders[id]();el.classList.add('active');}
 }
 
@@ -1174,6 +1277,473 @@ async function salvarPaciente(linha, idExistente) {
 }
 
 
+
+
+
+
+// ── O QUE O PACIENTE VÊ ──────────────────────────
+// Texto próprio, escrito para a família. O PTS interno tem hipótese
+// diagnóstica e linguagem técnica: não é o que se entrega ao paciente.
+function areaPacienteHTML(p, idxAba) {
+  const liberado = !!p.email && String(p.acesso||'').toLowerCase()==='liberado';
+  return `
+    <div class="pac-status ${liberado?'on':''}">
+      ${liberado
+        ? `✅ <strong>${esc(p.nome.split(' ')[0])}</strong> acompanha pelo site — acesso por <strong>${esc(p.email)}</strong>`
+        : `🔒 Sem acesso ainda. Libere abaixo para esta pessoa acompanhar pelo site.`}
+    </div>
+
+    <div class="fg"><label class="fl">Plano terapêutico — versão para o paciente</label>
+      <textarea class="ft" data-k="plano_paciente" style="min-height:130px"
+        placeholder="Escreva com as palavras que a família entende: o que estamos trabalhando, como e por quê.">${esc(p.plano_paciente)}</textarea></div>
+
+    <div class="fg"><label class="fl">Orientações para casa</label>
+      <textarea class="ft" data-k="orientacoes_paciente" style="min-height:90px"
+        placeholder="Ex.: exercícios diários, cuidados de postura, o que observar.">${esc(p.orientacoes_paciente)}</textarea></div>
+
+    <div class="fg"><label class="fl">Próximo contato</label>
+      <input class="fi" type="date" data-k="proximo_contato" value="${esc(String(p.proximo_contato||'').slice(0,10))}"></div>
+
+    <button class="savebtn" id="pacSalvarBtn" onclick="salvarAreaPaciente('${p.id}',${idxAba})">💾 Salvar e publicar para o paciente</button>
+
+    ${currentRole==='admin'?`
+    <div class="pac-acesso">
+      <div class="fl" style="margin-bottom:8px">Acesso ao site</div>
+      <div class="fg"><label class="fl">E-mail da pessoa</label>
+        <input class="fi" id="pacAcEmail" type="email" value="${esc(p.email)}"
+               placeholder="email@exemplo.com"></div>
+      <div id="pacAcErr" class="errbox"></div>
+      <button class="backbtn" id="pacAcBtn" style="width:100%" onclick="liberarAcessoPaciente('${p.id}')">
+        ${liberado?'🔁 Gerar nova senha e reenviar':'🔓 Liberar acesso e enviar senha'}</button>
+      <div class="pt-nota">A senha vai por e-mail. Quem tem acesso vê apenas o plano e as
+        orientações acima — nunca o checklist, o PTS interno ou as evoluções.</div>
+    </div>`:''}`;
+}
+
+async function salvarAreaPaciente(id, idxAba) {
+  const raiz = document.getElementById('tb'+idxAba);
+  if(!raiz) return;
+  const btn = document.getElementById('pacSalvarBtn');
+  const dados = {};
+  raiz.querySelectorAll('[data-k]').forEach(el=>{ dados[el.dataset.k] = el.value; });
+  if(dados.plano_paciente !== undefined) dados.plano_atualizado_em = hojeISO();
+
+  btn.textContent='Salvando...'; btn.disabled=true;
+  const res = await api('atualizar',{tabela:'pacientes', id, dados});
+  btn.textContent='💾 Salvar e publicar para o paciente'; btn.disabled=false;
+
+  if(!res.ok){ showToast('Erro ao salvar: '+(res.erro||''),'err'); return; }
+
+  const p = (_pacientesCache[_currentLinha]||[]).find(x=>String(x.id)===String(id));
+  if(p) Object.assign(p, dados);
+  limparSujo();
+  showToast('✅ Publicado para o paciente','ok');
+}
+
+async function liberarAcessoPaciente(id) {
+  const email = (document.getElementById('pacAcEmail').value||'').trim();
+  const err = document.getElementById('pacAcErr');
+  const btn = document.getElementById('pacAcBtn');
+  if(!email || email.indexOf('@')===-1){ err.textContent='Informe um e-mail válido.'; err.style.display='block'; return; }
+  err.style.display='none';
+
+  if(!confirm('Liberar acesso para '+email+'?\n\nA pessoa vai receber uma senha por e-mail e poderá ver o plano terapêutico e as orientações.')) return;
+
+  btn.textContent='Liberando...'; btn.disabled=true;
+  const res = await api('dar_acesso_paciente',{paciente_id:id, email});
+  btn.disabled=false;
+
+  if(!res.ok){
+    btn.textContent='🔓 Liberar acesso e enviar senha';
+    err.textContent=res.erro||'Não foi possível liberar.'; err.style.display='block';
+    return;
+  }
+
+  const p = (_pacientesCache[_currentLinha]||[]).find(x=>String(x.id)===String(id));
+  if(p){ p.email=email; p.acesso='Liberado'; }
+  btn.textContent='🔁 Gerar nova senha e reenviar';
+  showToast('✅ Acesso liberado — senha enviada por e-mail','ok');
+  if(res.senha) alert('Acesso liberado para '+email+'.\n\nSenha: '+res.senha+'\n\nEla também foi enviada por e-mail. Se o e-mail não chegar, passe esta senha à pessoa e peça que troque no primeiro acesso.');
+}
+
+// ═══════════════════════════════════════════════
+// ÁREA DO PACIENTE
+// Vive separada do sistema da equipe: outro login, outra tela e um token que
+// o backend só deixa chegar ao próprio prontuário.
+// ═══════════════════════════════════════════════
+let pacienteLogado = null;
+
+function mostrarLoginPaciente() {
+  ['loginScreen','esqueciScreen','resetScreen','configBanner'].forEach(t=>{
+    const el=document.getElementById(t); if(el) el.style.display='none';
+  });
+  // Sem isto o painel do prontuário da equipe fica aberto por cima do portal
+  fecharTudoDaEquipe();
+  document.getElementById('portalScreen').style.display='none';
+  document.getElementById('pacLoginScreen').style.display='flex';
+}
+
+function fecharTudoDaEquipe() {
+  document.getElementById('app').classList.remove('aberto');
+  limparSujo();
+  closeSheet(true);
+  closeMenu();
+  limparCaches();
+  _fichasCache = {}; _evolucoes = []; _espera = [];
+  currentUser = null; currentRole = null;
+}
+
+async function doLoginPaciente() {
+  const email = (document.getElementById('pacEmail').value||'').trim();
+  const senha = document.getElementById('pacPass').value;
+  const err = document.getElementById('pacErr');
+  const btn = document.getElementById('pacBtn');
+  if(!email||!senha){ err.textContent='Preencha e-mail e senha.'; err.style.display='block'; return; }
+  err.style.display='none';
+  btn.textContent='Entrando...'; btn.disabled=true;
+
+  const res = await api('login_paciente',{email, senha});
+  btn.textContent='Entrar →'; btn.disabled=false;
+
+  if(!res.ok){ err.textContent=res.erro||'Não foi possível entrar.'; err.style.display='block'; return; }
+
+  authToken = res.token;
+  pacienteLogado = res.usuario;
+  localStorage.setItem('co_pac_token', authToken);
+  abrirPortal();
+}
+
+async function abrirPortal() {
+  fecharTudoDaEquipe();
+  document.getElementById('pacLoginScreen').style.display='none';
+  document.getElementById('splash').classList.add('hide');
+  const tela = document.getElementById('portalScreen');
+  tela.style.display='block';
+  tela.innerHTML = `<div class="pt-topo">
+      <div class="pt-marca">Casa Oliveira</div>
+      <button class="backbtn" onclick="sairPortal()">Sair</button>
+    </div>
+    <div class="pt-corpo">${loadingHTML()}</div>`;
+
+  const [pront, fila] = await Promise.all([
+    api('meu_prontuario',{}),
+    api('minha_posicao',{}),
+  ]);
+
+  if(!pront.ok){
+    tela.querySelector('.pt-corpo').innerHTML =
+      `<div class="errbox" style="display:block">${esc(pront.erro||'Não foi possível carregar.')}</div>`;
+    return;
+  }
+
+  const d = pront.dados;
+  const f = fila.ok ? fila.dados : null;
+  const cfg = LINHAS[d.linha] || {emoji:'•', label:d.linha||''};
+
+  tela.querySelector('.pt-corpo').innerHTML = `
+    <div class="pt-ola">Olá, ${esc((d.nome||'').split(' ')[0])} 👋</div>
+    <div class="pt-sub">Acompanhe seu atendimento na Casa Oliveira</div>
+
+    ${f ? `<div class="pt-card pt-fila">
+      <div class="pt-t">🪑 Lista de espera</div>
+      <div class="pt-fila-n">${f.posicao}º</div>
+      <div class="pt-fila-d">na fila de ${esc(cfg.label || f.linha)}${f.total_na_linha?' · '+f.total_na_linha+' aguardando':''}</div>
+      ${f.desde?`<div class="pt-fila-d">Na lista desde ${esc(fmtDataBR(f.desde))}</div>`:''}
+      ${f.observacao?`<div class="pt-aviso">${esc(f.observacao)}</div>`:''}
+      <div class="pt-nota">A ordem considera a data de entrada e a avaliação da equipe.
+        Entraremos em contato assim que abrir vaga.</div>
+    </div>` : ''}
+
+    ${d.status && String(d.status).toLowerCase()!=='ativo' ? `<div class="pt-card">
+      <div class="pt-t">Situação</div><div class="pt-p">${esc(d.status)}</div></div>` : ''}
+
+    <div class="pt-card">
+      <div class="pt-t">${cfg.emoji} Seu acompanhamento</div>
+      ${d.terapeuta_nome?`<div class="pt-linha"><span>Profissional</span><strong>${esc(d.terapeuta_nome)}</strong></div>`:''}
+      ${cfg.label?`<div class="pt-linha"><span>Área</span><strong>${esc(cfg.label)}</strong></div>`:''}
+      ${d.servicos?`<div class="pt-linha"><span>Serviços</span><strong>${esc(d.servicos)}</strong></div>`:''}
+      ${d.proximo_contato?`<div class="pt-linha"><span>Próximo contato</span><strong>${esc(fmtDataBR(d.proximo_contato))}</strong></div>`:''}
+    </div>
+
+    ${d.plano ? `<div class="pt-card">
+      <div class="pt-t">🎯 Seu plano terapêutico</div>
+      <div class="pt-p">${esc(d.plano)}</div>
+      ${d.plano_atualizado_em?`<div class="pt-nota">Atualizado em ${esc(fmtDataBR(d.plano_atualizado_em))}</div>`:''}
+    </div>` : (f ? '' : `<div class="pt-card">
+      <div class="pt-t">🎯 Seu plano terapêutico</div>
+      <div class="pt-p" style="color:var(--ink3)">Ainda não há um plano publicado.
+        Sua equipe compartilha aqui os objetivos combinados.</div>
+    </div>`)}
+
+    ${d.orientacoes ? `<div class="pt-card">
+      <div class="pt-t">🏠 Orientações para casa</div>
+      <div class="pt-p">${esc(d.orientacoes)}</div>
+    </div>` : ''}
+
+    <button class="backbtn" style="width:100%;margin-top:6px" onclick="trocarSenhaPaciente()">🔑 Alterar minha senha</button>
+    <div class="pt-rodape">Dúvidas sobre o tratamento? Fale com sua equipe na clínica.</div>`;
+}
+
+function trocarSenhaPaciente() {
+  const c = document.querySelector('#portalScreen .pt-corpo');
+  c.innerHTML = `<div class="pt-card">
+    <div class="pt-t">🔑 Alterar minha senha</div>
+    <div class="fg"><label class="fl">Senha atual</label><input class="fi" id="psAtual" type="password"></div>
+    <div class="fg"><label class="fl">Nova senha</label><input class="fi" id="psNova" type="password" placeholder="mínimo 6 caracteres"></div>
+    <div class="fg"><label class="fl">Confirmar nova senha</label><input class="fi" id="psConf" type="password"></div>
+    <div id="psErr" class="errbox"></div>
+    <div style="display:flex;gap:8px">
+      <button class="savebtn" id="psBtn" style="flex:1" onclick="salvarSenhaPaciente()">Salvar</button>
+      <button class="backbtn" onclick="abrirPortal()">Voltar</button>
+    </div>
+  </div>`;
+}
+
+async function salvarSenhaPaciente() {
+  const atual=document.getElementById('psAtual').value;
+  const nova=document.getElementById('psNova').value;
+  const conf=document.getElementById('psConf').value;
+  const err=document.getElementById('psErr');
+  const erro=m=>{err.textContent=m;err.style.display='block';};
+  if(!atual) return erro('Informe a senha atual.');
+  if(nova.length<6) return erro('A nova senha precisa ter ao menos 6 caracteres.');
+  if(nova!==conf) return erro('As senhas não coincidem.');
+  err.style.display='none';
+  const btn=document.getElementById('psBtn');
+  btn.disabled=true; btn.textContent='Salvando...';
+  const res=await api('alterar_senha_paciente',{senha_atual:atual, nova_senha:nova});
+  btn.disabled=false; btn.textContent='Salvar';
+  if(!res.ok) return erro(res.erro||'Não foi possível alterar.');
+  showToast('✅ Senha alterada','ok');
+  abrirPortal();
+}
+
+function sairPortal() {
+  if(authToken) api('logout',{});
+  authToken=null; pacienteLogado=null;
+  localStorage.removeItem('co_pac_token');
+  document.getElementById('portalScreen').style.display='none';
+  document.getElementById('pacEmail').value='';
+  document.getElementById('pacPass').value='';
+  mostrarLoginPaciente();
+}
+
+async function restaurarSessaoPaciente() {
+  const t = localStorage.getItem('co_pac_token');
+  if(!t) return false;
+  authToken = t;
+  const res = await apiBruto('meu_prontuario',{});
+  if(res.ok){ await abrirPortal(); return true; }
+  authToken=null; localStorage.removeItem('co_pac_token');
+  return false;
+}
+
+// ═══════════════════════════════════════════════
+// LISTA DE ESPERA
+// ═══════════════════════════════════════════════
+let _espera = [];
+
+const PRIORIDADES = ['Normal','Alta','Baixa'];
+const pesoPrioridade = s => {
+  const v = String(s||'').toLowerCase();
+  return v==='alta' ? 0 : (v==='baixa' ? 2 : 1);
+};
+
+function renderEspera() {
+  if(currentRole==='profissional') return `<div class="ph"><div class="ph-title">Acesso restrito</div></div>`;
+  return `<div class="ph"><div class="ph-title">Lista de Espera</div>
+    <div class="ph-sub">Quem aguarda vaga, por ordem de prioridade e chegada</div></div>
+  ${currentRole==='admin'?`<button class="addbtn" style="margin-bottom:14px" onclick="novoNaEspera()">+ Adicionar à lista</button>`:''}
+  <div id="esperaForm"></div>
+  <div id="esperaLista">${loadingHTML()}</div>`;
+}
+
+async function loadEspera() {
+  const res = await api('listar',{tabela:'espera'});
+  _espera = res.ok ? (res.dados||[]) : [];
+  ordenarEspera();
+  desenharEspera();
+}
+
+function ordenarEspera() {
+  _espera.sort((a,b)=>{
+    const d = pesoPrioridade(a.prioridade) - pesoPrioridade(b.prioridade);
+    if(d!==0) return d;
+    return String(a.data_entrada||'').localeCompare(String(b.data_entrada||''));
+  });
+}
+
+function desenharEspera() {
+  const el = document.getElementById('esperaLista');
+  if(!el) return;
+
+  const aguardando = _espera.filter(e=>String(e.status||'Aguardando').toLowerCase()==='aguardando');
+  const resolvidos = _espera.filter(e=>String(e.status||'Aguardando').toLowerCase()!=='aguardando');
+
+  if(!_espera.length){
+    el.innerHTML = `<div style="text-align:center;padding:46px 20px;color:var(--ink3)">
+      <div style="font-size:40px;margin-bottom:10px">🪑</div>
+      <div style="font-size:15px;font-weight:600;margin-bottom:5px">Ninguém na lista de espera</div>
+      <div style="font-size:13px">Quem procurar a clínica sem vaga entra aqui.</div>
+    </div>`;
+    return;
+  }
+
+  // Cada linha clínica é uma fila própria — mostrar tudo junto faria parecer
+  // que a Infantil e o Pilates disputam a mesma vaga
+  const porLinha = {};
+  aguardando.forEach(e=>{ (porLinha[e.linha||''] = porLinha[e.linha||''] || []).push(e); });
+
+  el.innerHTML = `
+    ${Object.entries(porLinha).map(([lin, gente])=>{
+      const cfg = LINHAS[lin] || {emoji:'•', label:lin||'Sem linha', color:'gray'};
+      return `<div class="card-title" style="margin:16px 0 10px">
+          <div class="ct-bar" style="background:var(--${cfg.color==='gray'?'ink3':cfg.color})"></div>
+          ${cfg.emoji} ${esc(cfg.label)} · ${gente.length} na fila
+        </div>
+        ${gente.map((e,i)=>cardEspera(e, i+1)).join('')}`;
+    }).join('')}
+    ${resolvidos.length?`<div class="card-title" style="margin:18px 0 10px">
+      <div class="ct-bar" style="background:var(--ink3)"></div>Já resolvidos</div>
+      ${resolvidos.map(e=>cardEspera(e,null)).join('')}`:''}`;
+}
+
+function cardEspera(e, pos) {
+  const cfg = LINHAS[e.linha] || {emoji:'•', label:e.linha||'—', color:'gray'};
+  const encerrado = pos===null;
+  return `<div class="esp ${encerrado?'esp-off':''}">
+    <div class="esp-pos">${encerrado?'✓':pos+'º'}</div>
+    <div style="flex:1;min-width:0">
+      <div class="esp-nome">${esc(e.nome||'—')}</div>
+      <div class="esp-meta">${encerrado?cfg.emoji+' '+esc(cfg.label)+' · ':''}${e.telefone?esc(e.telefone):''}
+        ${e.data_entrada?' · desde '+esc(fmtDataBR(e.data_entrada)):''}</div>
+      <div style="margin-top:6px;display:flex;gap:5px;flex-wrap:wrap;align-items:center">
+        ${e.prioridade&&String(e.prioridade).toLowerCase()!=='normal'
+          ? `<span class="chip ${String(e.prioridade).toLowerCase()==='alta'?'ch-rose':'ch-gray'}">${esc(e.prioridade)}</span>`:''}
+        ${encerrado?`<span class="chip ch-gray">${esc(e.status)}</span>`:''}
+        ${e.email?`<span class="chip ch-sky">acompanha pelo site</span>`:''}
+      </div>
+      ${e.observacoes?`<div class="esp-obs">${esc(e.observacoes)}</div>`:''}
+    </div>
+    ${currentRole==='admin'&&!encerrado?`<div class="esp-acoes">
+      <button class="backbtn" onclick="editarEspera('${e.id}')">✏️</button>
+      <button class="backbtn" onclick="chamarDaEspera('${e.id}')" title="Virou paciente">✅</button>
+    </div>`:''}
+  </div>`;
+}
+
+function novoNaEspera(existente) {
+  const e = existente || {};
+  const f = document.getElementById('esperaForm');
+  if(!f) return;
+  f.innerHTML = `
+    <div class="evo-form">
+      <div class="f2">
+        <div class="fg fa"><label class="fl">Nome *</label>
+          <input class="fi" id="espNome" value="${esc(e.nome)}" placeholder="Nome completo"></div>
+        <div class="fg"><label class="fl">Telefone</label>
+          <input class="fi" id="espTel" type="tel" value="${esc(e.telefone)}" placeholder="(11) 99999-9999"></div>
+        <div class="fg"><label class="fl">E-mail (para acompanhar pelo site)</label>
+          <input class="fi" id="espEmail" type="email" value="${esc(e.email)}" placeholder="opcional"></div>
+        <div class="fg"><label class="fl">Linha clínica *</label>
+          <select class="fs" id="espLinha">
+            <option value="">Selecione...</option>
+            ${Object.entries(LINHAS).map(([k,v])=>`<option value="${k}"${e.linha===k?' selected':''}>${v.emoji} ${v.label}</option>`).join('')}
+          </select></div>
+        <div class="fg"><label class="fl">Na lista desde</label>
+          <input class="fi" id="espData" type="date" value="${e.data_entrada?String(e.data_entrada).slice(0,10):hojeISO()}"></div>
+        <div class="fg"><label class="fl">Prioridade</label>
+          <select class="fs" id="espPrior">
+            ${PRIORIDADES.map(p=>`<option${String(e.prioridade||'Normal')===p?' selected':''}>${p}</option>`).join('')}
+          </select></div>
+        ${existente?`<div class="fg"><label class="fl">Situação</label>
+          <select class="fs" id="espStatus">
+            ${['Aguardando','Atendido','Desistiu'].map(s=>`<option${String(e.status||'Aguardando')===s?' selected':''}>${s}</option>`).join('')}
+          </select></div>`:''}
+        <div class="fg fa"><label class="fl">Observações (uso interno)</label>
+          <textarea class="ft" id="espObs" placeholder="Queixa, encaminhamento, urgência...">${esc(e.observacoes)}</textarea></div>
+        <div class="fg fa"><label class="fl">Recado para a pessoa</label>
+          <input class="fi" id="espAviso" value="${esc(e.aviso_paciente)}" placeholder="Aparece na área dela, se tiver acesso"></div>
+      </div>
+      <div id="espErr" class="errbox"></div>
+      <div style="display:flex;gap:8px">
+        <button class="savebtn" id="espBtn" style="flex:1" onclick="salvarEspera(${existente?`'${e.id}'`:''})">
+          ${existente?'Salvar alterações':'Adicionar à lista'}</button>
+        <button class="backbtn" onclick="document.getElementById('esperaForm').innerHTML=''">Cancelar</button>
+      </div>
+      ${existente&&currentRole==='admin'?`<button class="savebtn" style="background:var(--rose);margin-top:8px"
+        onclick="excluirEspera('${e.id}')">🗑 Remover da lista</button>`:''}
+    </div>`;
+  f.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function editarEspera(id) {
+  const e = _espera.find(x=>String(x.id)===String(id));
+  if(e) novoNaEspera(e);
+}
+
+async function salvarEspera(id) {
+  const nome = (document.getElementById('espNome').value||'').trim();
+  const linha = document.getElementById('espLinha').value;
+  const err = document.getElementById('espErr');
+  const btn = document.getElementById('espBtn');
+  if(!nome){ err.textContent='Informe o nome.'; err.style.display='block'; return; }
+  if(!linha){ err.textContent='Escolha a linha clínica.'; err.style.display='block'; return; }
+  err.style.display='none';
+  btn.disabled=true; btn.textContent='Salvando...';
+
+  const dados = {
+    nome, linha,
+    telefone: (document.getElementById('espTel').value||'').trim(),
+    email: (document.getElementById('espEmail').value||'').trim().toLowerCase(),
+    data_entrada: document.getElementById('espData').value || hojeISO(),
+    prioridade: document.getElementById('espPrior').value,
+    observacoes: (document.getElementById('espObs').value||'').trim(),
+    aviso_paciente: (document.getElementById('espAviso').value||'').trim(),
+    status: document.getElementById('espStatus')?.value || 'Aguardando',
+  };
+
+  const res = id
+    ? await api('atualizar',{tabela:'espera', id, dados})
+    : await api('salvar',{tabela:'espera', dados});
+
+  btn.disabled=false; btn.textContent = id?'Salvar alterações':'Adicionar à lista';
+  if(!res.ok){ err.textContent='Erro ao salvar: '+(res.erro||''); err.style.display='block'; return; }
+
+  document.getElementById('esperaForm').innerHTML='';
+  await loadEspera();
+  showToast('✅ Lista de espera atualizada','ok');
+}
+
+async function excluirEspera(id) {
+  const e = _espera.find(x=>String(x.id)===String(id));
+  if(!confirm('Remover '+(e?e.nome:'esta pessoa')+' da lista de espera?')) return;
+  const res = await api('deletar',{tabela:'espera', id});
+  if(!res.ok){ showToast('Erro ao remover: '+(res.erro||''),'err'); return; }
+  document.getElementById('esperaForm').innerHTML='';
+  await loadEspera();
+  showToast('🗑 Removido da lista','ok');
+}
+
+// Saiu da espera e virou paciente: marca a fila e abre o cadastro já preenchido
+async function chamarDaEspera(id) {
+  const e = _espera.find(x=>String(x.id)===String(id));
+  if(!e) return;
+  if(!confirm('Marcar '+e.nome+' como atendido e abrir o cadastro de paciente?')) return;
+
+  const res = await api('atualizar',{tabela:'espera', id, dados:{status:'Atendido'}});
+  if(!res.ok){ showToast('Erro: '+(res.erro||''),'err'); return; }
+  await loadEspera();
+
+  _currentLinha = e.linha;
+  await openFormNovoPaciente(e.linha);
+  const set = (campo,v)=>{ const el=document.getElementById(campo); if(el&&v) el.value=v; };
+  set('np_nome', e.nome);
+  set('np_tel', e.telefone);
+  set('np_obs', e.observacoes);
+  openSheet();
+  showToast('Confira os dados e cadastre','ok');
+}
 
 // ═══════════════════════════════════════════════
 // EVOLUÇÕES — histórico cronológico do atendimento
@@ -1626,7 +2196,9 @@ async function openPaciente(linha, id) {
     mental:       ['📋 Checklist','🎯 PTS','🎨 Ateliê'],
   };
   const tabs = [...(tabsDef[linha]||['📋 Dados']), '🗒 Evoluções'];
-  const iEvo = tabs.length-1;   // a última é o histórico, com regra própria
+  if(currentRole!=='profissional') tabs.push('👤 Área do paciente');
+  const iEvo = tabs.indexOf('🗒 Evoluções');
+  const iPac = tabs.indexOf('👤 Área do paciente');
 
   document.getElementById('sheetBody').innerHTML = `
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
@@ -1641,6 +2213,8 @@ async function openPaciente(linha, id) {
     ${tabs.map((t,i)=>`<div id="tb${i}" style="display:${i===0?'block':'none'}">
       ${i===iEvo
         ? `<div id="evoPainel">${loadingHTML()}</div>`
+        : i===iPac
+        ? areaPacienteHTML(p, i)
         : `${renderTabContent(linha, p, i)}
            <button class="savebtn" id="sv${i}" onclick="salvarEvolucao('${linha}','${id}',${i})">💾 Salvar</button>
            <div class="assin" id="as${i}">${assinaturaHTML(i)}</div>`}
@@ -2340,6 +2914,7 @@ const _afterRender = {
   home: ()=>setTimeout(loadHomeResumo,50),
   linhas: ()=>setTimeout(loadContadores,50),
   alertas: ()=>setTimeout(loadAlertas,50),
+  espera: ()=>setTimeout(loadEspera,50),
 };
 
 const _origLoadPage = loadPage;
@@ -2361,6 +2936,14 @@ window.addEventListener('DOMContentLoaded', async()=>{
   // Servem para testar sem tocar na planilha: nada sai para a rede.
   if(params.get('demo') === '1') {
     document.getElementById('demoSection').style.display = 'block';
+  }
+
+  // Área do paciente: porta separada da equipe, tanto na tela quanto no token
+  if(params.get('area') === 'paciente') {
+    document.getElementById('splash').classList.add('hide');
+    if(await restaurarSessaoPaciente()) return;
+    mostrarLoginPaciente();
+    return;
   }
 
   // Saída de emergência para trocar o URL do Apps Script, caso ele mude.
