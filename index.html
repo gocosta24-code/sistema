@@ -233,22 +233,6 @@ input,select,textarea{outline:none;}
 .invite-card{background:var(--teal-lt);border:1px solid #b0ddd5;border-radius:var(--r);padding:18px;margin-bottom:14px;}
 .invite-title{font-size:13px;font-weight:700;color:var(--teal);margin-bottom:14px;}
 
-/* FINANCEIRO */
-.fin-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--bor);}
-.fin-row:last-child{border-bottom:none;}
-.fin-lbl{font-size:14px;color:var(--ink2);}
-.fin-val{font-size:14px;font-weight:700;}
-.fin-val.green{color:var(--teal);}
-.fin-val.red{color:var(--rose);}
-.fin-val.big{font-family:'Fraunces',serif;font-size:22px;}
-.scen{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);padding:16px;margin-bottom:10px;border-left:4px solid var(--bor);}
-.scen.curr{border-left-color:var(--teal);}
-.scen.good{border-left-color:var(--sky);}
-.scen.warn{border-left-color:var(--amber);}
-.scen-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--ink3);margin-bottom:6px;}
-.scen-val{font-family:'Fraunces',serif;font-size:26px;}
-.scen-meta{font-size:12px;color:var(--ink3);margin-top:3px;}
-
 /* LOADING INLINE */
 .loading-inline{text-align:center;padding:36px;color:var(--ink3);font-size:14px;}
 .loading-spin{width:24px;height:24px;border:2px solid var(--bor);border-top-color:var(--teal);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px;}
@@ -387,7 +371,6 @@ input,select,textarea{outline:none;}
     <div id="pgHome"      class="page"></div>
     <div id="pgLinhas"    class="page"></div>
     <div id="pgEquipe"    class="page"></div>
-    <div id="pgFinanceiro"class="page"></div>
     <div id="pgAlertas"   class="page"></div>
   </div>
   <nav class="bnav" id="bnavEl"></nav>
@@ -716,7 +699,7 @@ const LINHAS = {
 };
 
 const NAVS = {
-  admin:        [{id:'home',icon:'🏠',label:'Início'},{id:'linhas',icon:'🩺',label:'Linhas'},{id:'equipe',icon:'👥',label:'Equipe'},{id:'financeiro',icon:'💰',label:'Financeiro'}],
+  admin:        [{id:'home',icon:'🏠',label:'Início'},{id:'linhas',icon:'🩺',label:'Linhas'},{id:'equipe',icon:'👥',label:'Equipe'},{id:'alertas',icon:'🔔',label:'Alertas',badge:true}],
   coordenador:  [{id:'home',icon:'🏠',label:'Início'},{id:'linhas',icon:'🩺',label:'Pacientes'},{id:'alertas',icon:'🔔',label:'Alertas',badge:true}],
   profissional: [{id:'home',icon:'🏠',label:'Hoje'}, {id:'linhas',icon:'🩺',label:'Meus Pcts'},{id:'alertas',icon:'🔔',label:'Pendências',badge:true}],
 };
@@ -770,11 +753,11 @@ function loadPage(id) {
   _activePage = id;
   document.querySelectorAll('.bnt,.sd-item').forEach(e=>e.classList.remove('active'));
   ['bn-','sd-'].forEach(p=>{const e=document.getElementById(p+id);if(e)e.classList.add('active');});
-  const map={home:'pgHome',linhas:'pgLinhas',equipe:'pgEquipe',financeiro:'pgFinanceiro',alertas:'pgAlertas'};
+  const map={home:'pgHome',linhas:'pgLinhas',equipe:'pgEquipe',alertas:'pgAlertas'};
   document.querySelectorAll('.page').forEach(e=>{e.classList.remove('active');e.innerHTML='';});
   const el = document.getElementById(map[id]);
   if(!el) return;
-  const renders={home:renderHome,linhas:renderLinhas,equipe:renderEquipe,financeiro:renderFinanceiro,alertas:renderAlertas};
+  const renders={home:renderHome,linhas:renderLinhas,equipe:renderEquipe,alertas:renderAlertas};
   if(renders[id]){el.innerHTML=renders[id]();el.classList.add('active');}
 }
 
@@ -799,10 +782,7 @@ function renderHome() {
     <div class="card-title"><div class="ct-bar" style="background:var(--amber)"></div>Pendências</div>
     <div id="homePendencias">${loadingHTML()}</div>
   </div>
-  ${currentRole==='admin'?`<div class="card" onclick="loadPage('financeiro')" style="cursor:pointer">
-    <div class="card-title"><div class="ct-bar" style="background:var(--teal)"></div>Financeiro</div>
-    <div id="homeFin">${loadingHTML()}</div>
-  </div>`:''}`;
+  `;
 }
 
 function renderLinhas() {
@@ -855,16 +835,6 @@ function renderEquipe() {
     <button class="savebtn" id="invBtn" onclick="convidarProf()">📧 Cadastrar e Enviar Convite</button>
   </div>`:''}
   <div id="listaProfs"><div class="loading-inline"><div class="loading-spin"></div>Carregando equipe...</div></div>`;
-}
-
-function renderFinanceiro() {
-  if(currentRole!=='admin') return `<div class="ph"><div class="ph-title">Acesso restrito</div></div>`;
-  return `<div class="ph"><div class="ph-title">Financeiro</div></div>
-  <div class="card">
-    <div class="card-title"><div class="ct-bar" style="background:var(--teal)"></div>DRE — Mês Atual</div>
-    <div id="finBody">${loadingHTML()}</div>
-  </div>
-  <div id="finCenarios"></div>`;
 }
 
 // ═══════════════════════════════════════════════
@@ -1548,7 +1518,7 @@ function showToast(msg,type){
 }
 
 // ═══════════════════════════════════════════════
-// DADOS AGREGADOS (contadores, alertas, financeiro)
+// DADOS AGREGADOS (contadores, alertas)
 // ═══════════════════════════════════════════════
 let _todosPacientes = null;
 
@@ -1678,64 +1648,6 @@ async function loadHomeResumo() {
           <div class="astrip-meta">Clique para ver detalhes</div></div></div>`
       : `<div style="padding:14px;color:var(--ink3);font-size:13px">✅ Nenhuma pendência aberta.</div>`;
   }
-  const fin = document.getElementById('homeFin');
-  if(fin) {
-    const f = calcularFinanceiro(await carregarTodosPacientes());
-    fin.innerHTML = `<div class="fin-row"><div class="fin-lbl">Faturamento Bruto (${f.n} pac.)</div><div class="fin-val" style="color:var(--sky)">${brl(f.bruto)}</div></div>
-      <div class="fin-row" style="border:none"><div class="fin-lbl">Pro-labore / Sócia</div><div class="fin-val big green">${brl(f.prolabore)}</div></div>`;
-  }
-}
-
-// ── FINANCEIRO ──────────────────────────────────
-// Premissas de negócio — ajustar aqui se mudarem
-const FIN = {
-  ticket_medio: 966.67,   // faturamento mensal por paciente ativo
-  imposto: 0.06,
-  custo_equipe: 11400,
-  marketing: 2000,
-  insumos: 200,
-  socias: 2,
-};
-
-function brl(v) {
-  return 'R$ ' + Math.round(v).toLocaleString('pt-BR');
-}
-
-function calcularFinanceiro(pacs) {
-  const n = pacs.filter(p=>(p.status||'Ativo')!=='Inativo').length;
-  const bruto = n * FIN.ticket_medio;
-  const imposto = bruto * FIN.imposto;
-  const liquido = bruto - imposto - FIN.custo_equipe - FIN.marketing - FIN.insumos;
-  return {n, bruto, imposto, liquido, prolabore: liquido / FIN.socias};
-}
-
-async function loadFinanceiro() {
-  const alvo = document.getElementById('finBody');
-  if(!alvo) return;
-  const pacs = await carregarTodosPacientes();
-  const f = calcularFinanceiro(pacs);
-  const linhas = [
-    [`Faturamento Bruto (${f.n} pac.)`, brl(f.bruto), 'sky'],
-    [`(-) Imposto ${FIN.imposto*100}%`, '- '+brl(f.imposto), 'red'],
-    ['(-) Equipe',    '- '+brl(FIN.custo_equipe), 'red'],
-    ['(-) Marketing', '- '+brl(FIN.marketing), 'red'],
-    ['(-) Insumos',   '- '+brl(FIN.insumos), 'red'],
-    ['Lucro Líquido', brl(f.liquido), 'green'],
-    [`Pro-labore / Sócia`, brl(f.prolabore), 'green'],
-  ];
-  alvo.innerHTML = linhas.map(([l,v,c])=>`
-    <div class="fin-row"><div class="fin-lbl">${l}</div><div class="fin-val ${c}" style="${c==='green'?"font-family:'Fraunces',serif;font-size:20px":''}">${v}</div></div>`).join('');
-
-  const cen = document.getElementById('finCenarios');
-  if(cen) {
-    const metas = [[f.n,'Atual','curr'],[Math.round(f.n*1.25),'+ Sextas','good'],[Math.round(f.n*1.5),'6 pac/hora','warn']];
-    cen.innerHTML = metas.map(([qtd,rotulo,cls],i)=>{
-      const s = calcularFinanceiro(new Array(qtd).fill({status:'Ativo'}));
-      return `<div class="scen ${cls}"><div class="scen-lbl">${i===0?'🟡':i===1?'✅':'⚠️'} ${rotulo} — ${qtd} pacientes</div>
-        <div class="scen-val"${i===1?' style="color:var(--teal)"':''}>${brl(s.prolabore)} / sócia</div>
-        <div class="scen-meta">Fat. ${brl(s.bruto)}</div></div>`;
-    }).join('');
-  }
 }
 
 // ── HOOKS para carregar dados dinâmicos após render ──
@@ -1744,7 +1656,6 @@ const _afterRender = {
   home: ()=>setTimeout(loadHomeResumo,50),
   linhas: ()=>setTimeout(loadContadores,50),
   alertas: ()=>setTimeout(loadAlertas,50),
-  financeiro: ()=>setTimeout(loadFinanceiro,50),
 };
 
 const _origLoadPage = loadPage;
