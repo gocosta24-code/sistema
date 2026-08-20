@@ -296,6 +296,11 @@ input,select,textarea{outline:none;}
 .pac-status.on{background:var(--teal-lt);border-color:var(--teal);}
 .pac-acesso{background:var(--sur2);border:1px solid var(--bor);border-radius:var(--r);padding:14px;margin-top:16px;}
 
+.quem{display:flex;gap:6px;background:rgba(255,255,255,.05);border-radius:11px;padding:4px;margin-bottom:20px;}
+.quem-op{flex:1;text-align:center;padding:9px 6px;border-radius:8px;font-size:13px;font-weight:600;color:#8a8a8a;cursor:pointer;transition:all .18s;}
+.quem-op:hover{color:#bbb;}
+.quem-op.on{background:rgba(255,255,255,.1);color:#faf8f5;}
+
 /* LOADING INLINE */
 .loading-inline{text-align:center;padding:36px;color:var(--ink3);font-size:14px;}
 .loading-spin{width:24px;height:24px;border:2px solid var(--bor);border-top-color:var(--teal);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px;}
@@ -371,6 +376,10 @@ input,select,textarea{outline:none;}
   <div class="login-logo">Casa Oliveira</div>
   <div class="login-sub">Sistema Clínico</div>
   <div class="login-card">
+    <div class="quem">
+      <div class="quem-op" id="quemPac" onclick="mostrarLoginPaciente()">🙋 Paciente</div>
+      <div class="quem-op" id="quemEqp" onclick="mostrarLoginEquipe()">👩‍⚕️ Terapeuta</div>
+    </div>
     <div id="loginErr" class="login-err"></div>
     <div class="lf"><label>E-mail</label><input id="lEmail" type="email" placeholder="seu@email.com" autocomplete="email"></div>
     <div class="lf"><label>Senha</label><input id="lPass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
@@ -429,6 +438,10 @@ input,select,textarea{outline:none;}
   <div class="login-logo">Casa Oliveira</div>
   <div class="login-sub">Área do paciente</div>
   <div class="login-card">
+    <div class="quem">
+      <div class="quem-op" id="quemPac2" onclick="mostrarLoginPaciente()">🙋 Paciente</div>
+      <div class="quem-op" id="quemEqp2" onclick="mostrarLoginEquipe()">👩‍⚕️ Terapeuta</div>
+    </div>
     <div id="pacErr" class="login-err"></div>
     <div class="lf"><label>E-mail</label>
       <input id="pacEmail" type="email" placeholder="seu@email.com" autocomplete="email"></div>
@@ -436,12 +449,9 @@ input,select,textarea{outline:none;}
       <input id="pacPass" type="password" placeholder="••••••••"
              onkeydown="if(event.key==='Enter')doLoginPaciente()"></div>
     <button class="login-btn" id="pacBtn" onclick="doLoginPaciente()">Entrar →</button>
-    <div class="forgot" style="margin-top:18px">
+    <div class="forgot" style="margin-top:18px;cursor:default">
       Ainda não tem acesso? Peça à clínica.
     </div>
-  </div>
-  <div id="linkEquipe" onclick="voltarAoLogin()" style="margin-top:16px;text-align:center;font-size:12px;color:#555;cursor:pointer">
-    Sou da equipe
   </div>
 </div>
 
@@ -799,6 +809,7 @@ function doLogout() {
   localStorage.removeItem('co_user');
   document.getElementById('app').classList.remove('aberto');
   document.getElementById('loginScreen').style.display='flex';
+  marcarQuem('equipe');
   closeMenu();
 }
 
@@ -813,6 +824,7 @@ function mostrarTela(id) {
   document.getElementById('configBanner').style.display='none';
   const p = document.getElementById('portalScreen');
   if(p) p.style.display='none';
+  if(id==='loginScreen') marcarQuem('equipe');
 }
 
 function showEsqueciSenha() {
@@ -1374,12 +1386,6 @@ async function liberarAcessoPaciente(id) {
 let pacienteLogado = null;
 
 function mostrarLoginPaciente() {
-  // Em domínio dedicado ao paciente, não faz sentido oferecer a porta da equipe
-  const host = location.hostname.toLowerCase();
-  if(host.startsWith('paciente.') || host.startsWith('pacientes.')) {
-    const l = document.getElementById('linkEquipe');
-    if(l) l.style.display = 'none';
-  }
   ['loginScreen','esqueciScreen','resetScreen','configBanner'].forEach(t=>{
     const el=document.getElementById(t); if(el) el.style.display='none';
   });
@@ -1387,6 +1393,28 @@ function mostrarLoginPaciente() {
   fecharTudoDaEquipe();
   document.getElementById('portalScreen').style.display='none';
   document.getElementById('pacLoginScreen').style.display='flex';
+  marcarQuem('paciente');
+  const c = document.getElementById('pacEmail'); if(c) c.focus();
+}
+
+function mostrarLoginEquipe() {
+  _resetToken = null;
+  document.getElementById('pacLoginScreen').style.display='none';
+  const p = document.getElementById('portalScreen'); if(p) p.style.display='none';
+  mostrarTela('loginScreen');
+  marcarQuem('equipe');
+  const c = document.getElementById('lEmail'); if(c) c.focus();
+}
+
+// Deixa claro em qual das duas portas a pessoa está
+function marcarQuem(qual) {
+  const pac = qual === 'paciente';
+  ['quemPac','quemPac2'].forEach(id=>{
+    const e=document.getElementById(id); if(e) e.classList.toggle('on', pac);
+  });
+  ['quemEqp','quemEqp2'].forEach(id=>{
+    const e=document.getElementById(id); if(e) e.classList.toggle('on', !pac);
+  });
 }
 
 function fecharTudoDaEquipe() {
@@ -2985,6 +3013,7 @@ window.addEventListener('DOMContentLoaded', async()=>{
     document.getElementById('splash').classList.add('hide');
     if(API_URL) {
       document.getElementById('loginScreen').style.display='flex';
+      marcarQuem('equipe');
     } else {
       document.getElementById('configBanner').style.display='flex';
     }
