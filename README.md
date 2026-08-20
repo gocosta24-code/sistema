@@ -59,9 +59,21 @@ Editar `apps-script/Code.gs`, colar na planilha (Extensões → Apps Script) e e
 **Implantar → Gerenciar implantações → editar → Nova versão**. Criar uma
 implantação nova mudaria o URL e derrubaria o sistema.
 
-## Limitação conhecida
+## Como o front fala com o backend
 
-A implantação atual do Apps Script responde HTML a requisições POST, então tudo
-trafega por GET — e o Google recusa URLs acima de ~6 KB. Anotações muito longas
-numa mesma aba do prontuário são barradas com aviso antes do envio. A correção é
-reimplantar o Apps Script aceitando POST.
+Por `POST`, com `Content-Type: text/plain`. Os dois detalhes importam:
+
+- **`text/plain` evita o preflight de CORS.** O Apps Script não responde a
+  `OPTIONS`, então `application/json` faria o navegador barrar a requisição
+  antes de sair.
+- **O `/exec` responde `302`** para `script.googleusercontent.com`. O navegador
+  segue esse redirecionamento convertendo o método para GET, que é o que aquele
+  endereço aceita — por isso funciona no navegador e falha no `curl -X POST -L`,
+  que insiste em manter o POST e leva 405. Não é sinal de backend quebrado.
+
+Se o POST falhar (rede instável, ou uma implantação futura sem `doPost`), a
+requisição cai automaticamente para GET, que ainda resolve payloads de até ~6 KB
+— o sistema fica lento, não morto.
+
+Antes tudo ia por GET e evoluções longas eram barradas. Hoje o POST foi testado
+até 200 KB numa requisição.

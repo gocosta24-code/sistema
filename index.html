@@ -425,19 +425,41 @@ let _profsCache = null;
 async function api(action, body={}) {
   if(demoMode) return demoApi(action, body);
   if(!API_URL) return {ok:false, erro:'API não configurada'};
+
+  const payload = JSON.stringify({...body, action, token: authToken});
+
+  // POST não tem limite prático de tamanho — testado até 200 KB. Antes tudo
+  // ia por GET, e o Google recusa URL acima de ~6 KB: evolução longa não
+  // salvava. O text/plain evita o preflight de CORS, que o Apps Script não
+  // responde; o 302 que ele devolve o navegador segue sozinho.
   try {
-    // Tudo vai por GET: esta implantação do Apps Script responde HTML a POST.
-    // O Google recusa URLs acima de ~6 KB, então barramos antes para não perder o texto.
-    const payload = {...body, action, token: authToken};
-    const encoded = encodeURIComponent(JSON.stringify(payload));
-    if(encoded.length > 4500) {
-      return {ok:false, erro:'Texto longo demais para salvar de uma vez. Encurte as anotações desta aba e salve novamente.'};
+    const r = await fetch(API_URL, {
+      method: 'POST',
+      headers: {'Content-Type':'text/plain;charset=utf-8'},
+      body: payload,
+      redirect: 'follow'
+    });
+    if(r.ok) {
+      const texto = await r.text();
+      try { return JSON.parse(texto); }
+      catch(pe) { console.error('Resposta não-JSON no POST:', texto.slice(0,300)); }
+    }
+  } catch(e) {
+    console.error('POST falhou, tentando GET:', e.message);
+  }
+
+  // Rede instável, ou implantação antiga sem doPost: o GET ainda resolve o
+  // que couber na URL, para o sistema não parar de vez
+  try {
+    const encoded = encodeURIComponent(payload);
+    if(encoded.length > 6000) {
+      return {ok:false, erro:'Não foi possível salvar. Verifique sua conexão e tente novamente.'};
     }
     const r = await fetch(API_URL + '?data=' + encoded, {method:'GET', redirect:'follow'});
     if(!r.ok) return {ok:false, erro:'Erro HTTP '+r.status};
-    const text = await r.text();
-    try { return JSON.parse(text); }
-    catch(pe) { console.error('Parse error:', text); return {ok:false, erro:'Resposta inválida'}; }
+    const texto = await r.text();
+    try { return JSON.parse(texto); }
+    catch(pe) { console.error('Parse error:', texto.slice(0,300)); return {ok:false, erro:'Resposta inválida'}; }
   } catch(e) {
     console.error('API error:', e);
     return {ok:false, erro:'Erro de conexão: '+e.message};
