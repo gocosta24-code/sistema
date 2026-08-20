@@ -73,6 +73,7 @@ input,select,textarea{outline:none;}
 
 /* APP */
 #app{display:none;min-height:100vh;padding-bottom:72px;}
+#app.aberto{display:block;}
 
 /* TOPBAR */
 .topbar{position:sticky;top:0;z-index:200;height:56px;background:rgba(250,248,245,.94);border-bottom:1px solid var(--bor);display:flex;align-items:center;justify-content:space-between;padding:0 18px;backdrop-filter:blur(12px);}
@@ -237,7 +238,7 @@ input,select,textarea{outline:none;}
 
 /* DESKTOP */
 @media(min-width:768px){
-  #app{display:grid!important;grid-template-columns:240px 1fr;grid-template-rows:56px 1fr;padding-bottom:0;min-height:100vh;}
+  #app.aberto{display:grid;grid-template-columns:240px 1fr;grid-template-rows:56px 1fr;padding-bottom:0;min-height:100vh;}
   .topbar{grid-column:1/-1;}
   .bnav{display:none;}
   .sidebar{display:flex!important;flex-direction:column;background:var(--sur);border-right:1px solid var(--bor);overflow-y:auto;}
@@ -311,7 +312,8 @@ input,select,textarea{outline:none;}
     <div class="lf"><label>Senha</label><input id="lPass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <button class="login-btn" id="loginBtn" onclick="doLogin()">Entrar →</button>
     <div class="forgot" onclick="showEsqueciSenha()">Esqueci minha senha</div>
-    <div class="demo-section">
+    <!-- Modo demonstração fica fora daqui: ?demo=1 abre os atalhos -->
+    <div class="demo-section" id="demoSection" style="display:none">
       <div class="demo-title">Modo demonstração</div>
       <div class="demo-pills">
         <div class="demo-pill" onclick="demoLogin('admin')">👑 Gestora</div>
@@ -626,7 +628,7 @@ function doLogout() {
   limparCaches();
   localStorage.removeItem('co_token');
   localStorage.removeItem('co_user');
-  document.getElementById('app').style.display='none';
+  document.getElementById('app').classList.remove('aberto');
   document.getElementById('loginScreen').style.display='flex';
   closeMenu();
 }
@@ -745,8 +747,7 @@ function startApp() {
   limparCaches();
   document.getElementById('loginScreen').style.display='none';
   document.getElementById('splash').classList.add('hide');
-  const app = document.getElementById('app');
-  app.style.display = window.innerWidth>=768 ? 'grid' : 'block';
+  document.getElementById('app').classList.add('aberto');
   document.getElementById('avatarBtn').textContent = currentUser.nome.charAt(0).toUpperCase();
   document.getElementById('roleLabel').textContent = {admin:'Gestora',coordenador:'Coordenadora',profissional:'Profissional'}[currentRole]||currentRole;
   buildNav(); buildSidebar();
@@ -1703,6 +1704,12 @@ window.addEventListener('DOMContentLoaded', async()=>{
   // provavelmente não consegue entrar, então restaurar sessão não ajuda
   const params = new URLSearchParams(location.search);
 
+  // Atalhos de demonstração só com ?demo=1 — a equipe vê apenas o login.
+  // Servem para testar sem tocar na planilha: nada sai para a rede.
+  if(params.get('demo') === '1') {
+    document.getElementById('demoSection').style.display = 'block';
+  }
+
   // Saída de emergência para trocar o URL do Apps Script, caso ele mude.
   // Não fica na tela de login para ninguém apontar o sistema para outro
   // servidor e colher as senhas de quem entrar neste aparelho.
@@ -1736,12 +1743,6 @@ window.addEventListener('DOMContentLoaded', async()=>{
   }, 1000);
 });
 
-window.addEventListener('resize',()=>{
-  const app=document.getElementById('app');
-  if(app.style.display!=='none'&&app.style.display!==''){
-    app.style.display=window.innerWidth>=768?'grid':'block';
-  }
-});
 </script>
 </body>
 </html>
