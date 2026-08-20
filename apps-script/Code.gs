@@ -34,6 +34,7 @@ const ABAS = {
   alertas:        'Alertas',
   monitoramentos: 'Monitoramentos',
   checklists:     'Checklists',
+  evolucoes:      'Evolucoes',
 };
 
 // ─── ENTRY POINTS ────────────────────────────────────────────
@@ -577,7 +578,7 @@ function setupAdmin() {
   sr.getRange(1,1,1,5).setValues([['token','email','expira','usado','criado_em']]);
 
   // Abas de dados
-  const abas = ['Pacientes','PTS','Avaliacoes','Reunioes','Alertas','Monitoramentos','Checklists'];
+  const abas = ['Pacientes','PTS','Avaliacoes','Reunioes','Alertas','Monitoramentos','Checklists','Evolucoes'];
   abas.forEach(nome => {
     const s = getOuCria(ss,nome);
     if (s.getLastRow()===0) s.appendRow(['id','criado_em']);

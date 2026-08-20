@@ -254,6 +254,16 @@ input,select,textarea{outline:none;}
 .imp-tab th{text-align:left;padding:7px 9px;background:var(--sur2);color:var(--ink3);font-size:11px;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;}
 .imp-tab td{padding:7px 9px;border-top:1px solid var(--bor);white-space:nowrap;}
 
+.evo{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);padding:13px 15px;margin-bottom:10px;border-left:3px solid var(--teal);}
+.evo-topo{display:flex;align-items:center;gap:10px;margin-bottom:7px;}
+.evo-data{font-size:13px;font-weight:700;color:var(--ink);}
+.evo-autor{font-size:12px;color:var(--ink3);flex:1;}
+.evo-del{background:none;border:none;color:var(--ink3);font-size:15px;cursor:pointer;padding:2px 6px;border-radius:6px;}
+.evo-del:hover{background:var(--rose-lt);color:var(--rose);}
+.evo-texto{font-size:14px;line-height:1.55;color:var(--ink2);white-space:pre-wrap;word-break:break-word;}
+.evo-orig{font-size:11px;color:var(--ink3);margin-top:7px;font-style:italic;}
+.evo-form{background:var(--sur2);border:1px solid var(--bor);border-radius:var(--r);padding:14px;margin-bottom:14px;}
+
 /* LOADING INLINE */
 .loading-inline{text-align:center;padding:36px;color:var(--ink3);font-size:14px;}
 .loading-spin{width:24px;height:24px;border:2px solid var(--bor);border-top-color:var(--teal);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px;}
@@ -549,7 +559,8 @@ const DEMO_DB = {
     {id:'prof_6',      nome:'TO Marcia',       email:'marcia@casaoliveira.com',     funcao:'Terapeuta Ocup.',    nivel_acesso:'profissional', linhas:'geriatria', status:'Ativo'},
     {id:'prof_7',      nome:'TO Beatriz',      email:'beatriz@casaoliveira.com',    funcao:'Terapeuta Ocup.',    nivel_acesso:'profissional', linhas:'mental', status:'Ativo'},
   ],
-  checklists: []
+  checklists: [],
+  evolucoes: [],
 };
 
 function demoApi(action, body) {
@@ -1163,6 +1174,136 @@ async function salvarPaciente(linha, idExistente) {
 }
 
 
+
+// ═══════════════════════════════════════════════
+// EVOLUÇÕES — histórico cronológico do atendimento
+// Uma linha por sessão, que não se sobrescreve: é o registro clínico
+// propriamente dito, diferente das fichas, que guardam o estado atual.
+// ═══════════════════════════════════════════════
+let _evolucoes = [];
+let _evoPacienteId = null;
+
+async function carregarEvolucoes(pacienteId) {
+  _evoPacienteId = pacienteId;
+  const res = await api('listar',{tabela:'evolucoes', filtros:{paciente_id:pacienteId}});
+  _evolucoes = res.ok ? (res.dados||[]) : [];
+  // Mais recente primeiro
+  _evolucoes.sort((a,b)=>String(b.data||'').localeCompare(String(a.data||'')));
+  renderEvolucoes();
+}
+
+function renderEvolucoes() {
+  const el = document.getElementById('evoPainel');
+  if(!el) return;
+  el.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <span style="font-size:13px;color:var(--ink3)">
+        ${_evolucoes.length} registro${_evolucoes.length!==1?'s':''}
+      </span>
+      <button class="addbtn" onclick="novaEvolucao()">+ Nova evolução</button>
+    </div>
+    <div id="evoForm"></div>
+    <div id="evoLista">${listaEvolucoesHTML()}</div>`;
+}
+
+function listaEvolucoesHTML() {
+  if(!_evolucoes.length) {
+    return `<div style="text-align:center;padding:40px 20px;color:var(--ink3)">
+      <div style="font-size:38px;margin-bottom:10px">🗒</div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:4px">Nenhuma evolução registrada</div>
+      <div style="font-size:13px">Cada atendimento fica registrado aqui, com data e autor.</div>
+    </div>`;
+  }
+  return _evolucoes.map(e=>{
+    const podeApagar = currentRole==='admin' ||
+      (e.autor_email||'').toLowerCase()===(currentUser.email||'').toLowerCase();
+    return `<div class="evo">
+      <div class="evo-topo">
+        <div class="evo-data">${esc(fmtDataBR(e.data))}</div>
+        <div class="evo-autor">${esc(nomeDoAutor(e.autor_email, e.autor_nome))}</div>
+        ${podeApagar?`<button class="evo-del" title="Excluir" onclick="excluirEvolucao('${e.id}')">✕</button>`:''}
+      </div>
+      <div class="evo-texto">${esc(e.texto||'')}</div>
+      ${e.importado_de?`<div class="evo-orig">↩ importado de ${esc(e.importado_de)}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function nomeDoAutor(email, nomeGravado) {
+  if(nomeGravado) return nomeGravado;
+  if(!email) return '—';
+  if(currentUser && (currentUser.email||'').toLowerCase()===String(email).toLowerCase()) return currentUser.nome;
+  const p = (_profsCache||[]).find(x=>(x.email||'').toLowerCase()===String(email).toLowerCase());
+  return p ? p.nome : email;
+}
+
+function fmtDataBR(iso) {
+  const s = String(iso||'');
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s);
+  if(!m) return s || 'sem data';
+  return m[3]+'/'+m[2]+'/'+m[1];
+}
+
+function hojeISO() {
+  const d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+function novaEvolucao() {
+  const f = document.getElementById('evoForm');
+  if(!f) return;
+  f.innerHTML = `
+    <div class="evo-form">
+      <div class="fg"><label class="fl">Data do atendimento</label>
+        <input class="fi" type="date" id="evoData" value="${hojeISO()}" max="${hojeISO()}"></div>
+      <div class="fg"><label class="fl">Evolução</label>
+        <textarea class="ft" id="evoTexto" style="min-height:120px"
+          placeholder="O que foi feito, como o paciente respondeu, condutas..."></textarea></div>
+      <div id="evoErr" class="errbox"></div>
+      <div style="display:flex;gap:8px">
+        <button class="savebtn" id="evoBtn" style="flex:1" onclick="salvarNovaEvolucao()">Registrar</button>
+        <button class="backbtn" onclick="document.getElementById('evoForm').innerHTML=''">Cancelar</button>
+      </div>
+    </div>`;
+  document.getElementById('evoTexto').focus();
+}
+
+async function salvarNovaEvolucao() {
+  const data = document.getElementById('evoData').value;
+  const texto = (document.getElementById('evoTexto').value||'').trim();
+  const err = document.getElementById('evoErr');
+  const btn = document.getElementById('evoBtn');
+  if(!texto){ err.textContent='Escreva a evolução.'; err.style.display='block'; return; }
+  if(!data){ err.textContent='Informe a data do atendimento.'; err.style.display='block'; return; }
+  err.style.display='none';
+  btn.textContent='Registrando...'; btn.disabled=true;
+
+  const res = await api('salvar',{tabela:'evolucoes', dados:{
+    paciente_id: _evoPacienteId,
+    data, texto,
+    autor_email: currentUser.email,
+    autor_nome: currentUser.nome,
+  }});
+
+  btn.textContent='Registrar'; btn.disabled=false;
+  if(!res.ok){ err.textContent='Erro ao registrar: '+(res.erro||'tente novamente'); err.style.display='block'; return; }
+
+  document.getElementById('evoForm').innerHTML='';
+  limparSujo();
+  await carregarEvolucoes(_evoPacienteId);
+  showToast('✅ Evolução registrada','ok');
+}
+
+async function excluirEvolucao(id) {
+  const e = _evolucoes.find(x=>String(x.id)===String(id));
+  if(!e) return;
+  if(!confirm('Excluir a evolução de '+fmtDataBR(e.data)+'?\n\nO registro some do prontuário e isso não pode ser desfeito.')) return;
+  const res = await api('deletar',{tabela:'evolucoes', id});
+  if(!res.ok){ showToast('Erro ao excluir: '+(res.erro||''),'err'); return; }
+  await carregarEvolucoes(_evoPacienteId);
+  showToast('🗑 Evolução excluída','ok');
+}
+
 // ═══════════════════════════════════════════════
 // IMPORTAÇÃO EM MASSA
 // Aceita o que sai de qualquer sistema: CSV, TSV ou colado direto do Excel.
@@ -1484,7 +1625,8 @@ async function openPaciente(linha, id) {
     geriatria:    ['📋 Checklist','🎯 PTS','🏠 Casa Segura','📅 Reuniões'],
     mental:       ['📋 Checklist','🎯 PTS','🎨 Ateliê'],
   };
-  const tabs = tabsDef[linha]||['📋 Dados'];
+  const tabs = [...(tabsDef[linha]||['📋 Dados']), '🗒 Evoluções'];
+  const iEvo = tabs.length-1;   // a última é o histórico, com regra própria
 
   document.getElementById('sheetBody').innerHTML = `
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
@@ -1497,10 +1639,14 @@ async function openPaciente(linha, id) {
       ${tabs.map((t,i)=>`<div class="tab ${i===0?'active':''}" onclick="swTab('tb${i}',this)">${t}</div>`).join('')}
     </div>
     ${tabs.map((t,i)=>`<div id="tb${i}" style="display:${i===0?'block':'none'}">
-      ${renderTabContent(linha, p, i)}
-      <button class="savebtn" id="sv${i}" onclick="salvarEvolucao('${linha}','${id}',${i})">💾 Salvar</button>
-      <div class="assin" id="as${i}">${assinaturaHTML(i)}</div>
+      ${i===iEvo
+        ? `<div id="evoPainel">${loadingHTML()}</div>`
+        : `${renderTabContent(linha, p, i)}
+           <button class="savebtn" id="sv${i}" onclick="salvarEvolucao('${linha}','${id}',${i})">💾 Salvar</button>
+           <div class="assin" id="as${i}">${assinaturaHTML(i)}</div>`}
     </div>`).join('')}`;
+
+  carregarEvolucoes(id);
 }
 
 function editarPaciente(linha, id) {
