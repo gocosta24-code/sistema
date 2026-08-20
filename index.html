@@ -232,6 +232,28 @@ input,select,textarea{outline:none;}
 .invite-card{background:var(--teal-lt);border:1px solid #b0ddd5;border-radius:var(--r);padding:18px;margin-bottom:14px;}
 .invite-title{font-size:13px;font-weight:700;color:var(--teal);margin-bottom:14px;}
 
+.cadbox{background:var(--sur2);border:1px solid var(--bor);border-radius:var(--r);margin-bottom:14px;overflow:hidden;}
+.cadsum{padding:11px 14px;font-size:13px;font-weight:600;cursor:pointer;list-style:none;}
+.cadsum::-webkit-details-marker{display:none;}
+.cadsum:hover{background:var(--bor);}
+.cadgrid{padding:4px 14px 12px;}
+.cadrow{display:flex;gap:10px;padding:6px 0;border-top:1px solid var(--bor);font-size:13px;}
+.cadk{color:var(--ink3);min-width:110px;flex-shrink:0;}
+.cadv{color:var(--ink);word-break:break-word;}
+.assin{font-size:11px;color:var(--ink3);text-align:center;margin-top:10px;min-height:14px;}
+
+.buscapc{margin-bottom:12px;}
+
+.imp-passo{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px;}
+.imp-n{width:24px;height:24px;border-radius:50%;background:var(--teal);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.imp-t{font-size:14px;font-weight:700;color:var(--ink);}
+.imp-d{font-size:12px;color:var(--ink3);line-height:1.5;margin-top:2px;}
+.imp-box{background:var(--sur2);border:1px solid var(--bor);border-radius:var(--r);padding:14px;margin:10px 0;}
+.imp-box.amber{background:var(--amber-lt);border-color:var(--amber);}
+.imp-tab{width:100%;border-collapse:collapse;font-size:12px;}
+.imp-tab th{text-align:left;padding:7px 9px;background:var(--sur2);color:var(--ink3);font-size:11px;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;}
+.imp-tab td{padding:7px 9px;border-top:1px solid var(--bor);white-space:nowrap;}
+
 /* LOADING INLINE */
 .loading-inline{text-align:center;padding:36px;color:var(--ink3);font-size:14px;}
 .loading-spin{width:24px;height:24px;border:2px solid var(--bor);border-top-color:var(--teal);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px;}
@@ -401,6 +423,7 @@ input,select,textarea{outline:none;}
     </div>
     <div style="margin-top:12px;">
       <div class="umenu-item" id="umEquipe" onclick="loadPage('equipe');closeMenu();"><span class="umenu-icon">👥</span>Gerenciar equipe</div>
+      <div class="umenu-item" id="umImportar" onclick="closeMenu();abrirImportacao();"><span class="umenu-icon">📥</span>Importar pacientes</div>
       <div class="umenu-item" onclick="showAlterarSenha()"><span class="umenu-icon">🔑</span>Alterar senha</div>
       <div class="umenu-item danger" onclick="doLogout()"><span class="umenu-icon">🚪</span>Sair</div>
     </div>
@@ -428,6 +451,42 @@ async function api(action, body={}) {
   if(demoMode) return demoApi(action, body);
   if(!API_URL) return {ok:false, erro:'API não configurada'};
 
+  const r = await apiBruto(action, body);
+
+  // O token vale 7 dias. Sem tratar, a pessoa via "Token inválido ou
+  // expirado" no meio de uma evolução e não sabia que era só entrar de novo.
+  if(!r.ok && /token inválido|token invalido|expirad/i.test(String(r.erro||''))) {
+    if(authToken) sessaoExpirou();
+    return {ok:false, erro:'Sua sessão expirou. Entre novamente para salvar.'};
+  }
+  return r;
+}
+
+// Avisa uma vez e devolve ao login sem apagar o que está na tela
+let _avisouExpirou = false;
+function sessaoExpirou() {
+  if(_avisouExpirou) return;
+  _avisouExpirou = true;
+  authToken = null;
+  localStorage.removeItem('co_token');
+  localStorage.removeItem('co_user');
+  showToast('🔒 Sua sessão expirou. Entre novamente.','err');
+  setTimeout(()=>{
+    if(document.getElementById('lEmail') && currentUser) {
+      document.getElementById('lEmail').value = currentUser.email || '';
+    }
+    _avisouExpirou = false;
+    currentUser = null; currentRole = null;
+    limparCaches();
+    document.getElementById('app').classList.remove('aberto');
+    closeSheet(true);
+    closeMenu();
+    mostrarTela('loginScreen');
+    showLoginErr('Sua sessão expirou por segurança. Entre novamente.');
+  }, 1200);
+}
+
+async function apiBruto(action, body={}) {
   const payload = JSON.stringify({...body, action, token: authToken});
 
   // POST não tem limite prático de tamanho — testado até 200 KB. Antes tudo
@@ -612,9 +671,11 @@ async function tryRestoreSession() {
       authToken = savedToken;
       currentUser = JSON.parse(savedUser);
       currentRole = currentUser.role;
-      // Quick validation
-      const res = await api('listar',{tabela:'profissionais'});
+      // apiBruto: token velho aqui é só sessão não restaurada, e cai no
+      // login normalmente — não é "sessão expirou" no meio do trabalho
+      const res = await apiBruto('listar',{tabela:'profissionais'});
       if(res.ok) { startApp(); return true; }
+      authToken = null; currentUser = null; currentRole = null;
     } catch(e){}
   }
   return false;
@@ -827,7 +888,8 @@ function renderLinhas() {
       <div class="line-stats"><span class="chip ch-${v.color}" id="lc-${k}">Carregando...</span></div>
     </div>
     <div style="color:var(--ink3);font-size:18px;">›</div>
-  </div>`).join('')}`;
+  </div>`).join('')}
+`;
 }
 
 function renderAlertas() {
@@ -875,6 +937,8 @@ let _pacientesCache = {};
 let _currentLinha = '';
 
 async function openLinha(linha) {
+  if(!podeFecharSheet()) return;
+  limparSujo();
   _currentLinha = linha;
   const cfg = LINHAS[linha];
   document.getElementById('sheetTitle').textContent = cfg.emoji+' '+cfg.label;
@@ -905,18 +969,48 @@ async function carregarPacientes(linha) {
   if(lcEl) lcEl.textContent = pacs.length+' pacientes';
 
   document.getElementById('sheetBody').innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-      <span style="font-size:13px;color:var(--ink3)">${pacs.length} paciente${pacs.length!==1?'s':''}</span>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <span style="font-size:13px;color:var(--ink3)" id="pcCount">${pacs.length} paciente${pacs.length!==1?'s':''}</span>
       <button class="addbtn" onclick="openFormNovoPaciente('${linha}')">+ Novo</button>
     </div>
-    ${pacs.length===0
+    ${pacs.length > 8 ? `<input class="fi buscapc" id="buscaPac" type="search" autocomplete="off"
+        placeholder="🔎 Buscar por nome, terapeuta, serviço..."
+        oninput="filtrarPacientes('${linha}')">` : ''}
+    <div id="listaPac">${pacs.length===0
       ? `<div style="text-align:center;padding:48px 20px;color:var(--ink3)">
           <div style="font-size:48px;margin-bottom:12px">${cfg.emoji}</div>
           <div style="font-size:15px;font-weight:600;margin-bottom:6px">Nenhum paciente cadastrado</div>
           <div style="font-size:13px">Clique em + Novo para adicionar</div>
         </div>`
       : pacs.map(p=>renderPC(p,linha)).join('')
-    }`;
+    }</div>`;
+}
+
+// Busca local: a lista da linha já está carregada, não precisa ir na planilha
+function filtrarPacientes(linha) {
+  const termo = normalizar(document.getElementById('buscaPac')?.value||'');
+  const todos = _pacientesCache[linha]||[];
+  const achados = !termo ? todos : todos.filter(p=>
+    normalizar([p.nome,p.terapeuta_nome,p.servicos,p.responsavel,p.escola,p.status]
+      .filter(Boolean).join(' ')).includes(termo)
+  );
+  const lista = document.getElementById('listaPac');
+  const cont = document.getElementById('pcCount');
+  if(cont) cont.textContent = termo
+    ? achados.length+' de '+todos.length
+    : todos.length+' paciente'+(todos.length!==1?'s':'');
+  if(!lista) return;
+  lista.innerHTML = achados.length
+    ? achados.map(p=>renderPC(p,linha)).join('')
+    : `<div style="text-align:center;padding:40px 20px;color:var(--ink3)">
+        <div style="font-size:15px;font-weight:600;margin-bottom:6px">Ninguém encontrado</div>
+        <div style="font-size:13px">Nenhum paciente combina com “${esc(document.getElementById('buscaPac').value)}”</div>
+      </div>`;
+}
+
+// Ignora acento e caixa: "antonio" acha "Antônio"
+function normalizar(s) {
+  return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 }
 
 function renderPC(p, linha) {
@@ -940,10 +1034,13 @@ function renderPC(p, linha) {
 // ═══════════════════════════════════════════════
 // Serve para cadastro e edição — `existente` vindo preenchido liga o modo edição
 async function openFormNovoPaciente(linha, existente) {
+  if(!podeFecharSheet()) return;
+  limparSujo();
   const cfg = LINHAS[linha];
   // Carregar profissionais
   const resProfs = await api('listar_profs',{});
   const profs = resProfs.ok ? resProfs.dados : [];
+  if(resProfs.ok) _profsCache = profs;
   const p = existente || {};
   const editando = !!(existente && existente.id);
   const servicosAtuais = String(p.servicos||'').split(',').map(s=>s.trim()).filter(Boolean);
@@ -1058,16 +1155,313 @@ async function salvarPaciente(linha, idExistente) {
     return;
   }
 
+  limparSujo();
   showToast('✅ '+nome+(idExistente?' atualizado!':' cadastrado!'),'ok');
   delete _pacientesCache[linha];
   _todosPacientes = null;
   openLinha(linha);
 }
 
+
+// ═══════════════════════════════════════════════
+// IMPORTAÇÃO EM MASSA
+// Aceita o que sai de qualquer sistema: CSV, TSV ou colado direto do Excel.
+// ═══════════════════════════════════════════════
+let _impLinhas = [];   // registros já lidos
+let _impCols = [];     // cabeçalhos encontrados
+
+// Nomes que cada campo pode ter na planilha de origem
+const IMP_CAMPOS = {
+  nome:            ['nome','paciente','nome completo','nome do paciente','name'],
+  data_nascimento: ['data de nascimento','nascimento','data_nascimento','dt nascimento','nasc','data nasc','aniversario','aniversário'],
+  telefone:        ['telefone','fone','celular','contato','whatsapp','tel'],
+  responsavel:     ['responsavel','responsável','mae','mãe','pai','contato responsavel','filho','cuidador'],
+  escola:          ['escola','colegio','colégio','instituicao','instituição'],
+  terapeuta_nome:  ['terapeuta','profissional','terapeuta responsavel','terapeuta responsável','fisioterapeuta','responsavel tecnico'],
+  servicos:        ['servico','serviço','servicos','serviços','atendimento','tratamento'],
+  observacoes:     ['observacao','observação','observacoes','observações','obs','queixa','anotacoes','anotações'],
+  status:          ['status','situacao','situação','ativo'],
+};
+
+function abrirImportacao() {
+  // Esconder o botão não basta: a função tem que recusar por conta própria
+  if(currentRole !== 'admin') { showToast('Só a gestão pode importar pacientes.','err'); return; }
+  _impLinhas = []; _impCols = [];
+  document.getElementById('sheetTitle').textContent = '📥 Importar pacientes';
+  document.getElementById('sheetBody').innerHTML = `
+    <div class="imp-passo">
+      <div class="imp-n">1</div>
+      <div>
+        <div class="imp-t">Exporte do sistema atual</div>
+        <div class="imp-d">Procure por <strong>Exportar</strong>, <strong>CSV</strong> ou <strong>Excel</strong>.
+        Se não houver, selecione a tabela toda e copie (Ctrl+C).</div>
+      </div>
+    </div>
+    <div class="imp-passo">
+      <div class="imp-n">2</div>
+      <div>
+        <div class="imp-t">Cole aqui ou escolha o arquivo</div>
+        <div class="imp-d">Precisa ter uma linha de cabeçalho com os nomes das colunas.</div>
+      </div>
+    </div>
+    <textarea class="ft" id="impTexto" style="min-height:130px;font-family:monospace;font-size:12px"
+      placeholder="nome, data de nascimento, telefone, terapeuta, servicos&#10;Maria Silva, 15/03/1980, (11) 99999-0000, Dr. Carlos, Fisioterapia"></textarea>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0">
+      <label class="addbtn" style="background:var(--sur2);color:var(--ink2);border:1px solid var(--bor)">
+        📎 Escolher arquivo
+        <input type="file" id="impArquivo" accept=".csv,.tsv,.txt" style="display:none" onchange="lerArquivoImport(event)">
+      </label>
+      <button class="addbtn" onclick="analisarImport()">Analisar →</button>
+    </div>
+    <div id="impErr" class="errbox"></div>
+    <div id="impPreview"></div>`;
+  openSheet();
+}
+
+function lerArquivoImport(ev) {
+  const arq = ev.target.files && ev.target.files[0];
+  if(!arq) return;
+  const leitor = new FileReader();
+  leitor.onload = () => {
+    document.getElementById('impTexto').value = leitor.result;
+    analisarImport();
+  };
+  leitor.readAsText(arq, 'UTF-8');
+}
+
+// Divide respeitando aspas: "Silva, Maria" é um campo só
+function quebrarLinhaCSV(linha, sep) {
+  const out = []; let atual = ''; let dentroAspas = false;
+  for(let i=0;i<linha.length;i++){
+    const c = linha[i];
+    if(c === '"'){
+      if(dentroAspas && linha[i+1] === '"'){ atual += '"'; i++; }
+      else dentroAspas = !dentroAspas;
+    } else if(c === sep && !dentroAspas){ out.push(atual); atual=''; }
+    else atual += c;
+  }
+  out.push(atual);
+  return out.map(s=>s.trim());
+}
+
+// Excel copiado usa TAB; arquivo brasileiro costuma usar ; — detecta sozinho
+function detectarSeparador(cabecalho) {
+  const cand = ['\t',';',','];
+  let melhor = ','; let maior = 0;
+  cand.forEach(s=>{
+    const n = quebrarLinhaCSV(cabecalho, s).length;
+    if(n > maior){ maior = n; melhor = s; }
+  });
+  return melhor;
+}
+
+function acharCampo(cabecalhos, alvos) {
+  for(let i=0;i<cabecalhos.length;i++){
+    const c = normalizar(cabecalhos[i]);
+    if(alvos.some(a=>c === normalizar(a))) return i;
+  }
+  // segunda passada: aceita "nome do paciente" quando se procura "nome"
+  for(let i=0;i<cabecalhos.length;i++){
+    const c = normalizar(cabecalhos[i]);
+    if(alvos.some(a=>c.includes(normalizar(a)))) return i;
+  }
+  return -1;
+}
+
+// Nunca sobrescrever o que o sistema controla
+const CAMPOS_RESERVADOS = ['id','linha','criado_em','atualizado_em','criado_por','atualizado_por'];
+
+// "Nº do Convênio" -> "n_do_convenio": vira nome de coluna na planilha
+function slugColuna(titulo) {
+  return normalizar(titulo)
+    .replace(/[^a-z0-9]+/g,'_')
+    .replace(/^_+|_+$/g,'')
+    .slice(0,40);
+}
+
+// Aceita 15/03/1980, 1980-03-15 e 15-03-1980
+function normalizarData(v) {
+  const s = String(v||'').trim();
+  if(!s) return '';
+  let m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s);
+  if(m) return m[1]+'-'+m[2]+'-'+m[3];
+  m = /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/.exec(s);
+  if(m){
+    let [_,d,mes,a] = m;
+    if(a.length===2) a = (Number(a) > 30 ? '19' : '20') + a;
+    return a+'-'+String(mes).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+  }
+  return '';
+}
+
+function analisarImport() {
+  const err = document.getElementById('impErr');
+  const mostrarErro = m => { err.textContent = m; err.style.display='block';
+                             document.getElementById('impPreview').innerHTML=''; };
+  err.style.display='none';
+
+  const texto = (document.getElementById('impTexto').value||'').trim();
+  if(!texto) return mostrarErro('Cole os dados ou escolha um arquivo.');
+
+  const linhas = texto.split(/\r?\n/).filter(l=>l.trim());
+  if(linhas.length < 2) return mostrarErro('Precisa do cabeçalho e ao menos uma linha de paciente.');
+
+  const sep = detectarSeparador(linhas[0]);
+  _impCols = quebrarLinhaCSV(linhas[0], sep);
+
+  const idx = {};
+  Object.entries(IMP_CAMPOS).forEach(([campo,alvos])=>{ idx[campo] = acharCampo(_impCols, alvos); });
+
+  if(idx.nome === -1) {
+    return mostrarErro('Não achei a coluna do nome. O cabeçalho encontrado foi: '+_impCols.join(' | '));
+  }
+
+  const vistos = new Set();
+  _impLinhas = [];
+  const problemas = [];
+
+  for(let i=1;i<linhas.length;i++){
+    const c = quebrarLinhaCSV(linhas[i], sep);
+    const pegar = campo => idx[campo] >= 0 ? (c[idx[campo]]||'').trim() : '';
+    const nome = pegar('nome');
+    if(!nome) { problemas.push('Linha '+(i+1)+': sem nome — será ignorada'); continue; }
+
+    const chave = normalizar(nome);
+    if(vistos.has(chave)) { problemas.push('Linha '+(i+1)+': "'+nome+'" repetido no arquivo'); continue; }
+    vistos.add(chave);
+
+    const nascBruto = pegar('data_nascimento');
+    const nasc = normalizarData(nascBruto);
+    if(nascBruto && !nasc) problemas.push('Linha '+(i+1)+': data "'+nascBruto+'" não reconhecida — ficará vazia');
+
+    const reg = {
+      nome,
+      data_nascimento: nasc,
+      telefone: pegar('telefone'),
+      responsavel: pegar('responsavel'),
+      escola: pegar('escola'),
+      terapeuta_nome: pegar('terapeuta_nome'),
+      servicos: pegar('servicos'),
+      observacoes: pegar('observacoes'),
+      status: pegar('status') || 'Ativo',
+    };
+
+    // Colunas que não têm campo equivalente entram assim mesmo — convênio,
+    // CPF, diagnóstico, o que a clínica já tiver. O Apps Script cria a coluna
+    // na planilha sozinho, então nada do cadastro antigo se perde.
+    const usados = Object.values(idx).filter(v=>v>=0);
+    _impCols.forEach((titulo, j)=>{
+      if(usados.includes(j)) return;
+      const chave = slugColuna(titulo);
+      if(!chave || CAMPOS_RESERVADOS.includes(chave)) return;
+      const valor = (c[j]||'').trim();
+      if(valor) reg[chave] = valor;
+    });
+
+    _impLinhas.push(reg);
+  }
+
+  if(!_impLinhas.length) return mostrarErro('Nenhuma linha aproveitável encontrada.');
+  mostrarPreviaImport(idx, problemas);
+}
+
+function mostrarPreviaImport(idx, problemas) {
+  const reconhecidos = Object.entries(idx).filter(([,v])=>v>=0).map(([k])=>k);
+  const usados = Object.values(idx).filter(v=>v>=0);
+  const extras = _impCols.filter((c,i)=>!usados.includes(i) && slugColuna(c));
+  const amostra = _impLinhas.slice(0,5);
+
+  document.getElementById('impPreview').innerHTML = `
+    <div class="imp-box">
+      <div class="imp-t">✅ ${_impLinhas.length} paciente${_impLinhas.length!==1?'s':''} pronto${_impLinhas.length!==1?'s':''} para importar</div>
+      <div class="imp-d" style="margin-top:6px">Colunas reconhecidas: ${reconhecidos.join(', ')}</div>
+      ${extras.length?`<div class="imp-d">Também vêm junto, como campos extras: ${esc(extras.join(', '))}</div>`:''}
+    </div>
+
+    ${problemas.length?`<div class="imp-box amber">
+      <div class="imp-t">⚠️ ${problemas.length} aviso${problemas.length!==1?'s':''}</div>
+      ${problemas.slice(0,6).map(p=>`<div class="imp-d">• ${esc(p)}</div>`).join('')}
+      ${problemas.length>6?`<div class="imp-d">…e mais ${problemas.length-6}</div>`:''}
+    </div>`:''}
+
+    <div style="overflow-x:auto;margin:12px 0">
+      <table class="imp-tab">
+        <tr><th>Nome</th><th>Nasc.</th><th>Terapeuta</th><th>Serviços</th></tr>
+        ${amostra.map(p=>`<tr>
+          <td>${esc(p.nome)}</td><td>${esc(p.data_nascimento||'—')}</td>
+          <td>${esc(p.terapeuta_nome||'—')}</td><td>${esc(p.servicos||'—')}</td>
+        </tr>`).join('')}
+      </table>
+      ${_impLinhas.length>5?`<div class="imp-d" style="margin-top:6px">…e mais ${_impLinhas.length-5} não mostrados</div>`:''}
+    </div>
+
+    <div class="fg"><label class="fl">Importar todos para a linha clínica *</label>
+      <select class="fs" id="impLinha">
+        <option value="">Selecione...</option>
+        ${Object.entries(LINHAS).map(([k,v])=>`<option value="${k}">${v.emoji} ${v.label}</option>`).join('')}
+      </select>
+    </div>
+    <div class="imp-d" style="margin-bottom:12px">
+      Pacientes com nome já cadastrado nessa linha são pulados — dá para importar de novo sem duplicar.
+    </div>
+    <button class="savebtn" id="impBtn" onclick="executarImport()">📥 Importar ${_impLinhas.length} paciente${_impLinhas.length!==1?'s':''}</button>
+    <div id="impProgresso" style="margin-top:10px"></div>`;
+}
+
+async function executarImport() {
+  if(currentRole !== 'admin') { showToast('Só a gestão pode importar pacientes.','err'); return; }
+  const linha = document.getElementById('impLinha').value;
+  const err = document.getElementById('impErr');
+  if(!linha){ err.textContent='Escolha a linha clínica.'; err.style.display='block'; return; }
+  err.style.display='none';
+
+  const btn = document.getElementById('impBtn');
+  const prog = document.getElementById('impProgresso');
+  btn.disabled = true;
+
+  // Quem já existe nessa linha não entra de novo
+  const resEx = await api('listar',{tabela:'pacientes', filtros:{linha}});
+  const existentes = new Set((resEx.ok?resEx.dados||[]:[]).map(p=>normalizar(p.nome)));
+
+  let criados=0, pulados=0, falhas=0;
+  const errosDetalhe=[];
+
+  for(let i=0;i<_impLinhas.length;i++){
+    const p = _impLinhas[i];
+    prog.innerHTML = `<div class="loading-inline"><div class="loading-spin"></div>
+      Importando ${i+1} de ${_impLinhas.length}… (${criados} criados, ${pulados} já existiam)</div>`;
+
+    if(existentes.has(normalizar(p.nome))){ pulados++; continue; }
+
+    const res = await api('salvar',{tabela:'pacientes', dados:{
+      ...p, linha, criado_por: currentUser.email
+    }});
+
+    if(res.ok){ criados++; existentes.add(normalizar(p.nome)); }
+    else { falhas++; if(errosDetalhe.length<5) errosDetalhe.push(p.nome+': '+(res.erro||'erro')); }
+  }
+
+  delete _pacientesCache[linha];
+  _todosPacientes = null;
+
+  prog.innerHTML = `
+    <div class="imp-box">
+      <div class="imp-t">Importação concluída</div>
+      <div class="imp-d">✅ ${criados} cadastrado${criados!==1?'s':''}</div>
+      ${pulados?`<div class="imp-d">↩️ ${pulados} já existia${pulados!==1?'m':''} — não duplicado${pulados!==1?'s':''}</div>`:''}
+      ${falhas?`<div class="imp-d" style="color:var(--rose)">⚠️ ${falhas} não entrou${falhas!==1?'ram':''}:<br>${errosDetalhe.map(esc).join('<br>')}</div>`:''}
+    </div>
+    <button class="savebtn" onclick="openLinha('${linha}')">Ver os pacientes →</button>`;
+  btn.style.display='none';
+  showToast('✅ '+criados+' paciente(s) importado(s)','ok');
+}
+
 // ═══════════════════════════════════════════════
 // DETALHE DO PACIENTE
 // ═══════════════════════════════════════════════
 async function openPaciente(linha, id) {
+  if(!podeFecharSheet()) return;
+  limparSujo();
   const pacs = _pacientesCache[linha]||[];
   let p = pacs.find(x=>String(x.id)===String(id));
   if(!p) return;
@@ -1098,18 +1492,87 @@ async function openPaciente(linha, id) {
       <span style="font-size:12px;color:var(--ink3);flex:1">${idade !== '—' ? idade+' anos · ' : ''}${esc(p.terapeuta_nome||'—')}${p.status&&p.status!=='Ativo'?' · '+esc(p.status):''}</span>
       <button class="backbtn" onclick="editarPaciente('${linha}','${id}')">✏️ Editar</button>
     </div>
+    ${fichaCadastroHTML(p)}
     <div class="tabs">
       ${tabs.map((t,i)=>`<div class="tab ${i===0?'active':''}" onclick="swTab('tb${i}',this)">${t}</div>`).join('')}
     </div>
     ${tabs.map((t,i)=>`<div id="tb${i}" style="display:${i===0?'block':'none'}">
       ${renderTabContent(linha, p, i)}
       <button class="savebtn" id="sv${i}" onclick="salvarEvolucao('${linha}','${id}',${i})">💾 Salvar</button>
+      <div class="assin" id="as${i}">${assinaturaHTML(i)}</div>
     </div>`).join('')}`;
 }
 
 function editarPaciente(linha, id) {
   const p = (_pacientesCache[linha]||[]).find(x=>String(x.id)===String(id));
   if(p) openFormNovoPaciente(linha, p);
+}
+
+// Mostra o cadastro inteiro, inclusive campos que vieram da importação e não
+// têm lugar fixo na tela (convênio, CPF, diagnóstico...). Sem isto o dado
+// entra na planilha e ninguém enxerga.
+const CAD_ROTULOS = {
+  data_nascimento:'Nascimento', telefone:'Telefone', responsavel:'Responsável',
+  escola:'Escola', terapeuta_nome:'Terapeuta', servicos:'Serviços',
+  observacoes:'Observações', status:'Status', criado_em:'Cadastrado em',
+  criado_por:'Cadastrado por', atualizado_em:'Última alteração',
+  atualizado_por:'Alterado por', data_inicio:'Início',
+};
+const CAD_OCULTOS = ['id','linha','nome'];
+
+function rotuloCampo(k) {
+  if(CAD_ROTULOS[k]) return CAD_ROTULOS[k];
+  return k.replace(/_/g,' ').replace(/^./,c=>c.toUpperCase());
+}
+
+function valorCampo(k, v) {
+  const s = String(v);
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s)) {
+    const [a,m,d] = s.split('-');
+    return d+'/'+m+'/'+a;
+  }
+  if(/_em$/.test(k) && /^\d{4}-\d{2}-\d{2}T/.test(s)) return fmtDataHora(s);
+  return s;
+}
+
+function fichaCadastroHTML(p) {
+  const campos = Object.entries(p)
+    .filter(([k,v])=>!CAD_OCULTOS.includes(k) && v!=='' && v!=null);
+  if(!campos.length) return '';
+  return `<details class="cadbox">
+    <summary class="cadsum">📄 Dados do cadastro <span style="color:var(--ink3);font-weight:400">(${campos.length})</span></summary>
+    <div class="cadgrid">
+      ${campos.map(([k,v])=>`<div class="cadrow">
+        <div class="cadk">${esc(rotuloCampo(k))}</div>
+        <div class="cadv">${esc(valorCampo(k,v))}</div>
+      </div>`).join('')}
+    </div>
+  </details>`;
+}
+
+// Quem registrou por último — em prontuário, importa saber de quem é a anotação
+function assinaturaHTML(tabIdx) {
+  const f = _fichasCache[String(tabIdx)];
+  if(!f || !f.por) return '';
+  const email = String(f.por).toLowerCase();
+  const prof = (_profsCache||[]).find(p=>(p.email||'').toLowerCase()===email);
+  const quem = (currentUser && (currentUser.email||'').toLowerCase()===email)
+    ? currentUser.nome
+    : (prof ? prof.nome : f.por);
+  const quando = f.em ? fmtDataHora(f.em) : '';
+  return '🖊 Último registro por ' + esc(quem) + (quando ? ' · ' + quando : '');
+}
+
+function atualizarAssinatura(tabIdx) {
+  const el = document.getElementById('as'+tabIdx);
+  if(el) el.innerHTML = assinaturaHTML(tabIdx);
+}
+
+function fmtDataHora(iso) {
+  const d = new Date(iso);
+  if(isNaN(d)) return '';
+  return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'}) +
+         ' às ' + d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
 }
 
 // Fichas (checklists/PTS/avaliações) do paciente aberto — chave: índice da aba
@@ -1123,7 +1586,8 @@ async function carregarFichas(pacienteId) {
   (res.dados||[]).forEach(r=>{
     let d = {};
     try { d = JSON.parse(r.dados||'{}'); } catch(e){}
-    _fichasCache[String(r.aba)] = {id:r.id, dados:d};
+    _fichasCache[String(r.aba)] = {id:r.id, dados:d,
+      por: r.atualizado_por||r.criado_por||'', em: r.atualizado_em||r.criado_em||''};
   });
 }
 
@@ -1395,11 +1859,18 @@ async function salvarEvolucao(linha, id, tabIdx) {
   btn.textContent='Salvando...'; btn.disabled=true;
 
   const existente = _fichasCache[String(tabIdx)];
+  // Quem reescreveu também fica registrado: sem isto a planilha guardava
+  // para sempre o autor da primeira versão, mesmo após outra pessoa
+  // reescrever a ficha inteira
   const res = existente && existente.id
-    ? await api('atualizar',{tabela:'checklists', id:existente.id, dados:{dados:JSON.stringify(dados)}})
+    ? await api('atualizar',{tabela:'checklists', id:existente.id, dados:{
+        dados: JSON.stringify(dados),
+        atualizado_por: currentUser.email
+      }})
     : await api('salvar',{tabela:'checklists', dados:{
         paciente_id: id, linha, aba: String(tabIdx),
         dados: JSON.stringify(dados),
+        criado_por: currentUser.email,
         atualizado_por: currentUser.email
       }});
 
@@ -1407,7 +1878,10 @@ async function salvarEvolucao(linha, id, tabIdx) {
 
   if(!res.ok) { showToast('Erro ao salvar: '+(res.erro||'tente novamente'),'err'); return; }
 
-  _fichasCache[String(tabIdx)] = {id: existente?.id || res.id, dados};
+  _fichasCache[String(tabIdx)] = {id: existente?.id || res.id, dados,
+    por: currentUser.email, em: new Date().toISOString()};
+  atualizarAssinatura(tabIdx);
+  limparSujo();
   showToast('✅ Evolução salva!','ok');
 }
 
@@ -1416,6 +1890,7 @@ async function salvarEvolucao(linha, id, tabIdx) {
 // ═══════════════════════════════════════════════
 async function loadEquipe() {
   const res = await api('listar_profs',{});
+  if(res.ok) _profsCache = res.dados||[];
   const el = document.getElementById('listaProfs');
   if(!el) return;
   if(!res.ok){el.innerHTML=`<div style="color:var(--rose);padding:16px">${res.erro}</div>`;return;}
@@ -1530,13 +2005,45 @@ function swTab(id, el) {
   el.classList.add('active');
 }
 
-function openSheet(){document.getElementById('sheetOv').classList.add('open');}
-function closeSheet(){document.getElementById('sheetOv').classList.remove('open');}
+// ── PROTEÇÃO CONTRA PERDA DE TRABALHO ───────────
+// Um toque fora do painel fechava a ficha e apagava a evolução digitada,
+// sem aviso e sem desfazer.
+let _sheetSujo = false;
+
+function marcarSujo(){ _sheetSujo = true; }
+function limparSujo(){ _sheetSujo = false; }
+
+// Vale para o que já existe e para o que for renderizado depois
+document.addEventListener('input', e=>{
+  if(e.target.closest && e.target.closest('#sheetBody')) marcarSujo();
+}, true);
+document.addEventListener('change', e=>{
+  if(e.target.closest && e.target.closest('#sheetBody')) marcarSujo();
+}, true);
+
+function podeFecharSheet(){
+  const aberto = document.getElementById('sheetOv').classList.contains('open');
+  if(!aberto || !_sheetSujo) return true;
+  return confirm('Você digitou algo que ainda não foi salvo.\n\nSair agora descarta essas alterações.');
+}
+
+function openSheet(){ limparSujo(); document.getElementById('sheetOv').classList.add('open'); }
+function closeSheet(forcar){
+  if(!forcar && !podeFecharSheet()) return;
+  limparSujo();
+  document.getElementById('sheetOv').classList.remove('open');
+}
 function maybeCloseSheet(e){if(e.target===document.getElementById('sheetOv'))closeSheet();}
+
+// Fechar a aba do navegador com texto pendente também avisa
+window.addEventListener('beforeunload', e=>{
+  if(_sheetSujo){ e.preventDefault(); e.returnValue=''; }
+});
 function openUserMenu(){
   document.getElementById('umName').textContent=currentUser.nome;
   document.getElementById('umEmail').textContent=currentUser.email;
   document.getElementById('umEquipe').style.display=currentRole!=='profissional'?'flex':'none';
+  document.getElementById('umImportar').style.display=currentRole==='admin'?'flex':'none';
   document.getElementById('umOv').classList.add('open');
 }
 function closeMenu(){document.getElementById('umOv').classList.remove('open');}
