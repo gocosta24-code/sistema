@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Casa Oliveira — Área do paciente</title>
+<!-- Encaminha para o sistema já na área do paciente. O arquivo existe para
+     dar um endereço próprio a quem é paciente, sem duplicar o sistema. -->
+<style>
+  body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;background:#1a1714;color:#faf8f5;
+       height:100vh;margin:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px}
+  a{color:#2d9175}
+</style>
+</head>
+<body>
+  <div>
+    <p>Abrindo sua área…</p>
+    <p><a href="../?area=paciente">Clique aqui se não abrir automático</a></p>
+  </div>
+  <script>location.replace('../?area=paciente');</script>
+</body>
+</html>

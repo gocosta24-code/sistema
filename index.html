@@ -440,7 +440,7 @@ input,select,textarea{outline:none;}
       Ainda não tem acesso? Peça à clínica.
     </div>
   </div>
-  <div class="change-api" onclick="voltarAoLogin()" style="margin-top:16px;text-align:center;font-size:12px;color:#555;cursor:pointer">
+  <div id="linkEquipe" onclick="voltarAoLogin()" style="margin-top:16px;text-align:center;font-size:12px;color:#555;cursor:pointer">
     Sou da equipe
   </div>
 </div>
@@ -1374,6 +1374,12 @@ async function liberarAcessoPaciente(id) {
 let pacienteLogado = null;
 
 function mostrarLoginPaciente() {
+  // Em domínio dedicado ao paciente, não faz sentido oferecer a porta da equipe
+  const host = location.hostname.toLowerCase();
+  if(host.startsWith('paciente.') || host.startsWith('pacientes.')) {
+    const l = document.getElementById('linkEquipe');
+    if(l) l.style.display = 'none';
+  }
   ['loginScreen','esqueciScreen','resetScreen','configBanner'].forEach(t=>{
     const el=document.getElementById(t); if(el) el.style.display='none';
   });
@@ -2938,8 +2944,14 @@ window.addEventListener('DOMContentLoaded', async()=>{
     document.getElementById('demoSection').style.display = 'block';
   }
 
-  // Área do paciente: porta separada da equipe, tanto na tela quanto no token
-  if(params.get('area') === 'paciente') {
+  // Área do paciente. Entra por três caminhos, todos equivalentes:
+  //   paciente.casaoliveirasaude.com.br  (domínio próprio, se houver)
+  //   /paciente/                          (caminho no mesmo domínio)
+  //   ?area=paciente                      (sempre funciona)
+  const host = location.hostname.toLowerCase();
+  const ehDominioPaciente = host.startsWith('paciente.') || host.startsWith('pacientes.');
+  const ehCaminhoPaciente = /\/pacientes?(\/|$)/.test(location.pathname);
+  if(params.get('area') === 'paciente' || ehDominioPaciente || ehCaminhoPaciente) {
     document.getElementById('splash').classList.add('hide');
     if(await restaurarSessaoPaciente()) return;
     mostrarLoginPaciente();
