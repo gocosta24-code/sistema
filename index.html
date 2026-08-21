@@ -579,7 +579,7 @@ let demoMode = false;
 // Muda a cada publicação. Serve para o aparelho perceber que está com uma
 // versão velha em cache — sem isto a pessoa continua vendo o problema já
 // corrigido e jura que não foi corrigido.
-const VERSAO = '2026-08-20.11';
+const VERSAO = '2026-08-21.01';
 let _profsCache = null;
 let _demoPacienteId = null;
 
@@ -1983,13 +1983,16 @@ const HIST = {
   reunioes: {
     tabela: 'reunioes',
     rotulo: 'Reunião',
-    novo: '+ Nova reunião',
-    vazio: 'Nenhuma reunião registrada ainda.',
+    novo: '+ Agendar reunião',
+    vazio: 'Nenhuma reunião agendada ou registrada ainda.',
     campos: [
       {k:'data',          l:'Data', t:'date'},
-      {k:'tipo',          l:'Tipo', t:'select', opcoes:['Família','Escola','Equipe','Outro']},
+      // "Agendada" primeiro: é o que se marca ao criar um compromisso futuro
+      {k:'status',        l:'Situação', t:'select', opcoes:['Agendada','Realizada','Cancelada']},
+      {k:'tipo',          l:'Tipo', t:'select',
+        opcoes:['Família','Escola','Equipe','Visita domiciliar','Visita escolar','Outro']},
       {k:'participantes', l:'Participantes', t:'text', ph:'Quem esteve presente'},
-      {k:'resumo',        l:'O que foi discutido', t:'textarea', ph:'Encaminhamentos e combinados...'},
+      {k:'resumo',        l:'O que foi discutido / pauta', t:'textarea', ph:'Encaminhamentos e combinados...'},
     ],
   },
 };
@@ -2080,15 +2083,19 @@ function listaHistHTML(tipo) {
       ? `v${r.versao||1}`
       : (r.instrumento || r.tipo || cfg.rotulo);
     const quando = r.data || r.criado_em;
+    // Status vira chip no cabeçalho para qualquer tipo que o use — não só o
+    // PTS, que foi o único a ter isso antes
+    const corStatus = {agendada:'ch-sky', realizada:'ch-teal', aprovado:'ch-teal',
+                        cancelada:'ch-gray', rascunho:'ch-gray'}[String(r.status||'').toLowerCase()] || 'ch-gray';
     return `<details class="hist" ${atual?'open':''}>
       <summary class="hist-cab">
         <span class="hist-tit">${esc(titulo)}</span>
-        ${cfg.versionado?`<span class="chip ${aprovado?'ch-teal':'ch-gray'}">${esc(r.status||'Rascunho')}</span>`:''}
+        ${r.status?`<span class="chip ${corStatus}">${esc(r.status)}</span>`:''}
         ${atual?`<span class="chip ch-sky">atual</span>`:''}
         <span class="hist-data">${quando?esc(fmtDataBR(String(quando).slice(0,10))):''}</span>
       </summary>
       <div class="hist-corpo">
-        ${cfg.campos.map(c=>{
+        ${cfg.campos.filter(c=>c.k!=='status').map(c=>{
           const v = r[c.k];
           if(!String(v||'').trim()) return '';
           const mostrar = c.t==='date' ? fmtDataBR(String(v).slice(0,10)) : v;
@@ -3228,8 +3235,12 @@ async function loadContadores() {
 // Percorre as fichas de todos os pacientes e deriva pendências reais
 async function calcularAlertas() {
   const pacs = await carregarTodosPacientes();
-  const res = await api('listar',{tabela:'checklists'});
+  const [res, resReun] = await Promise.all([
+    api('listar',{tabela:'checklists'}),
+    api('listar',{tabela:'reunioes'}),
+  ]);
   const fichas = res.ok ? (res.dados||[]) : [];
+  const pacPorId = {}; pacs.forEach(p=>pacPorId[String(p.id)]=p);
 
   const porPaciente = {};
   fichas.forEach(f=>{
@@ -3266,6 +3277,24 @@ async function calcularAlertas() {
       else if(dias <= 30) proximos.push({titulo:rotulo+' — '+p.nome, meta:`${quando} • ${cfg.label}`});
     });
   });
+
+  // Reuniões e visitas marcadas para o futuro entram como compromisso, não
+  // como pendência — não contam no total da Home, só aparecem em Alertas
+  if(resReun.ok) {
+    (resReun.dados||[]).forEach(r=>{
+      if(String(r.status||'').toLowerCase() !== 'agendada') return;
+      const dt = dataLocal(r.data); if(!dt) return;
+      const dias = Math.round((dt-hoje)/86400000);
+      if(dias < 0 || dias > 30) return;
+      const p = pacPorId[String(r.paciente_id)];
+      const cfg = LINHAS[(p&&p.linha)||''] || {label:(p&&p.linha)||''};
+      const quando = dt.toLocaleDateString('pt-BR');
+      proximos.push({
+        titulo: (r.tipo||'Reunião')+' — '+(p?p.nome:'Paciente'),
+        meta: `${quando} • ${cfg.label}`
+      });
+    });
+  }
 
   return {criticos, altos, proximos};
 }
