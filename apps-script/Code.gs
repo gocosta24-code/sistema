@@ -1,23 +1,23 @@
 // ============================================================
-// CASA OLIVEIRA — APPS SCRIPT API
+// CASA OLIVEIRA - APPS SCRIPT API
 //
 // COMO ATUALIZAR:
 // 1. Abra: docs.google.com/spreadsheets/d/12HfN3lxg-JVC-vT7_4FXC334xAakItc5jjYQt8lyCWk
-// 2. Extensões → Apps Script
-// 3. Apague tudo e cole este código
+// 2. Extensoes -> Apps Script
+// 3. Apague tudo e cole este codigo
 // 4. Salve (Ctrl+S)
-// 5. Implantar → Gerenciar implantações → editar (lápis) →
-//    Versão: "Nova versão" → Implantar
-//    (NÃO crie uma implantação nova: o URL mudaria e o sistema pararia)
+// 5. Implantar -> Gerenciar implantacoes -> editar (lapis) ->
+//    Versao: "Nova vers\u00e3o" -> Implantar
+//    (NAO crie uma implantacao nova: o URL mudaria e o sistema pararia)
 //
-// As senhas em texto puro que já estão na planilha são convertidas para
-// hash sozinhas, no primeiro login de cada pessoa. Ninguém precisa
+// As senhas em texto puro que ja estao na planilha sao convertidas para
+// hash sozinhas, no primeiro login de cada pessoa. Ninguem precisa
 // cadastrar senha de novo.
 // ============================================================
 
 const SHEET_ID = '12HfN3lxg-JVC-vT7_4FXC334xAakItc5jjYQt8lyCWk';
 
-// Endereço do sistema publicado — usado no e-mail de convite
+// Endereco do sistema publicado - usado no e-mail de convite
 const URL_SISTEMA = 'https://gocosta24-code.github.io/sistema/';
 
 function getSpreadsheet() {
@@ -38,7 +38,7 @@ const ABAS = {
   espera:         'ListaEspera',
 };
 
-// ─── ENTRY POINTS ────────────────────────────────────────────
+// --- ENTRY POINTS --------------------------------------------
 function doGet(e)  { return handle(e); }
 function doPost(e) { return handle(e); }
 
@@ -46,7 +46,7 @@ function handle(e) {
   try {
     const params = e.parameter || {};
     let body = {};
-    // Priority 1: GET ?data= param (main method — no CORS issues)
+    // Priority 1: GET ?data= param (main method - no CORS issues)
     if (params.data) {
       try { body = JSON.parse(decodeURIComponent(params.data)); } catch(ex) {}
     }
@@ -58,25 +58,25 @@ function handle(e) {
     const action = body.action || params.action;
     const token  = body.token  || params.token;
 
-    // Recuperação de senha roda sem sessão — quem esqueceu a senha não tem token
+    // Recuperacao de senha roda sem sessao - quem esqueceu a senha nao tem token
     const SEM_LOGIN = ['login','login_paciente','solicitar_reset','redefinir_senha'];
     if (SEM_LOGIN.indexOf(action) === -1 && !validarToken(token)) {
-      return resp({ok:false, erro:'Token inválido ou expirado'});
+      return resp({ok:false, erro:'Token inv\u00e1lido ou expirado'});
     }
 
-    // Conta de paciente só alcança o próprio prontuário. A permissão é
-    // decidida aqui pelo que está gravado no token, nunca pelo que o
-    // navegador diz ser — senão bastaria forjar o pedido para ler a ficha
+    // Conta de paciente so alcanca o proprio prontuario. A permissao e
+    // decidida aqui pelo que esta gravado no token, nunca pelo que o
+    // navegador diz ser - senao bastaria forjar o pedido para ler a ficha
     // de outra pessoa.
     const ACOES_PACIENTE = ['logout','meu_prontuario','minha_posicao','alterar_senha_paciente'];
     if (SEM_LOGIN.indexOf(action) === -1) {
       const info = getInfoToken(token);
       const ehPaciente = info && info.role === 'paciente';
       if (ehPaciente && ACOES_PACIENTE.indexOf(action) === -1) {
-        return resp({ok:false, erro:'Sem permissão'});
+        return resp({ok:false, erro:'Sem permiss\u00e3o'});
       }
       if (!ehPaciente && ACOES_PACIENTE.indexOf(action) !== -1 && action !== 'logout') {
-        return resp({ok:false, erro:'Esta área é do paciente'});
+        return resp({ok:false, erro:'Esta \u00e1rea \u00e9 do paciente'});
       }
     }
 
@@ -97,14 +97,14 @@ function handle(e) {
       case 'convidar_prof': return resp(convidarProf(body, token));
       case 'alterar_senha': return resp(alterarSenha(body, token));
       case 'dar_acesso_paciente': return resp(darAcessoPaciente(body, token));
-      default:              return resp({ok:false, erro:'Ação desconhecida: '+action});
+      default:              return resp({ok:false, erro:'A\u00e7\u00e3o desconhecida: '+action});
     }
   } catch(err) {
     return resp({ok:false, erro:err.toString()});
   }
 }
 
-// ─── SENHAS ───────────────────────────────────────────────────
+// --- SENHAS ---------------------------------------------------
 // O e-mail entra no hash como salt: duas pessoas com a mesma senha
 // geram hashes diferentes.
 function hashSenha(email, senha) {
@@ -122,7 +122,7 @@ function pareceHash(v) {
   return /^[0-9a-f]{64}$/.test(String(v||''));
 }
 
-// Sem caracteres ambíguos (0/O, 1/l/I) — a pessoa digita isto vindo do e-mail
+// Sem caracteres ambiguos (0/O, 1/l/I) - a pessoa digita isto vindo do e-mail
 function gerarSenha() {
   const chars = 'abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let s = '';
@@ -130,7 +130,7 @@ function gerarSenha() {
   return s;
 }
 
-// Aceita o hash novo e, durante a transição, a senha em texto puro que
+// Aceita o hash novo e, durante a transicao, a senha em texto puro que
 // ainda estiver gravada. Devolve se bateu e se precisa migrar.
 function conferirSenha(email, guardada, informada) {
   if (!guardada) return {ok:true, migrar:true};   // conta sem senha definida
@@ -140,7 +140,7 @@ function conferirSenha(email, guardada, informada) {
   return {ok: String(guardada) === String(informada), migrar:true};
 }
 
-// ─── AUTH ─────────────────────────────────────────────────────
+// --- AUTH -----------------------------------------------------
 function login(body) {
   const email = (body.email||'').toLowerCase().trim();
   const senha = body.senha||'';
@@ -173,7 +173,7 @@ function login(body) {
       return {ok:true, token, usuario:{id:row[iId],nome:row[iNome],email:row[iEmail],role:row[iRole]||'profissional'}};
     }
   }
-  return {ok:false, erro:'E-mail não encontrado'};
+  return {ok:false, erro:'E-mail n\u00e3o encontrado'};
 }
 
 function logout(token) {
@@ -234,7 +234,7 @@ function getInfoToken(token) {
 
 function alterarSenha(body, token) {
   const info = getInfoToken(token);
-  if (!info) return {ok:false,erro:'Token inválido'};
+  if (!info) return {ok:false,erro:'Token inv\u00e1lido'};
 
   const nova = String(body.nova_senha||'');
   if (nova.length < 6) return {ok:false,erro:'A nova senha precisa ter ao menos 6 caracteres'};
@@ -247,7 +247,7 @@ function alterarSenha(body, token) {
   const iSenha = h.indexOf('senha_hash');
   for (let i=1;i<dados.length;i++) {
     if ((dados[i][iEmail]||'').toLowerCase()===info.email.toLowerCase()) {
-      // Sem esta conferência, quem alcança uma sessão aberta troca a senha
+      // Sem esta conferencia, quem alcanca uma sessao aberta troca a senha
       const check = conferirSenha(info.email, dados[i][iSenha], String(body.senha_atual||''));
       if (!check.ok) return {ok:false,erro:'Senha atual incorreta'};
 
@@ -255,14 +255,14 @@ function alterarSenha(body, token) {
       return {ok:true};
     }
   }
-  return {ok:false,erro:'Usuário não encontrado'};
+  return {ok:false,erro:'Usu\u00e1rio n\u00e3o encontrado'};
 }
 
-// ─── RECUPERAÇÃO DE SENHA ─────────────────────────────────────
-// Link de uso único por e-mail, válido por 1 hora. Enviar uma senha nova
+// --- RECUPERACAO DE SENHA -------------------------------------
+// Link de uso unico por e-mail, valido por 1 hora. Enviar uma senha nova
 // pronta deixaria ela guardada na caixa de entrada para sempre.
 const RESET_VALIDADE_MIN = 60;
-const RESET_INTERVALO_MIN = 2;   // espera mínima entre dois pedidos
+const RESET_INTERVALO_MIN = 2;   // espera minima entre dois pedidos
 
 function acharProfissional(email) {
   const ss = getSpreadsheet();
@@ -280,13 +280,13 @@ function acharProfissional(email) {
 
 function solicitarReset(body) {
   const email = String(body.email||'').toLowerCase().trim();
-  // Resposta sempre igual: dizer "e-mail não encontrado" revelaria quem
-  // tem conta para qualquer pessoa que chutasse endereços.
+  // Resposta sempre igual: dizer "e-mail n\u00e3o encontrado" revelaria quem
+  // tem conta para qualquer pessoa que chutasse enderecos.
   const generica = {ok:true};
   if (!email) return generica;
 
-  // A área do paciente usa o mesmo caminho: serve tanto para definir a senha
-  // no primeiro acesso quanto para recuperá-la depois
+  // A area do paciente usa o mesmo caminho: serve tanto para definir a senha
+  // no primeiro acesso quanto para recupera-la depois
   const ehPaciente = String(body.tipo||'') === 'paciente';
 
   let nomePessoa = '';
@@ -310,7 +310,7 @@ function solicitarReset(body) {
   const dados = sheet.getDataRange().getValues();
   const agora = new Date();
 
-  // Trava simples contra alguém disparar dezenas de e-mails
+  // Trava simples contra alguem disparar dezenas de e-mails
   for (let i=1;i<dados.length;i++) {
     if (String(dados[i][1]||'').toLowerCase() === email && dados[i][4]) {
       const criado = new Date(dados[i][4]);
@@ -333,18 +333,18 @@ function solicitarReset(body) {
   try {
     MailApp.sendEmail({
       to: email,
-      subject: 'Sua senha — Casa Oliveira',
+      subject: 'Sua senha \u2014 Casa Oliveira',
       htmlBody: '<div style="font-family:Arial,sans-serif;max-width:480px">' +
         '<h2 style="color:#1d6b58">Casa Oliveira</h2>' +
-        '<p>Olá, <strong>' + nomePessoa + '</strong>!</p>' +
-        '<p>Use o botão abaixo para criar sua senha de acesso.</p>' +
+        '<p>Ol\u00e1, <strong>' + nomePessoa + '</strong>!</p>' +
+        '<p>Use o bot\u00e3o abaixo para criar sua senha de acesso.</p>' +
         '<p style="margin:24px 0"><a href="' + link + '" ' +
         'style="background:#1d6b58;color:#fff;padding:12px 22px;border-radius:8px;' +
         'text-decoration:none;display:inline-block">Criar minha senha</a></p>' +
         '<p style="color:#666;font-size:13px">O link vale por ' + RESET_VALIDADE_MIN +
-        ' minutos e só pode ser usado uma vez.</p>' +
-        '<p style="color:#666;font-size:13px">Se não foi você que pediu, ignore este ' +
-        'e-mail — sua senha atual continua valendo.</p>' +
+        ' minutos e s\u00f3 pode ser usado uma vez.</p>' +
+        '<p style="color:#666;font-size:13px">Se n\u00e3o foi voc\u00ea que pediu, ignore este ' +
+        'e-mail \u2014 sua senha atual continua valendo.</p>' +
         '</div>'
     });
   } catch(e) { /* sem cota de e-mail: o pedido fica registrado mesmo assim */ }
@@ -360,26 +360,26 @@ function gerarTokenReset() {
 function redefinirSenha(body) {
   const token = String(body.token_reset||'');
   const nova  = String(body.nova_senha||'');
-  if (!token) return {ok:false, erro:'Link inválido'};
+  if (!token) return {ok:false, erro:'Link inv\u00e1lido'};
   if (nova.length < 6) return {ok:false, erro:'A nova senha precisa ter ao menos 6 caracteres'};
 
   const ss = getSpreadsheet();
   const sheet = ss.getSheetByName('Resets');
-  if (!sheet) return {ok:false, erro:'Link inválido ou expirado'};
+  if (!sheet) return {ok:false, erro:'Link inv\u00e1lido ou expirado'};
 
   const dados = sheet.getDataRange().getValues();
   for (let i=1;i<dados.length;i++) {
     if (String(dados[i][0]) !== token) continue;
 
-    if (dados[i][3]) return {ok:false, erro:'Este link já foi usado. Peça um novo.'};
-    if (new Date() >= new Date(dados[i][2])) return {ok:false, erro:'Este link expirou. Peça um novo.'};
+    if (dados[i][3]) return {ok:false, erro:'Este link j\u00e1 foi usado. Pe\u00e7a um novo.'};
+    if (new Date() >= new Date(dados[i][2])) return {ok:false, erro:'Este link expirou. Pe\u00e7a um novo.'};
 
     const email = String(dados[i][1]||'');
     const tipo = String(dados[i][5]||'equipe');
 
     if (tipo === 'paciente') {
       const pac = acharPacientePorEmail(email);
-      if (!pac) return {ok:false, erro:'Cadastro não encontrado'};
+      if (!pac) return {ok:false, erro:'Cadastro n\u00e3o encontrado'};
       let iS = pac.h.indexOf('senha_hash');
       if (iS === -1) {
         pac.h.push('senha_hash');
@@ -396,15 +396,15 @@ function redefinirSenha(body) {
       pac.sheet.getRange(pac.linha, iA+1).setValue('Liberado');
     } else {
       const prof = acharProfissional(email);
-      if (!prof) return {ok:false, erro:'Usuário não encontrado'};
+      if (!prof) return {ok:false, erro:'Usu\u00e1rio n\u00e3o encontrado'};
       const iSenha = prof.h.indexOf('senha_hash');
       prof.sheet.getRange(prof.linha, iSenha+1).setValue(hashSenha(email, nova));
     }
 
     sheet.getRange(i+1, 4).setValue(new Date().toISOString());   // marca como usado
 
-    // Derruba as sessões abertas: se a conta foi acessada por outra pessoa,
-    // trocar a senha sozinho não a colocaria para fora.
+    // Derruba as sessoes abertas: se a conta foi acessada por outra pessoa,
+    // trocar a senha sozinho nao a colocaria para fora.
     const st = ss.getSheetByName('Tokens');
     if (st) {
       const td = st.getDataRange().getValues();
@@ -414,14 +414,14 @@ function redefinirSenha(body) {
     }
     return {ok:true};
   }
-  return {ok:false, erro:'Link inválido ou expirado'};
+  return {ok:false, erro:'Link inv\u00e1lido ou expirado'};
 }
 
 
-// ─── ÁREA DO PACIENTE ─────────────────────────────────────────
-// Regra que sustenta tudo aqui: o paciente é identificado pelo ref_id
-// gravado no token no momento do login. Nenhuma função desta seção aceita
-// id vindo do navegador — é o que impede alguém de pedir a ficha alheia.
+// --- AREA DO PACIENTE -----------------------------------------
+// Regra que sustenta tudo aqui: o paciente e identificado pelo ref_id
+// gravado no token no momento do login. Nenhuma funcao desta secao aceita
+// id vindo do navegador - e o que impede alguem de pedir a ficha alheia.
 
 function acharPacientePorEmail(email) {
   const ss = getSpreadsheet();
@@ -464,13 +464,13 @@ function loginPaciente(body) {
 
   const achado = acharPacientePorEmail(email);
   // Mesma mensagem para e-mail inexistente e senha errada: dizer qual dos
-  // dois falhou revelaria quem é paciente da clínica
+  // dois falhou revelaria quem e paciente da clinica
   const generico = {ok:false, erro:'E-mail ou senha incorretos'};
   if (!achado) return generico;
 
   const p = achado.obj;
-  if (!p.senha_hash) return {ok:false, erro:'Seu acesso ainda não foi liberado. Fale com a clínica.'};
-  if (String(p.acesso||'').toLowerCase() === 'bloqueado') return {ok:false, erro:'Acesso bloqueado. Fale com a clínica.'};
+  if (!p.senha_hash) return {ok:false, erro:'Seu acesso ainda n\u00e3o foi liberado. Fale com a cl\u00ednica.'};
+  if (String(p.acesso||'').toLowerCase() === 'bloqueado') return {ok:false, erro:'Acesso bloqueado. Fale com a cl\u00ednica.'};
 
   const check = conferirSenha(email, p.senha_hash, senha);
   if (!check.ok) return generico;
@@ -484,14 +484,14 @@ function loginPaciente(body) {
   return {ok:true, token, usuario:{nome:p.nome, email:p.email, role:'paciente'}};
 }
 
-// Devolve só o que a clínica escolheu comunicar. O prontuário técnico —
-// checklists, PTS interno, evoluções — não sai daqui.
+// Devolve so o que a clinica escolheu comunicar. O prontuario tecnico -
+// checklists, PTS interno, evolucoes - nao sai daqui.
 function meuProntuario(token) {
   const info = getInfoToken(token);
-  if (!info || info.role !== 'paciente' || !info.refId) return {ok:false, erro:'Sessão inválida'};
+  if (!info || info.role !== 'paciente' || !info.refId) return {ok:false, erro:'Sess\u00e3o inv\u00e1lida'};
 
   const achado = acharPacientePorId(info.refId);
-  if (!achado) return {ok:false, erro:'Cadastro não encontrado'};
+  if (!achado) return {ok:false, erro:'Cadastro n\u00e3o encontrado'};
   const p = achado.obj;
 
   return {ok:true, dados:{
@@ -509,7 +509,7 @@ function meuProntuario(token) {
 
 function minhaPosicao(token) {
   const info = getInfoToken(token);
-  if (!info || info.role !== 'paciente') return {ok:false, erro:'Sessão inválida'};
+  if (!info || info.role !== 'paciente') return {ok:false, erro:'Sess\u00e3o inv\u00e1lida'};
 
   const ss = getSpreadsheet();
   const sheet = ss.getSheetByName('ListaEspera');
@@ -535,7 +535,7 @@ function minhaPosicao(token) {
     fila.push(r);
   }
 
-  // Mesma ordem que a clínica vê: prioridade primeiro, depois quem chegou antes
+  // Mesma ordem que a clinica ve: prioridade primeiro, depois quem chegou antes
   const peso = s => String(s||'').toLowerCase()==='alta' ? 0 : (String(s||'').toLowerCase()==='baixa' ? 2 : 1);
   fila.sort(function(a,b){
     const d = peso(a.prioridade) - peso(b.prioridade);
@@ -563,12 +563,12 @@ function minhaPosicao(token) {
 
 function alterarSenhaPaciente(body, token) {
   const info = getInfoToken(token);
-  if (!info || info.role !== 'paciente' || !info.refId) return {ok:false, erro:'Sessão inválida'};
+  if (!info || info.role !== 'paciente' || !info.refId) return {ok:false, erro:'Sess\u00e3o inv\u00e1lida'};
   const nova = String(body.nova_senha||'');
   if (nova.length < 6) return {ok:false, erro:'A nova senha precisa ter ao menos 6 caracteres'};
 
   const achado = acharPacientePorId(info.refId);
-  if (!achado) return {ok:false, erro:'Cadastro não encontrado'};
+  if (!achado) return {ok:false, erro:'Cadastro n\u00e3o encontrado'};
 
   const check = conferirSenha(info.email, achado.obj.senha_hash, String(body.senha_atual||''));
   if (!check.ok) return {ok:false, erro:'Senha atual incorreta'};
@@ -578,23 +578,23 @@ function alterarSenhaPaciente(body, token) {
   return {ok:true};
 }
 
-// A clínica libera o acesso e o paciente recebe a senha por e-mail
+// A clinica libera o acesso e o paciente recebe a senha por e-mail
 function darAcessoPaciente(body, token) {
   const info = getInfoToken(token);
-  if (!info || info.role !== 'admin') return {ok:false, erro:'Sem permissão de admin'};
+  if (!info || info.role !== 'admin') return {ok:false, erro:'Sem permiss\u00e3o de admin'};
 
   const email = String(body.email||'').toLowerCase().trim();
-  if (!email || email.indexOf('@') === -1) return {ok:false, erro:'E-mail inválido'};
-  if (!body.paciente_id) return {ok:false, erro:'Paciente não informado'};
+  if (!email || email.indexOf('@') === -1) return {ok:false, erro:'E-mail inv\u00e1lido'};
+  if (!body.paciente_id) return {ok:false, erro:'Paciente n\u00e3o informado'};
 
   const achado = acharPacientePorId(body.paciente_id);
-  if (!achado) return {ok:false, erro:'Paciente não encontrado'};
+  if (!achado) return {ok:false, erro:'Paciente n\u00e3o encontrado'};
 
-  // Um e-mail não pode servir a dois cadastros: o login ficaria ambíguo e
+  // Um e-mail nao pode servir a dois cadastros: o login ficaria ambiguo e
   // a pessoa errada poderia acabar vendo a ficha errada
   const outro = acharPacientePorEmail(email);
   if (outro && String(outro.obj.id) !== String(body.paciente_id)) {
-    return {ok:false, erro:'Este e-mail já está em uso por outro paciente'};
+    return {ok:false, erro:'Este e-mail j\u00e1 est\u00e1 em uso por outro paciente'};
   }
 
   const setar = (coluna, valor) => {
@@ -610,8 +610,8 @@ function darAcessoPaciente(body, token) {
   setar('acesso', 'Liberado');
 
   // Duas formas de entregar o acesso. A senha definida na hora existe para
-  // quem não usa e-mail — pessoa idosa, quem não tem o hábito de abrir link —
-  // e nesse caso a clínica entrega em mãos.
+  // quem nao usa e-mail - pessoa idosa, quem nao tem o habito de abrir link -
+  // e nesse caso a clinica entrega em maos.
   const senhaEscolhida = String(body.senha||'').trim();
   if (senhaEscolhida) {
     if (senhaEscolhida.length < 6) return {ok:false, erro:'A senha precisa ter ao menos 6 caracteres'};
@@ -619,16 +619,16 @@ function darAcessoPaciente(body, token) {
     return {ok:true, modo:'senha_definida'};
   }
 
-  // Caminho normal: link de uso único, para a senha não ficar guardada na
+  // Caminho normal: link de uso unico, para a senha nao ficar guardada na
   // caixa de entrada para sempre
   const r = solicitarReset({email: email, tipo: 'paciente'});
   return {ok:true, modo:'link_enviado', enviado: !!r.ok};
 }
 
-// ─── CRUD ─────────────────────────────────────────────────────
+// --- CRUD -----------------------------------------------------
 function listar(body) {
   const tabela = ABAS[body.tabela];
-  if (!tabela) return {ok:false,erro:'Tabela inválida: '+body.tabela};
+  if (!tabela) return {ok:false,erro:'Tabela inv\u00e1lida: '+body.tabela};
   const ss = getSpreadsheet();
   const sheet = getOuCria(ss,tabela);
   const dados = sheet.getDataRange().getValues();
@@ -644,7 +644,7 @@ function listar(body) {
     });
   }
 
-  // Profissional só vê seus pacientes
+  // Profissional so ve seus pacientes
   if (body.tabela==='pacientes' && body.role==='profissional' && body.nome_usuario) {
     rows = rows.filter(r => (r.terapeuta_nome||'').toLowerCase()===(body.nome_usuario||'').toLowerCase());
   }
@@ -654,14 +654,14 @@ function listar(body) {
 
 function salvar(body) {
   const tabela = ABAS[body.tabela];
-  if (!tabela) return {ok:false,erro:'Tabela inválida'};
+  if (!tabela) return {ok:false,erro:'Tabela inv\u00e1lida'};
   if (!body.dados) return {ok:false,erro:'Dados vazios'};
   const ss = getSpreadsheet();
   const sheet = getOuCria(ss,tabela);
   let dados = sheet.getDataRange().getValues();
   let h = dados[0];
 
-  // ID único
+  // ID unico
   const id = 'co_'+Date.now()+'_'+Math.floor(Math.random()*9999);
   body.dados.id = id;
   body.dados.criado_em = new Date().toISOString();
@@ -686,15 +686,15 @@ function salvar(body) {
 
 function atualizar(body) {
   const tabela = ABAS[body.tabela];
-  if (!tabela) return {ok:false,erro:'Tabela inválida'};
-  if (!body.id) return {ok:false,erro:'ID não fornecido'};
+  if (!tabela) return {ok:false,erro:'Tabela inv\u00e1lida'};
+  if (!body.id) return {ok:false,erro:'ID n\u00e3o fornecido'};
   if (!body.dados) return {ok:false,erro:'Dados vazios'};
   const ss = getSpreadsheet();
   const sheet = getOuCria(ss,tabela);
   const todos = sheet.getDataRange().getValues();
   let h = todos[0];
   const iId = h.indexOf('id');
-  if (iId===-1) return {ok:false,erro:'Coluna id não existe'};
+  if (iId===-1) return {ok:false,erro:'Coluna id n\u00e3o existe'};
 
   for (let i=1;i<todos.length;i++) {
     if (String(todos[i][iId])===String(body.id)) {
@@ -712,13 +712,13 @@ function atualizar(body) {
       return {ok:true, id:body.id};
     }
   }
-  return {ok:false, erro:'ID não encontrado: '+body.id};
+  return {ok:false, erro:'ID n\u00e3o encontrado: '+body.id};
 }
 
 function deletar(body) {
   const tabela = ABAS[body.tabela];
-  if (!tabela) return {ok:false,erro:'Tabela inválida'};
-  if (!body.id) return {ok:false,erro:'ID não fornecido'};
+  if (!tabela) return {ok:false,erro:'Tabela inv\u00e1lida'};
+  if (!body.id) return {ok:false,erro:'ID n\u00e3o fornecido'};
   const ss = getSpreadsheet();
   const sheet = getOuCria(ss,tabela);
   const todos = sheet.getDataRange().getValues();
@@ -730,13 +730,13 @@ function deletar(body) {
       return {ok:true};
     }
   }
-  return {ok:false,erro:'Não encontrado'};
+  return {ok:false,erro:'N\u00e3o encontrado'};
 }
 
-// ─── PROFISSIONAIS ─────────────────────────────────────────────
+// --- PROFISSIONAIS ---------------------------------------------
 function listarProfs(token) {
   const info = getInfoToken(token);
-  if (!info) return {ok:false,erro:'Token inválido'};
+  if (!info) return {ok:false,erro:'Token inv\u00e1lido'};
   const ss = getSpreadsheet();
   const sheet = getOuCria(ss,'Profissionais');
   const dados = sheet.getDataRange().getValues();
@@ -750,8 +750,8 @@ function listarProfs(token) {
 
 function convidarProf(body, token) {
   const info = getInfoToken(token);
-  if (!info||info.role!=='admin') return {ok:false,erro:'Sem permissão de admin'};
-  if (!body.email||!body.nome) return {ok:false,erro:'Nome e e-mail obrigatórios'};
+  if (!info||info.role!=='admin') return {ok:false,erro:'Sem permiss\u00e3o de admin'};
+  if (!body.email||!body.nome) return {ok:false,erro:'Nome e e-mail obrigat\u00f3rios'};
 
   const ss = getSpreadsheet();
   const sheet = getOuCria(ss,'Profissionais');
@@ -762,13 +762,13 @@ function convidarProf(body, token) {
   // Verificar duplicata
   for (let i=1;i<dados.length;i++) {
     if ((dados[i][iEmail]||'').toLowerCase()===(body.email||'').toLowerCase()) {
-      return {ok:false,erro:'E-mail já cadastrado'};
+      return {ok:false,erro:'E-mail j\u00e1 cadastrado'};
     }
   }
 
   const id = 'prof_'+Date.now();
-  // Sem senha informada, sorteia uma. Um padrão fixo seria adivinhável por
-  // qualquer pessoa que conheça o e-mail de alguém da equipe.
+  // Sem senha informada, sorteia uma. Um padrao fixo seria adivinhavel por
+  // qualquer pessoa que conheca o e-mail de alguem da equipe.
   const senhaInicial = String(body.senha_inicial||'').trim() || gerarSenha();
 
   // Garantir header
@@ -776,7 +776,7 @@ function convidarProf(body, token) {
     sheet.getRange(1,1,1,8).setValues([['id','nome','email','funcao','nivel_acesso','senha_hash','linhas','status']]);
   }
 
-  // Guarda já com hash — a senha em texto puro não fica na planilha
+  // Guarda ja com hash - a senha em texto puro nao fica na planilha
   sheet.appendRow([id, body.nome, body.email, body.funcao||'', body.nivel||'profissional',
                    hashSenha(body.email, senhaInicial), (body.linhas||[]).join(', '), 'Ativo']);
 
@@ -787,23 +787,23 @@ function convidarProf(body, token) {
       subject: 'Seu acesso ao Sistema Casa Oliveira',
       htmlBody: '<div style="font-family:Arial,sans-serif;max-width:480px">' +
         '<h2 style="color:#1d6b58">Casa Oliveira</h2>' +
-        '<p>Olá, <strong>' + body.nome + '</strong>!</p>' +
-        '<p>Você foi adicionado(a) ao sistema clínico.</p>' +
+        '<p>Ol\u00e1, <strong>' + body.nome + '</strong>!</p>' +
+        '<p>Voc\u00ea foi adicionado(a) ao sistema cl\u00ednico.</p>' +
         '<div style="background:#f5f5f5;padding:16px;border-radius:8px;margin:16px 0">' +
-        '<p>📧 E-mail: <strong>' + body.email + '</strong></p>' +
-        '<p>🔑 Senha inicial: <strong>' + senhaInicial + '</strong></p>' +
+        '<p>\u1f4e7 E-mail: <strong>' + body.email + '</strong></p>' +
+        '<p>\u1f511 Senha inicial: <strong>' + senhaInicial + '</strong></p>' +
         '</div>' +
         '<p>Acesse: <a href="' + URL_SISTEMA + '">Sistema Casa Oliveira</a></p>' +
         '<p style="color:#666;font-size:13px">Troque esta senha no primeiro acesso, ' +
-        'pelo menu do seu perfil → Alterar senha.</p>' +
+        'pelo menu do seu perfil \u2192 Alterar senha.</p>' +
         '</div>'
     });
-  } catch(e) { /* e-mail falhou, usuário ainda criado */ }
+  } catch(e) { /* e-mail falhou, usuario ainda criado */ }
 
   return {ok:true, id, mensagem:'Profissional cadastrado e e-mail enviado.'};
 }
 
-// ─── HELPERS ──────────────────────────────────────────────────
+// --- HELPERS --------------------------------------------------
 function getOuCria(ss, nome) {
   return ss.getSheetByName(nome) || ss.insertSheet(nome);
 }
@@ -814,14 +814,14 @@ function resp(obj) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-// ─── SETUP (rode uma vez, só numa planilha nova) ──────────────
-// ATENÇÃO: este repositório é público. Defina a senha abaixo na hora de
+// --- SETUP (rode uma vez, so numa planilha nova) --------------
+// ATENCAO: este repositorio e publico. Defina a senha abaixo na hora de
 // rodar e apague o valor antes de salvar o arquivo de volta no Git.
 const SENHA_INICIAL_ADMIN = 'TROQUE_AQUI';
 
 function setupAdmin() {
   const ss = getSpreadsheet();
-  if(!ss) { Logger.log('ERRO: Planilha não encontrada.'); return; }
+  if(!ss) { Logger.log('ERRO: Planilha n\u00e3o encontrada.'); return; }
   if (SENHA_INICIAL_ADMIN === 'TROQUE_AQUI') {
     Logger.log('ERRO: defina SENHA_INICIAL_ADMIN antes de rodar o setup.');
     return;
@@ -832,7 +832,7 @@ function setupAdmin() {
   sp.clear();
   sp.getRange(1,1,1,8).setValues([['id','nome','email','funcao','nivel_acesso','senha_hash','linhas','status']]);
   const emailAdmin = 'clinicaoliveira20@gmail.com';
-  sp.appendRow(['prof_admin','Dra. Ana Paula',emailAdmin,'Gestora / Sócia','admin',
+  sp.appendRow(['prof_admin','Dra. Ana Paula',emailAdmin,'Gestora / S\u00f3cia','admin',
                 hashSenha(emailAdmin,SENHA_INICIAL_ADMIN),'Todos','Ativo']);
 
   // Tokens
@@ -840,7 +840,7 @@ function setupAdmin() {
   st.clear();
   st.getRange(1,1,1,4).setValues([['token','email','role','expira']]);
 
-  // Pedidos de redefinição de senha
+  // Pedidos de redefinicao de senha
   const sr = getOuCria(ss,'Resets');
   sr.clear();
   sr.getRange(1,1,1,5).setValues([['token','email','expira','usado','criado_em']]);
@@ -852,13 +852,13 @@ function setupAdmin() {
     if (s.getLastRow()===0) s.appendRow(['id','criado_em']);
   });
 
-  Logger.log('✅ Setup concluído! Login: ' + emailAdmin);
+  Logger.log('\u2705 Setup conclu\u00eddo! Login: ' + emailAdmin);
   SpreadsheetApp.flush();
 }
 
-// ─── MIGRAÇÃO (opcional) ──────────────────────────────────────
-// O login já converte cada senha sozinho. Rode isto só se quiser
-// converter todas de uma vez — depois disso, ninguém consegue ler as
+// --- MIGRACAO (opcional) --------------------------------------
+// O login ja converte cada senha sozinho. Rode isto so se quiser
+// converter todas de uma vez - depois disso, ninguem consegue ler as
 // senhas na planilha, nem quem tem acesso a ela.
 function migrarSenhasParaHash() {
   const ss = getSpreadsheet();
@@ -876,6 +876,6 @@ function migrarSenhasParaHash() {
       n++;
     }
   }
-  Logger.log('✅ ' + n + ' senha(s) convertida(s) para hash.');
+  Logger.log('\u2705 ' + n + ' senha(s) convertida(s) para hash.');
   SpreadsheetApp.flush();
 }
