@@ -301,6 +301,19 @@ input,select,textarea{outline:none;}
 .quem-op:hover{color:#bbb;}
 .quem-op.on{background:rgba(255,255,255,.1);color:#faf8f5;}
 
+.hist{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);margin-bottom:9px;overflow:hidden;}
+.hist[open]{border-color:var(--teal);}
+.hist-cab{display:flex;align-items:center;gap:8px;padding:12px 14px;cursor:pointer;list-style:none;flex-wrap:wrap;}
+.hist-cab::-webkit-details-marker{display:none;}
+.hist-cab:hover{background:var(--sur2);}
+.hist-tit{font-size:14px;font-weight:700;color:var(--ink);}
+.hist-data{margin-left:auto;font-size:12px;color:var(--ink3);}
+.hist-corpo{padding:2px 14px 14px;}
+.hist-campo{padding:8px 0;border-top:1px solid var(--bor);}
+.hist-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink3);margin-bottom:4px;}
+.hist-val{font-size:14px;line-height:1.55;color:var(--ink);white-space:pre-wrap;word-break:break-word;}
+.hist-rodape{font-size:11px;color:var(--ink3);margin-top:10px;padding-top:8px;border-top:1px solid var(--bor);}
+
 /* LOADING INLINE */
 .loading-inline{text-align:center;padding:36px;color:var(--ink3);font-size:14px;}
 .loading-spin{width:24px;height:24px;border:2px solid var(--bor);border-top-color:var(--teal);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px;}
@@ -1791,12 +1804,269 @@ async function chamarDaEspera(id) {
   showToast('Confira os dados e cadastre','ok');
 }
 
+
+// ═══════════════════════════════════════════════
+// FICHAS COM HISTÓRICO — PTS, Avaliações, Reuniões
+// Estas três nascem repetidas: um PTS tem versões, e avaliações e reuniões
+// acontecem várias vezes ao longo do tratamento. Guardar só o estado atual
+// apagava o anterior a cada gravação — a v1 do PTS não voltava mais.
+// ═══════════════════════════════════════════════
+const HIST = {
+  pts: {
+    tabela: 'pts',
+    rotulo: 'PTS',
+    novo: '+ Nova versão',
+    vazio: 'Nenhum PTS registrado ainda.',
+    versionado: true,
+    campos: [
+      {k:'prazo_reavaliacao', l:'Prazo de reavaliação', t:'date'},
+      {k:'hipotese',   l:'🎯 Hipótese Diagnóstica', t:'textarea', ph:'Hipótese diagnóstica...'},
+      {k:'objetivos',  l:'📌 Objetivos',            t:'textarea', ph:'Objetivos terapêuticos...'},
+      {k:'acoes',      l:'🔧 Ações',                t:'textarea', ph:'Ações e intervenções...'},
+      {k:'meta_curto', l:'🏆 Meta — curto prazo (3 meses)',  t:'textarea'},
+      {k:'meta_medio', l:'🏆 Meta — médio prazo (6 meses)',  t:'textarea'},
+      {k:'meta_longo', l:'🏆 Meta — longo prazo (12 meses)', t:'textarea'},
+    ],
+  },
+  avaliacoes: {
+    tabela: 'avaliacoes',
+    rotulo: 'Avaliação',
+    novo: '+ Nova avaliação',
+    vazio: 'Nenhuma avaliação registrada ainda.',
+    campos: [
+      {k:'data',        l:'Data', t:'date'},
+      {k:'instrumento', l:'Instrumento', t:'text', ph:'Ex.: PDMS-2, Perfil Sensorial, Genograma...'},
+      {k:'motivo',      l:'Motivo da escolha', t:'text', ph:'Por que esta avaliação'},
+      {k:'resumo',      l:'Resumo dos resultados', t:'textarea', ph:'Descreva os resultados principais...'},
+    ],
+  },
+  reunioes: {
+    tabela: 'reunioes',
+    rotulo: 'Reunião',
+    novo: '+ Nova reunião',
+    vazio: 'Nenhuma reunião registrada ainda.',
+    campos: [
+      {k:'data',          l:'Data', t:'date'},
+      {k:'tipo',          l:'Tipo', t:'select', opcoes:['Família','Escola','Equipe','Outro']},
+      {k:'participantes', l:'Participantes', t:'text', ph:'Quem esteve presente'},
+      {k:'resumo',        l:'O que foi discutido', t:'textarea', ph:'Encaminhamentos e combinados...'},
+    ],
+  },
+};
+
+let _hist = {};        // tipo -> registros carregados
+let _histAba = {};     // índice da aba -> tipo
+
+function histPainelHTML(tipo, idxAba) {
+  _histAba[idxAba] = tipo;
+  return `<div id="hist_${tipo}">${loadingHTML()}</div>`;
+}
+
+async function carregarHistorico(tipo, pacienteId) {
+  const cfg = HIST[tipo];
+  const res = await api('listar',{tabela:cfg.tabela, filtros:{paciente_id:pacienteId}});
+  let regs = res.ok ? (res.dados||[]) : [];
+
+  // O que já estava gravado no formato antigo vira o primeiro registro, senão
+  // sumiria da tela quando esta aba passasse a listar histórico
+  if(!regs.length) {
+    const antigo = await migrarFichaAntiga(tipo, pacienteId);
+    if(antigo) regs = [antigo];
+  }
+
+  regs.sort((a,b)=>{
+    if(cfg.versionado) return (parseInt(b.versao,10)||0) - (parseInt(a.versao,10)||0);
+    return String(b.data||b.criado_em||'').localeCompare(String(a.data||a.criado_em||''));
+  });
+  _hist[tipo] = regs;
+  desenharHistorico(tipo, pacienteId);
+}
+
+// Aproveita o conteúdo que ficou na ficha única, antes de existir histórico
+async function migrarFichaAntiga(tipo, pacienteId) {
+  const cfg = HIST[tipo];
+  const idxAba = Object.keys(_histAba).find(k=>_histAba[k]===tipo);
+  const ficha = _fichasCache[String(idxAba)];
+  if(!ficha || !ficha.dados) return null;
+
+  const d = ficha.dados;
+  const temConteudo = cfg.campos.some(c=>String(d[c.k]||'').trim());
+  if(!temConteudo) return null;
+
+  const dados = {paciente_id: pacienteId};
+  cfg.campos.forEach(c=>{ if(d[c.k]) dados[c.k] = d[c.k]; });
+  if(cfg.versionado){
+    dados.versao = d.pts_versao || 1;
+    dados.status = d.pts_status || 'Rascunho';
+  }
+  dados.autor_email = ficha.por || '';
+  dados.autor_nome = '';
+  dados.migrado_de_ficha = 'sim';
+
+  const res = await api('salvar',{tabela:cfg.tabela, dados});
+  return res.ok ? {...dados, id:res.id, criado_em:new Date().toISOString()} : null;
+}
+
+function desenharHistorico(tipo, pacienteId) {
+  const cfg = HIST[tipo];
+  const el = document.getElementById('hist_'+tipo);
+  if(!el) return;
+  const regs = _hist[tipo] || [];
+
+  el.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <span style="font-size:13px;color:var(--ink3)">
+        ${regs.length} ${regs.length===1?'registro':'registros'}
+      </span>
+      <button class="addbtn" onclick="novoRegistroHist('${tipo}','${pacienteId}')">${cfg.novo}</button>
+    </div>
+    <div id="histForm_${tipo}"></div>
+    <div id="histLista_${tipo}">${listaHistHTML(tipo)}</div>`;
+}
+
+function listaHistHTML(tipo) {
+  const cfg = HIST[tipo];
+  const regs = _hist[tipo] || [];
+  if(!regs.length) {
+    return `<div style="text-align:center;padding:38px 20px;color:var(--ink3)">
+      <div style="font-size:14px;font-weight:600;margin-bottom:4px">${esc(cfg.vazio)}</div>
+      <div style="font-size:13px">Cada registro fica guardado, com data e autor.</div>
+    </div>`;
+  }
+  return regs.map((r,i)=>{
+    const atual = i===0;
+    const aprovado = String(r.status||'').toLowerCase()==='aprovado';
+    const titulo = cfg.versionado
+      ? `v${r.versao||1}`
+      : (r.instrumento || r.tipo || cfg.rotulo);
+    const quando = r.data || r.criado_em;
+    return `<details class="hist" ${atual?'open':''}>
+      <summary class="hist-cab">
+        <span class="hist-tit">${esc(titulo)}</span>
+        ${cfg.versionado?`<span class="chip ${aprovado?'ch-teal':'ch-gray'}">${esc(r.status||'Rascunho')}</span>`:''}
+        ${atual?`<span class="chip ch-sky">atual</span>`:''}
+        <span class="hist-data">${quando?esc(fmtDataBR(String(quando).slice(0,10))):''}</span>
+      </summary>
+      <div class="hist-corpo">
+        ${cfg.campos.map(c=>{
+          const v = r[c.k];
+          if(!String(v||'').trim()) return '';
+          const mostrar = c.t==='date' ? fmtDataBR(String(v).slice(0,10)) : v;
+          return `<div class="hist-campo"><div class="hist-lbl">${esc(c.l)}</div>
+                  <div class="hist-val">${esc(mostrar)}</div></div>`;
+        }).join('') || '<div class="hist-val" style="color:var(--ink3)">Sem conteúdo</div>'}
+        <div class="hist-rodape">
+          🖊 ${esc(nomeDoAutor(r.autor_email, r.autor_nome))}
+          ${r.criado_em?' · '+esc(fmtDataHora(r.criado_em)):''}
+          ${r.migrado_de_ficha?' · registro anterior ao histórico':''}
+        </div>
+        ${cfg.versionado && atual && currentRole!=='profissional' && !aprovado
+          ? `<button class="addbtn" style="background:var(--teal);margin-top:10px"
+               onclick="aprovarPts('${r.id}')">✓ Aprovar esta versão</button>` : ''}
+        ${podeApagarRegistro(r) ? `<button class="addbtn" style="background:var(--rose);margin-top:10px;margin-left:6px"
+             onclick="excluirRegistroHist('${tipo}','${r.id}')">🗑 Excluir</button>` : ''}
+      </div>
+    </details>`;
+  }).join('');
+}
+
+function podeApagarRegistro(r) {
+  if(currentRole==='admin') return true;
+  return (r.autor_email||'').toLowerCase()===(currentUser.email||'').toLowerCase();
+}
+
+function novoRegistroHist(tipo, pacienteId) {
+  const cfg = HIST[tipo];
+  const f = document.getElementById('histForm_'+tipo);
+  if(!f) return;
+
+  // Numa nova versão do PTS, o texto da anterior vem junto: quase sempre se
+  // ajusta o plano, não se recomeça do zero
+  const base = (cfg.versionado && (_hist[tipo]||[])[0]) || {};
+  const proxVersao = cfg.versionado
+    ? Math.max(0, ...(_hist[tipo]||[]).map(r=>parseInt(r.versao,10)||0)) + 1
+    : null;
+
+  f.innerHTML = `<div class="evo-form">
+    ${cfg.versionado?`<div class="hist-tit" style="margin-bottom:10px">Versão ${proxVersao}
+      ${(_hist[tipo]||[]).length?`<span style="font-size:12px;color:var(--ink3);font-weight:400"> — partindo da v${base.versao||1}</span>`:''}</div>`:''}
+    ${cfg.campos.map(c=>{
+      const v = cfg.versionado ? (base[c.k]||'') : (c.t==='date'?hojeISO():'');
+      if(c.t==='textarea') return `<div class="fg"><label class="fl">${esc(c.l)}</label>
+        <textarea class="ft" data-hk="${c.k}" placeholder="${esc(c.ph||'')}">${esc(v)}</textarea></div>`;
+      if(c.t==='select') return `<div class="fg"><label class="fl">${esc(c.l)}</label>
+        <select class="fs" data-hk="${c.k}">${c.opcoes.map(o=>`<option>${esc(o)}</option>`).join('')}</select></div>`;
+      return `<div class="fg"><label class="fl">${esc(c.l)}</label>
+        <input class="fi" data-hk="${c.k}" type="${c.t}" value="${esc(String(v).slice(0,10))}" placeholder="${esc(c.ph||'')}"></div>`;
+    }).join('')}
+    <div id="histErr_${tipo}" class="errbox"></div>
+    <div style="display:flex;gap:8px">
+      <button class="savebtn" id="histBtn_${tipo}" style="flex:1"
+        onclick="salvarRegistroHist('${tipo}','${pacienteId}',${proxVersao||'null'})">Registrar</button>
+      <button class="backbtn" onclick="document.getElementById('histForm_${tipo}').innerHTML=''">Cancelar</button>
+    </div>
+  </div>`;
+  f.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+async function salvarRegistroHist(tipo, pacienteId, versao) {
+  const cfg = HIST[tipo];
+  const f = document.getElementById('histForm_'+tipo);
+  const err = document.getElementById('histErr_'+tipo);
+  const btn = document.getElementById('histBtn_'+tipo);
+
+  const dados = {paciente_id: pacienteId};
+  f.querySelectorAll('[data-hk]').forEach(el=>{ dados[el.dataset.hk] = el.value; });
+
+  const preenchido = cfg.campos.some(c=>String(dados[c.k]||'').trim());
+  if(!preenchido){ err.textContent='Preencha ao menos um campo.'; err.style.display='block'; return; }
+  err.style.display='none';
+
+  if(cfg.versionado){ dados.versao = versao; dados.status = 'Rascunho'; }
+  dados.autor_email = currentUser.email;
+  dados.autor_nome = currentUser.nome;
+
+  btn.textContent='Registrando...'; btn.disabled=true;
+  const res = await api('salvar',{tabela:cfg.tabela, dados});
+  btn.textContent='Registrar'; btn.disabled=false;
+
+  if(!res.ok){ err.textContent='Erro ao registrar: '+(res.erro||''); err.style.display='block'; return; }
+
+  f.innerHTML='';
+  limparSujo();
+  await carregarHistorico(tipo, pacienteId);
+  showToast('✅ '+cfg.rotulo+' registrado','ok');
+}
+
+async function aprovarPts(id) {
+  if(!confirm('Aprovar esta versão do PTS?')) return;
+  const res = await api('atualizar',{tabela:'pts', id, dados:{
+    status:'Aprovado', aprovado_por: currentUser.email, aprovado_em: new Date().toISOString()
+  }});
+  if(!res.ok){ showToast('Erro ao aprovar: '+(res.erro||''),'err'); return; }
+  const r = (_hist.pts||[]).find(x=>String(x.id)===String(id));
+  if(r) r.status='Aprovado';
+  document.getElementById('histLista_pts').innerHTML = listaHistHTML('pts');
+  showToast('✅ PTS aprovado','ok');
+}
+
+async function excluirRegistroHist(tipo, id) {
+  const cfg = HIST[tipo];
+  if(!confirm('Excluir este registro de '+cfg.rotulo+'?\n\nEle sai do prontuário e isso não pode ser desfeito.')) return;
+  const res = await api('deletar',{tabela:cfg.tabela, id});
+  if(!res.ok){ showToast('Erro ao excluir: '+(res.erro||''),'err'); return; }
+  const pid = _pacienteAberto;
+  await carregarHistorico(tipo, pid);
+  showToast('🗑 Registro excluído','ok');
+}
+
 // ═══════════════════════════════════════════════
 // EVOLUÇÕES — histórico cronológico do atendimento
 // Uma linha por sessão, que não se sobrescreve: é o registro clínico
 // propriamente dito, diferente das fichas, que guardam o estado atual.
 // ═══════════════════════════════════════════════
 let _evolucoes = [];
+let _pacienteAberto = null;
 let _evoPacienteId = null;
 
 async function carregarEvolucoes(pacienteId) {
@@ -2219,6 +2489,8 @@ async function executarImport() {
 async function openPaciente(linha, id) {
   if(!podeFecharSheet()) return;
   limparSujo();
+  _histAba = {}; _hist = {};
+  _pacienteAberto = id;
   const pacs = _pacientesCache[linha]||[];
   let p = pacs.find(x=>String(x.id)===String(id));
   if(!p) return;
@@ -2261,12 +2533,15 @@ async function openPaciente(linha, id) {
         ? `<div id="evoPainel">${loadingHTML()}</div>`
         : i===iPac
         ? areaPacienteHTML(p, i)
-        : `${renderTabContent(linha, p, i)}
-           <button class="savebtn" id="sv${i}" onclick="salvarEvolucao('${linha}','${id}',${i})">💾 Salvar</button>
-           <div class="assin" id="as${i}">${assinaturaHTML(i)}</div>`}
+        : (()=>{ const c = renderTabContent(linha, p, i);
+                 return _histAba[i]
+                   ? c
+                   : `${c}<button class="savebtn" id="sv${i}" onclick="salvarEvolucao('${linha}','${id}',${i})">💾 Salvar</button>
+                      <div class="assin" id="as${i}">${assinaturaHTML(i)}</div>`; })()}
     </div>`).join('')}`;
 
   carregarEvolucoes(id);
+  Object.entries(_histAba).forEach(([, tipo])=>carregarHistorico(tipo, id));
 }
 
 function editarPaciente(linha, id) {
@@ -2361,19 +2636,19 @@ function renderTabContent(linha, p, idx) {
   _F = (_fichasCache[String(idx)]||{}).dados || {};
   if(linha==='infantil') {
     if(idx===0) return checklistInfantil(p);
-    if(idx===1) return ptsContent(p);
-    if(idx===2) return avaliacoesContent(p);
-    if(idx===3) return reunioesContent(p);
+    if(idx===1) return histPainelHTML('pts', idx);
+    if(idx===2) return histPainelHTML('avaliacoes', idx);
+    if(idx===3) return histPainelHTML('reunioes', idx);
   }
   if(linha==='mulher') {
     if(idx===0) return checklistMulher(p);
-    if(idx===1) return ptsContent(p);
+    if(idx===1) return histPainelHTML('pts', idx);
     if(idx===2) return servicosMulher(p);
     if(idx===3) return posAltaContent(p,'mensal');
   }
   if(linha==='reabilitacao') {
     if(idx===0) return checklistReab(p);
-    if(idx===1) return ptsContent(p);
+    if(idx===1) return histPainelHTML('pts', idx);
     if(idx===2) return orientacoesContent();
     if(idx===3) return posAltaContent(p,'mensal');
   }
@@ -2384,13 +2659,13 @@ function renderTabContent(linha, p, idx) {
   }
   if(linha==='geriatria') {
     if(idx===0) return checklistGeriatria(p);
-    if(idx===1) return ptsContent(p);
+    if(idx===1) return histPainelHTML('pts', idx);
     if(idx===2) return casaSeguraContent(p);
-    if(idx===3) return reunioesContent(p);
+    if(idx===3) return histPainelHTML('reunioes', idx);
   }
   if(linha==='mental') {
     if(idx===0) return checklistMental(p);
-    if(idx===1) return ptsContent(p);
+    if(idx===1) return histPainelHTML('pts', idx);
     if(idx===2) return atelieContent();
   }
   return '<p style="color:var(--ink3)">Em construção</p>';
@@ -2470,44 +2745,9 @@ function checklistMental(p) {
 }
 
 // ── PTS ──────────────────────────────────────────
-function ptsContent(p) {
-  return `
-  <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap;">
-    <span class="chip ${_F.pts_status==='Aprovado'?'ch-teal':'ch-gray'}">v${_F.pts_versao||1} • ${esc(_F.pts_status||'Rascunho')}</span>
-    <input type="hidden" data-k="pts_status" value="${esc(_F.pts_status||'Rascunho')}">
-    <input type="hidden" data-k="pts_versao" value="${esc(_F.pts_versao||1)}">
-    ${currentRole!=='profissional'&&_F.pts_status!=='Aprovado'?`<button class="addbtn" style="font-size:12px;padding:5px 12px;background:var(--teal)" onclick="marcarPts(this,'Aprovado')">✓ Aprovar</button>`:''}
-    <button class="addbtn" style="font-size:12px;padding:5px 12px;background:var(--violet)" onclick="novaVersaoPts(this)">+ Nova versão</button>
-  </div>
-  ${campoInput('prazo_reavaliacao','Prazo de reavaliação','','date')}
-  <div class="pts-b"><div class="pts-bl">🎯 Hipótese Diagnóstica</div><textarea class="ft" data-k="hipotese" style="background:transparent;border:none;padding:0" placeholder="Hipótese diagnóstica...">${esc(_F.hipotese)}</textarea></div>
-  <div class="pts-b amber"><div class="pts-bl">📌 Objetivos</div><textarea class="ft" data-k="objetivos" style="background:transparent;border:none;padding:0" placeholder="Objetivos terapêuticos...">${esc(_F.objetivos)}</textarea></div>
-  <div class="pts-b violet"><div class="pts-bl">🔧 Ações</div><textarea class="ft" data-k="acoes" style="background:transparent;border:none;padding:0" placeholder="Ações e intervenções...">${esc(_F.acoes)}</textarea></div>
-  <div class="pts-b"><div class="pts-bl">🏆 Metas</div>
-    <textarea class="ft" data-k="meta_curto" style="background:transparent;border:none;padding:0;margin-bottom:6px" placeholder="Curto prazo (3 meses)...">${esc(_F.meta_curto)}</textarea>
-    <textarea class="ft" data-k="meta_medio" style="background:transparent;border:none;padding:0;margin-bottom:6px" placeholder="Médio prazo (6 meses)...">${esc(_F.meta_medio)}</textarea>
-    <textarea class="ft" data-k="meta_longo" style="background:transparent;border:none;padding:0" placeholder="Longo prazo (12 meses)...">${esc(_F.meta_longo)}</textarea>
-  </div>`;
-}
 
 // ── OUTROS CONTEÚDOS ──────────────────────────────
-function avaliacoesContent(p) {
-  return `<div style="font-size:13px;color:var(--ink3);margin-bottom:14px;">Instrumentos utilizados</div>
-  ${campoInput('av_instrumento','Avaliação','Ex: PDMS-2, Perfil Sensorial...')}
-  <div class="f2">
-    ${campoInput('av_data','Data','','date')}
-    ${campoInput('av_motivo','Motivo','Por quê foi escolhida')}
-  </div>
-  ${campoTexto('av_resumo','Resumo dos resultados','Descreva os resultados principais...')}`;
-}
 
-function reunioesContent(p) {
-  return `<div style="font-size:13px;color:var(--ink3);margin-bottom:14px;">Reuniões</div>
-  ${campoInput('reu_data','Data','','date')}
-  <div class="fg"><label class="fl">Tipo</label>${selOpts('reu_tipo',['Família','Escola','Equipe'])}</div>
-  ${campoInput('reu_participantes','Participantes','Nomes...')}
-  ${campoTexto('reu_resumo','Resumo','O que foi discutido...')}`;
-}
 
 function servicosMulher(p) {
   return `<div style="font-size:13px;color:var(--ink3);margin-bottom:14px;">Serviços agendados</div>
@@ -2595,20 +2835,7 @@ function atelieContent() {
   ${campoTexto('at_percepcoes','Percepções e observações','Observações clínicas relevantes...')}`;
 }
 
-function marcarPts(btn, status) {
-  const cont = btn.closest('[id^="tb"]');
-  cont.querySelector('[data-k="pts_status"]').value = status;
-  btn.remove();
-  showToast('PTS marcado como '+status+' — clique em Salvar','ok');
-}
 
-function novaVersaoPts(btn) {
-  const cont = btn.closest('[id^="tb"]');
-  const vEl = cont.querySelector('[data-k="pts_versao"]');
-  vEl.value = (parseInt(vEl.value,10)||1) + 1;
-  cont.querySelector('[data-k="pts_status"]').value = 'Rascunho';
-  showToast('Versão '+vEl.value+' — clique em Salvar','ok');
-}
 
 async function salvarEvolucao(linha, id, tabIdx) {
   const cont = document.getElementById('tb'+tabIdx);
