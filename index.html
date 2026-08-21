@@ -579,7 +579,7 @@ let demoMode = false;
 // Muda a cada publicação. Serve para o aparelho perceber que está com uma
 // versão velha em cache — sem isto a pessoa continua vendo o problema já
 // corrigido e jura que não foi corrigido.
-const VERSAO = '2026-08-21.01';
+const VERSAO = '2026-08-21.02';
 let _profsCache = null;
 let _demoPacienteId = null;
 
@@ -2110,11 +2110,78 @@ function listaHistHTML(tipo) {
         ${cfg.versionado && atual && currentRole!=='profissional' && !aprovado
           ? `<button class="addbtn" style="background:var(--teal);margin-top:10px"
                onclick="aprovarPts('${r.id}')">✓ Aprovar esta versão</button>` : ''}
+        ${tipo==='reunioes' && String(r.status||'').toLowerCase()==='agendada' && r.data
+          ? `<a class="addbtn" style="background:var(--sky);margin-top:10px;text-decoration:none;display:inline-block"
+               href="${linkGoogleAgenda(r)}" target="_blank" rel="noopener">📅 Google Agenda</a>
+             <button class="addbtn" style="background:var(--sur2);color:var(--ink2);border:1px solid var(--bor);margin-top:10px;margin-left:6px"
+               onclick="baixarIcsPorId('${tipo}','${r.id}')">⬇ .ics</button>` : ''}
         ${podeApagarRegistro(r) ? `<button class="addbtn" style="background:var(--rose);margin-top:10px;margin-left:6px"
              onclick="excluirRegistroHist('${tipo}','${r.id}')">🗑 Excluir</button>` : ''}
       </div>
     </details>`;
   }).join('');
+}
+
+// ── ADICIONAR AO CALENDÁRIO ──────────────────────
+// Sem contas OAuth nem permissão especial: um link pronto para o Google
+// Agenda e um arquivo .ics que Apple Calendar, Outlook etc. abrem sozinhos.
+function dataYYYYMMDD(iso) {
+  return String(iso||'').replace(/-/g,'').slice(0,8);
+}
+
+function diaSeguinte(iso) {
+  const d = dataLocal(iso);
+  if(!d) return dataYYYYMMDD(iso);
+  d.setDate(d.getDate()+1);
+  return d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0');
+}
+
+function tituloEvento(r) {
+  return (r.tipo||'Reunião')+' — '+(_pacienteAbertoNome||'Paciente');
+}
+
+function detalhesEvento(r) {
+  const partes = [];
+  if(r.participantes) partes.push('Participantes: '+r.participantes);
+  if(r.resumo) partes.push('Pauta: '+r.resumo);
+  partes.push('Casa Oliveira — Sistema Clínico');
+  return partes.join('\n');
+}
+
+function linkGoogleAgenda(r) {
+  const ini = dataYYYYMMDD(r.data), fim = diaSeguinte(r.data);
+  const p = new URLSearchParams({
+    action:'TEMPLATE', text:tituloEvento(r), dates:ini+'/'+fim, details:detalhesEvento(r)
+  });
+  return 'https://calendar.google.com/calendar/render?'+p.toString();
+}
+
+function baixarIcs(r) {
+  const ini = dataYYYYMMDD(r.data), fim = diaSeguinte(r.data);
+  const escIcs = s => String(s||'').replace(/\\/g,'\\\\').replace(/\n/g,'\\n').replace(/,/g,'\\,').replace(/;/g,'\\;');
+  const ics = [
+    'BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Casa Oliveira//Sistema Clinico//PT',
+    'BEGIN:VEVENT',
+    'UID:'+(r.id||Date.now())+'@casaoliveira',
+    'DTSTAMP:'+new Date().toISOString().replace(/[-:]/g,'').split('.')[0]+'Z',
+    'DTSTART;VALUE=DATE:'+ini,
+    'DTEND;VALUE=DATE:'+fim,
+    'SUMMARY:'+escIcs(tituloEvento(r)),
+    'DESCRIPTION:'+escIcs(detalhesEvento(r)),
+    'END:VEVENT','END:VCALENDAR'
+  ].join('\r\n');
+
+  const blob = new Blob([ics], {type:'text/calendar;charset=utf-8'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'reuniao-'+dataYYYYMMDD(r.data)+'.ics';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 4000);
+}
+
+function baixarIcsPorId(tipo, id) {
+  const r = (_hist[tipo]||[]).find(x=>String(x.id)===String(id));
+  if(r) baixarIcs(r);
 }
 
 function podeApagarRegistro(r) {
@@ -2214,6 +2281,7 @@ async function excluirRegistroHist(tipo, id) {
 // ═══════════════════════════════════════════════
 let _evolucoes = [];
 let _pacienteAberto = null;
+let _pacienteAbertoNome = '';
 let _evoPacienteId = null;
 
 async function carregarEvolucoes(pacienteId) {
@@ -2637,10 +2705,11 @@ async function openPaciente(linha, id) {
   if(!podeFecharSheet()) return;
   limparSujo();
   _histAba = {}; _hist = {};
-  _pacienteAberto = id;
   const pacs = _pacientesCache[linha]||[];
   let p = pacs.find(x=>String(x.id)===String(id));
   if(!p) return;
+  _pacienteAberto = id;
+  _pacienteAbertoNome = p.nome;
 
   document.getElementById('sheetTitle').textContent = p.nome;
   document.getElementById('sheetBody').innerHTML = loadingHTML();
