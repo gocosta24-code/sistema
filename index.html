@@ -560,12 +560,12 @@ input,select,textarea{outline:none;}
 // CONFIG
 // ═══════════════════════════════════════════════
 // Implantação em uso do Apps Script
-const API_PADRAO = 'https://script.google.com/macros/s/AKfycbz4tAJ5IlxjXdrujlMwbqPSBd9FIRL-0rWVeHRpnh52V2aNl5H9s6U-9lMJbi_mTV8x/exec';
-// Implantações antigas que ficaram para trás: quem tiver uma delas guardada no
-// navegador passa para a atual sozinho, senão continuaria numa versão sem a
-// área do paciente e sem a lista de espera
+const API_PADRAO = 'https://script.google.com/macros/s/AKfycbzqrsPO-348xxzNw3Mm7KVc_KnSv36NX63qrsQU57KJ6ck2z4b2SWDnaZ-QZMRXoJkn/exec';
+// Implantacoes que ficaram para tras: quem tiver uma delas guardada no
+// navegador passa para a atual sozinho, senao continuaria numa versao velha
 const API_ANTIGAS = [
   'https://script.google.com/macros/s/AKfycbxhLD21EEdZN-1Treo0ZTvt5kdslTDx06p7cGZ2BmbxMbPQInGW_aK02Wa1KDTSW_rB/exec',
+  'https://script.google.com/macros/s/AKfycbz4tAJ5IlxjXdrujlMwbqPSBd9FIRL-0rWVeHRpnh52V2aNl5H9s6U-9lMJbi_mTV8x/exec',
 ];
 let API_URL = localStorage.getItem('co_api_url') || API_PADRAO;
 if(API_ANTIGAS.indexOf(API_URL) !== -1) {
@@ -579,7 +579,7 @@ let demoMode = false;
 // Muda a cada publicação. Serve para o aparelho perceber que está com uma
 // versão velha em cache — sem isto a pessoa continua vendo o problema já
 // corrigido e jura que não foi corrigido.
-const VERSAO = '2026-08-20.10';
+const VERSAO = '2026-08-20.11';
 let _profsCache = null;
 let _demoPacienteId = null;
 
