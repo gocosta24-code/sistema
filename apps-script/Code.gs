@@ -285,15 +285,27 @@ function solicitarReset(body) {
   const generica = {ok:true};
   if (!email) return generica;
 
-  const prof = acharProfissional(email);
-  if (!prof) return generica;
+  // A área do paciente usa o mesmo caminho: serve tanto para definir a senha
+  // no primeiro acesso quanto para recuperá-la depois
+  const ehPaciente = String(body.tipo||'') === 'paciente';
 
-  const iStatus = prof.h.indexOf('status');
-  if ((prof.row[iStatus]||'').toLowerCase() === 'inativo') return generica;
+  let nomePessoa = '';
+  if (ehPaciente) {
+    const pac = acharPacientePorEmail(email);
+    if (!pac) return generica;
+    if (String(pac.obj.acesso||'').toLowerCase() === 'bloqueado') return generica;
+    nomePessoa = pac.obj.nome || '';
+  } else {
+    const prof = acharProfissional(email);
+    if (!prof) return generica;
+    const iStatus = prof.h.indexOf('status');
+    if ((prof.row[iStatus]||'').toLowerCase() === 'inativo') return generica;
+    nomePessoa = prof.row[prof.h.indexOf('nome')] || '';
+  }
 
   const ss = getSpreadsheet();
   const sheet = getOuCria(ss,'Resets');
-  if (sheet.getLastRow() === 0) sheet.appendRow(['token','email','expira','usado','criado_em']);
+  if (sheet.getLastRow() === 0) sheet.appendRow(['token','email','expira','usado','criado_em','tipo']);
 
   const dados = sheet.getDataRange().getValues();
   const agora = new Date();
@@ -313,21 +325,22 @@ function solicitarReset(body) {
 
   const token = gerarTokenReset();
   const expira = new Date(agora.getTime() + RESET_VALIDADE_MIN*60*1000);
-  sheet.appendRow([token, email, expira.toISOString(), '', agora.toISOString()]);
+  sheet.appendRow([token, email, expira.toISOString(), '', agora.toISOString(),
+                   ehPaciente ? 'paciente' : 'equipe']);
 
-  const iNome = prof.h.indexOf('nome');
-  const link = URL_SISTEMA + '?reset=' + encodeURIComponent(token);
+  const link = URL_SISTEMA + '?reset=' + encodeURIComponent(token) +
+               (ehPaciente ? '&area=paciente' : '');
   try {
     MailApp.sendEmail({
       to: email,
-      subject: 'Redefinir sua senha — Sistema Casa Oliveira',
+      subject: 'Sua senha — Casa Oliveira',
       htmlBody: '<div style="font-family:Arial,sans-serif;max-width:480px">' +
         '<h2 style="color:#1d6b58">Casa Oliveira</h2>' +
-        '<p>Olá, <strong>' + (prof.row[iNome]||'') + '</strong>!</p>' +
-        '<p>Recebemos um pedido para redefinir sua senha do sistema clínico.</p>' +
+        '<p>Olá, <strong>' + nomePessoa + '</strong>!</p>' +
+        '<p>Use o botão abaixo para criar sua senha de acesso.</p>' +
         '<p style="margin:24px 0"><a href="' + link + '" ' +
         'style="background:#1d6b58;color:#fff;padding:12px 22px;border-radius:8px;' +
-        'text-decoration:none;display:inline-block">Criar nova senha</a></p>' +
+        'text-decoration:none;display:inline-block">Criar minha senha</a></p>' +
         '<p style="color:#666;font-size:13px">O link vale por ' + RESET_VALIDADE_MIN +
         ' minutos e só pode ser usado uma vez.</p>' +
         '<p style="color:#666;font-size:13px">Se não foi você que pediu, ignore este ' +
@@ -362,11 +375,31 @@ function redefinirSenha(body) {
     if (new Date() >= new Date(dados[i][2])) return {ok:false, erro:'Este link expirou. Peça um novo.'};
 
     const email = String(dados[i][1]||'');
-    const prof = acharProfissional(email);
-    if (!prof) return {ok:false, erro:'Usuário não encontrado'};
+    const tipo = String(dados[i][5]||'equipe');
 
-    const iSenha = prof.h.indexOf('senha_hash');
-    prof.sheet.getRange(prof.linha, iSenha+1).setValue(hashSenha(email, nova));
+    if (tipo === 'paciente') {
+      const pac = acharPacientePorEmail(email);
+      if (!pac) return {ok:false, erro:'Cadastro não encontrado'};
+      let iS = pac.h.indexOf('senha_hash');
+      if (iS === -1) {
+        pac.h.push('senha_hash');
+        iS = pac.h.length - 1;
+        pac.sheet.getRange(1, iS+1).setValue('senha_hash');
+      }
+      pac.sheet.getRange(pac.linha, iS+1).setValue(hashSenha(email, nova));
+      let iA = pac.h.indexOf('acesso');
+      if (iA === -1) {
+        pac.h.push('acesso');
+        iA = pac.h.length - 1;
+        pac.sheet.getRange(1, iA+1).setValue('acesso');
+      }
+      pac.sheet.getRange(pac.linha, iA+1).setValue('Liberado');
+    } else {
+      const prof = acharProfissional(email);
+      if (!prof) return {ok:false, erro:'Usuário não encontrado'};
+      const iSenha = prof.h.indexOf('senha_hash');
+      prof.sheet.getRange(prof.linha, iSenha+1).setValue(hashSenha(email, nova));
+    }
 
     sheet.getRange(i+1, 4).setValue(new Date().toISOString());   // marca como usado
 
@@ -564,7 +597,6 @@ function darAcessoPaciente(body, token) {
     return {ok:false, erro:'Este e-mail já está em uso por outro paciente'};
   }
 
-  const senha = gerarSenha();
   const setar = (coluna, valor) => {
     let idx = achado.h.indexOf(coluna);
     if (idx === -1) {
@@ -575,29 +607,22 @@ function darAcessoPaciente(body, token) {
     achado.sheet.getRange(achado.linha, idx+1).setValue(valor);
   };
   setar('email', email);
-  setar('senha_hash', hashSenha(email, senha));
   setar('acesso', 'Liberado');
 
-  try {
-    MailApp.sendEmail({
-      to: email,
-      subject: 'Seu acesso — Casa Oliveira',
-      htmlBody: '<div style="font-family:Arial,sans-serif;max-width:480px">' +
-        '<h2 style="color:#1d6b58">Casa Oliveira</h2>' +
-        '<p>Olá, <strong>' + (achado.obj.nome||'') + '</strong>!</p>' +
-        '<p>Você já pode acompanhar seu atendimento pela internet.</p>' +
-        '<div style="background:#f5f5f5;padding:16px;border-radius:8px;margin:16px 0">' +
-        '<p>📧 E-mail: <strong>' + email + '</strong></p>' +
-        '<p>🔑 Senha: <strong>' + senha + '</strong></p>' +
-        '</div>' +
-        '<p>Acesse: <a href="' + URL_SISTEMA + '?area=paciente">Minha área</a></p>' +
-        '<p style="color:#666;font-size:13px">Troque a senha no primeiro acesso. ' +
-        'Se não reconhece este e-mail, avise a clínica.</p>' +
-        '</div>'
-    });
-  } catch(e) { /* sem cota de e-mail: o acesso fica criado do mesmo jeito */ }
+  // Duas formas de entregar o acesso. A senha definida na hora existe para
+  // quem não usa e-mail — pessoa idosa, quem não tem o hábito de abrir link —
+  // e nesse caso a clínica entrega em mãos.
+  const senhaEscolhida = String(body.senha||'').trim();
+  if (senhaEscolhida) {
+    if (senhaEscolhida.length < 6) return {ok:false, erro:'A senha precisa ter ao menos 6 caracteres'};
+    setar('senha_hash', hashSenha(email, senhaEscolhida));
+    return {ok:true, modo:'senha_definida'};
+  }
 
-  return {ok:true, senha: senha};
+  // Caminho normal: link de uso único, para a senha não ficar guardada na
+  // caixa de entrada para sempre
+  const r = solicitarReset({email: email, tipo: 'paciente'});
+  return {ok:true, modo:'link_enviado', enviado: !!r.ok};
 }
 
 // ─── CRUD ─────────────────────────────────────────────────────

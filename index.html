@@ -3,6 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<!-- Sem isto o celular continua servindo a versão antiga do cache depois de
+     uma atualização, e a pessoa jura que o problema não foi corrigido -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>Casa Oliveira</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -50,7 +55,7 @@ input,select,textarea{outline:none;}
 .cfg-step-n{width:20px;height:20px;background:rgba(45,145,117,.2);color:#2d9175;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px;}
 
 /* LOGIN */
-#loginScreen,#esqueciScreen,#resetScreen,#pacLoginScreen{display:none;min-height:100vh;background:var(--ink);align-items:center;justify-content:center;padding:24px;flex-direction:column;}
+#loginScreen,#esqueciScreen,#resetScreen,#pacLoginScreen,#pacSenhaScreen{display:none;min-height:100vh;background:var(--ink);align-items:center;justify-content:center;padding:24px;flex-direction:column;}
 .login-logo{font-family:'Fraunces',serif;font-size:52px;color:#faf8f5;text-align:center;letter-spacing:-1px;}
 .login-sub{font-size:11px;color:#555;letter-spacing:3px;text-transform:uppercase;text-align:center;margin-top:4px;margin-bottom:36px;}
 .login-card{width:100%;max-width:360px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:var(--r-lg);padding:28px 24px;}
@@ -314,6 +319,16 @@ input,select,textarea{outline:none;}
 .hist-val{font-size:14px;line-height:1.55;color:var(--ink);white-space:pre-wrap;word-break:break-word;}
 .hist-rodape{font-size:11px;color:var(--ink3);margin-top:10px;padding-top:8px;border-top:1px solid var(--bor);}
 
+.pac-ou{text-align:center;font-size:12px;color:var(--ink3);margin:14px 0 10px;position:relative;}
+.pac-ou::before,.pac-ou::after{content:'';position:absolute;top:50%;width:38%;height:1px;background:var(--bor);}
+.pac-ou::before{left:0;} .pac-ou::after{right:0;}
+.pac-manual{background:var(--sur);border:1px solid var(--teal);border-radius:var(--r);padding:13px;margin-top:10px;}
+
+.versao-nova{position:fixed;left:12px;right:12px;bottom:12px;z-index:9998;background:var(--ink);color:#faf8f5;border-radius:12px;padding:13px 15px;display:flex;align-items:center;gap:12px;box-shadow:0 8px 30px rgba(0,0,0,.28);font-size:13px;}
+.versao-nova span{flex:1;}
+.versao-nova button{background:var(--teal);color:#fff;border:none;border-radius:8px;padding:9px 15px;font-size:13px;font-weight:600;cursor:pointer;flex-shrink:0;}
+@media(min-width:768px){.versao-nova{left:auto;right:20px;bottom:20px;max-width:380px;}}
+
 /* LOADING INLINE */
 .loading-inline{text-align:center;padding:36px;color:var(--ink3);font-size:14px;}
 .loading-spin{width:24px;height:24px;border:2px solid var(--bor);border-top-color:var(--teal);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px;}
@@ -462,9 +477,24 @@ input,select,textarea{outline:none;}
       <input id="pacPass" type="password" placeholder="••••••••"
              onkeydown="if(event.key==='Enter')doLoginPaciente()"></div>
     <button class="login-btn" id="pacBtn" onclick="doLoginPaciente()">Entrar →</button>
-    <div class="forgot" style="margin-top:18px;cursor:default">
-      Ainda não tem acesso? Peça à clínica.
+    <div class="forgot" onclick="showPrimeiroAcesso()">Primeiro acesso ou esqueceu a senha? Crie sua senha</div>
+  </div>
+</div>
+
+<!-- ÁREA DO PACIENTE — CRIAR SENHA -->
+<div id="pacSenhaScreen" style="display:none">
+  <div class="login-logo">Casa Oliveira</div>
+  <div class="login-sub">Criar minha senha</div>
+  <div class="login-card">
+    <div id="pacSErr" class="login-err"></div>
+    <div id="pacSOk" class="login-ok" style="display:none"></div>
+    <div id="pacSForm">
+      <div class="lf"><label>E-mail cadastrado na clínica</label>
+        <input id="pacSEmail" type="email" placeholder="seu@email.com" autocomplete="email"
+               onkeydown="if(event.key==='Enter')pedirSenhaPaciente()"></div>
+      <button class="login-btn" id="pacSBtn" onclick="pedirSenhaPaciente()">Enviar link →</button>
     </div>
+    <div class="forgot" onclick="mostrarLoginPaciente()">‹ Voltar</div>
   </div>
 </div>
 
@@ -517,6 +547,7 @@ input,select,textarea{outline:none;}
       <div class="umenu-item" id="umImportar" onclick="closeMenu();abrirImportacao();"><span class="umenu-icon">📥</span>Importar pacientes</div>
       <div class="umenu-item" onclick="showAlterarSenha()"><span class="umenu-icon">🔑</span>Alterar senha</div>
       <div class="umenu-item danger" onclick="doLogout()"><span class="umenu-icon">🚪</span>Sair</div>
+      <div style="padding:10px 18px;font-size:11px;color:var(--ink3);text-align:center" id="umVersao"></div>
     </div>
   </div>
 </div>
@@ -545,6 +576,10 @@ let currentUser = null;
 let currentRole = null;
 let authToken = null;
 let demoMode = false;
+// Muda a cada publicação. Serve para o aparelho perceber que está com uma
+// versão velha em cache — sem isto a pessoa continua vendo o problema já
+// corrigido e jura que não foi corrigido.
+const VERSAO = '2026-08-20.10';
 let _profsCache = null;
 let _demoPacienteId = null;
 
@@ -737,7 +772,8 @@ function demoApi(action, body) {
       const p = DEMO_DB.pacientes.find(x=>String(x.id)===String(body.paciente_id));
       if(!p) return {ok:false, erro:'Paciente não encontrado'};
       p.email = body.email; p.acesso = 'Liberado';
-      return {ok:true, senha:'demo1234'};
+      if(body.senha) { p.senha_demo = body.senha; return {ok:true, modo:'senha_definida'}; }
+      return {ok:true, modo:'link_enviado', enviado:true};
     }
     case 'alterar_senha_paciente': return {ok:false, erro:'Não disponível no modo demonstração.'};
     case 'redefinir_senha': return {ok:false, erro:'Não disponível no modo demonstração.'};
@@ -842,7 +878,7 @@ function doLogout() {
 let _resetToken = null;
 
 function mostrarTela(id) {
-  ['loginScreen','esqueciScreen','resetScreen','pacLoginScreen'].forEach(t=>{
+  ['loginScreen','esqueciScreen','resetScreen','pacLoginScreen','pacSenhaScreen'].forEach(t=>{
     const el = document.getElementById(t);
     if(el) el.style.display = (t===id) ? 'flex' : 'none';
   });
@@ -918,10 +954,12 @@ async function confirmarNovaSenha() {
 
   if(!res.ok){ erro(res.erro||'Não foi possível redefinir.'); return; }
 
+  const eraPaciente = location.search.indexOf('area=paciente') !== -1;
   _resetToken = null;
   limparParamReset();
-  mostrarTela('loginScreen');
-  showToast('✅ Senha alterada! Entre com a nova senha.','ok');
+  if(eraPaciente) { mostrarLoginPaciente(); }
+  else { mostrarTela('loginScreen'); }
+  showToast('✅ Senha criada! Entre com ela agora.','ok');
 }
 
 function showLoginErr(msg){
@@ -1351,9 +1389,19 @@ function areaPacienteHTML(p, idxAba) {
                placeholder="email@exemplo.com"></div>
       <div id="pacAcErr" class="errbox"></div>
       <button class="backbtn" id="pacAcBtn" style="width:100%" onclick="liberarAcessoPaciente('${p.id}')">
-        ${liberado?'🔁 Gerar nova senha e reenviar':'🔓 Liberar acesso e enviar senha'}</button>
-      <div class="pt-nota">A senha vai por e-mail. Quem tem acesso vê apenas o plano e as
-        orientações acima — nunca o checklist, o PTS interno ou as evoluções.</div>
+        ${liberado?'🔁 Reenviar link de acesso':'📧 Liberar e enviar link por e-mail'}</button>
+      <div class="pt-nota">A pessoa recebe um link e cria a própria senha — nenhuma senha
+        trafega por e-mail.</div>
+
+      <div class="pac-ou">ou</div>
+      <button class="backbtn" id="pacAcBtn2" style="width:100%" onclick="definirSenhaNaHora('${p.id}')">
+        ✍️ Definir a senha agora, aqui</button>
+      <div class="pt-nota">Para quem não usa e-mail: você escolhe a senha e entrega em mãos.
+        Bom para pessoa idosa ou quem prefere anotar no papel.</div>
+
+      <div class="pt-nota" style="margin-top:12px;padding-top:10px;border-top:1px solid var(--bor)">
+        Quem tem acesso vê apenas o plano e as orientações acima — nunca o checklist,
+        o PTS interno ou as evoluções.</div>
     </div>`:''}`;
 }
 
@@ -1377,6 +1425,65 @@ async function salvarAreaPaciente(id, idxAba) {
   showToast('✅ Publicado para o paciente','ok');
 }
 
+// Caminho para quem não usa e-mail: a gestora escolhe a senha e entrega em mãos
+function definirSenhaNaHora(id) {
+  const email = (document.getElementById('pacAcEmail').value||'').trim();
+  const err = document.getElementById('pacAcErr');
+  if(!email || email.indexOf('@')===-1){
+    err.textContent='Mesmo assim é preciso um e-mail: ele é o nome de usuário para entrar. Pode ser o de um familiar.';
+    err.style.display='block'; return;
+  }
+  err.style.display='none';
+  const cx = document.getElementById('pacAcBtn2').parentElement;
+  document.getElementById('pacSenhaManual')?.remove();
+  const box = document.createElement('div');
+  box.id = 'pacSenhaManual';
+  box.className = 'pac-manual';
+  box.innerHTML = `
+    <div class="fg"><label class="fl">Senha para esta pessoa</label>
+      <input class="fi" id="pacMSenha" value="${esc(sugerirSenhaFacil())}" autocomplete="off"></div>
+    <div class="pt-nota" style="margin-top:0">Anote e entregue à pessoa. Ela pode trocar depois,
+      em "Alterar minha senha", mas não é obrigada.</div>
+    <div id="pacMErr" class="errbox"></div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button class="savebtn" id="pacMBtn" style="flex:1" onclick="salvarSenhaManual('${id}')">Definir senha</button>
+      <button class="backbtn" onclick="document.getElementById('pacSenhaManual').remove()">Cancelar</button>
+    </div>`;
+  cx.appendChild(box);
+  document.getElementById('pacMSenha').focus();
+}
+
+// Fácil de ditar por telefone e de digitar: sem acento, sem letra dobrada,
+// sem caractere que exija procurar no teclado
+function sugerirSenhaFacil() {
+  const palavras = ['casa','vida','flor','sol','luz','paz','rio','mar','lua','bem','cor','arte'];
+  const p = palavras[Math.floor(Math.random()*palavras.length)];
+  return p + Math.floor(1000 + Math.random()*9000);
+}
+
+async function salvarSenhaManual(id) {
+  const email = (document.getElementById('pacAcEmail').value||'').trim();
+  const senha = (document.getElementById('pacMSenha').value||'').trim();
+  const err = document.getElementById('pacMErr');
+  const btn = document.getElementById('pacMBtn');
+  if(senha.length < 6){ err.textContent='A senha precisa ter ao menos 6 caracteres.'; err.style.display='block'; return; }
+  err.style.display='none';
+
+  if(!confirm('Definir a senha de '+email+' como:\n\n'+senha+'\n\nAnote antes de confirmar — ela não aparece de novo.')) return;
+
+  btn.textContent='Salvando...'; btn.disabled=true;
+  const res = await api('dar_acesso_paciente',{paciente_id:id, email, senha});
+  btn.disabled=false; btn.textContent='Definir senha';
+
+  if(!res.ok){ err.textContent=res.erro||'Não foi possível definir.'; err.style.display='block'; return; }
+
+  const p = (_pacientesCache[_currentLinha]||[]).find(x=>String(x.id)===String(id));
+  if(p){ p.email=email; p.acesso='Liberado'; }
+  document.getElementById('pacSenhaManual').remove();
+  showToast('✅ Senha definida','ok');
+  alert('Pronto.\n\nE-mail: '+email+'\nSenha: '+senha+'\n\nEntregue estes dados à pessoa. Anote agora — a senha não aparece de novo.');
+}
+
 async function liberarAcessoPaciente(id) {
   const email = (document.getElementById('pacAcEmail').value||'').trim();
   const err = document.getElementById('pacAcErr');
@@ -1384,23 +1491,23 @@ async function liberarAcessoPaciente(id) {
   if(!email || email.indexOf('@')===-1){ err.textContent='Informe um e-mail válido.'; err.style.display='block'; return; }
   err.style.display='none';
 
-  if(!confirm('Liberar acesso para '+email+'?\n\nA pessoa vai receber uma senha por e-mail e poderá ver o plano terapêutico e as orientações.')) return;
+  if(!confirm('Liberar acesso para '+email+'?\n\nA pessoa recebe um link para criar a própria senha e passa a ver o plano terapêutico e as orientações.')) return;
 
   btn.textContent='Liberando...'; btn.disabled=true;
   const res = await api('dar_acesso_paciente',{paciente_id:id, email});
   btn.disabled=false;
 
   if(!res.ok){
-    btn.textContent='🔓 Liberar acesso e enviar senha';
+    btn.textContent='🔓 Liberar acesso';
     err.textContent=res.erro||'Não foi possível liberar.'; err.style.display='block';
     return;
   }
 
   const p = (_pacientesCache[_currentLinha]||[]).find(x=>String(x.id)===String(id));
   if(p){ p.email=email; p.acesso='Liberado'; }
-  btn.textContent='🔁 Gerar nova senha e reenviar';
-  showToast('✅ Acesso liberado — senha enviada por e-mail','ok');
-  if(res.senha) alert('Acesso liberado para '+email+'.\n\nSenha: '+res.senha+'\n\nEla também foi enviada por e-mail. Se o e-mail não chegar, passe esta senha à pessoa e peça que troque no primeiro acesso.');
+  btn.textContent='🔁 Reenviar link de acesso';
+  showToast('✅ Acesso liberado — link enviado por e-mail','ok');
+  alert('Acesso liberado para '+email+'.\n\nA pessoa recebeu um link para criar a própria senha, válido por 1 hora.\n\nSe o e-mail não chegar, ela pode pedir outro em "Primeiro acesso" na tela de login.');
 }
 
 // ═══════════════════════════════════════════════
@@ -1411,7 +1518,7 @@ async function liberarAcessoPaciente(id) {
 let pacienteLogado = null;
 
 function mostrarLoginPaciente() {
-  ['loginScreen','esqueciScreen','resetScreen','configBanner'].forEach(t=>{
+  ['loginScreen','esqueciScreen','resetScreen','configBanner','pacSenhaScreen'].forEach(t=>{
     const el=document.getElementById(t); if(el) el.style.display='none';
   });
   // Sem isto o painel do prontuário da equipe fica aberto por cima do portal
@@ -1450,6 +1557,39 @@ function fecharTudoDaEquipe() {
   limparCaches();
   _fichasCache = {}; _evolucoes = []; _espera = [];
   currentUser = null; currentRole = null;
+}
+
+function showPrimeiroAcesso() {
+  ['pacLoginScreen','loginScreen','esqueciScreen','resetScreen','configBanner'].forEach(t=>{
+    const el=document.getElementById(t); if(el) el.style.display='none';
+  });
+  const p=document.getElementById('portalScreen'); if(p) p.style.display='none';
+  document.getElementById('pacSErr').style.display='none';
+  document.getElementById('pacSOk').style.display='none';
+  document.getElementById('pacSForm').style.display='block';
+  document.getElementById('pacSEmail').value = (document.getElementById('pacEmail').value||'').trim();
+  document.getElementById('pacSenhaScreen').style.display='flex';
+  document.getElementById('pacSEmail').focus();
+}
+
+async function pedirSenhaPaciente() {
+  const email=(document.getElementById('pacSEmail').value||'').trim();
+  const err=document.getElementById('pacSErr');
+  const btn=document.getElementById('pacSBtn');
+  err.style.display='none';
+  if(!email || email.indexOf('@')===-1){ err.textContent='Digite um e-mail válido.'; err.style.display='block'; return; }
+  btn.textContent='Enviando...'; btn.disabled=true;
+  const res=await api('solicitar_reset',{email, tipo:'paciente'});
+  btn.textContent='Enviar link →'; btn.disabled=false;
+  if(!res.ok){ err.textContent=res.erro||'Não foi possível enviar.'; err.style.display='block'; return; }
+
+  // Resposta igual para cadastrado e não cadastrado, de propósito
+  const ok=document.getElementById('pacSOk');
+  ok.innerHTML='📧 Se <strong>'+esc(email)+'</strong> estiver cadastrado na clínica, '+
+               'o link para criar sua senha chegou na caixa de entrada.<br><br>'+
+               'O link vale por 1 hora. Confira também o spam.';
+  ok.style.display='block';
+  document.getElementById('pacSForm').style.display='none';
 }
 
 async function doLoginPaciente() {
@@ -3181,6 +3321,35 @@ async function loadHomeResumo() {
   }
 }
 
+// ── AVISO DE VERSÃO NOVA ────────────────────────
+let _avisandoVersao = false;
+
+async function conferirVersao() {
+  if(_avisandoVersao || demoMode) return;
+  try {
+    // cache-bust: sem isto o próprio pedido voltaria do cache
+    const r = await fetch(location.pathname + '?v=' + Date.now(), {cache:'no-store'});
+    if(!r.ok) return;
+    const txt = await r.text();
+    const m = /const VERSAO = '([^']+)'/.exec(txt);
+    if(m && m[1] !== VERSAO) mostrarAvisoVersao();
+  } catch(e) { /* sem rede: tenta de novo depois */ }
+}
+
+function mostrarAvisoVersao() {
+  if(_avisandoVersao) return;
+  _avisandoVersao = true;
+  const b = document.createElement('div');
+  b.className = 'versao-nova';
+  b.innerHTML = `<span>Há uma versão nova do sistema.</span>
+    <button onclick="location.reload(true)">Atualizar agora</button>`;
+  document.body.appendChild(b);
+}
+
+// Confere ao abrir e sempre que a pessoa volta para a aba
+setTimeout(conferirVersao, 4000);
+document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) conferirVersao(); });
+
 // ── HOOKS para carregar dados dinâmicos após render ──
 const _afterRender = {
   equipe: ()=>setTimeout(loadEquipe,50),
@@ -3239,6 +3408,7 @@ window.addEventListener('DOMContentLoaded', async()=>{
     _resetToken = tokenReset;
     document.getElementById('splash').classList.add('hide');
     mostrarTela('resetScreen');
+    if(params.get('area') === 'paciente') marcarQuem('paciente');
     document.getElementById('rstNova').focus();
     return;
   }
