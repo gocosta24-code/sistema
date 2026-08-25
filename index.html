@@ -329,6 +329,15 @@ input,select,textarea{outline:none;}
 .versao-nova button{background:var(--teal);color:#fff;border:none;border-radius:8px;padding:9px 15px;font-size:13px;font-weight:600;cursor:pointer;flex-shrink:0;}
 @media(min-width:768px){.versao-nova{left:auto;right:20px;bottom:20px;max-width:380px;}}
 
+.pill-chk{display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;background:var(--sur2);padding:6px 11px;border-radius:20px;border:1px solid var(--bor);}
+.pill-chk:has(input:checked){border-color:var(--teal);background:var(--teal-lt);}
+
+.esp-filtros{background:var(--sur2);border:1px solid var(--bor);border-radius:var(--r);padding:12px;margin-bottom:14px;}
+.esp-filtro-linha{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;}
+.esp-filtro-linha .fs{flex:1;min-width:130px;}
+.esp-resumo{font-size:12px;color:var(--ink3);margin-top:9px;}
+.esp-limpar{color:var(--teal);cursor:pointer;text-decoration:underline;}
+
 /* LOADING INLINE */
 .loading-inline{text-align:center;padding:36px;color:var(--ink3);font-size:14px;}
 .loading-spin{width:24px;height:24px;border:2px solid var(--bor);border-top-color:var(--teal);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px;}
@@ -579,7 +588,7 @@ let demoMode = false;
 // Muda a cada publicação. Serve para o aparelho perceber que está com uma
 // versão velha em cache — sem isto a pessoa continua vendo o problema já
 // corrigido e jura que não foi corrigido.
-const VERSAO = '2026-08-21.03';
+const VERSAO = '2026-08-21.04';
 let _profsCache = null;
 let _demoPacienteId = null;
 
@@ -980,6 +989,14 @@ const LINHAS = {
   mental:       {emoji:'🧠',label:'Saúde Mental',   color:'teal',   servicos:'TO · Acupuntura · Terapia Floral · Ateliê'},
 };
 
+// Funcoes clinicas mais comuns. "Outra" cobre o que nao estiver aqui sem
+// precisar mexer no codigo.
+const FUNCOES = [
+  'Fisioterapeuta','Terapeuta Ocupacional','Psicólogo(a)','Fonoaudiólogo(a)',
+  'Educador(a) Físico(a)','Instrutor(a) de Pilates','Acupunturista',
+  'Nutricionista','Terapeuta Floral','Gestão','Recepção',
+];
+
 const NAVS = {
   admin:        [{id:'home',icon:'🏠',label:'Início'},{id:'linhas',icon:'🩺',label:'Linhas'},{id:'espera',icon:'🪑',label:'Espera'},{id:'equipe',icon:'👥',label:'Equipe'},{id:'alertas',icon:'🔔',label:'Alertas',badge:true}],
   coordenador:  [{id:'home',icon:'🏠',label:'Início'},{id:'linhas',icon:'🩺',label:'Pacientes'},{id:'espera',icon:'🪑',label:'Espera'},{id:'alertas',icon:'🔔',label:'Alertas',badge:true}],
@@ -1103,7 +1120,15 @@ function renderEquipe() {
           <option value="admin">Admin</option>
         </select>
       </div>
-      <div class="fg"><label class="fl">Função</label><input class="fi" id="invFuncao" placeholder="Ex: Fisioterapeuta"></div>
+      <div class="fg fa"><label class="fl">Função <span style="font-weight:400;color:var(--ink3)">(pode marcar mais de uma)</span></label>
+        <div id="invFuncoes" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
+          ${FUNCOES.map(f=>`
+          <label class="pill-chk">
+            <input type="checkbox" value="${esc(f)}" style="accent-color:var(--teal)"> ${esc(f)}
+          </label>`).join('')}
+        </div>
+        <input class="fi" id="invFuncaoOutra" placeholder="Outra função (opcional)" style="margin-top:8px">
+      </div>
       <div class="fg fa"><label class="fl">Linhas</label>
         <div id="invLinhas" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
           ${Object.entries(LINHAS).map(([k,v])=>`
@@ -1754,7 +1779,66 @@ function renderEspera() {
     <div class="ph-sub">Quem aguarda vaga, por ordem de prioridade e chegada</div></div>
   ${currentRole==='admin'?`<button class="addbtn" style="margin-bottom:14px" onclick="novoNaEspera()">+ Adicionar à lista</button>`:''}
   <div id="esperaForm"></div>
+  <div id="esperaFiltros"></div>
   <div id="esperaLista">${loadingHTML()}</div>`;
+}
+
+// Filtros ficam no estado, para nao se perderem quando a lista e redesenhada
+let _espFiltro = {texto:'', linha:'', prioridade:'', status:'aguardando'};
+
+function filtrosEsperaHTML() {
+  const total = _espera.length;
+  if(total < 4) return '';   // com pouca gente, filtro so atrapalha
+  return `<div class="esp-filtros">
+    <input class="fi" id="espBusca" type="search" placeholder="🔎 Buscar por nome, telefone, e-mail ou observação"
+           value="${esc(_espFiltro.texto)}" oninput="mudarFiltroEspera('texto',this.value)">
+    <div class="esp-filtro-linha">
+      <select class="fs" onchange="mudarFiltroEspera('linha',this.value)">
+        <option value="">Todas as linhas</option>
+        ${Object.entries(LINHAS).map(([k,v])=>`<option value="${k}"${_espFiltro.linha===k?' selected':''}>${v.emoji} ${v.label}</option>`).join('')}
+      </select>
+      <select class="fs" onchange="mudarFiltroEspera('prioridade',this.value)">
+        <option value="">Toda prioridade</option>
+        ${PRIORIDADES.map(p=>`<option value="${p.toLowerCase()}"${_espFiltro.prioridade===p.toLowerCase()?' selected':''}>${p}</option>`).join('')}
+      </select>
+      <select class="fs" onchange="mudarFiltroEspera('status',this.value)">
+        <option value="aguardando"${_espFiltro.status==='aguardando'?' selected':''}>Aguardando</option>
+        <option value="atendido"${_espFiltro.status==='atendido'?' selected':''}>Atendidos</option>
+        <option value="desistiu"${_espFiltro.status==='desistiu'?' selected':''}>Desistiram</option>
+        <option value=""${_espFiltro.status===''?' selected':''}>Todos</option>
+      </select>
+    </div>
+    <div class="esp-resumo" id="espResumo"></div>
+  </div>`;
+}
+
+function mudarFiltroEspera(campo, valor) {
+  _espFiltro[campo] = valor;
+  desenharEspera();
+  if(campo==='texto') {
+    // devolve o foco para quem esta digitando
+    const b = document.getElementById('espBusca');
+    if(b){ b.focus(); b.setSelectionRange(b.value.length, b.value.length); }
+  }
+}
+
+function limparFiltrosEspera() {
+  _espFiltro = {texto:'', linha:'', prioridade:'', status:'aguardando'};
+  desenharEspera();
+}
+
+function passaNoFiltro(e) {
+  const f = _espFiltro;
+  const st = String(e.status||'Aguardando').toLowerCase();
+  if(f.status && st !== f.status) return false;
+  if(f.linha && String(e.linha||'') !== f.linha) return false;
+  if(f.prioridade && String(e.prioridade||'Normal').toLowerCase() !== f.prioridade) return false;
+  if(f.texto) {
+    const alvo = normalizar([e.nome,e.telefone,e.email,e.observacoes,e.aviso_paciente]
+                            .filter(Boolean).join(' '));
+    if(!alvo.includes(normalizar(f.texto))) return false;
+  }
+  return true;
 }
 
 async function loadEspera() {
@@ -1776,14 +1860,47 @@ function desenharEspera() {
   const el = document.getElementById('esperaLista');
   if(!el) return;
 
-  const aguardando = _espera.filter(e=>String(e.status||'Aguardando').toLowerCase()==='aguardando');
-  const resolvidos = _espera.filter(e=>String(e.status||'Aguardando').toLowerCase()!=='aguardando');
+  const cx = document.getElementById('esperaFiltros');
+  if(cx) cx.innerHTML = filtrosEsperaHTML();
 
   if(!_espera.length){
     el.innerHTML = `<div style="text-align:center;padding:46px 20px;color:var(--ink3)">
       <div style="font-size:40px;margin-bottom:10px">🪑</div>
       <div style="font-size:15px;font-weight:600;margin-bottom:5px">Ninguém na lista de espera</div>
       <div style="font-size:13px">Quem procurar a clínica sem vaga entra aqui.</div>
+    </div>`;
+    return;
+  }
+
+  // A posição de cada pessoa é calculada sobre a fila inteira, antes de
+  // filtrar: filtrar por prioridade Alta e ver "1º, 2º, 3º" faria parecer que
+  // são os primeiros da fila, quando podem estar atrás de outros
+  const posReal = {};
+  const porLinhaCompleta = {};
+  _espera.filter(e=>String(e.status||'Aguardando').toLowerCase()==='aguardando')
+    .forEach(e=>{
+      const l = e.linha||'';
+      porLinhaCompleta[l] = (porLinhaCompleta[l]||0) + 1;
+      posReal[String(e.id)] = porLinhaCompleta[l];
+    });
+
+  const visiveis = _espera.filter(passaNoFiltro);
+  const aguardando = visiveis.filter(e=>String(e.status||'Aguardando').toLowerCase()==='aguardando');
+  const resolvidos = visiveis.filter(e=>String(e.status||'Aguardando').toLowerCase()!=='aguardando');
+
+  const resumo = document.getElementById('espResumo');
+  if(resumo) {
+    const filtrando = _espFiltro.texto || _espFiltro.linha || _espFiltro.prioridade || _espFiltro.status!=='aguardando';
+    resumo.innerHTML = filtrando
+      ? `${visiveis.length} de ${_espera.length} · <span class="esp-limpar" onclick="limparFiltrosEspera()">limpar filtros</span>`
+      : `${_espera.length} no total`;
+  }
+
+  if(!visiveis.length){
+    el.innerHTML = `<div style="text-align:center;padding:40px 20px;color:var(--ink3)">
+      <div style="font-size:15px;font-weight:600;margin-bottom:5px">Ninguém encontrado</div>
+      <div style="font-size:13px">Nenhuma pessoa combina com esses filtros.</div>
+      <button class="addbtn" style="margin-top:14px" onclick="limparFiltrosEspera()">Limpar filtros</button>
     </div>`;
     return;
   }
@@ -1796,11 +1913,13 @@ function desenharEspera() {
   el.innerHTML = `
     ${Object.entries(porLinha).map(([lin, gente])=>{
       const cfg = LINHAS[lin] || {emoji:'•', label:lin||'Sem linha', color:'gray'};
+      const totalNaLinha = porLinhaCompleta[lin] || gente.length;
+      const parcial = gente.length !== totalNaLinha;
       return `<div class="card-title" style="margin:16px 0 10px">
           <div class="ct-bar" style="background:var(--${cfg.color==='gray'?'ink3':cfg.color})"></div>
-          ${cfg.emoji} ${esc(cfg.label)} · ${gente.length} na fila
+          ${cfg.emoji} ${esc(cfg.label)} · ${parcial?gente.length+' de '+totalNaLinha:totalNaLinha} na fila
         </div>
-        ${gente.map((e,i)=>cardEspera(e, i+1)).join('')}`;
+        ${gente.map(e=>cardEspera(e, posReal[String(e.id)]||null)).join('')}`;
     }).join('')}
     ${resolvidos.length?`<div class="card-title" style="margin:18px 0 10px">
       <div class="ct-bar" style="background:var(--ink3)"></div>Já resolvidos</div>
@@ -3075,25 +3194,145 @@ async function loadEquipe() {
   if(!res.ok){el.innerHTML=`<div style="color:var(--rose);padding:16px">${res.erro}</div>`;return;}
   const profs = res.dados||[];
   const cores = ['#1d6b58','#5b21b6','#1355a0','#c4600a','#3d6b3a','#b81a3a','#92700a'];
-  el.innerHTML = profs.map((p,i)=>`
+  el.innerHTML = `<div id="profForm"></div>` + profs.map((p,i)=>`
   <div class="prof-card">
-    <div class="prof-av" style="background:${cores[i%cores.length]}">${(p.nome||'?')[0]}</div>
-    <div style="flex:1">
-      <div class="prof-nm">${p.nome}</div>
-      <div class="prof-rl">${p.funcao||''}</div>
+    <div class="prof-av" style="background:${cores[i%cores.length]}">${esc((p.nome||'?')[0])}</div>
+    <div style="flex:1;min-width:0">
+      <div class="prof-nm">${esc(p.nome)}</div>
+      <div class="prof-rl">${esc(p.funcao||'')}</div>
       <div style="margin-top:6px;display:flex;gap:5px;flex-wrap:wrap;">
-        <span class="chip ${p.nivel_acesso==='admin'?'ch-teal':p.nivel_acesso==='coordenador'?'ch-violet':'ch-sky'}">${{admin:'Gestora',coordenador:'Coordenadora',profissional:'Profissional'}[p.nivel_acesso]||p.nivel_acesso}</span>
-        <span class="chip ch-gray">${p.linhas||'—'}</span>
+        <span class="chip ${p.nivel_acesso==='admin'?'ch-teal':p.nivel_acesso==='coordenador'?'ch-violet':'ch-sky'}">${{admin:'Gestora',coordenador:'Coordenadora',profissional:'Profissional'}[p.nivel_acesso]||esc(p.nivel_acesso)}</span>
+        <span class="chip ch-gray">${esc(p.linhas||'—')}</span>
+        ${String(p.status||'Ativo').toLowerCase()==='inativo'?`<span class="chip ch-gray">Inativo</span>`:''}
       </div>
     </div>
+    ${currentRole==='admin'?`<button class="backbtn" onclick="editarProf('${esc(p.id)}')">✏️</button>`:''}
   </div>`).join('');
+}
+
+function editarProf(id) {
+  if(currentRole!=='admin'){ showToast('Só a gestão pode editar a equipe.','err'); return; }
+  const p = (_profsCache||[]).find(x=>String(x.id)===String(id));
+  if(!p) return;
+  const f = document.getElementById('profForm');
+  if(!f) return;
+
+  const funcoesAtuais = String(p.funcao||'').split(',').map(s=>s.trim()).filter(Boolean);
+  const conhecidas = funcoesAtuais.filter(x=>FUNCOES.includes(x));
+  const outras = funcoesAtuais.filter(x=>!FUNCOES.includes(x)).join(', ');
+  const linhasAtuais = String(p.linhas||'').split(',').map(s=>s.trim()).filter(Boolean);
+  const euMesma = (currentUser.email||'').toLowerCase() === String(p.email||'').toLowerCase();
+
+  f.innerHTML = `<div class="evo-form">
+    <div class="hist-tit" style="margin-bottom:10px">✏️ Editar ${esc(p.nome)}</div>
+    <div class="f2">
+      <div class="fg fa"><label class="fl">Nome *</label>
+        <input class="fi" id="epNome" value="${esc(p.nome)}"></div>
+      <div class="fg fa"><label class="fl">E-mail</label>
+        <input class="fi" value="${esc(p.email)}" disabled
+               style="opacity:.6;cursor:not-allowed"></div>
+      <div class="fg"><label class="fl">Nível de acesso</label>
+        <select class="fs" id="epNivel"${euMesma?' disabled style="opacity:.6"':''}>
+          ${[['profissional','Profissional'],['coordenador','Coordenador(a)'],['admin','Gestão']]
+            .map(([v,l])=>`<option value="${v}"${p.nivel_acesso===v?' selected':''}>${l}</option>`).join('')}
+        </select></div>
+      <div class="fg"><label class="fl">Situação</label>
+        <select class="fs" id="epStatus"${euMesma?' disabled style="opacity:.6"':''}>
+          ${['Ativo','Inativo'].map(s=>`<option${String(p.status||'Ativo')===s?' selected':''}>${s}</option>`).join('')}
+        </select></div>
+      <div class="fg fa"><label class="fl">Função <span style="font-weight:400;color:var(--ink3)">(pode marcar mais de uma)</span></label>
+        <div id="epFuncoes" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
+          ${FUNCOES.map(fn=>`<label class="pill-chk">
+            <input type="checkbox" value="${esc(fn)}" style="accent-color:var(--teal)"${conhecidas.includes(fn)?' checked':''}> ${esc(fn)}
+          </label>`).join('')}
+        </div>
+        <input class="fi" id="epFuncaoOutra" placeholder="Outra função (opcional)" value="${esc(outras)}" style="margin-top:8px"></div>
+      <div class="fg fa"><label class="fl">Linhas</label>
+        <div id="epLinhas" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
+          ${Object.entries(LINHAS).map(([k,v])=>`<label class="pill-chk">
+            <input type="checkbox" value="${k}" style="accent-color:var(--teal)"${linhasAtuais.includes(k)?' checked':''}> ${v.emoji} ${v.label}
+          </label>`).join('')}
+        </div></div>
+    </div>
+    ${euMesma?`<div class="pt-nota">Você não pode alterar o próprio nível de acesso nem se inativar —
+      seria possível se trancar para fora do sistema.</div>`:''}
+    <div id="epErr" class="errbox"></div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="savebtn" id="epBtn" style="flex:1" onclick="salvarProf('${esc(p.id)}')">Salvar alterações</button>
+      <button class="backbtn" onclick="document.getElementById('profForm').innerHTML=''">Cancelar</button>
+    </div>
+  </div>`;
+  f.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+async function salvarProf(id) {
+  if(currentRole!=='admin'){ showToast('Só a gestão pode editar a equipe.','err'); return; }
+  const p = (_profsCache||[]).find(x=>String(x.id)===String(id));
+  if(!p) return;
+  const err = document.getElementById('epErr');
+  const btn = document.getElementById('epBtn');
+  const nome = (document.getElementById('epNome').value||'').trim();
+  if(!nome){ err.textContent='O nome é obrigatório.'; err.style.display='block'; return; }
+  err.style.display='none';
+
+  // O nome do profissional é o que liga cada paciente ao seu terapeuta
+  // (coluna terapeuta_nome). Renomear sem atualizar os pacientes deixaria a
+  // lista dele vazia, então avisamos e corrigimos junto.
+  const mudouNome = nome !== p.nome;
+  let pacientesParaAjustar = [];
+  if(mudouNome) {
+    const todos = await carregarTodosPacientes();
+    pacientesParaAjustar = todos.filter(x=>(x.terapeuta_nome||'').trim()===String(p.nome||'').trim());
+    const aviso = pacientesParaAjustar.length
+      ? '\n\n'+pacientesParaAjustar.length+' paciente(s) estão vinculados a "'+p.nome+'" e serão atualizados para o nome novo.'
+      : '';
+    if(!confirm('Renomear "'+p.nome+'" para "'+nome+'"?'+aviso)) return;
+  }
+
+  const dados = {
+    nome,
+    funcao: coletarFuncoes('epFuncoes','epFuncaoOutra'),
+    linhas: [...document.querySelectorAll('#epLinhas input:checked')].map(x=>x.value).join(', '),
+  };
+  const nivelEl = document.getElementById('epNivel');
+  const statusEl = document.getElementById('epStatus');
+  if(nivelEl && !nivelEl.disabled) dados.nivel_acesso = nivelEl.value;
+  if(statusEl && !statusEl.disabled) dados.status = statusEl.value;
+
+  btn.textContent='Salvando...'; btn.disabled=true;
+  const res = await api('atualizar',{tabela:'profissionais', id, dados});
+
+  if(!res.ok){
+    btn.textContent='Salvar alterações'; btn.disabled=false;
+    err.textContent='Erro ao salvar: '+(res.erro||''); err.style.display='block';
+    return;
+  }
+
+  for(const pac of pacientesParaAjustar) {
+    await api('atualizar',{tabela:'pacientes', id:pac.id, dados:{terapeuta_nome:nome}});
+  }
+
+  btn.textContent='Salvar alterações'; btn.disabled=false;
+  document.getElementById('profForm').innerHTML='';
+  _todosPacientes = null; limparCaches();
+  await loadEquipe();
+  showToast('✅ Perfil atualizado'+(pacientesParaAjustar.length?' e '+pacientesParaAjustar.length+' paciente(s) revinculado(s)':''),'ok');
+}
+
+// Varias funcoes viram uma string separada por virgula: e assim que a coluna
+// ja guardava, entao continua legivel para quem abre a planilha
+function coletarFuncoes(idCaixas, idOutra) {
+  const marcadas = [...document.querySelectorAll('#'+idCaixas+' input:checked')].map(x=>x.value);
+  const outra = (document.getElementById(idOutra)?.value||'').trim();
+  if(outra) marcadas.push(outra);
+  return marcadas.join(', ');
 }
 
 async function convidarProf() {
   const nome  = (document.getElementById('invNome')?.value||'').trim();
   const email = (document.getElementById('invEmail')?.value||'').trim();
   const nivel = document.getElementById('invNivel')?.value||'profissional';
-  const funcao = document.getElementById('invFuncao')?.value?.trim()||'';
+  const funcao = coletarFuncoes('invFuncoes','invFuncaoOutra');
   // Vazio: o backend sorteia uma senha e envia por e-mail
   const senha = document.getElementById('invSenha')?.value?.trim()||'';
   const linhas = [...document.querySelectorAll('#invLinhas input:checked')].map(x=>x.value);
@@ -3113,7 +3352,8 @@ async function convidarProf() {
   document.getElementById('invNome').value='';
   document.getElementById('invEmail').value='';
   document.getElementById('invSenha').value='';
-  document.getElementById('invFuncao').value='';
+  document.getElementById('invFuncaoOutra').value='';
+  document.querySelectorAll('#invFuncoes input').forEach(x=>x.checked=false);
   document.querySelectorAll('#invLinhas input').forEach(x=>x.checked=false);
   loadEquipe();
 }
