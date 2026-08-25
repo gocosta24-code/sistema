@@ -295,6 +295,8 @@ input,select,textarea{outline:none;}
 .pt-fila-d{font-size:13px;color:var(--ink2);margin-top:5px;}
 .pt-fila-linha{padding:10px 0;border-bottom:1px solid var(--bor);}
 .pt-fila-linha:last-of-type{border-bottom:none;}
+.pt-prog{margin-top:12px;padding-top:11px;border-top:1px solid var(--bor);}
+.pt-prog-t{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink3);margin-bottom:7px;}
 .pt-aviso{background:var(--teal-lt);border-radius:9px;padding:11px;margin-top:12px;font-size:13px;color:var(--ink);}
 .pt-nota{font-size:11.5px;color:var(--ink3);margin-top:12px;line-height:1.5;}
 .pt-rodape{text-align:center;font-size:12px;color:var(--ink3);margin-top:26px;}
@@ -339,6 +341,12 @@ input,select,textarea{outline:none;}
 .esp-filtro-linha .fs{flex:1;min-width:130px;}
 .esp-resumo{font-size:12px;color:var(--ink3);margin-top:9px;}
 .esp-limpar{color:var(--teal);cursor:pointer;text-decoration:underline;}
+
+.prog-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--bor);}
+.prog-item:last-of-type{border-bottom:none;}
+.prog-off{opacity:.55;}
+.prog-nome{font-size:14px;font-weight:600;color:var(--ink);}
+.prog-desc{font-size:12px;color:var(--ink3);margin-top:2px;}
 
 /* LOADING INLINE */
 .loading-inline{text-align:center;padding:36px;color:var(--ink3);font-size:14px;}
@@ -529,6 +537,7 @@ input,select,textarea{outline:none;}
     <div id="pgEquipe"    class="page"></div>
     <div id="pgAlertas"   class="page"></div>
     <div id="pgEspera"    class="page"></div>
+    <div id="pgProgramas" class="page"></div>
   </div>
   <nav class="bnav" id="bnavEl"></nav>
 </div>
@@ -555,6 +564,7 @@ input,select,textarea{outline:none;}
     </div>
     <div style="margin-top:12px;">
       <div class="umenu-item" id="umEquipe" onclick="loadPage('equipe');closeMenu();"><span class="umenu-icon">👥</span>Gerenciar equipe</div>
+      <div class="umenu-item" id="umProgramas" onclick="loadPage('programas');closeMenu();"><span class="umenu-icon">🧩</span>Programas</div>
       <div class="umenu-item" id="umImportar" onclick="closeMenu();abrirImportacao();"><span class="umenu-icon">📥</span>Importar pacientes</div>
       <div class="umenu-item" onclick="showAlterarSenha()"><span class="umenu-icon">🔑</span>Alterar senha</div>
       <div class="umenu-item danger" onclick="doLogout()"><span class="umenu-icon">🚪</span>Sair</div>
@@ -590,7 +600,7 @@ let demoMode = false;
 // Muda a cada publicação. Serve para o aparelho perceber que está com uma
 // versão velha em cache — sem isto a pessoa continua vendo o problema já
 // corrigido e jura que não foi corrigido.
-const VERSAO = '2026-08-25.01';
+const VERSAO = '2026-08-25.02';
 let _profsCache = null;
 let _demoPacienteId = null;
 
@@ -780,6 +790,7 @@ function demoApi(action, body) {
       const pri = filas[0]||{linha:meu.linha, posicao:1, total:1};
       return {ok:true, dados:{
         posicao: pri.posicao, total_na_linha: pri.total, linha: pri.linha, filas,
+        programas: meu.programa||'', servicos: meu.servicos||'',
         desde: meu.data_entrada, observacao: meu.aviso_paciente||'',
       }};
     }
@@ -1057,11 +1068,11 @@ function loadPage(id) {
   _activePage = id;
   document.querySelectorAll('.bnt,.sd-item').forEach(e=>e.classList.remove('active'));
   ['bn-','sd-'].forEach(p=>{const e=document.getElementById(p+id);if(e)e.classList.add('active');});
-  const map={home:'pgHome',linhas:'pgLinhas',equipe:'pgEquipe',alertas:'pgAlertas',espera:'pgEspera'};
+  const map={home:'pgHome',linhas:'pgLinhas',equipe:'pgEquipe',alertas:'pgAlertas',espera:'pgEspera',programas:'pgProgramas'};
   document.querySelectorAll('.page').forEach(e=>{e.classList.remove('active');e.innerHTML='';});
   const el = document.getElementById(map[id]);
   if(!el) return;
-  const renders={home:renderHome,linhas:renderLinhas,equipe:renderEquipe,alertas:renderAlertas,espera:renderEspera};
+  const renders={home:renderHome,linhas:renderLinhas,equipe:renderEquipe,alertas:renderAlertas,espera:renderEspera,programas:renderProgramas};
   if(renders[id]){el.innerHTML=renders[id]();el.classList.add('active');}
 }
 
@@ -1684,6 +1695,11 @@ async function abrirPortal() {
         : `<div class="pt-fila-n">${f.posicao}º</div>
            <div class="pt-fila-d">na fila de ${esc(cfg.label || f.linha)}${f.total_na_linha?' · '+f.total_na_linha+' aguardando':''}</div>`}
       ${f.desde?`<div class="pt-fila-d">Na lista desde ${esc(fmtDataBR(f.desde))}</div>`:''}
+      ${(f.programas||f.servicos) ? `<div class="pt-prog">
+        <div class="pt-prog-t">Aguardando</div>
+        ${linhasDe(f.programas).map(s=>`<span class="chip ch-teal">${esc(s)}</span>`).join(' ')}
+        ${linhasDe(f.servicos).map(s=>`<span class="chip ch-gray">${esc(s)}</span>`).join(' ')}
+      </div>` : ''}
       ${f.observacao?`<div class="pt-aviso">${esc(f.observacao)}</div>`:''}
       <div class="pt-nota">A ordem considera a data de entrada e a avaliação da equipe.
         Entraremos em contato assim que abrir vaga.</div>
@@ -1773,6 +1789,163 @@ async function restaurarSessaoPaciente() {
   return false;
 }
 
+
+// ═══════════════════════════════════════════════
+// PROGRAMAS POR LINHA DE CUIDADO
+// A clínica cadastra o que oferece em cada linha — acolhimento inicial,
+// consulta individual, oficina, grupo de estimulação motora. Antes essa
+// lista era fixa no código, então mudar exigia mexer no sistema.
+// ═══════════════════════════════════════════════
+let _programas = null;   // null = ainda não carregado
+
+async function carregarProgramas(forcar) {
+  if(_programas && !forcar) return _programas;
+  const res = await api('listar',{tabela:'programas'});
+  _programas = res.ok ? (res.dados||[]) : [];
+  return _programas;
+}
+
+// Enquanto a clínica não cadastrar nada, vale a lista que já existia no
+// código — assim a tela nunca aparece vazia e nada para de funcionar
+function programasDaLinha(linha) {
+  const cadastrados = (_programas||[])
+    .filter(p=>String(p.linha)===String(linha) && String(p.ativo||'Sim').toLowerCase()!=='não'
+                                               && String(p.ativo||'Sim').toLowerCase()!=='nao')
+    .map(p=>p.nome);
+  if(cadastrados.length) return cadastrados;
+  const cfg = LINHAS[linha];
+  return cfg ? cfg.servicos.split(' · ') : [];
+}
+
+function renderProgramas() {
+  if(currentRole!=='admin') return `<div class="ph"><div class="ph-title">Acesso restrito</div></div>`;
+  return `<div class="ph"><div class="ph-title">Programas</div>
+    <div class="ph-sub">O que a clínica oferece em cada linha de cuidado</div></div>
+  <div id="progAviso" class="pt-nota" style="margin-bottom:14px">
+    Estes são os programas que aparecem na lista de espera e no cadastro de paciente.
+  </div>
+  <div id="progLista">${loadingHTML()}</div>`;
+}
+
+async function loadProgramas() {
+  await carregarProgramas(true);
+  desenharProgramas();
+}
+
+function desenharProgramas() {
+  const el = document.getElementById('progLista');
+  if(!el) return;
+  el.innerHTML = Object.entries(LINHAS).map(([k,cfg])=>{
+    const daLinha = (_programas||[]).filter(p=>String(p.linha)===String(k));
+    const usandoPadrao = !daLinha.length;
+    return `<div class="card" style="margin-bottom:12px">
+      <div class="card-title">
+        <div class="ct-bar" style="background:var(--${cfg.color})"></div>
+        ${cfg.emoji} ${esc(cfg.label)}
+      </div>
+      ${usandoPadrao
+        ? `<div class="pt-nota" style="margin:0 0 10px">Sem programas próprios — usando a lista padrão:
+             ${esc(cfg.servicos.split(' · ').join(', '))}</div>`
+        : daLinha.map(p=>{
+            const inativo = ['não','nao'].includes(String(p.ativo||'Sim').toLowerCase());
+            return `<div class="prog-item ${inativo?'prog-off':''}">
+              <div style="flex:1;min-width:0">
+                <div class="prog-nome">${esc(p.nome)}</div>
+                ${p.descricao?`<div class="prog-desc">${esc(p.descricao)}</div>`:''}
+              </div>
+              ${inativo?`<span class="chip ch-gray">Inativo</span>`:''}
+              <button class="backbtn" onclick="editarPrograma('${esc(p.id)}')">✏️</button>
+            </div>`;
+          }).join('')}
+      <button class="addbtn" style="margin-top:10px" onclick="novoPrograma('${k}')">+ Programa em ${esc(cfg.label)}</button>
+    </div>`;
+  }).join('') + `<div id="progForm"></div>`;
+}
+
+function novoPrograma(linha, existente) {
+  const p = existente || {linha};
+  const f = document.getElementById('progForm');
+  if(!f) return;
+  const cfg = LINHAS[p.linha] || {label:p.linha};
+  f.innerHTML = `<div class="evo-form">
+    <div class="hist-tit" style="margin-bottom:10px">
+      ${existente?'✏️ Editar programa':'+ Novo programa'} — ${esc(cfg.label)}</div>
+    <div class="fg"><label class="fl">Nome do programa *</label>
+      <input class="fi" id="pgNome" value="${esc(p.nome)}"
+             placeholder="Ex.: Acolhimento inicial, Grupo de estimulação motora"></div>
+    <div class="fg"><label class="fl">Descrição (opcional)</label>
+      <input class="fi" id="pgDesc" value="${esc(p.descricao)}"
+             placeholder="Para que serve, para quem é"></div>
+    ${existente?`<div class="fg"><label class="fl">Situação</label>
+      <select class="fs" id="pgAtivo">
+        ${['Sim','Não'].map(s=>`<option value="${s}"${String(p.ativo||'Sim')===s?' selected':''}>${s==='Sim'?'Ativo':'Inativo'}</option>`).join('')}
+      </select>
+      <div class="pt-nota">Inativo some das listas novas, mas quem já escolheu continua registrado.</div>
+    </div>`:''}
+    <div id="pgErr" class="errbox"></div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="savebtn" id="pgBtn" style="flex:1"
+        onclick="salvarPrograma('${esc(p.linha)}'${existente?`,'${esc(p.id)}'`:''})">
+        ${existente?'Salvar':'Adicionar'}</button>
+      <button class="backbtn" onclick="document.getElementById('progForm').innerHTML=''">Cancelar</button>
+    </div>
+    ${existente?`<button class="savebtn" style="background:var(--rose);margin-top:8px"
+      onclick="excluirPrograma('${esc(p.id)}')">🗑 Excluir programa</button>`:''}
+  </div>`;
+  f.scrollIntoView({behavior:'smooth', block:'nearest'});
+  document.getElementById('pgNome').focus();
+}
+
+function editarPrograma(id) {
+  const p = (_programas||[]).find(x=>String(x.id)===String(id));
+  if(p) novoPrograma(p.linha, p);
+}
+
+async function salvarPrograma(linha, id) {
+  if(currentRole!=='admin'){ showToast('Só a gestão pode alterar programas.','err'); return; }
+  const nome = (document.getElementById('pgNome').value||'').trim();
+  const err = document.getElementById('pgErr');
+  const btn = document.getElementById('pgBtn');
+  if(!nome){ err.textContent='Informe o nome do programa.'; err.style.display='block'; return; }
+
+  // Dois programas com o mesmo nome na mesma linha viram duas opções iguais
+  // na lista de espera, impossíveis de distinguir depois
+  const repetido = (_programas||[]).some(p=>
+    String(p.linha)===String(linha) && String(p.id)!==String(id||'') &&
+    normalizar(p.nome)===normalizar(nome));
+  if(repetido){ err.textContent='Já existe um programa com esse nome nesta linha.'; err.style.display='block'; return; }
+  err.style.display='none';
+
+  const dados = {
+    linha, nome,
+    descricao: (document.getElementById('pgDesc').value||'').trim(),
+    ativo: document.getElementById('pgAtivo')?.value || 'Sim',
+  };
+
+  btn.disabled=true; btn.textContent='Salvando...';
+  const res = id
+    ? await api('atualizar',{tabela:'programas', id, dados})
+    : await api('salvar',{tabela:'programas', dados});
+  btn.disabled=false; btn.textContent = id?'Salvar':'Adicionar';
+
+  if(!res.ok){ err.textContent='Erro ao salvar: '+(res.erro||''); err.style.display='block'; return; }
+
+  document.getElementById('progForm').innerHTML='';
+  await loadProgramas();
+  showToast('✅ Programa salvo','ok');
+}
+
+async function excluirPrograma(id) {
+  const p = (_programas||[]).find(x=>String(x.id)===String(id));
+  if(!p) return;
+  if(!confirm('Excluir "'+p.nome+'"?\n\nEle some das listas, mas quem já escolheu esse programa continua registrado.\n\nPara apenas parar de oferecer, use Situação: Inativo.')) return;
+  const res = await api('deletar',{tabela:'programas', id});
+  if(!res.ok){ showToast('Erro ao excluir: '+(res.erro||''),'err'); return; }
+  document.getElementById('progForm').innerHTML='';
+  await loadProgramas();
+  showToast('🗑 Programa excluído','ok');
+}
+
 // ═══════════════════════════════════════════════
 // LISTA DE ESPERA
 // ═══════════════════════════════════════════════
@@ -1801,7 +1974,7 @@ function filtrosEsperaHTML() {
   const total = _espera.length;
   if(total < 4) return '';   // com pouca gente, filtro so atrapalha
   return `<div class="esp-filtros">
-    <input class="fi" id="espBusca" type="search" placeholder="🔎 Buscar por nome, telefone, serviço ou observação"
+    <input class="fi" id="espBusca" type="search" placeholder="🔎 Buscar por nome, telefone, programa ou observação"
            value="${esc(_espFiltro.texto)}" oninput="mudarFiltroEspera('texto',this.value)">
     <div class="esp-filtro-linha">
       <select class="fs" onchange="mudarFiltroEspera('linha',this.value)">
@@ -1845,7 +2018,7 @@ function passaNoFiltro(e) {
   if(f.linha && !linhasDe(e.linha).includes(f.linha)) return false;
   if(f.prioridade && String(e.prioridade||'Normal').toLowerCase() !== f.prioridade) return false;
   if(f.texto) {
-    const alvo = normalizar([e.nome,e.telefone,e.email,e.observacoes,e.aviso_paciente,e.servicos]
+    const alvo = normalizar([e.nome,e.telefone,e.email,e.observacoes,e.aviso_paciente,e.servicos,e.programa]
                             .filter(Boolean).join(' '));
     if(!alvo.includes(normalizar(f.texto))) return false;
   }
@@ -1853,6 +2026,7 @@ function passaNoFiltro(e) {
 }
 
 async function loadEspera() {
+  await carregarProgramas();
   const res = await api('listar',{tabela:'espera'});
   _espera = res.ok ? (res.dados||[]) : [];
   ordenarEspera();
@@ -1966,6 +2140,7 @@ function cardEspera(e, pos, linhaDoGrupo) {
         ${encerrado?`<span class="chip ch-gray">${esc(e.status)}</span>`:''}
         ${outras.length?`<span class="chip ch-violet" title="Também aguarda nestas linhas">também em ${outras.map(l=>esc(rotulo(l))).join(', ')}</span>`:''}
         ${e.email?`<span class="chip ch-sky">acompanha pelo site</span>`:''}
+        ${linhasDe(e.programa).map(s=>`<span class="chip ch-teal">${esc(s)}</span>`).join('')}
         ${linhasDe(e.servicos).map(s=>`<span class="chip ch-gray">${esc(s)}</span>`).join('')}
       </div>
       ${e.observacoes?`<div class="esp-obs">${esc(e.observacoes)}</div>`:''}
@@ -1986,22 +2161,35 @@ function linhasDe(valor) {
 
 // Os serviços saem das linhas escolhidas: não faz sentido oferecer Pilates
 // para quem só entrou na fila da Saúde da Mulher
-function servicosEsperaHTML(linhas, jaMarcados) {
+// Caixinhas por linha, reaproveitadas pelos dois campos do formulário
+function caixasPorLinha(linhas, jaMarcados, opcoesDe, vazio) {
   const escolhidas = Array.isArray(linhas) ? linhas : linhasDe(linhas);
-  if(!escolhidas.length)
-    return `<div class="pt-nota" style="margin-top:4px">Escolha a linha clínica para ver os serviços.</div>`;
+  if(!escolhidas.length) return `<div class="pt-nota" style="margin-top:4px">${vazio}</div>`;
   const marcados = linhasDe(jaMarcados);
   const blocos = escolhidas.filter(k=>LINHAS[k]).map(k=>{
     const cfg = LINHAS[k];
+    const opcoes = opcoesDe(k);
+    if(!opcoes.length) return '';
     return `<div style="margin-top:8px">
       ${escolhidas.length>1?`<div class="pt-nota" style="margin:0 0 5px">${cfg.emoji} ${esc(cfg.label)}</div>`:''}
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        ${cfg.servicos.split(' · ').map(s=>`<label class="pill-chk">
+        ${opcoes.map(s=>`<label class="pill-chk">
           <input type="checkbox" value="${esc(s)}" style="accent-color:var(--teal)"${marcados.includes(s)?' checked':''}> ${esc(s)}
         </label>`).join('')}
       </div></div>`;
   }).join('');
-  return blocos || `<div class="pt-nota" style="margin-top:4px">Escolha a linha clínica para ver os serviços.</div>`;
+  return blocos || `<div class="pt-nota" style="margin-top:4px">${vazio}</div>`;
+}
+
+function servicosEsperaHTML(linhas, jaMarcados) {
+  return caixasPorLinha(linhas, jaMarcados,
+    k => (LINHAS[k] ? LINHAS[k].servicos.split(' · ') : []),
+    'Escolha a linha clínica para ver os serviços.');
+}
+
+function programasEsperaHTML(linhas, jaMarcados) {
+  return caixasPorLinha(linhas, jaMarcados, programasDaLinha,
+    'Escolha a linha clínica para ver os programas.');
 }
 
 function linhasMarcadasEspera() {
@@ -2009,11 +2197,18 @@ function linhasMarcadasEspera() {
 }
 
 function atualizarServicosEspera() {
-  const cx = document.getElementById('espServicos');
-  if(!cx) return;
+  const linhas = linhasMarcadasEspera();
   // mantém marcado o que continuar existindo nas linhas escolhidas
-  const antes = [...cx.querySelectorAll('input:checked')].map(x=>x.value).join(', ');
-  cx.innerHTML = servicosEsperaHTML(linhasMarcadasEspera(), antes);
+  const cx = document.getElementById('espServicos');
+  if(cx) {
+    const antes = [...cx.querySelectorAll('input:checked')].map(x=>x.value).join(', ');
+    cx.innerHTML = servicosEsperaHTML(linhas, antes);
+  }
+  const cp = document.getElementById('espProgramas');
+  if(cp) {
+    const antes = [...cp.querySelectorAll('input:checked')].map(x=>x.value).join(', ');
+    cp.innerHTML = programasEsperaHTML(linhas, antes);
+  }
 }
 
 function novoNaEspera(existente) {
@@ -2038,6 +2233,8 @@ function novoNaEspera(existente) {
           </div></div>
         <div class="fg fa"><label class="fl">Serviços de interesse <span style="font-weight:400;color:var(--ink3)">(pode marcar mais de um)</span></label>
           <div id="espServicos">${servicosEsperaHTML(linhasDe(e.linha), e.servicos)}</div></div>
+        <div class="fg fa"><label class="fl">Programa e etapa <span style="font-weight:400;color:var(--ink3)">(pode marcar mais de um)</span></label>
+          <div id="espProgramas">${programasEsperaHTML(linhasDe(e.linha), e.programa)}</div></div>
         <div class="fg"><label class="fl">Na lista desde</label>
           <input class="fi" id="espData" type="date" value="${e.data_entrada?String(e.data_entrada).slice(0,10):hojeISO()}"></div>
         <div class="fg"><label class="fl">Prioridade</label>
@@ -2084,6 +2281,7 @@ async function salvarEspera(id) {
   const dados = {
     nome, linha,
     servicos: [...document.querySelectorAll('#espServicos input:checked')].map(x=>x.value).join(', '),
+    programa: [...document.querySelectorAll('#espProgramas input:checked')].map(x=>x.value).join(', '),
     telefone: (document.getElementById('espTel').value||'').trim(),
     email: (document.getElementById('espEmail').value||'').trim().toLowerCase(),
     data_entrada: document.getElementById('espData').value || hojeISO(),
@@ -3583,6 +3781,7 @@ function openUserMenu(){
   document.getElementById('umEmail').textContent=currentUser.email;
   document.getElementById('umEquipe').style.display=currentRole!=='profissional'?'flex':'none';
   document.getElementById('umImportar').style.display=currentRole==='admin'?'flex':'none';
+  document.getElementById('umProgramas').style.display=currentRole==='admin'?'flex':'none';
   document.getElementById('umOv').classList.add('open');
 }
 function closeMenu(){document.getElementById('umOv').classList.remove('open');}
@@ -3806,6 +4005,7 @@ const _afterRender = {
   linhas: ()=>setTimeout(loadContadores,50),
   alertas: ()=>setTimeout(loadAlertas,50),
   espera: ()=>setTimeout(loadEspera,50),
+  programas: ()=>setTimeout(loadProgramas,50),
 };
 
 const _origLoadPage = loadPage;
