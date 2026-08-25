@@ -590,7 +590,7 @@ let demoMode = false;
 // Muda a cada publicação. Serve para o aparelho perceber que está com uma
 // versão velha em cache — sem isto a pessoa continua vendo o problema já
 // corrigido e jura que não foi corrigido.
-const VERSAO = '2026-08-21.05';
+const VERSAO = '2026-08-25.01';
 let _profsCache = null;
 let _demoPacienteId = null;
 
@@ -2192,6 +2192,66 @@ const HIST = {
       {k:'resumo',      l:'Resumo dos resultados', t:'textarea', ph:'Descreva os resultados principais...'},
     ],
   },
+  servicos: {
+    tabela: 'servicos',
+    rotulo: 'Serviço',
+    novo: '+ Novo serviço',
+    vazio: 'Nenhum serviço registrado ainda.',
+    campos: [
+      {k:'servico', de:'srv_nome', l:'Serviço', t:'select',
+        opcoes:['Fisio Pélvica','Acupuntura','Massagem','Roda Amamentação','Roda Parto','Roda Puerpério','Outro']},
+      {k:'data',    de:'srv_data',   l:'Data prevista', t:'date'},
+      {k:'status',  de:'srv_status', l:'Situação', t:'select', opcoes:['Previsto','Agendado','Realizado','Cancelado']},
+      {k:'obs',     l:'Observações', t:'textarea', ph:'Como foi, encaminhamentos...'},
+    ],
+  },
+  posalta: {
+    tabela: 'monitoramentos',
+    rotulo: 'Monitoramento',
+    novo: '+ Novo contato',
+    vazio: 'Nenhum contato pós-alta registrado ainda.',
+    campos: [
+      {k:'data',            l:'Data do contato', t:'date'},
+      {k:'alta_data',       l:'Data da alta', t:'date'},
+      {k:'responsavel',     de:'alta_responsavel', l:'Responsável pelo monitoramento', t:'text', ph:'Nome do profissional'},
+      {k:'proximo_contato', de:'alta_proximo_contato', l:'Próximo contato', t:'date'},
+      {k:'relato',          de:'alta_relato', l:'Relato do paciente', t:'textarea', ph:'Como o paciente está...'},
+      {k:'obs',             de:'alta_obs', l:'Observações', t:'textarea', ph:'Notas do monitoramento...'},
+    ],
+  },
+  myscore: {
+    tabela: 'myscore',
+    rotulo: 'My Score',
+    novo: '+ Nova avaliação',
+    vazio: 'Nenhuma avaliação registrada ainda.',
+    campos: [
+      {k:'data',          de:'ms_data', l:'Data', t:'date'},
+      {k:'score_geral',   l:'Score Geral (0-10)', t:'number'},
+      {k:'bem_estar',     l:'Bem-Estar (0-10)', t:'number'},
+      {k:'mobilidade',    l:'Mobilidade (0-10)', t:'number'},
+      {k:'flexibilidade', l:'Flexibilidade (0-10)', t:'number'},
+      {k:'forca',         l:'Força (0-10)', t:'number'},
+      {k:'vo2',           l:'VO2 (0-10)', t:'number'},
+      {k:'proxima',       de:'ms_proxima', l:'Próxima avaliação', t:'date'},
+      {k:'posturais',     de:'ms_posturais', l:'Achados posturais', t:'textarea', ph:'Descreva...'},
+      {k:'palmilha',      de:'ms_palmilha', l:'Achados — Palmilha', t:'textarea', ph:'Observações...'},
+    ],
+  },
+  atelie: {
+    tabela: 'atelie',
+    rotulo: 'Memória do Ateliê',
+    novo: '+ Nova memória',
+    vazio: 'Nenhuma sessão de ateliê registrada ainda.',
+    campos: [
+      {k:'data',        de:'at_data', l:'Data da sessão', t:'date'},
+      {k:'presentes',   de:'at_presentes', l:'Presentes', t:'text', ph:'Nomes dos participantes'},
+      {k:'atividade',   de:'at_atividade', l:'Atividade realizada', t:'textarea', ph:'Descreva a atividade...'},
+      {k:'motivo',      de:'at_motivo', l:'Motivo da atividade', t:'textarea', ph:'Por que esta atividade foi escolhida...'},
+      {k:'materiais',   de:'at_materiais', l:'Materiais utilizados', t:'text', ph:'Ex.: tintas, papel, argila...'},
+      {k:'engajamento', de:'at_engajamento', l:'Engajamento do grupo', t:'textarea', ph:'Como o grupo se engajou...'},
+      {k:'percepcoes',  de:'at_percepcoes', l:'Percepções e observações', t:'textarea', ph:'Observações clínicas relevantes...'},
+    ],
+  },
   reunioes: {
     tabela: 'reunioes',
     rotulo: 'Reunião',
@@ -2245,11 +2305,13 @@ async function migrarFichaAntiga(tipo, pacienteId) {
   if(!ficha || !ficha.dados) return null;
 
   const d = ficha.dados;
-  const temConteudo = cfg.campos.some(c=>String(d[c.k]||'').trim());
+  // 'de' e o nome que o campo tinha quando a aba era ficha unica
+  const valorAntigo = c => d[c.k] !== undefined && d[c.k] !== '' ? d[c.k] : (c.de ? d[c.de] : '');
+  const temConteudo = cfg.campos.some(c=>String(valorAntigo(c)||'').trim());
   if(!temConteudo) return null;
 
   const dados = {paciente_id: pacienteId};
-  cfg.campos.forEach(c=>{ if(d[c.k]) dados[c.k] = d[c.k]; });
+  cfg.campos.forEach(c=>{ const v = valorAntigo(c); if(v) dados[c.k] = v; });
   if(cfg.versionado){
     dados.versao = d.pts_versao || 1;
     dados.status = d.pts_status || 'Rascunho';
@@ -3041,17 +3103,17 @@ function renderTabContent(linha, p, idx) {
   if(linha==='mulher') {
     if(idx===0) return checklistMulher(p);
     if(idx===1) return histPainelHTML('pts', idx);
-    if(idx===2) return servicosMulher(p);
-    if(idx===3) return posAltaContent(p,'mensal');
+    if(idx===2) return histPainelHTML('servicos', idx);
+    if(idx===3) return histPainelHTML('posalta', idx);
   }
   if(linha==='reabilitacao') {
     if(idx===0) return checklistReab(p);
     if(idx===1) return histPainelHTML('pts', idx);
     if(idx===2) return orientacoesContent();
-    if(idx===3) return posAltaContent(p,'mensal');
+    if(idx===3) return histPainelHTML('posalta', idx);
   }
   if(linha==='pilates') {
-    if(idx===0) return myScoreContent(p);
+    if(idx===0) return histPainelHTML('myscore', idx);
     if(idx===1) return pilatesDadosContent(p);
     if(idx===2) return indicacoesPilates(p);
   }
@@ -3064,7 +3126,7 @@ function renderTabContent(linha, p, idx) {
   if(linha==='mental') {
     if(idx===0) return checklistMental(p);
     if(idx===1) return histPainelHTML('pts', idx);
-    if(idx===2) return atelieContent();
+    if(idx===2) return histPainelHTML('atelie', idx);
   }
   return '<p style="color:var(--ink3)">Em construção</p>';
 }
@@ -3147,22 +3209,7 @@ function checklistMental(p) {
 // ── OUTROS CONTEÚDOS ──────────────────────────────
 
 
-function servicosMulher(p) {
-  return `<div style="font-size:13px;color:var(--ink3);margin-bottom:14px;">Serviços agendados</div>
-  <div class="fg"><label class="fl">Serviço</label>${selOpts('srv_nome',['Fisio Pélvica','Acupuntura','Massagem','Roda Amamentação','Roda Parto','Roda Puerpério'])}</div>
-  <div class="f2">
-    ${campoInput('srv_data','Data prevista','','date')}
-    <div class="fg"><label class="fl">Status</label>${selOpts('srv_status',['Previsto','Agendado','Realizado'])}</div>
-  </div>`;
-}
 
-function posAltaContent(p, periodicidade) {
-  return `${campoInput('alta_data','Data da alta','','date')}
-  ${campoInput('alta_responsavel','Responsável pelo monitoramento','Nome do profissional')}
-  ${campoInput('alta_proximo_contato','Próximo contato','','date')}
-  ${campoTexto('alta_relato','Relato do paciente','Como o paciente está...')}
-  ${campoTexto('alta_obs','Observações','Notas do monitoramento...')}`;
-}
 
 function orientacoesContent() {
   return `<div class="tabs" id="oriTabs">
@@ -3173,16 +3220,6 @@ function orientacoesContent() {
   <div id="ori1" style="display:none">${campoTexto('ori_alta','Orientações de alta','Ex: Continuar fortalecimento. Retornar se houver recidiva...','min-height:120px')}</div>`;
 }
 
-function myScoreContent(p) {
-  const scores=[['score_geral','Score Geral'],['bem_estar','Bem-Estar'],['mobilidade','Mobilidade'],['flexibilidade','Flexibilidade'],['forca','Força'],['vo2','VO2']];
-  return `<div class="f2">
-    ${scores.map(([k,l])=>`<div class="fg"><label class="fl">${l}</label><input class="fi" data-k="${k}" type="number" step="0.1" min="0" max="10" placeholder="0-10" value="${esc(_F[k])}"></div>`).join('')}
-    ${campoInput('ms_data','Data','','date')}
-    ${campoInput('ms_proxima','Próxima avaliação','','date')}
-    <div class="fg fa">${campoTexto('ms_posturais','Achados posturais','Descreva...')}</div>
-    <div class="fg fa">${campoTexto('ms_palmilha','Achados — Palmilha','Observações...')}</div>
-  </div>`;
-}
 
 function pilatesDadosContent(p) {
   const nasc = p.data_nascimento;
@@ -3222,16 +3259,6 @@ function casaSeguraContent(p) {
   </div>`;
 }
 
-function atelieContent() {
-  return `<div style="font-size:13px;color:var(--ink3);margin-bottom:14px;">Memória do Ateliê</div>
-  ${campoInput('at_data','Data da sessão','','date')}
-  ${campoInput('at_presentes','Presentes','Nomes dos participantes')}
-  ${campoTexto('at_atividade','Atividade realizada','Descreva a atividade...')}
-  ${campoTexto('at_motivo','Motivo da atividade','Por quê esta atividade foi escolhida...')}
-  ${campoInput('at_materiais','Materiais utilizados','Ex: tintas, papel, argila...')}
-  ${campoTexto('at_engajamento','Engajamento do grupo','Como o grupo se engajou...')}
-  ${campoTexto('at_percepcoes','Percepções e observações','Observações clínicas relevantes...')}`;
-}
 
 
 
@@ -3607,9 +3634,11 @@ async function loadContadores() {
 // Percorre as fichas de todos os pacientes e deriva pendências reais
 async function calcularAlertas() {
   const pacs = await carregarTodosPacientes();
-  const [res, resReun] = await Promise.all([
+  const [res, resReun, resPosAlta, resScore] = await Promise.all([
     api('listar',{tabela:'checklists'}),
     api('listar',{tabela:'reunioes'}),
+    api('listar',{tabela:'monitoramentos'}),
+    api('listar',{tabela:'myscore'}),
   ]);
   const fichas = res.ok ? (res.dados||[]) : [];
   const pacPorId = {}; pacs.forEach(p=>pacPorId[String(p.id)]=p);
@@ -3620,6 +3649,20 @@ async function calcularAlertas() {
     const pid = String(f.paciente_id);
     porPaciente[pid] = Object.assign(porPaciente[pid]||{}, d);
   });
+
+  // Pós-alta e My Score viraram histórico: o prazo que importa é o do
+  // registro mais recente de cada paciente, não o da ficha antiga
+  const maisRecente = (lista, campoData) => {
+    const porPac = {};
+    (lista||[]).forEach(r=>{
+      const pid = String(r.paciente_id);
+      const atual = porPac[pid];
+      if(!atual || String(r[campoData]||'') > String(atual[campoData]||'')) porPac[pid] = r;
+    });
+    return porPac;
+  };
+  const ultimoPosAlta = maisRecente(resPosAlta.ok?resPosAlta.dados:[], 'data');
+  const ultimoScore   = maisRecente(resScore.ok?resScore.dados:[], 'data');
 
   const hoje = new Date(); hoje.setHours(0,0,0,0);
   const criticos = [], altos = [], proximos = [];
@@ -3638,10 +3681,15 @@ async function calcularAlertas() {
     if(p.linha==='geriatria' && d.cs_visita && !d.cs_relatorio)
       altos.push({titulo:'Relatório Casa Segura pendente', meta});
 
-    [['prazo_reavaliacao','Reavaliação PTS'],['alta_proximo_contato','Contato pós-alta'],
-     ['cs_prazo','Prazo Casa Segura'],['ms_proxima','Reavaliação My Score']].forEach(([k,rotulo])=>{
-      if(!d[k]) return;
-      const dt = dataLocal(d[k]); if(!dt) return;
+    const prazos = [
+      ['Reavaliação PTS',      d.prazo_reavaliacao],
+      ['Prazo Casa Segura',    d.cs_prazo],
+      ['Contato pós-alta',     (ultimoPosAlta[String(p.id)]||{}).proximo_contato],
+      ['Reavaliação My Score', (ultimoScore[String(p.id)]||{}).proxima],
+    ];
+    prazos.forEach(([rotulo, valor])=>{
+      if(!valor) return;
+      const dt = dataLocal(valor); if(!dt) return;
       const dias = Math.round((dt-hoje)/86400000);
       const quando = dt.toLocaleDateString('pt-BR');
       if(dias < 0)       criticos.push({titulo:rotulo+' vencida', meta:`${p.nome} • ${quando}`});
