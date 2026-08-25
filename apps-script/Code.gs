@@ -549,13 +549,29 @@ function minhaPosicao(token) {
   if (meuIdx === -1) return {ok:true, dados:null};
 
   const meu = fila[meuIdx];
-  const naLinha = fila.filter(function(r){ return String(r.linha||'')===String(meu.linha||''); });
-  const posLinha = naLinha.findIndex(function(r){ return String(r.id)===String(meu.id); }) + 1;
+
+  // A pessoa pode aguardar em mais de uma linha, e a posicao muda em cada
+  // uma. Devolvemos todas para o portal nao mostrar so metade da verdade.
+  const separar = function(v){
+    return String(v||'').split(',').map(function(s){return s.trim();}).filter(Boolean);
+  };
+  const minhasLinhas = separar(meu.linha);
+  const posicoes = minhasLinhas.map(function(l){
+    const naLinha = fila.filter(function(r){ return separar(r.linha).indexOf(l) !== -1; });
+    return {
+      linha: l,
+      posicao: naLinha.findIndex(function(r){ return String(r.id)===String(meu.id); }) + 1,
+      total: naLinha.length
+    };
+  }).filter(function(x){ return x.posicao > 0; });
+
+  const principal = posicoes[0] || {linha: meu.linha||'', posicao: meuIdx+1, total: fila.length};
 
   return {ok:true, dados:{
-    posicao: posLinha,
-    total_na_linha: naLinha.length,
-    linha: meu.linha || '',
+    posicao: principal.posicao,
+    total_na_linha: principal.total,
+    linha: principal.linha,
+    filas: posicoes,
     desde: meu.data_entrada || '',
     observacao: meu.aviso_paciente || '',
   }};

@@ -293,6 +293,8 @@ input,select,textarea{outline:none;}
 .pt-fila{text-align:center;border-color:var(--teal);}
 .pt-fila-n{font-family:'Fraunces',serif;font-size:52px;color:var(--teal);line-height:1;}
 .pt-fila-d{font-size:13px;color:var(--ink2);margin-top:5px;}
+.pt-fila-linha{padding:10px 0;border-bottom:1px solid var(--bor);}
+.pt-fila-linha:last-of-type{border-bottom:none;}
 .pt-aviso{background:var(--teal-lt);border-radius:9px;padding:11px;margin-top:12px;font-size:13px;color:var(--ink);}
 .pt-nota{font-size:11.5px;color:var(--ink3);margin-top:12px;line-height:1.5;}
 .pt-rodape{text-align:center;font-size:12px;color:var(--ink3);margin-top:26px;}
@@ -588,7 +590,7 @@ let demoMode = false;
 // Muda a cada publicação. Serve para o aparelho perceber que está com uma
 // versão velha em cache — sem isto a pessoa continua vendo o problema já
 // corrigido e jura que não foi corrigido.
-const VERSAO = '2026-08-21.04';
+const VERSAO = '2026-08-21.05';
 let _profsCache = null;
 let _demoPacienteId = null;
 
@@ -770,10 +772,14 @@ function demoApi(action, body) {
         .sort((a,b)=>{const d=peso(a.prioridade)-peso(b.prioridade); return d!==0?d:String(a.data_entrada||'').localeCompare(String(b.data_entrada||''));});
       const meu = fila.find(e=>(e.email||'').toLowerCase()===(p.email||'').toLowerCase());
       if(!meu) return {ok:true, dados:null};
-      const naLinha = fila.filter(e=>String(e.linha)===String(meu.linha));
+      const minhas = linhasDe(meu.linha);
+      const filas = minhas.map(l=>{
+        const naLinha = fila.filter(e=>linhasDe(e.linha).includes(l));
+        return {linha:l, posicao: naLinha.findIndex(e=>String(e.id)===String(meu.id))+1, total: naLinha.length};
+      }).filter(x=>x.posicao>0);
+      const pri = filas[0]||{linha:meu.linha, posicao:1, total:1};
       return {ok:true, dados:{
-        posicao: naLinha.findIndex(e=>String(e.id)===String(meu.id))+1,
-        total_na_linha: naLinha.length, linha: meu.linha,
+        posicao: pri.posicao, total_na_linha: pri.total, linha: pri.linha, filas,
         desde: meu.data_entrada, observacao: meu.aviso_paciente||'',
       }};
     }
@@ -1670,8 +1676,13 @@ async function abrirPortal() {
 
     ${f ? `<div class="pt-card pt-fila">
       <div class="pt-t">🪑 Lista de espera</div>
-      <div class="pt-fila-n">${f.posicao}º</div>
-      <div class="pt-fila-d">na fila de ${esc(cfg.label || f.linha)}${f.total_na_linha?' · '+f.total_na_linha+' aguardando':''}</div>
+      ${(f.filas && f.filas.length>1)
+        ? f.filas.map(x=>`<div class="pt-fila-linha">
+            <div class="pt-fila-n" style="font-size:34px">${x.posicao}º</div>
+            <div class="pt-fila-d">na fila de ${esc((LINHAS[x.linha]||{}).label||x.linha)}${x.total?' · '+x.total+' aguardando':''}</div>
+          </div>`).join('')
+        : `<div class="pt-fila-n">${f.posicao}º</div>
+           <div class="pt-fila-d">na fila de ${esc(cfg.label || f.linha)}${f.total_na_linha?' · '+f.total_na_linha+' aguardando':''}</div>`}
       ${f.desde?`<div class="pt-fila-d">Na lista desde ${esc(fmtDataBR(f.desde))}</div>`:''}
       ${f.observacao?`<div class="pt-aviso">${esc(f.observacao)}</div>`:''}
       <div class="pt-nota">A ordem considera a data de entrada e a avaliação da equipe.
@@ -1790,7 +1801,7 @@ function filtrosEsperaHTML() {
   const total = _espera.length;
   if(total < 4) return '';   // com pouca gente, filtro so atrapalha
   return `<div class="esp-filtros">
-    <input class="fi" id="espBusca" type="search" placeholder="🔎 Buscar por nome, telefone, e-mail ou observação"
+    <input class="fi" id="espBusca" type="search" placeholder="🔎 Buscar por nome, telefone, serviço ou observação"
            value="${esc(_espFiltro.texto)}" oninput="mudarFiltroEspera('texto',this.value)">
     <div class="esp-filtro-linha">
       <select class="fs" onchange="mudarFiltroEspera('linha',this.value)">
@@ -1831,10 +1842,10 @@ function passaNoFiltro(e) {
   const f = _espFiltro;
   const st = String(e.status||'Aguardando').toLowerCase();
   if(f.status && st !== f.status) return false;
-  if(f.linha && String(e.linha||'') !== f.linha) return false;
+  if(f.linha && !linhasDe(e.linha).includes(f.linha)) return false;
   if(f.prioridade && String(e.prioridade||'Normal').toLowerCase() !== f.prioridade) return false;
   if(f.texto) {
-    const alvo = normalizar([e.nome,e.telefone,e.email,e.observacoes,e.aviso_paciente]
+    const alvo = normalizar([e.nome,e.telefone,e.email,e.observacoes,e.aviso_paciente,e.servicos]
                             .filter(Boolean).join(' '));
     if(!alvo.includes(normalizar(f.texto))) return false;
   }
@@ -1875,13 +1886,16 @@ function desenharEspera() {
   // A posição de cada pessoa é calculada sobre a fila inteira, antes de
   // filtrar: filtrar por prioridade Alta e ver "1º, 2º, 3º" faria parecer que
   // são os primeiros da fila, quando podem estar atrás de outros
-  const posReal = {};
+  // Quem escolheu duas linhas ocupa um lugar em cada fila, e a posição pode
+  // ser diferente em cada uma — por isso a posição é guardada por linha
+  const posReal = {};            // id -> { linha: posicao }
   const porLinhaCompleta = {};
   _espera.filter(e=>String(e.status||'Aguardando').toLowerCase()==='aguardando')
     .forEach(e=>{
-      const l = e.linha||'';
-      porLinhaCompleta[l] = (porLinhaCompleta[l]||0) + 1;
-      posReal[String(e.id)] = porLinhaCompleta[l];
+      linhasDe(e.linha).forEach(l=>{
+        porLinhaCompleta[l] = (porLinhaCompleta[l]||0) + 1;
+        (posReal[String(e.id)] = posReal[String(e.id)] || {})[l] = porLinhaCompleta[l];
+      });
     });
 
   const visiveis = _espera.filter(passaNoFiltro);
@@ -1908,7 +1922,13 @@ function desenharEspera() {
   // Cada linha clínica é uma fila própria — mostrar tudo junto faria parecer
   // que a Infantil e o Pilates disputam a mesma vaga
   const porLinha = {};
-  aguardando.forEach(e=>{ (porLinha[e.linha||''] = porLinha[e.linha||''] || []).push(e); });
+  aguardando.forEach(e=>{
+    // Com filtro de linha ativo, a pessoa aparece só naquela fila — senão
+    // quem aguarda em três linhas apareceria três vezes num filtro de uma só
+    linhasDe(e.linha)
+      .filter(l=>!_espFiltro.linha || l===_espFiltro.linha)
+      .forEach(l=>{ (porLinha[l] = porLinha[l] || []).push(e); });
+  });
 
   el.innerHTML = `
     ${Object.entries(porLinha).map(([lin, gente])=>{
@@ -1919,27 +1939,34 @@ function desenharEspera() {
           <div class="ct-bar" style="background:var(--${cfg.color==='gray'?'ink3':cfg.color})"></div>
           ${cfg.emoji} ${esc(cfg.label)} · ${parcial?gente.length+' de '+totalNaLinha:totalNaLinha} na fila
         </div>
-        ${gente.map(e=>cardEspera(e, posReal[String(e.id)]||null)).join('')}`;
+        ${gente.map(e=>cardEspera(e, (posReal[String(e.id)]||{})[lin]||null, lin)).join('')}`;
     }).join('')}
     ${resolvidos.length?`<div class="card-title" style="margin:18px 0 10px">
       <div class="ct-bar" style="background:var(--ink3)"></div>Já resolvidos</div>
       ${resolvidos.map(e=>cardEspera(e,null)).join('')}`:''}`;
 }
 
-function cardEspera(e, pos) {
-  const cfg = LINHAS[e.linha] || {emoji:'•', label:e.linha||'—', color:'gray'};
+function cardEspera(e, pos, linhaDoGrupo) {
   const encerrado = pos===null;
+  const todas = linhasDe(e.linha);
+  // No grupo de uma linha, as demais viram um lembrete de que a pessoa
+  // aguarda em mais de uma fila — senão a gestão chamaria sem saber disso
+  const outras = todas.filter(l=>l!==linhaDoGrupo);
+  const rotulo = l => (LINHAS[l]||{}).label || l;
+  const emojiDe = l => (LINHAS[l]||{}).emoji || '•';
   return `<div class="esp ${encerrado?'esp-off':''}">
     <div class="esp-pos">${encerrado?'✓':pos+'º'}</div>
     <div style="flex:1;min-width:0">
       <div class="esp-nome">${esc(e.nome||'—')}</div>
-      <div class="esp-meta">${encerrado?cfg.emoji+' '+esc(cfg.label)+' · ':''}${e.telefone?esc(e.telefone):''}
+      <div class="esp-meta">${encerrado&&todas.length?todas.map(l=>emojiDe(l)+' '+esc(rotulo(l))).join(', ')+' · ':''}${e.telefone?esc(e.telefone):''}
         ${e.data_entrada?' · desde '+esc(fmtDataBR(e.data_entrada)):''}</div>
       <div style="margin-top:6px;display:flex;gap:5px;flex-wrap:wrap;align-items:center">
         ${e.prioridade&&String(e.prioridade).toLowerCase()!=='normal'
           ? `<span class="chip ${String(e.prioridade).toLowerCase()==='alta'?'ch-rose':'ch-gray'}">${esc(e.prioridade)}</span>`:''}
         ${encerrado?`<span class="chip ch-gray">${esc(e.status)}</span>`:''}
+        ${outras.length?`<span class="chip ch-violet" title="Também aguarda nestas linhas">também em ${outras.map(l=>esc(rotulo(l))).join(', ')}</span>`:''}
         ${e.email?`<span class="chip ch-sky">acompanha pelo site</span>`:''}
+        ${linhasDe(e.servicos).map(s=>`<span class="chip ch-gray">${esc(s)}</span>`).join('')}
       </div>
       ${e.observacoes?`<div class="esp-obs">${esc(e.observacoes)}</div>`:''}
     </div>
@@ -1948,6 +1975,45 @@ function cardEspera(e, pos) {
       <button class="backbtn" onclick="chamarDaEspera('${e.id}')" title="Virou paciente">✅</button>
     </div>`:''}
   </div>`;
+}
+
+// A pessoa pode aguardar vaga em mais de uma linha ao mesmo tempo — quem quer
+// Fisioterapia e Pilates entra nas duas filas. A coluna guarda separado por
+// vírgula, como as demais listas do sistema.
+function linhasDe(valor) {
+  return String(valor||'').split(',').map(s=>s.trim()).filter(Boolean);
+}
+
+// Os serviços saem das linhas escolhidas: não faz sentido oferecer Pilates
+// para quem só entrou na fila da Saúde da Mulher
+function servicosEsperaHTML(linhas, jaMarcados) {
+  const escolhidas = Array.isArray(linhas) ? linhas : linhasDe(linhas);
+  if(!escolhidas.length)
+    return `<div class="pt-nota" style="margin-top:4px">Escolha a linha clínica para ver os serviços.</div>`;
+  const marcados = linhasDe(jaMarcados);
+  const blocos = escolhidas.filter(k=>LINHAS[k]).map(k=>{
+    const cfg = LINHAS[k];
+    return `<div style="margin-top:8px">
+      ${escolhidas.length>1?`<div class="pt-nota" style="margin:0 0 5px">${cfg.emoji} ${esc(cfg.label)}</div>`:''}
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        ${cfg.servicos.split(' · ').map(s=>`<label class="pill-chk">
+          <input type="checkbox" value="${esc(s)}" style="accent-color:var(--teal)"${marcados.includes(s)?' checked':''}> ${esc(s)}
+        </label>`).join('')}
+      </div></div>`;
+  }).join('');
+  return blocos || `<div class="pt-nota" style="margin-top:4px">Escolha a linha clínica para ver os serviços.</div>`;
+}
+
+function linhasMarcadasEspera() {
+  return [...document.querySelectorAll('#espLinhas input:checked')].map(x=>x.value);
+}
+
+function atualizarServicosEspera() {
+  const cx = document.getElementById('espServicos');
+  if(!cx) return;
+  // mantém marcado o que continuar existindo nas linhas escolhidas
+  const antes = [...cx.querySelectorAll('input:checked')].map(x=>x.value).join(', ');
+  cx.innerHTML = servicosEsperaHTML(linhasMarcadasEspera(), antes);
 }
 
 function novoNaEspera(existente) {
@@ -1963,11 +2029,15 @@ function novoNaEspera(existente) {
           <input class="fi" id="espTel" type="tel" value="${esc(e.telefone)}" placeholder="(11) 99999-9999"></div>
         <div class="fg"><label class="fl">E-mail (para acompanhar pelo site)</label>
           <input class="fi" id="espEmail" type="email" value="${esc(e.email)}" placeholder="opcional"></div>
-        <div class="fg"><label class="fl">Linha clínica *</label>
-          <select class="fs" id="espLinha">
-            <option value="">Selecione...</option>
-            ${Object.entries(LINHAS).map(([k,v])=>`<option value="${k}"${e.linha===k?' selected':''}>${v.emoji} ${v.label}</option>`).join('')}
-          </select></div>
+        <div class="fg fa"><label class="fl">Linhas clínicas * <span style="font-weight:400;color:var(--ink3)">(pode marcar mais de uma)</span></label>
+          <div id="espLinhas" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
+            ${Object.entries(LINHAS).map(([k,v])=>`<label class="pill-chk">
+              <input type="checkbox" value="${k}" style="accent-color:var(--teal)"
+                     onchange="atualizarServicosEspera()"${linhasDe(e.linha).includes(k)?' checked':''}> ${v.emoji} ${v.label}
+            </label>`).join('')}
+          </div></div>
+        <div class="fg fa"><label class="fl">Serviços de interesse <span style="font-weight:400;color:var(--ink3)">(pode marcar mais de um)</span></label>
+          <div id="espServicos">${servicosEsperaHTML(linhasDe(e.linha), e.servicos)}</div></div>
         <div class="fg"><label class="fl">Na lista desde</label>
           <input class="fi" id="espData" type="date" value="${e.data_entrada?String(e.data_entrada).slice(0,10):hojeISO()}"></div>
         <div class="fg"><label class="fl">Prioridade</label>
@@ -2002,16 +2072,18 @@ function editarEspera(id) {
 
 async function salvarEspera(id) {
   const nome = (document.getElementById('espNome').value||'').trim();
-  const linha = document.getElementById('espLinha').value;
+  const linhas = linhasMarcadasEspera();
+  const linha = linhas.join(', ');
   const err = document.getElementById('espErr');
   const btn = document.getElementById('espBtn');
   if(!nome){ err.textContent='Informe o nome.'; err.style.display='block'; return; }
-  if(!linha){ err.textContent='Escolha a linha clínica.'; err.style.display='block'; return; }
+  if(!linhas.length){ err.textContent='Escolha ao menos uma linha clínica.'; err.style.display='block'; return; }
   err.style.display='none';
   btn.disabled=true; btn.textContent='Salvando...';
 
   const dados = {
     nome, linha,
+    servicos: [...document.querySelectorAll('#espServicos input:checked')].map(x=>x.value).join(', '),
     telefone: (document.getElementById('espTel').value||'').trim(),
     email: (document.getElementById('espEmail').value||'').trim().toLowerCase(),
     data_entrada: document.getElementById('espData').value || hojeISO(),
@@ -2047,18 +2119,39 @@ async function excluirEspera(id) {
 async function chamarDaEspera(id) {
   const e = _espera.find(x=>String(x.id)===String(id));
   if(!e) return;
-  if(!confirm('Marcar '+e.nome+' como atendido e abrir o cadastro de paciente?')) return;
+
+  // Quem aguarda em mais de uma linha precisa ser cadastrado em uma delas —
+  // o prontuário é por linha clínica, então a gestão escolhe qual abriu vaga
+  const todas = linhasDe(e.linha);
+  let destino = todas[0] || '';
+  if(todas.length > 1) {
+    const opcoes = todas.map((l,i)=>(i+1)+') '+((LINHAS[l]||{}).label||l)).join('\n');
+    const escolha = prompt(e.nome+' aguarda em '+todas.length+' linhas.\n\nEm qual abriu vaga?\n\n'+opcoes+'\n\nDigite o número:', '1');
+    if(escolha===null) return;
+    const i = parseInt(escolha,10) - 1;
+    if(isNaN(i) || !todas[i]) { showToast('Opção inválida.','err'); return; }
+    destino = todas[i];
+  }
+  if(!destino){ showToast('Esta pessoa está sem linha clínica.','err'); return; }
+
+  const rotuloDestino = (LINHAS[destino]||{}).label || destino;
+  if(!confirm('Marcar '+e.nome+' como atendido e abrir o cadastro em '+rotuloDestino+'?')) return;
 
   const res = await api('atualizar',{tabela:'espera', id, dados:{status:'Atendido'}});
   if(!res.ok){ showToast('Erro: '+(res.erro||''),'err'); return; }
   await loadEspera();
 
-  _currentLinha = e.linha;
-  await openFormNovoPaciente(e.linha);
+  _currentLinha = destino;
+  await openFormNovoPaciente(destino);
   const set = (campo,v)=>{ const el=document.getElementById(campo); if(el&&v) el.value=v; };
   set('np_nome', e.nome);
   set('np_tel', e.telefone);
   set('np_obs', e.observacoes);
+  // o que ela pediu na fila ja vem marcado no cadastro
+  String(e.servicos||'').split(',').map(s=>s.trim()).filter(Boolean).forEach(s=>{
+    const cb = document.getElementById('srv_'+s.replace(/\s/g,'_'));
+    if(cb) cb.checked = true;
+  });
   openSheet();
   showToast('Confira os dados e cadastre','ok');
 }
