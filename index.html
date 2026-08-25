@@ -564,7 +564,7 @@ input,select,textarea{outline:none;}
     </div>
     <div style="margin-top:12px;">
       <div class="umenu-item" id="umEquipe" onclick="loadPage('equipe');closeMenu();"><span class="umenu-icon">👥</span>Gerenciar equipe</div>
-      <div class="umenu-item" id="umProgramas" onclick="loadPage('programas');closeMenu();"><span class="umenu-icon">🧩</span>Programas</div>
+      <div class="umenu-item" id="umProgramas" onclick="loadPage('programas');closeMenu();"><span class="umenu-icon">🧩</span>Etapas e Programas</div>
       <div class="umenu-item" id="umImportar" onclick="closeMenu();abrirImportacao();"><span class="umenu-icon">📥</span>Importar pacientes</div>
       <div class="umenu-item" onclick="showAlterarSenha()"><span class="umenu-icon">🔑</span>Alterar senha</div>
       <div class="umenu-item danger" onclick="doLogout()"><span class="umenu-icon">🚪</span>Sair</div>
@@ -600,7 +600,7 @@ let demoMode = false;
 // Muda a cada publicação. Serve para o aparelho perceber que está com uma
 // versão velha em cache — sem isto a pessoa continua vendo o problema já
 // corrigido e jura que não foi corrigido.
-const VERSAO = '2026-08-25.02';
+const VERSAO = '2026-08-25.03';
 let _profsCache = null;
 let _demoPacienteId = null;
 
@@ -1819,10 +1819,10 @@ function programasDaLinha(linha) {
 
 function renderProgramas() {
   if(currentRole!=='admin') return `<div class="ph"><div class="ph-title">Acesso restrito</div></div>`;
-  return `<div class="ph"><div class="ph-title">Programas</div>
+  return `<div class="ph"><div class="ph-title">Etapas e Programas</div>
     <div class="ph-sub">O que a clínica oferece em cada linha de cuidado</div></div>
   <div id="progAviso" class="pt-nota" style="margin-bottom:14px">
-    Estes são os programas que aparecem na lista de espera e no cadastro de paciente.
+    Estas são as etapas e programas que aparecem na lista de espera.
   </div>
   <div id="progLista">${loadingHTML()}</div>`;
 }
@@ -1844,7 +1844,7 @@ function desenharProgramas() {
         ${cfg.emoji} ${esc(cfg.label)}
       </div>
       ${usandoPadrao
-        ? `<div class="pt-nota" style="margin:0 0 10px">Sem programas próprios — usando a lista padrão:
+        ? `<div class="pt-nota" style="margin:0 0 10px">Sem etapas ou programas próprios — usando a lista padrão:
              ${esc(cfg.servicos.split(' · ').join(', '))}</div>`
         : daLinha.map(p=>{
             const inativo = ['não','nao'].includes(String(p.ativo||'Sim').toLowerCase());
@@ -1857,7 +1857,7 @@ function desenharProgramas() {
               <button class="backbtn" onclick="editarPrograma('${esc(p.id)}')">✏️</button>
             </div>`;
           }).join('')}
-      <button class="addbtn" style="margin-top:10px" onclick="novoPrograma('${k}')">+ Programa em ${esc(cfg.label)}</button>
+      <button class="addbtn" style="margin-top:10px" onclick="novoPrograma('${k}')">+ Adicionar em ${esc(cfg.label)}</button>
     </div>`;
   }).join('') + `<div id="progForm"></div>`;
 }
@@ -1869,8 +1869,8 @@ function novoPrograma(linha, existente) {
   const cfg = LINHAS[p.linha] || {label:p.linha};
   f.innerHTML = `<div class="evo-form">
     <div class="hist-tit" style="margin-bottom:10px">
-      ${existente?'✏️ Editar programa':'+ Novo programa'} — ${esc(cfg.label)}</div>
-    <div class="fg"><label class="fl">Nome do programa *</label>
+      ${existente?'✏️ Editar':'+ Nova etapa ou programa'} — ${esc(cfg.label)}</div>
+    <div class="fg"><label class="fl">Nome *</label>
       <input class="fi" id="pgNome" value="${esc(p.nome)}"
              placeholder="Ex.: Acolhimento inicial, Grupo de estimulação motora"></div>
     <div class="fg"><label class="fl">Descrição (opcional)</label>
@@ -1902,7 +1902,7 @@ function editarPrograma(id) {
 }
 
 async function salvarPrograma(linha, id) {
-  if(currentRole!=='admin'){ showToast('Só a gestão pode alterar programas.','err'); return; }
+  if(currentRole!=='admin'){ showToast('Só a gestão pode alterar etapas e programas.','err'); return; }
   const nome = (document.getElementById('pgNome').value||'').trim();
   const err = document.getElementById('pgErr');
   const btn = document.getElementById('pgBtn');
@@ -1913,7 +1913,7 @@ async function salvarPrograma(linha, id) {
   const repetido = (_programas||[]).some(p=>
     String(p.linha)===String(linha) && String(p.id)!==String(id||'') &&
     normalizar(p.nome)===normalizar(nome));
-  if(repetido){ err.textContent='Já existe um programa com esse nome nesta linha.'; err.style.display='block'; return; }
+  if(repetido){ err.textContent='Já existe uma etapa ou programa com esse nome nesta linha.'; err.style.display='block'; return; }
   err.style.display='none';
 
   const dados = {
@@ -1932,18 +1932,18 @@ async function salvarPrograma(linha, id) {
 
   document.getElementById('progForm').innerHTML='';
   await loadProgramas();
-  showToast('✅ Programa salvo','ok');
+  showToast('✅ Salvo','ok');
 }
 
 async function excluirPrograma(id) {
   const p = (_programas||[]).find(x=>String(x.id)===String(id));
   if(!p) return;
-  if(!confirm('Excluir "'+p.nome+'"?\n\nEle some das listas, mas quem já escolheu esse programa continua registrado.\n\nPara apenas parar de oferecer, use Situação: Inativo.')) return;
+  if(!confirm('Excluir "'+p.nome+'"?\n\nSome das listas, mas quem já escolheu continua registrado.\n\nPara apenas parar de oferecer, use Situação: Inativo.')) return;
   const res = await api('deletar',{tabela:'programas', id});
   if(!res.ok){ showToast('Erro ao excluir: '+(res.erro||''),'err'); return; }
   document.getElementById('progForm').innerHTML='';
   await loadProgramas();
-  showToast('🗑 Programa excluído','ok');
+  showToast('🗑 Excluído','ok');
 }
 
 // ═══════════════════════════════════════════════
@@ -2189,7 +2189,7 @@ function servicosEsperaHTML(linhas, jaMarcados) {
 
 function programasEsperaHTML(linhas, jaMarcados) {
   return caixasPorLinha(linhas, jaMarcados, programasDaLinha,
-    'Escolha a linha clínica para ver os programas.');
+    'Escolha a linha clínica para ver as etapas e programas.');
 }
 
 function linhasMarcadasEspera() {
@@ -2233,7 +2233,7 @@ function novoNaEspera(existente) {
           </div></div>
         <div class="fg fa"><label class="fl">Serviços de interesse <span style="font-weight:400;color:var(--ink3)">(pode marcar mais de um)</span></label>
           <div id="espServicos">${servicosEsperaHTML(linhasDe(e.linha), e.servicos)}</div></div>
-        <div class="fg fa"><label class="fl">Programa e etapa <span style="font-weight:400;color:var(--ink3)">(pode marcar mais de um)</span></label>
+        <div class="fg fa"><label class="fl">Etapa ou programa <span style="font-weight:400;color:var(--ink3)">(pode marcar mais de um)</span></label>
           <div id="espProgramas">${programasEsperaHTML(linhasDe(e.linha), e.programa)}</div></div>
         <div class="fg"><label class="fl">Na lista desde</label>
           <input class="fi" id="espData" type="date" value="${e.data_entrada?String(e.data_entrada).slice(0,10):hojeISO()}"></div>
