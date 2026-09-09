@@ -596,6 +596,7 @@ input,select,textarea{outline:none;}
     <div style="margin-top:12px;">
       <div class="umenu-item" id="umEquipe" onclick="loadPage('equipe');closeMenu();"><span class="umenu-icon">👥</span>Gerenciar equipe</div>
       <div class="umenu-item" id="umProgramas" onclick="loadPage('programas');closeMenu();"><span class="umenu-icon">🧩</span>Etapas e Programas</div>
+      <div class="umenu-item" id="umClinica" onclick="closeMenu();abrirConfigClinica();"><span class="umenu-icon">🏥</span>Dados da clínica</div>
       <div class="umenu-item" id="umImportar" onclick="closeMenu();abrirImportacao();"><span class="umenu-icon">📥</span>Importar pacientes</div>
       <div class="umenu-item" onclick="showAlterarSenha()"><span class="umenu-icon">🔑</span>Alterar senha</div>
       <div class="umenu-item danger" onclick="doLogout()"><span class="umenu-icon">🚪</span>Sair</div>
@@ -631,7 +632,7 @@ let demoMode = false;
 // Muda a cada publicação. Serve para o aparelho perceber que está com uma
 // versão velha em cache — sem isto a pessoa continua vendo o problema já
 // corrigido e jura que não foi corrigido.
-const VERSAO = '2026-09-09.01';
+const VERSAO = '2026-09-09.02';
 let _profsCache = null;
 let _demoPacienteId = null;
 
@@ -4591,6 +4592,7 @@ function openUserMenu(){
   document.getElementById('umEquipe').style.display=currentRole!=='profissional'?'flex':'none';
   document.getElementById('umImportar').style.display=currentRole==='admin'?'flex':'none';
   document.getElementById('umProgramas').style.display=currentRole==='admin'?'flex':'none';
+  document.getElementById('umClinica').style.display=currentRole==='admin'?'flex':'none';
   document.getElementById('umOv').classList.add('open');
 }
 function closeMenu(){document.getElementById('umOv').classList.remove('open');}
