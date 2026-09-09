@@ -525,10 +525,33 @@ function meuProntuario(token) {
   if (!achado) return {ok:false, erro:'Cadastro n\u00e3o encontrado'};
   const p = achado.obj;
 
+  // Funcao e registro do terapeuta, para o paciente saber quem o atende e
+  // com que credencial - "Dr. Paulo" sozinho diz pouco
+  let terapeutaFuncao = '', terapeutaRegistro = '';
+  if (p.terapeuta_nome) {
+    const ssp = getSpreadsheet();
+    const sp = ssp.getSheetByName('Profissionais');
+    if (sp && sp.getLastRow() > 1) {
+      const dp = sp.getDataRange().getValues();
+      const hp = dp[0];
+      const iNome = hp.indexOf('nome'), iFun = hp.indexOf('funcao'), iReg = hp.indexOf('registro');
+      const alvo = String(p.terapeuta_nome).trim().toLowerCase();
+      for (let i=1;i<dp.length;i++) {
+        if (String(dp[i][iNome]||'').trim().toLowerCase() === alvo) {
+          terapeutaFuncao  = iFun >= 0 ? (dp[i][iFun]||'') : '';
+          terapeutaRegistro = iReg >= 0 ? (dp[i][iReg]||'') : '';
+          break;
+        }
+      }
+    }
+  }
+
   return {ok:true, dados:{
     nome: p.nome,
     linha: p.linha,
     terapeuta_nome: p.terapeuta_nome,
+    terapeuta_funcao: terapeutaFuncao,
+    terapeuta_registro: terapeutaRegistro,
     servicos: p.servicos,
     status: p.status,
     plano: p.plano_paciente || '',
@@ -945,15 +968,35 @@ function enviarMensagem(body, token) {
 // --- CONFIGURACAO DA CLINICA ----------------------------------
 // Cabecalho dos documentos gerados: nome, CNPJ, contato e logo. Fica numa
 // aba de chave/valor para a clinica mudar sem mexer no codigo.
+const CONFIG_PADRAO = {
+  nome: 'CASA OLIVEIRA',
+  razao_social: 'Espa\u00e7o de Habilita\u00e7\u00e3o, Preven\u00e7\u00e3o, Reabilita\u00e7\u00e3o e Pr\u00e1ticas Integrativas Oliveira LTDA',
+  cnpj: '43.017.332/0001-91',
+  endereco: 'Rua Dr. Samuel Porto, 396, Sa\u00fade, S\u00e3o Paulo - SP',
+  telefone: '(11) 96579-0254',
+  cidade: 'S\u00e3o Paulo',
+  lema: 'N\u00e3o \u00e9 cl\u00ednica, \u00e9 Casa',
+  rodape: 'Metr\u00f4 Sa\u00fade \u2022 Desenvolvimento Infantil \u00b7 Sa\u00fade da Mulher \u00b7 Reabilita\u00e7\u00e3o F\u00edsica \u00b7 Sa\u00fade Mental \u00b7 Gerontologia \u00b7 Bem-Estar',
+};
+
 function lerConfig() {
   const ss = getSpreadsheet();
   const sheet = ss.getSheetByName('Config');
   const cfg = {};
-  if (!sheet || sheet.getLastRow() < 2) return cfg;
+  // Sem nada gravado ainda, vale o timbrado que a clinica ja usava - assim o
+  // primeiro documento ja sai certo, sem depender de alguem preencher antes
+  if (!sheet || sheet.getLastRow() < 2) {
+    Object.keys(CONFIG_PADRAO).forEach(function(k){ cfg[k] = CONFIG_PADRAO[k]; });
+    return cfg;
+  }
   const dados = sheet.getDataRange().getValues();
   for (let i=1;i<dados.length;i++) {
     if (dados[i][0]) cfg[String(dados[i][0])] = dados[i][1];
   }
+  // completa o que ainda nao foi preenchido
+  Object.keys(CONFIG_PADRAO).forEach(function(k){
+    if (!cfg[k]) cfg[k] = CONFIG_PADRAO[k];
+  });
   return cfg;
 }
 
@@ -991,21 +1034,27 @@ function gerarOrcamento(body, token) {
   if (!info || info.role === 'paciente') return {ok:false, erro:'Sem permissao'};
   if (!body.paciente_id) return {ok:false, erro:'Paciente nao informado'};
 
-  const itens = body.itens || [];
-  if (!itens.length) return {ok:false, erro:'Inclua ao menos um item'};
+  const tipo = String(body.tipo||'orcamento');
+  if (tipo === 'declaracao' && !String(body.texto||'').trim())
+    return {ok:false, erro:'Escreva o texto da declaracao'};
+  if (tipo !== 'declaracao' && !(body.investimento||[]).length && !(body.protocolo||[]).length)
+    return {ok:false, erro:'Preencha ao menos o protocolo ou o investimento'};
 
   const pac = acharPacientePorId(body.paciente_id);
   if (!pac) return {ok:false, erro:'Paciente nao encontrado'};
 
   const cfg = lerConfig();
   const numero = proximoNumeroOrcamento();
-  const html = htmlOrcamento(cfg, pac.obj, itens, body, numero, info);
+  const html = htmlDocumento(cfg, pac.obj, body, info);
+
+  const rotulos = {declaracao:'Declaracao', orcamento:'Orcamento', proposta:'Proposta'};
+  const rotulo = rotulos[tipo] || 'Documento';
 
   let arquivo;
   try {
-    const blob = Utilities.newBlob(html, 'text/html', 'orcamento.html')
+    const blob = Utilities.newBlob(html, 'text/html', 'doc.html')
                           .getAs('application/pdf')
-                          .setName('Orcamento ' + numero + ' - ' + (pac.obj.nome||'') + '.pdf');
+                          .setName(rotulo + ' ' + numero.replace('/','-') + ' - ' + (pac.obj.nome||'') + '.pdf');
     arquivo = pastaDoPaciente(body.paciente_id, pac.obj.nome).createFile(blob);
   } catch(e) {
     return {ok:false, erro:'Nao foi possivel gerar o PDF: ' + e.toString()};
@@ -1019,21 +1068,19 @@ function gerarOrcamento(body, token) {
   }
   const id = 'doc_' + Date.now() + '_' + Math.floor(Math.random()*9999);
   sheet.appendRow([
-    id, body.paciente_id, arquivo.getName(), 'application/pdf', 'Orcamento',
+    id, body.paciente_id, arquivo.getName(), 'application/pdf', rotulo,
     arquivo.getId(), arquivo.getSize(),
     body.visivel_paciente === false ? 'Nao' : 'Sim',
     info.email, body.autor_nome || '', new Date().toISOString()
   ]);
 
-  // Guarda tambem os dados do orcamento, para reabrir e refazer depois
+  // Guarda o conteudo para reabrir e refazer depois sem redigitar
   const so = getOuCria(ss, 'Orcamentos');
   if (so.getLastRow() === 0) {
-    so.appendRow(['id','numero','paciente_id','itens','total','validade','observacoes',
-                  'documento_id','criado_por','criado_em']);
+    so.appendRow(['id','numero','tipo','paciente_id','conteudo','documento_id','criado_por','criado_em']);
   }
   so.appendRow([
-    'orc_' + Date.now(), numero, body.paciente_id, JSON.stringify(itens),
-    totalDosItens(itens), body.validade||'', body.observacoes||'',
+    'orc_' + Date.now(), numero, tipo, body.paciente_id, JSON.stringify(body),
     id, info.email, new Date().toISOString()
   ]);
 
@@ -1074,66 +1121,140 @@ function escapeHtml(s) {
     .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-function htmlOrcamento(cfg, pac, itens, body, numero, info) {
+// O layout segue os documentos que a clinica ja usava em Word: mesmo
+// cabecalho institucional, secoes numeradas em verde, tabelas de duas colunas
+// e o rodape com o lema. Tres tipos partilham a moldura e mudam o miolo.
+function htmlDocumento(cfg, pac, body, info) {
+  const tipo = String(body.tipo || 'orcamento');
   const hoje = new Date();
-  const dataBR = hoje.getDate() + '/' + (hoje.getMonth()+1) + '/' + hoje.getFullYear();
-  const total = totalDosItens(itens);
+  const meses = ['janeiro','fevereiro','marco','abril','maio','junho','julho',
+                 'agosto','setembro','outubro','novembro','dezembro'];
+  const dataExtenso = (cfg.cidade || 'Sao Paulo') + ', ' + hoje.getDate() + ' de ' +
+                      meses[hoje.getMonth()] + ' de ' + hoje.getFullYear();
 
-  const linhas = itens.map(function(i){
-    const qtd = Number(i.quantidade)||0;
-    const val = Number(i.valor)||0;
-    return '<tr>' +
-      '<td>' + escapeHtml(i.descricao||'') + '</td>' +
-      '<td class="c">' + qtd + '</td>' +
-      '<td class="d">' + dinheiro(val) + '</td>' +
-      '<td class="d">' + dinheiro(qtd*val) + '</td>' +
-    '</tr>';
-  }).join('');
+  const titulos = {
+    declaracao: 'DECLARACAO DE ACOMPANHAMENTO',
+    orcamento:  'ORCAMENTO DE CUIDADO',
+    proposta:   'PROPOSTA DE CUIDADO'
+  };
+  const titulo = body.titulo || titulos[tipo] || titulos.orcamento;
 
   const logo = cfg.logo
-    ? '<img src="' + escapeHtml(cfg.logo) + '" style="max-height:70px;max-width:220px">'
-    : '<div style="font-family:Georgia,serif;font-size:26px;color:#1d6b58">' +
-      escapeHtml(cfg.nome || 'Casa Oliveira') + '</div>';
+    ? '<img src="' + escapeHtml(cfg.logo) + '" class="logo">'
+    : '<div class="marca">' + escapeHtml(cfg.nome || 'CASA OLIVEIRA') + '</div>';
+
+  let miolo = '';
+  if (tipo === 'declaracao') miolo = mioloDeclaracao(body);
+  else miolo = mioloProposta(body, tipo);
+
+  const assinatura = tipo === 'declaracao'
+    ? '<div class="assina">' +
+        '<div class="assina-nome">' + escapeHtml(body.assina_nome || info.email) + '</div>' +
+        (body.assina_funcao ? '<div>' + escapeHtml(body.assina_funcao) + '</div>' : '') +
+        (body.assina_registro ? '<div>' + escapeHtml(body.assina_registro) + '</div>' : '') +
+      '</div>'
+    : '<div class="assina">' +
+        '<div class="assina-nome">' + escapeHtml(cfg.nome || 'Casa Oliveira Saude') + '</div>' +
+        (body.linha_rotulo ? '<div>Linha ' + escapeHtml(body.linha_rotulo) + '</div>' : '') +
+      '</div>';
 
   return '<!DOCTYPE html><html><head><meta charset="UTF-8"><style>' +
-    'body{font-family:Arial,Helvetica,sans-serif;color:#1a1714;font-size:12px;padding:34px 38px;}' +
-    '.topo{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1d6b58;padding-bottom:14px;margin-bottom:18px;}' +
-    '.cl{font-size:11px;color:#5c5650;line-height:1.55;text-align:right;}' +
-    'h1{font-size:17px;margin:0 0 3px;color:#1d6b58;}' +
-    '.sub{font-size:11px;color:#5c5650;margin-bottom:18px;}' +
-    '.bloco{background:#f5f3ef;border-radius:6px;padding:11px 13px;margin-bottom:16px;}' +
-    '.bloco b{display:inline-block;min-width:88px;color:#5c5650;font-weight:normal;}' +
-    'table{width:100%;border-collapse:collapse;margin-top:6px;}' +
-    'th{background:#1d6b58;color:#fff;text-align:left;padding:7px 9px;font-size:11px;}' +
-    'td{padding:7px 9px;border-bottom:1px solid #e8e2d9;}' +
-    '.c{text-align:center;} .d{text-align:right;white-space:nowrap;}' +
-    '.tot{margin-top:14px;text-align:right;font-size:15px;font-weight:bold;color:#1d6b58;}' +
-    '.obs{margin-top:20px;font-size:11px;color:#5c5650;line-height:1.6;white-space:pre-wrap;}' +
-    '.rod{margin-top:34px;padding-top:12px;border-top:1px solid #e8e2d9;font-size:10px;color:#9e9890;text-align:center;line-height:1.6;}' +
+    '@page{margin:34px 42px;}' +
+    'html,body{background:#ffffff !important;}' +
+    'body{font-family:Arial,Helvetica,sans-serif;color:#1a1714;font-size:11.5pt;line-height:1.55;' +
+      '-webkit-print-color-adjust:exact;print-color-adjust:exact;}' +
+    '.topo{text-align:center;border-bottom:1.5px solid #4a7c59;padding-bottom:9px;margin-bottom:16px;}' +
+    '.marca{font-family:Georgia,"Times New Roman",serif;font-size:22pt;font-weight:bold;color:#2d5a3d;letter-spacing:.5px;}' +
+    '.logo{max-height:62px;max-width:230px;}' +
+    '.razao{font-style:italic;font-size:8.5pt;color:#3a3a3a;margin-top:2px;}' +
+    '.contato{font-size:8pt;color:#3a3a3a;margin-top:2px;}' +
+    '.data{text-align:right;font-style:italic;font-size:10.5pt;margin:14px 0 16px;}' +
+    'h1{font-family:Georgia,serif;font-size:16pt;color:#2d5a3d;text-align:center;margin:0 0 4px;letter-spacing:.3px;}' +
+    '.sub{text-align:center;font-style:italic;font-size:10.5pt;color:#3a3a3a;margin-bottom:18px;}' +
+    'h2{font-family:Georgia,serif;font-size:12pt;color:#2d5a3d;margin:18px 0 6px;' +
+       'border-bottom:1px solid #cfe0d4;padding-bottom:3px;}' +
+    'table{width:100%;border-collapse:collapse;margin:8px 0;}' +
+    'td,th{border:1px solid #7f7f7f;padding:6px 9px;font-size:10.5pt;vertical-align:top;' +
+      'background:#ffffff;color:#1a1714;}' +
+    '.rot{background:#eaf2ec !important;font-weight:bold;color:#2d5a3d;width:34%;}' +
+    'th{background:#eaf2ec !important;color:#2d5a3d;text-align:left;}' +
+    'ul{margin:6px 0 0;padding-left:20px;} li{margin-bottom:5px;}' +
+    'p{margin:0 0 11px;text-align:justify;}' +
+    '.nota{font-style:italic;font-size:10pt;color:#3a3a3a;margin-top:10px;}' +
+    '.assina{margin-top:30px;padding-top:12px;border-top:1px solid #1a1714;text-align:center;font-size:10.5pt;}' +
+    '.assina-nome{font-weight:bold;}' +
+    '.rodape{margin-top:34px;padding-top:9px;border-top:1px solid #cfe0d4;text-align:center;' +
+       'font-size:8pt;color:#5c5650;}' +
+    '.lema{font-style:italic;}' +
     '</style></head><body>' +
-    '<div class="topo"><div>' + logo + '</div><div class="cl">' +
-      (cfg.cnpj ? 'CNPJ ' + escapeHtml(cfg.cnpj) + '<br>' : '') +
-      (cfg.endereco ? escapeHtml(cfg.endereco) + '<br>' : '') +
-      (cfg.telefone ? escapeHtml(cfg.telefone) + '<br>' : '') +
-      (cfg.email ? escapeHtml(cfg.email) : '') +
-    '</div></div>' +
-    '<h1>Orcamento ' + escapeHtml(numero) + '</h1>' +
-    '<div class="sub">Emitido em ' + dataBR + (body.validade ? ' &middot; Valido ate ' + escapeHtml(body.validade) : '') + '</div>' +
-    '<div class="bloco">' +
-      '<div><b>Paciente</b> ' + escapeHtml(pac.nome||'') + '</div>' +
-      (pac.data_nascimento ? '<div><b>Nascimento</b> ' + escapeHtml(String(pac.data_nascimento).slice(0,10)) + '</div>' : '') +
-      (pac.terapeuta_nome ? '<div><b>Profissional</b> ' + escapeHtml(pac.terapeuta_nome) + '</div>' : '') +
-      (body.cpf ? '<div><b>CPF</b> ' + escapeHtml(body.cpf) + '</div>' : '') +
-    '</div>' +
-    '<table><tr><th>Descricao</th><th class="c">Qtd.</th><th class="d">Valor unit.</th><th class="d">Subtotal</th></tr>' +
-    linhas + '</table>' +
-    '<div class="tot">Total: ' + dinheiro(total) + '</div>' +
-    (body.observacoes ? '<div class="obs"><b>Observacoes</b><br>' + escapeHtml(body.observacoes) + '</div>' : '') +
-    '<div class="rod">' + escapeHtml(cfg.rodape || 'Documento emitido pelo sistema da clinica.') +
-    '<br>Emitido por ' + escapeHtml(body.autor_nome || info.email) + ' em ' + dataBR + '</div>' +
-    '</body></html>';
+    '<div class="topo">' + logo +
+      (cfg.razao_social ? '<div class="razao">' + escapeHtml(cfg.razao_social) + '</div>' : '') +
+      '<div class="contato">' +
+        (cfg.cnpj ? 'CNPJ ' + escapeHtml(cfg.cnpj) + ' &nbsp;&bull;&nbsp; ' : '') +
+        (cfg.endereco ? escapeHtml(cfg.endereco) + ' &nbsp;&bull;&nbsp; ' : '') +
+        (cfg.telefone ? escapeHtml(cfg.telefone) : '') +
+      '</div></div>' +
+    '<div class="data">' + escapeHtml(dataExtenso) + '</div>' +
+    '<h1>' + escapeHtml(titulo) + '</h1>' +
+    (body.subtitulo ? '<div class="sub">' + escapeHtml(body.subtitulo) + '</div>' : '') +
+    (tipo !== 'declaracao' ? blocoPaciente(pac, body) : '') +
+    miolo +
+    '<p style="margin-top:22px"><i>A disposicao.</i></p>' +
+    assinatura +
+    '<div class="rodape">' +
+      (cfg.lema ? '<div class="lema">"' + escapeHtml(cfg.lema) + '"</div>' : '') +
+      (cfg.rodape ? '<div>' + escapeHtml(cfg.rodape) + '</div>' : '') +
+    '</div></body></html>';
 }
 
+function blocoPaciente(pac, body) {
+  let t = '<table>';
+  t += '<tr><td class="rot">Paciente</td><td>' + escapeHtml(pac.nome||'') + '</td></tr>';
+  if (body.cpf) t += '<tr><td class="rot">CPF</td><td>' + escapeHtml(body.cpf) + '</td></tr>';
+  return t + '</table>';
+}
+
+function mioloDeclaracao(body) {
+  const paragrafos = String(body.texto||'').split(/\n\s*\n/).filter(function(p){ return p.trim(); });
+  return paragrafos.map(function(p){
+    return '<p>' + escapeHtml(p.trim()).replace(/\n/g,'<br>') + '</p>';
+  }).join('');
+}
+
+function mioloProposta(body, tipo) {
+  let h = '';
+  let n = 0;
+
+  if ((body.protocolo||[]).length) {
+    n++;
+    h += '<h2>' + n + '. ' + escapeHtml(body.protocolo_titulo || 'Protocolo Individualizado') + '</h2><ul>' +
+      body.protocolo.map(function(i){ return '<li>' + escapeHtml(i) + '</li>'; }).join('') + '</ul>';
+  }
+  if ((body.objetivos||[]).length) {
+    n++;
+    h += '<h2>' + n + '. Objetivos Terapeuticos</h2><ul>' +
+      body.objetivos.map(function(i){ return '<li>' + escapeHtml(i) + '</li>'; }).join('') + '</ul>';
+  }
+  // O cronograma e o que distingue a proposta do orcamento
+  if (tipo === 'proposta' && (body.cronograma||[]).length) {
+    n++;
+    h += '<h2>' + n + '. Cronograma</h2>' +
+      '<table><tr><th>Sessao</th><th>Dia da semana</th><th>Dia</th><th>Profissional</th></tr>' +
+      body.cronograma.map(function(s, i){
+        return '<tr><td>' + (i+1) + '</td><td>' + escapeHtml(s.dia_semana||'') +
+               '</td><td>' + escapeHtml(s.data||'') + '</td><td>' + escapeHtml(s.profissional||'') + '</td></tr>';
+      }).join('') + '</table>';
+  }
+  if ((body.investimento||[]).length) {
+    n++;
+    h += '<h2>' + n + '. Investimento</h2><table>' +
+      body.investimento.map(function(l){
+        return '<tr><td class="rot">' + escapeHtml(l.rotulo||'') + '</td><td>' + escapeHtml(l.valor||'') + '</td></tr>';
+      }).join('') + '</table>';
+  }
+  if (body.observacoes) h += '<div class="nota">' + escapeHtml(body.observacoes) + '</div>';
+  return h;
+}
 
 // --- EXERCICIOS -----------------------------------------------
 // A clinica mantem a biblioteca (aba Exercicios, pelo CRUD comum) e o
@@ -1351,6 +1472,13 @@ function convidarProf(body, token) {
   // Guarda ja com hash - a senha em texto puro nao fica na planilha
   sheet.appendRow([id, body.nome, body.email, body.funcao||'', body.nivel||'profissional',
                    hashSenha(body.email, senhaInicial), (body.linhas||[]).join(', '), 'Ativo']);
+  // registro profissional (CREFITO, CRP, CRFa) - assina os documentos gerados
+  if (body.registro) {
+    const hh = sheet.getDataRange().getValues()[0];
+    let iReg = hh.indexOf('registro');
+    if (iReg === -1) { iReg = hh.length; sheet.getRange(1, iReg+1).setValue('registro'); }
+    sheet.getRange(sheet.getLastRow(), iReg+1).setValue(body.registro);
+  }
 
   // Enviar e-mail
   try {

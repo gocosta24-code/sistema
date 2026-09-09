@@ -379,6 +379,13 @@ input,select,textarea{outline:none;}
 .orc-item-campos .fi{flex:1;min-width:0;}
 .orc-total{text-align:right;font-family:'Fraunces',serif;font-size:22px;color:var(--teal);margin-top:12px;padding-top:10px;border-top:1px solid var(--bor);}
 
+.doc-tipos{display:flex;gap:6px;background:var(--sur2);border-radius:11px;padding:4px;margin-bottom:14px;}
+.doc-tipo{flex:1;text-align:center;padding:8px 6px;border-radius:8px;font-size:13px;font-weight:600;color:var(--ink3);cursor:pointer;}
+.doc-tipo.on{background:var(--teal);color:#fff;}
+.dc-linha{display:flex;gap:6px;align-items:center;margin-bottom:6px;}
+.dc-linha .fi{flex:1;min-width:0;}
+.dc-num{width:24px;height:24px;border-radius:50%;background:var(--sur2);color:var(--ink2);font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+
 /* LOADING INLINE */
 .loading-inline{text-align:center;padding:36px;color:var(--ink3);font-size:14px;}
 .loading-spin{width:24px;height:24px;border:2px solid var(--bor);border-top-color:var(--teal);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px;}
@@ -640,7 +647,7 @@ let demoMode = false;
 // Muda a cada publicação. Serve para o aparelho perceber que está com uma
 // versão velha em cache — sem isto a pessoa continua vendo o problema já
 // corrigido e jura que não foi corrigido.
-const VERSAO = '2026-09-09.04';
+const VERSAO = '2026-09-09.05';
 let _profsCache = null;
 let _demoPacienteId = null;
 
@@ -730,6 +737,10 @@ async function apiBruto(action, body={}) {
 // ═══════════════════════════════════════════════
 // DEMO API (funciona offline)
 // ═══════════════════════════════════════════════
+// PDF valido de uma pagina, para o download no modo demonstracao abrir no
+// leitor em vez de dar erro de arquivo corrompido
+const PDF_EXEMPLO = 'JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCA1OTUgODQyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSA1IDAgUiA+PiA+PiAvQ29udGVudHMgNCAwIFIgPj4KZW5kb2JqCjQgMCBvYmoKPDwgL0xlbmd0aCAxMzIgPj4Kc3RyZWFtCkJUIC9GMSAyMCBUZiA2MCA3MDAgVGQgKERvY3VtZW50byBkZSBkZW1vbnN0cmFjYW8pIFRqIEVUCkJUIC9GMSAxMiBUZiA2MCA2NjAgVGQgKENhc2EgT2xpdmVpcmEgLSBleGVtcGxvIGRvIG1vZG8gZGVtb25zdHJhY2FvKSBUaiBFVAplbmRzdHJlYW0KZW5kb2JqCjUgMCBvYmoKPDwgL1R5cGUgL0ZvbnQgL1N1YnR5cGUgL1R5cGUxIC9CYXNlRm9udCAvSGVsdmV0aWNhID4+CmVuZG9iagp4cmVmCjAgNgowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMDkgMDAwMDAgbiAKMDAwMDAwMDA1OCAwMDAwMCBuIAowMDAwMDAwMTE1IDAwMDAwIG4gCjAwMDAwMDAyNDEgMDAwMDAgbiAKMDAwMDAwMDQyNCAwMDAwMCBuIAp0cmFpbGVyCjw8IC9TaXplIDYgL1Jvb3QgMSAwIFIgPj4Kc3RhcnR4cmVmCjQ5NAolJUVPRgo=';
+
 const DEMO_DB = {
   pacientes: [
     {id:'p1', nome:'Lucas Oliveira', linha:'infantil', data_nascimento:'2017-03-15', responsavel:'Fernanda Oliveira', escola:'E.M. Monteiro Lobato', terapeuta_nome:'TO Juliana', servicos:'TO Infantil', status:'Ativo', criado_em:'2025-01-10'},
@@ -749,7 +760,7 @@ const DEMO_DB = {
     {id:'prof_2',      nome:'TO Juliana',      email:'juliana@casaoliveira.com',    funcao:'Terapeuta Ocup.',    nivel_acesso:'coordenador', linhas:'infantil,geriatria', status:'Ativo'},
     {id:'prof_3',      nome:'Dr. Carlos',      email:'carlos@casaoliveira.com',     funcao:'Fisioterapeuta Sênior', nivel_acesso:'profissional', linhas:'mulher,reabilitacao', status:'Ativo'},
     {id:'prof_4',      nome:'Dra. Paula',      email:'paula@casaoliveira.com',      funcao:'Fisioterapeuta',     nivel_acesso:'profissional', linhas:'pilates,reabilitacao', status:'Ativo'},
-    {id:'prof_5',      nome:'Dr. Paulo',       email:'paulo@casaoliveira.com',      funcao:'Fisioterapeuta Sênior', nivel_acesso:'profissional', linhas:'reabilitacao', status:'Ativo'},
+    {id:'prof_5',      nome:'Dr. Paulo',       email:'paulo@casaoliveira.com',      funcao:'Fisioterapeuta', registro:'CREFITO 32519-F', nivel_acesso:'profissional', linhas:'reabilitacao', status:'Ativo'},
     {id:'prof_6',      nome:'TO Marcia',       email:'marcia@casaoliveira.com',     funcao:'Terapeuta Ocup.',    nivel_acesso:'profissional', linhas:'geriatria', status:'Ativo'},
     {id:'prof_7',      nome:'TO Beatriz',      email:'beatriz@casaoliveira.com',    funcao:'Terapeuta Ocup.',    nivel_acesso:'profissional', linhas:'mental', status:'Ativo'},
   ],
@@ -758,10 +769,10 @@ const DEMO_DB = {
   documentos: [
     {id:'d1', paciente_id:'p4', nome:'Nota Fiscal 456.pdf', tipo:'application/pdf',
      categoria:'Nota fiscal', tamanho:98304, visivel_paciente:'Sim',
-     criado_em:'2026-09-01T10:00:00.000Z', _conteudo:'JVBERi0xLjQgZGVtbw=='},
+     criado_em:'2026-09-01T10:00:00.000Z', _conteudo:PDF_EXEMPLO},
     {id:'d2', paciente_id:'p4', nome:'Relatório interno.pdf', tipo:'application/pdf',
      categoria:'Relatório de atendimento', tamanho:65536, visivel_paciente:'Nao',
-     criado_em:'2026-09-02T10:00:00.000Z', _conteudo:'JVBERi0xLjQgZGVtbw=='},
+     criado_em:'2026-09-02T10:00:00.000Z', _conteudo:PDF_EXEMPLO},
   ],
   mensagens: [
     {id:'m1', paciente_id:'p4', de:'equipe', autor_nome:'Dra. Ana Paula',
@@ -843,8 +854,10 @@ function demoApi(action, body) {
     case 'meu_prontuario': {
       const p = DEMO_DB.pacientes.find(x=>String(x.id)===String(_demoPacienteId));
       if(!p) return {ok:false, erro:'Sessão inválida'};
+      const prof=(DEMO_DB.profissionais||[]).find(x=>String(x.nome).trim().toLowerCase()===String(p.terapeuta_nome||'').trim().toLowerCase())||{};
       return {ok:true, dados:{
-        nome:p.nome, linha:p.linha, terapeuta_nome:p.terapeuta_nome, servicos:p.servicos,
+        nome:p.nome, linha:p.linha, terapeuta_nome:p.terapeuta_nome,
+        terapeuta_funcao:prof.funcao||'', terapeuta_registro:prof.registro||'', servicos:p.servicos,
         status:p.status, plano:p.plano_paciente||'', plano_atualizado_em:p.plano_atualizado_em||'',
         orientacoes:p.orientacoes_paciente||'', proximo_contato:p.proximo_contato||'',
       }};
@@ -1267,6 +1280,8 @@ function renderEquipe() {
     <div class="f2">
       <div class="fg fa"><label class="fl">Nome *</label><input class="fi" id="invNome" placeholder="Nome completo"></div>
       <div class="fg"><label class="fl">E-mail *</label><input class="fi" id="invEmail" type="email" placeholder="email@casaoliveira.com"></div>
+      <div class="fg"><label class="fl">Registro profissional</label>
+        <input class="fi" id="invRegistro" placeholder="Ex.: CREFITO 32519-F, CRP 06/12345"></div>
       <div class="fg"><label class="fl">Senha inicial</label><input class="fi" id="invSenha" placeholder="deixe vazio para gerar"></div>
       <div class="fg"><label class="fl">Nível</label>
         <select class="fs" id="invNivel">
@@ -1902,7 +1917,8 @@ async function abrirPortal() {
 
     <div class="pt-card">
       <div class="pt-t">${cfg.emoji} Seu acompanhamento</div>
-      ${d.terapeuta_nome?`<div class="pt-linha"><span>Profissional</span><strong>${esc(d.terapeuta_nome)}</strong></div>`:''}
+      ${d.terapeuta_nome?`<div class="pt-linha"><span>Profissional</span>
+        <strong style="text-align:right">${esc(d.terapeuta_nome)}${d.terapeuta_funcao?`<div style="font-weight:400;font-size:12px;color:var(--ink3)">${esc(d.terapeuta_funcao)}${d.terapeuta_registro?' · '+esc(d.terapeuta_registro):''}</div>`:''}</strong></div>`:''}
       ${cfg.label?`<div class="pt-linha"><span>Área</span><strong>${esc(cfg.label)}</strong></div>`:''}
       ${d.servicos?`<div class="pt-linha"><span>Serviços</span><strong>${esc(d.servicos)}</strong></div>`:''}
       ${d.proximo_contato?`<div class="pt-linha"><span>Próximo contato</span><strong>${esc(fmtDataBR(d.proximo_contato))}</strong></div>`:''}
@@ -1969,7 +1985,7 @@ async function abrirPortal() {
     </div>
 
     <button class="backbtn" style="width:100%;margin-top:6px" onclick="trocarSenhaPaciente()">🔑 Alterar minha senha</button>
-    <div class="pt-rodape">Dúvidas sobre o tratamento? Fale com sua equipe na clínica.</div>`;
+    <div class="pt-rodape">Dúvidas sobre o tratamento? Fale com sua equipe pelo chat.</div>`;
 }
 
 function trocarSenhaPaciente() {
@@ -3442,97 +3458,14 @@ async function salvarSerie(pacienteId) {
 // documento do paciente — assim ele baixa pela própria área e leva ao
 // convênio, sem ninguém precisar mandar arquivo por fora.
 // ═══════════════════════════════════════════════
-function orcamentoHTML(p) {
-  return `<div class="pt-nota" style="margin-top:0">
-      O orçamento sai em PDF com o cabeçalho da clínica e fica disponível
-      para o paciente na área dele.
-      <span class="esp-limpar" onclick="abrirConfigClinica()">Editar cabeçalho</span>
-    </div>
-    <div class="fg"><label class="fl">CPF do paciente (opcional, para o convênio)</label>
-      <input class="fi" id="orcCpf" placeholder="000.000.000-00"></div>
-    <div class="fg"><label class="fl">Válido até</label>
-      <input class="fi" id="orcValidade" type="date"></div>
 
-    <div class="fl" style="margin:14px 0 6px">Itens</div>
-    <div id="orcItens"></div>
-    <button class="addbtn" style="margin-top:8px" onclick="addItemOrcamento()">+ Adicionar item</button>
 
-    <div class="orc-total" id="orcTotal">Total: R$ 0,00</div>
 
-    <div class="fg" style="margin-top:12px"><label class="fl">Observações</label>
-      <textarea class="ft" id="orcObs" placeholder="Formas de pagamento, condições..."></textarea></div>
-
-    <label class="pill-chk" style="margin-top:4px">
-      <input type="checkbox" id="orcVisivel" checked style="accent-color:var(--teal)">
-      O paciente pode ver e baixar
-    </label>
-
-    <div id="orcErr" class="errbox"></div>
-    <button class="savebtn" id="orcBtn" style="margin-top:12px"
-            onclick="gerarOrcamentoPdf('${p.id}')">📄 Gerar PDF</button>`;
-}
-
-function addItemOrcamento(item) {
-  const cx = document.getElementById('orcItens');
-  if(!cx) return;
-  item = item || {};
-  const div = document.createElement('div');
-  div.className = 'orc-item';
-  div.innerHTML = `
-    <input class="fi" placeholder="Descrição do serviço" value="${esc(item.descricao)}" data-ok="descricao">
-    <div class="orc-item-campos">
-      <input class="fi" type="number" min="1" step="1" placeholder="Qtd" value="${esc(item.quantidade||1)}" data-ok="quantidade" oninput="recalcularOrcamento()">
-      <input class="fi" type="number" min="0" step="0.01" placeholder="Valor unit." value="${esc(item.valor)}" data-ok="valor" oninput="recalcularOrcamento()">
-      <button class="backbtn" title="Remover" onclick="this.closest('.orc-item').remove();recalcularOrcamento()">✕</button>
-    </div>`;
-  cx.appendChild(div);
-  recalcularOrcamento();
-}
-
-function itensDoOrcamento() {
-  return [...document.querySelectorAll('#orcItens .orc-item')].map(el=>{
-    const v = k => (el.querySelector(`[data-ok="${k}"]`)||{}).value || '';
-    return {descricao:v('descricao').trim(), quantidade:Number(v('quantidade'))||0, valor:Number(v('valor'))||0};
-  }).filter(i=>i.descricao);
-}
-
-function recalcularOrcamento() {
-  const total = itensDoOrcamento().reduce((s,i)=>s + i.quantidade*i.valor, 0);
-  const el = document.getElementById('orcTotal');
-  if(el) el.textContent = 'Total: ' + moeda(total);
-}
 
 function moeda(v) {
   return 'R$ ' + (Number(v)||0).toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
 }
 
-async function gerarOrcamentoPdf(pacienteId) {
-  const itens = itensDoOrcamento();
-  const err = document.getElementById('orcErr');
-  const btn = document.getElementById('orcBtn');
-  if(!itens.length){ err.textContent='Inclua ao menos um item com descrição.'; err.style.display='block'; return; }
-  err.style.display='none';
-  btn.disabled=true; btn.textContent='Gerando PDF...';
-
-  const res = await api('gerar_orcamento',{
-    paciente_id: pacienteId,
-    itens,
-    cpf: (document.getElementById('orcCpf').value||'').trim(),
-    validade: (()=>{ const d=document.getElementById('orcValidade').value; return d?fmtDataBR(d):''; })(),
-    observacoes: (document.getElementById('orcObs').value||'').trim(),
-    visivel_paciente: document.getElementById('orcVisivel').checked,
-    autor_nome: currentUser.nome,
-  });
-
-  btn.disabled=false; btn.textContent='📄 Gerar PDF';
-  if(!res.ok){ err.textContent='Erro ao gerar: '+(res.erro||''); err.style.display='block'; return; }
-
-  showToast('✅ Orçamento '+res.numero+' gerado','ok');
-  if(confirm('Orçamento '+res.numero+' gerado e anexado ao paciente.\n\nBaixar agora?')) {
-    await baixarDoc(res.documento_id);
-  }
-  await carregarDocumentos(pacienteId);
-}
 
 // ── CABEÇALHO DA CLÍNICA ────────────────────────
 async function abrirConfigClinica() {
@@ -3542,8 +3475,9 @@ async function abrirConfigClinica() {
   document.getElementById('sheetTitle').textContent = '🏥 Cabeçalho dos documentos';
   document.getElementById('sheetBody').innerHTML = `
     <div class="pt-nota" style="margin-top:0">Aparece no topo dos orçamentos e demais documentos gerados.</div>
-    ${[['nome','Nome da clínica'],['cnpj','CNPJ'],['endereco','Endereço'],
-       ['telefone','Telefone'],['email','E-mail']].map(([k,l])=>`
+    ${[['nome','Nome da clínica'],['razao_social','Razão social'],['cnpj','CNPJ'],
+       ['endereco','Endereço'],['telefone','Telefone'],['email','E-mail'],
+       ['cidade','Cidade (para a data dos documentos)'],['lema','Lema']].map(([k,l])=>`
       <div class="fg"><label class="fl">${l}</label>
         <input class="fi" id="cfg_${k}" value="${esc(c[k])}"></div>`).join('')}
     <div class="fg"><label class="fl">Rodapé</label>
@@ -3578,7 +3512,7 @@ async function salvarConfigClinica() {
   const btn = document.getElementById('cfgBtn');
   const err = document.getElementById('cfgErr');
   const dados = {};
-  ['nome','cnpj','endereco','telefone','email','rodape','logo'].forEach(k=>{
+  ['nome','razao_social','cnpj','endereco','telefone','email','cidade','lema','rodape','logo'].forEach(k=>{
     dados[k] = (document.getElementById('cfg_'+k)||{}).value || '';
   });
   btn.disabled=true; btn.textContent='Salvando...';
@@ -3732,6 +3666,226 @@ async function excluirExercicio(id) {
   document.getElementById('bibForm').innerHTML='';
   await loadBiblioteca();
   showToast('🗑 Excluído','ok');
+}
+
+
+// ═══════════════════════════════════════════════
+// DOCUMENTOS GERADOS — declaração, orçamento e proposta
+// Os três compartilham o cabeçalho institucional da clínica e mudam o miolo:
+// a declaração é texto corrido assinado pelo profissional; orçamento e
+// proposta trazem protocolo, objetivos e investimento, e só a proposta
+// carrega o cronograma de sessões.
+// ═══════════════════════════════════════════════
+const TIPOS_DOC = [
+  {k:'declaracao', rotulo:'Declaração', titulo:'DECLARAÇÃO DE ACOMPANHAMENTO'},
+  {k:'orcamento',  rotulo:'Orçamento',  titulo:'ORÇAMENTO DE CUIDADO'},
+  {k:'proposta',   rotulo:'Proposta',   titulo:'PROPOSTA DE CUIDADO'},
+];
+let _tipoDoc = 'orcamento';
+
+function orcamentoHTML(p) {
+  return `<div class="doc-tipos">
+      ${TIPOS_DOC.map(t=>`<div class="doc-tipo ${t.k===_tipoDoc?'on':''}"
+        onclick="trocarTipoDoc('${t.k}','${p.id}')">${t.rotulo}</div>`).join('')}
+    </div>
+    <div id="orcCorpo">${corpoDocumentoHTML(p)}</div>`;
+}
+
+function trocarTipoDoc(tipo, pacienteId) {
+  _tipoDoc = tipo;
+  document.querySelectorAll('.doc-tipo').forEach(e=>
+    e.classList.toggle('on', e.textContent.trim()===(TIPOS_DOC.find(t=>t.k===tipo)||{}).rotulo));
+  const p = (_pacientesCache[_currentLinha]||[]).find(x=>String(x.id)===String(pacienteId)) || {id:pacienteId};
+  document.getElementById('orcCorpo').innerHTML = corpoDocumentoHTML(p);
+}
+
+function corpoDocumentoHTML(p) {
+  const t = TIPOS_DOC.find(x=>x.k===_tipoDoc) || TIPOS_DOC[1];
+  const comum = `
+    <div class="pt-nota" style="margin-top:0">Sai em PDF com o cabeçalho da clínica e fica
+      disponível para o paciente. <span class="esp-limpar" onclick="abrirConfigClinica()">Editar cabeçalho</span></div>
+    <div class="fg"><label class="fl">Título</label>
+      <input class="fi" id="dcTitulo" value="${esc(t.titulo)}"></div>`;
+
+  if(_tipoDoc==='declaracao') {
+    const prof = (_profsCache||[]).find(x=>(x.nome||'')===(p.terapeuta_nome||'')) || {};
+    return comum + `
+      <div class="fg"><label class="fl">Texto da declaração</label>
+        <textarea class="ft" id="dcTexto" style="min-height:190px"
+          placeholder="Venho, através desta, atestar que o paciente...">${esc(modeloDeclaracao(p))}</textarea>
+        <div class="pt-nota">Deixe uma linha em branco entre os parágrafos.</div></div>
+      <div class="fl" style="margin:14px 0 6px">Assinatura</div>
+      <div class="f2">
+        <div class="fg fa"><label class="fl">Nome</label>
+          <input class="fi" id="dcAssNome" value="${esc(prof.nome||currentUser.nome)}"></div>
+        <div class="fg"><label class="fl">Função</label>
+          <input class="fi" id="dcAssFuncao" value="${esc(prof.funcao||'')}" placeholder="Fisioterapeuta"></div>
+        <div class="fg"><label class="fl">Registro</label>
+          <input class="fi" id="dcAssRegistro" value="${esc(prof.registro||'')}" placeholder="CREFITO 32519-F"></div>
+      </div>
+      ${rodapeFormDoc(p)}`;
+  }
+
+  return comum + `
+    <div class="fg"><label class="fl">Subtítulo</label>
+      <input class="fi" id="dcSub" placeholder="Ex.: Protocolo Individualizado Pós-Operatório — Primeira Fase"></div>
+    <div class="fg"><label class="fl">CPF do paciente</label>
+      <input class="fi" id="dcCpf" placeholder="000.000.000-00"></div>
+
+    <div class="fl" style="margin:16px 0 4px">1. Protocolo</div>
+    <input class="fi" id="dcProtTitulo" value="Protocolo Individualizado"
+           style="margin-bottom:6px" placeholder="Título da seção">
+    <div id="dcProtocolo"></div>
+    <button class="addbtn" onclick="addLinhaSimples('dcProtocolo','Ex.: Primeiro mês: 20 sessões de reabilitação.')">+ Item</button>
+
+    <div class="fl" style="margin:16px 0 4px">2. Objetivos terapêuticos</div>
+    <div id="dcObjetivos"></div>
+    <button class="addbtn" onclick="addLinhaSimples('dcObjetivos','Ex.: Controle do processo inflamatório e do edema.')">+ Objetivo</button>
+
+    ${_tipoDoc==='proposta'?`
+    <div class="fl" style="margin:16px 0 4px">3. Cronograma</div>
+    <div id="dcCronograma"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="addbtn" onclick="addSessao()">+ Sessão</button>
+      <button class="addbtn" style="background:var(--sur2);color:var(--ink2);border:1px solid var(--bor)"
+              onclick="gerarSessoesSeguidas()">+ 10 sessões em branco</button>
+    </div>`:''}
+
+    <div class="fl" style="margin:16px 0 4px">${_tipoDoc==='proposta'?'4':'3'}. Investimento</div>
+    <div id="dcInvestimento"></div>
+    <button class="addbtn" onclick="addLinhaValor()">+ Linha</button>
+
+    <div class="fg" style="margin-top:14px"><label class="fl">Observação final</label>
+      <input class="fi" id="dcObs" value="Será emitida nota fiscal referente aos serviços prestados."></div>
+    ${rodapeFormDoc(p)}`;
+}
+
+function rodapeFormDoc(p) {
+  return `<label class="pill-chk" style="margin-top:12px">
+      <input type="checkbox" id="dcVisivel" checked style="accent-color:var(--teal)">
+      O paciente pode ver e baixar
+    </label>
+    <div id="dcErr" class="errbox"></div>
+    <button class="savebtn" id="dcBtn" style="margin-top:12px" onclick="gerarDocumento('${p.id}')">📄 Gerar PDF</button>`;
+}
+
+// Rascunho do texto, para não começar da folha em branco
+function modeloDeclaracao(p) {
+  const nome = p.nome || 'o paciente';
+  return 'Venho, através desta, atestar que o paciente '+nome+' necessita de acompanhamento '+
+         'fisioterapêutico para [motivo].\n\n'+
+         'O paciente apresenta-se com [quadro clínico].\n\n'+
+         'É necessário o uso de [recursos terapêuticos] para reversão do quadro no estágio atual, '+
+         'até seu retorno pleno às atividades de vida diária.';
+}
+
+function addLinhaSimples(idContainer, dica) {
+  const cx = document.getElementById(idContainer);
+  if(!cx) return;
+  const d = document.createElement('div');
+  d.className = 'dc-linha';
+  d.innerHTML = `<input class="fi" data-dc="item" placeholder="${esc(dica)}">
+    <button class="backbtn" onclick="this.parentElement.remove()">✕</button>`;
+  cx.appendChild(d);
+  d.querySelector('input').focus();
+}
+
+function addLinhaValor(rotulo, valor) {
+  const cx = document.getElementById('dcInvestimento');
+  if(!cx) return;
+  const d = document.createElement('div');
+  d.className = 'dc-linha';
+  d.innerHTML = `<input class="fi" data-dc="rotulo" placeholder="Ex.: Valor total" value="${esc(rotulo)}" style="max-width:42%">
+    <input class="fi" data-dc="valor" placeholder="Ex.: R$ 2.580,00" value="${esc(valor)}">
+    <button class="backbtn" onclick="this.parentElement.remove()">✕</button>`;
+  cx.appendChild(d);
+}
+
+function addSessao(dia, data, prof) {
+  const cx = document.getElementById('dcCronograma');
+  if(!cx) return;
+  const n = cx.children.length + 1;
+  const d = document.createElement('div');
+  d.className = 'dc-linha';
+  d.innerHTML = `<div class="dc-num">${n}</div>
+    <input class="fi" data-dc="dia_semana" placeholder="Segunda" value="${esc(dia)}" style="max-width:26%">
+    <input class="fi" data-dc="data" placeholder="dd/mm/aaaa" value="${esc(data)}" style="max-width:28%">
+    <input class="fi" data-dc="profissional" placeholder="Profissional" value="${esc(prof)}">
+    <button class="backbtn" onclick="this.parentElement.remove();renumerarSessoes()">✕</button>`;
+  cx.appendChild(d);
+}
+
+function renumerarSessoes() {
+  [...document.querySelectorAll('#dcCronograma .dc-num')].forEach((e,i)=>e.textContent=i+1);
+}
+
+// A proposta que a clínica usa numera as sessões e deixa linhas em branco
+// para preencher à mão depois
+function gerarSessoesSeguidas() {
+  for(let i=0;i<10;i++) addSessao();
+}
+
+function coletarLinhas(idContainer, campo) {
+  return [...document.querySelectorAll('#'+idContainer+' .dc-linha')]
+    .map(l=>(l.querySelector(`[data-dc="${campo}"]`)||{}).value||'')
+    .map(s=>s.trim()).filter(Boolean);
+}
+
+async function gerarDocumento(pacienteId) {
+  const err = document.getElementById('dcErr');
+  const btn = document.getElementById('dcBtn');
+  const p = (_pacientesCache[_currentLinha]||[]).find(x=>String(x.id)===String(pacienteId)) || {};
+
+  const corpo = {
+    paciente_id: pacienteId,
+    tipo: _tipoDoc,
+    titulo: (document.getElementById('dcTitulo').value||'').trim(),
+    visivel_paciente: document.getElementById('dcVisivel').checked,
+    autor_nome: currentUser.nome,
+    linha_rotulo: (LINHAS[p.linha]||{}).label || '',
+  };
+
+  if(_tipoDoc==='declaracao') {
+    corpo.texto = (document.getElementById('dcTexto').value||'').trim();
+    corpo.assina_nome = (document.getElementById('dcAssNome').value||'').trim();
+    corpo.assina_funcao = (document.getElementById('dcAssFuncao').value||'').trim();
+    corpo.assina_registro = (document.getElementById('dcAssRegistro').value||'').trim();
+    if(!corpo.texto){ err.textContent='Escreva o texto da declaração.'; err.style.display='block'; return; }
+  } else {
+    corpo.subtitulo = (document.getElementById('dcSub').value||'').trim();
+    corpo.cpf = (document.getElementById('dcCpf').value||'').trim();
+    corpo.protocolo_titulo = (document.getElementById('dcProtTitulo').value||'').trim();
+    corpo.protocolo = coletarLinhas('dcProtocolo','item');
+    corpo.objetivos = coletarLinhas('dcObjetivos','item');
+    corpo.observacoes = (document.getElementById('dcObs').value||'').trim();
+    corpo.investimento = [...document.querySelectorAll('#dcInvestimento .dc-linha')].map(l=>({
+      rotulo: (l.querySelector('[data-dc="rotulo"]')||{}).value||'',
+      valor:  (l.querySelector('[data-dc="valor"]')||{}).value||'',
+    })).filter(x=>x.rotulo.trim()||x.valor.trim());
+    if(_tipoDoc==='proposta') {
+      corpo.cronograma = [...document.querySelectorAll('#dcCronograma .dc-linha')].map(l=>({
+        dia_semana: (l.querySelector('[data-dc="dia_semana"]')||{}).value||'',
+        data:       (l.querySelector('[data-dc="data"]')||{}).value||'',
+        profissional:(l.querySelector('[data-dc="profissional"]')||{}).value||'',
+      }));
+    }
+    if(!corpo.protocolo.length && !corpo.investimento.length){
+      err.textContent='Preencha ao menos o protocolo ou o investimento.';
+      err.style.display='block'; return;
+    }
+  }
+  err.style.display='none';
+  btn.disabled=true; btn.textContent='Gerando PDF...';
+
+  const res = await api('gerar_orcamento', corpo);
+  btn.disabled=false; btn.textContent='📄 Gerar PDF';
+  if(!res.ok){ err.textContent='Erro ao gerar: '+(res.erro||''); err.style.display='block'; return; }
+
+  showToast('✅ Documento '+res.numero+' gerado','ok');
+  if(confirm('Documento '+res.numero+' gerado e anexado ao paciente.\n\nBaixar agora?')) {
+    await baixarDoc(res.documento_id);
+  }
+  await carregarDocumentos(pacienteId);
 }
 
 // ═══════════════════════════════════════════════
@@ -4233,7 +4387,13 @@ async function openPaciente(linha, id) {
   carregarDocumentos(id);
   carregarMensagens(id);
   carregarPrescricao(id);
-  setTimeout(()=>{ if(document.getElementById('orcItens') && !document.querySelector('#orcItens .orc-item')) addItemOrcamento(); }, 120);
+  setTimeout(()=>{
+    if(document.getElementById('dcProtocolo') && !document.querySelector('#dcProtocolo .dc-linha')) {
+      addLinhaSimples('dcProtocolo','Ex.: Primeiro mês: 20 sessões de reabilitação.');
+      addLinhaSimples('dcObjetivos','Ex.: Controle do processo inflamatório e do edema.');
+      addLinhaValor('Valor total','');
+    }
+  }, 150);
   Object.entries(_histAba).forEach(([, tipo])=>carregarHistorico(tipo, id));
 }
 
@@ -4552,7 +4712,7 @@ async function loadEquipe() {
     <div class="prof-av" style="background:${cores[i%cores.length]}">${esc((p.nome||'?')[0])}</div>
     <div style="flex:1;min-width:0">
       <div class="prof-nm">${esc(p.nome)}</div>
-      <div class="prof-rl">${esc(p.funcao||'')}</div>
+      <div class="prof-rl">${esc(p.funcao||'')}${p.registro?' · '+esc(p.registro):''}</div>
       <div style="margin-top:6px;display:flex;gap:5px;flex-wrap:wrap;">
         <span class="chip ${p.nivel_acesso==='admin'?'ch-teal':p.nivel_acesso==='coordenador'?'ch-violet':'ch-sky'}">${{admin:'Gestora',coordenador:'Coordenadora',profissional:'Profissional'}[p.nivel_acesso]||esc(p.nivel_acesso)}</span>
         <span class="chip ch-gray">${esc(p.linhas||'—')}</span>
@@ -4584,6 +4744,10 @@ function editarProf(id) {
       <div class="fg fa"><label class="fl">E-mail</label>
         <input class="fi" value="${esc(p.email)}" disabled
                style="opacity:.6;cursor:not-allowed"></div>
+      <div class="fg fa"><label class="fl">Registro profissional
+        <span style="font-weight:400;color:var(--ink3)">(sai na assinatura dos documentos)</span></label>
+        <input class="fi" id="epRegistro" value="${esc(p.registro)}"
+               placeholder="Ex.: CREFITO 32519-F, CRP 06/12345, CRFa 1-23456"></div>
       <div class="fg"><label class="fl">Nível de acesso</label>
         <select class="fs" id="epNivel"${euMesma?' disabled style="opacity:.6"':''}>
           ${[['profissional','Profissional'],['coordenador','Coordenador(a)'],['admin','Gestão']]
@@ -4644,6 +4808,7 @@ async function salvarProf(id) {
 
   const dados = {
     nome,
+    registro: (document.getElementById('epRegistro').value||'').trim(),
     funcao: coletarFuncoes('epFuncoes','epFuncaoOutra'),
     linhas: [...document.querySelectorAll('#epLinhas input:checked')].map(x=>x.value).join(', '),
   };
@@ -4697,7 +4862,8 @@ async function convidarProf() {
   errEl.style.display='none';
   btn.textContent='Cadastrando...'; btn.disabled=true;
 
-  const res = await api('convidar_prof',{nome, email, nivel, funcao, senha_inicial:senha, linhas});
+  const registro = (document.getElementById('invRegistro')?.value||'').trim();
+  const res = await api('convidar_prof',{nome, email, nivel, funcao, registro, senha_inicial:senha, linhas});
   btn.textContent='📧 Cadastrar e Enviar Convite'; btn.disabled=false;
 
   if(!res.ok){errEl.textContent=res.erro||'Erro ao cadastrar.';errEl.style.display='block';return;}
@@ -4705,6 +4871,7 @@ async function convidarProf() {
   document.getElementById('invNome').value='';
   document.getElementById('invEmail').value='';
   document.getElementById('invSenha').value='';
+  document.getElementById('invRegistro').value='';
   document.getElementById('invFuncaoOutra').value='';
   document.querySelectorAll('#invFuncoes input').forEach(x=>x.checked=false);
   document.querySelectorAll('#invLinhas input').forEach(x=>x.checked=false);
