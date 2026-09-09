@@ -1515,6 +1515,21 @@ function resp(obj) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
+
+// --- AUTORIZACAO DO DRIVE -------------------------------------
+// Rode esta funcao UMA VEZ pelo editor (menu Executar) para o Google pedir
+// permissao de acesso ao Drive. Num app da web a tela de permissao nao
+// aparece sozinha - o script apenas falha - entao ela precisa ser disparada
+// aqui, pela dona do script.
+function autorizarDrive() {
+  const achadas = DriveApp.getFoldersByName(PASTA_DOCS);
+  const pasta = achadas.hasNext() ? achadas.next() : DriveApp.createFolder(PASTA_DOCS);
+  Logger.log('OK! Acesso ao Drive autorizado.');
+  Logger.log('Pasta dos documentos: ' + pasta.getName());
+  Logger.log('Link: ' + pasta.getUrl());
+  return 'Drive autorizado. Pasta: ' + pasta.getUrl();
+}
+
 // --- SETUP (rode uma vez, so numa planilha nova) --------------
 // ATENCAO: este repositorio e publico. Defina a senha abaixo na hora de
 // rodar e apague o valor antes de salvar o arquivo de volta no Git.
