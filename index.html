@@ -528,6 +528,12 @@ input,select,textarea{outline:none;}
              onkeydown="if(event.key==='Enter')doLoginPaciente()"></div>
     <button class="login-btn" id="pacBtn" onclick="doLoginPaciente()">Entrar →</button>
     <div class="forgot" onclick="showPrimeiroAcesso()">Primeiro acesso ou esqueceu a senha? Crie sua senha</div>
+    <div class="demo-section" id="demoSectionPac" style="display:none">
+      <div class="demo-title">Modo demonstração</div>
+      <div class="demo-pills">
+        <div class="demo-pill" onclick="demoLoginPaciente()">🙋 Entrar como paciente</div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -569,6 +575,7 @@ input,select,textarea{outline:none;}
     <div id="pgAlertas"   class="page"></div>
     <div id="pgEspera"    class="page"></div>
     <div id="pgProgramas" class="page"></div>
+    <div id="pgBiblioteca" class="page"></div>
   </div>
   <nav class="bnav" id="bnavEl"></nav>
 </div>
@@ -596,6 +603,7 @@ input,select,textarea{outline:none;}
     <div style="margin-top:12px;">
       <div class="umenu-item" id="umEquipe" onclick="loadPage('equipe');closeMenu();"><span class="umenu-icon">👥</span>Gerenciar equipe</div>
       <div class="umenu-item" id="umProgramas" onclick="loadPage('programas');closeMenu();"><span class="umenu-icon">🧩</span>Etapas e Programas</div>
+      <div class="umenu-item" id="umBiblioteca" onclick="loadPage('biblioteca');closeMenu();"><span class="umenu-icon">🏃</span>Exercícios</div>
       <div class="umenu-item" id="umClinica" onclick="closeMenu();abrirConfigClinica();"><span class="umenu-icon">🏥</span>Dados da clínica</div>
       <div class="umenu-item" id="umImportar" onclick="closeMenu();abrirImportacao();"><span class="umenu-icon">📥</span>Importar pacientes</div>
       <div class="umenu-item" onclick="showAlterarSenha()"><span class="umenu-icon">🔑</span>Alterar senha</div>
@@ -632,7 +640,7 @@ let demoMode = false;
 // Muda a cada publicação. Serve para o aparelho perceber que está com uma
 // versão velha em cache — sem isto a pessoa continua vendo o problema já
 // corrigido e jura que não foi corrigido.
-const VERSAO = '2026-09-09.02';
+const VERSAO = '2026-09-09.04';
 let _profsCache = null;
 let _demoPacienteId = null;
 
@@ -727,7 +735,11 @@ const DEMO_DB = {
     {id:'p1', nome:'Lucas Oliveira', linha:'infantil', data_nascimento:'2017-03-15', responsavel:'Fernanda Oliveira', escola:'E.M. Monteiro Lobato', terapeuta_nome:'TO Juliana', servicos:'TO Infantil', status:'Ativo', criado_em:'2025-01-10'},
     {id:'p2', nome:'Sofia Campos',   linha:'infantil', data_nascimento:'2019-08-20', responsavel:'Roberto Campos', escola:'CEI Pequeno Príncipe', terapeuta_nome:'TO Juliana', servicos:'TO Infantil', status:'Ativo', criado_em:'2025-02-01'},
     {id:'p3', nome:'Maria Santos',   linha:'mulher',   data_nascimento:'1982-05-10', terapeuta_nome:'Dr. Carlos', servicos:'Fisio Pélvica, Acupuntura', status:'Ativo', criado_em:'2025-03-01'},
-    {id:'p4', nome:'Antônio Silva',  linha:'reabilitacao', data_nascimento:'1962-11-03', terapeuta_nome:'Dr. Paulo', servicos:'Fisioterapia', status:'Ativo', criado_em:'2025-04-01'},
+    {id:'p4', nome:'Antônio Silva',  linha:'reabilitacao', data_nascimento:'1962-11-03', terapeuta_nome:'Dr. Paulo', servicos:'Fisioterapia', status:'Ativo', criado_em:'2025-04-01',
+     email:'paciente@teste.com', acesso:'Liberado',
+     plano_paciente:'Recuperar a força e a mobilidade do tornozelo, retomando a caminhada sem dor.',
+     orientacoes_paciente:'Aplicar gelo por 15 minutos após os exercícios.',
+     plano_atualizado_em:'2026-09-01', proximo_contato:'2026-09-20'},
     {id:'p5', nome:'Patricia Rocha', linha:'pilates', data_nascimento:'1989-07-22', terapeuta_nome:'Dra. Paula', servicos:'Pilates', status:'Ativo', criado_em:'2025-04-20'},
     {id:'p6', nome:'Roberto Lima',   linha:'geriatria', data_nascimento:'1946-02-14', responsavel:'Ana Lima', terapeuta_nome:'TO Marcia', servicos:'TO Individual, Casa Segura', status:'Ativo', criado_em:'2025-03-10'},
     {id:'p7', nome:'Clara Mendes',   linha:'mental', data_nascimento:'1986-09-05', terapeuta_nome:'TO Beatriz', servicos:'TO, Ateliê Expressivo', status:'Ativo', criado_em:'2025-03-20'},
@@ -743,10 +755,37 @@ const DEMO_DB = {
   ],
   checklists: [],
   evolucoes: [],
-  documentos: [],
-  mensagens: [],
-  exercicios: [],
-  prescricoes: [],
+  documentos: [
+    {id:'d1', paciente_id:'p4', nome:'Nota Fiscal 456.pdf', tipo:'application/pdf',
+     categoria:'Nota fiscal', tamanho:98304, visivel_paciente:'Sim',
+     criado_em:'2026-09-01T10:00:00.000Z', _conteudo:'JVBERi0xLjQgZGVtbw=='},
+    {id:'d2', paciente_id:'p4', nome:'Relatório interno.pdf', tipo:'application/pdf',
+     categoria:'Relatório de atendimento', tamanho:65536, visivel_paciente:'Nao',
+     criado_em:'2026-09-02T10:00:00.000Z', _conteudo:'JVBERi0xLjQgZGVtbw=='},
+  ],
+  mensagens: [
+    {id:'m1', paciente_id:'p4', de:'equipe', autor_nome:'Dra. Ana Paula',
+     texto:'Oi Antônio! Sua nota fiscal de agosto já está aqui na sua área.',
+     criado_em:'2026-09-01T11:00:00.000Z'},
+  ],
+  exercicios: [
+    {id:'ex1', nome:'Ponte', series:'3', repeticoes:'12', categoria:'Core',
+     descricao:'Deitado, eleve o quadril e segure 3 segundos.',
+     video:'https://www.youtube.com/watch?v=exemplo', ativo:'Sim'},
+    {id:'ex2', nome:'Alongamento de panturrilha', series:'2', repeticoes:'30s',
+     categoria:'Membros inferiores', descricao:'Apoie as mãos na parede e recue uma perna.',
+     video:'', ativo:'Sim'},
+  ],
+  prescricoes: [
+    {id:'pr1', paciente_id:'p4', titulo:'Exercícios para casa',
+     orientacoes:'Fazer sempre pela manhã, antes de caminhar.',
+     exercicios:JSON.stringify([
+       {id:'ex1', nome:'Ponte', series:'3', repeticoes:'12', frequencia:'dias alternados',
+        observacao:'Parar se sentir dor lombar.'},
+       {id:'ex2', nome:'Alongamento de panturrilha', series:'2', repeticoes:'30s', frequencia:'diário'},
+     ]),
+     ativa:'Sim', criado_em:'2026-09-01T09:00:00.000Z'},
+  ],
   config: {},
 };
 
@@ -879,7 +918,16 @@ function demoApi(action, body) {
       if(!pr.length) return {ok:true, dados:null};
       const ult=pr[pr.length-1];
       let itens=[]; try{ itens=JSON.parse(ult.exercicios||'[]'); }catch(e){}
-      return {ok:true, dados:{titulo:ult.titulo, orientacoes:ult.orientacoes, exercicios:itens}};
+      // espelha o backend: completa com o que está na biblioteca
+      const bib={}; (DEMO_DB.exercicios||[]).forEach(e=>{ bib[String(e.id)]=e; });
+      const lista=itens.map(x=>{
+        const b=bib[String(x.id)]||{};
+        return {nome:b.nome||x.nome||'', categoria:b.categoria||'', descricao:b.descricao||'',
+                video:x.video||b.video||'', series:x.series||b.series||'',
+                repeticoes:x.repeticoes||b.repeticoes||'', frequencia:x.frequencia||'',
+                observacao:x.observacao||''};
+      }).filter(x=>x.nome);
+      return {ok:true, dados:{titulo:ult.titulo, orientacoes:ult.orientacoes, exercicios:lista}};
     }
     case 'obter_config': return {ok:true, dados: DEMO_DB.config||{}};
     case 'salvar_config': { DEMO_DB.config={...(DEMO_DB.config||{}), ...(body.dados||{})}; return {ok:true}; }
@@ -1158,11 +1206,11 @@ function loadPage(id) {
   _activePage = id;
   document.querySelectorAll('.bnt,.sd-item').forEach(e=>e.classList.remove('active'));
   ['bn-','sd-'].forEach(p=>{const e=document.getElementById(p+id);if(e)e.classList.add('active');});
-  const map={home:'pgHome',linhas:'pgLinhas',equipe:'pgEquipe',alertas:'pgAlertas',espera:'pgEspera',programas:'pgProgramas'};
+  const map={home:'pgHome',linhas:'pgLinhas',equipe:'pgEquipe',alertas:'pgAlertas',espera:'pgEspera',programas:'pgProgramas',biblioteca:'pgBiblioteca'};
   document.querySelectorAll('.page').forEach(e=>{e.classList.remove('active');e.innerHTML='';});
   const el = document.getElementById(map[id]);
   if(!el) return;
-  const renders={home:renderHome,linhas:renderLinhas,equipe:renderEquipe,alertas:renderAlertas,espera:renderEspera,programas:renderProgramas};
+  const renders={home:renderHome,linhas:renderLinhas,equipe:renderEquipe,alertas:renderAlertas,espera:renderEspera,programas:renderProgramas,biblioteca:renderBiblioteca};
   if(renders[id]){el.innerHTML=renders[id]();el.classList.add('active');}
 }
 
@@ -1761,6 +1809,15 @@ async function pedirSenhaPaciente() {
                'O link vale por 1 hora. Confira também o spam.';
   ok.style.display='block';
   document.getElementById('pacSForm').style.display='none';
+}
+
+function demoLoginPaciente() {
+  demoMode = true;
+  const p = DEMO_DB.pacientes.find(x=>x.email==='paciente@teste.com') || DEMO_DB.pacientes[0];
+  _demoPacienteId = p.id;
+  authToken = 'demo_pac';
+  pacienteLogado = {nome:p.nome, email:p.email, role:'paciente'};
+  abrirPortal();
 }
 
 async function doLoginPaciente() {
@@ -3241,6 +3298,8 @@ function montarSerie(pacienteId) {
     <div class="fg"><label class="fl">Orientações gerais</label>
       <textarea class="ft" id="exeOrient" placeholder="Ex.: fazer pela manhã, parar se doer...">${esc(_prescricao?_prescricao.orientacoes:'')}</textarea></div>
     <div class="fl" style="margin:14px 0 6px">Exercícios da série</div>
+    <div class="pt-nota" style="margin:0 0 8px">O vídeo é opcional e entra como link —
+      YouTube, Drive ou Instagram. O paciente vê um botão para assistir.</div>
     <div id="exeItens">${itens.map((x,i)=>linhaExercicioHTML(x,i)).join('')}</div>
     <button class="addbtn" style="margin-top:8px" onclick="addLinhaExercicio()">+ Adicionar exercício</button>
     <div id="exeErr" class="errbox"></div>
@@ -3269,6 +3328,8 @@ function linhaExercicioHTML(x, i) {
     </div>
     <input class="fi" placeholder="Observação para este paciente (opcional)"
            value="${esc(x.observacao)}" data-ek="observacao" style="margin-top:6px">
+    <input class="fi" placeholder="Link de vídeo demonstrando (opcional)"
+           value="${esc(x.video)}" data-ek="video" style="margin-top:6px">
     <label class="pill-chk" style="margin-top:6px">
       <input type="checkbox" data-ek="salvar" style="accent-color:var(--teal)"${jaNaBiblioteca?'':' checked'}>
       Guardar na biblioteca para reutilizar
@@ -3295,6 +3356,14 @@ function atualizarListaExercicios() {
   dl.innerHTML = _exercicios.map(e=>`<option value="${esc(e.nome)}">`).join('');
 }
 
+// O link vai virar um <a> na tela do paciente. Sem esta checagem, um
+// "javascript:..." colado aqui viraria código rodando no navegador dele.
+function linkSeguro(url) {
+  const u = String(url||'').trim();
+  if(!u) return '';
+  return /^https?:\/\//i.test(u) ? u : '';
+}
+
 async function salvarSerie(pacienteId) {
   const cx = document.getElementById('exeItens');
   const err = document.getElementById('exeErr');
@@ -3314,6 +3383,7 @@ async function salvarSerie(pacienteId) {
       repeticoes: val('repeticoes').trim(),
       frequencia: val('frequencia').trim(),
       observacao: val('observacao').trim(),
+      video: linkSeguro(val('video').trim()),
     };
     itens.push(item);
     const querSalvar = (linha.querySelector('[data-ek="salvar"]')||{}).checked;
@@ -3329,10 +3399,20 @@ async function salvarSerie(pacienteId) {
   for(const novo of novosParaBiblioteca) {
     const res = await api('salvar',{tabela:'exercicios', dados:{
       nome: novo.nome, series: novo.series, repeticoes: novo.repeticoes,
-      categoria:'', descricao:'', video:'', ativo:'Sim',
+      categoria:'', descricao:'', video: novo.video||'', ativo:'Sim',
       criado_por: currentUser.email
     }});
     if(res.ok) itens.forEach(i=>{ if(i.nome===novo.nome) i.id = res.id; });
+  }
+
+  // Vídeo informado para um exercício que já estava na biblioteca sem link:
+  // aproveita para completar o cadastro, senão o link se perderia nesta série
+  for(const item of itens) {
+    if(!item.video || !item.id) continue;
+    const naBiblioteca = _exercicios.find(e=>String(e.id)===String(item.id));
+    if(naBiblioteca && !naBiblioteca.video) {
+      await api('atualizar',{tabela:'exercicios', id:item.id, dados:{video:item.video}});
+    }
   }
 
   const dados = {
@@ -3507,6 +3587,151 @@ async function salvarConfigClinica() {
   if(!res.ok){ err.textContent='Erro: '+(res.erro||''); err.style.display='block'; return; }
   closeSheet(true);
   showToast('✅ Cabeçalho salvo','ok');
+}
+
+
+// ═══════════════════════════════════════════════
+// BIBLIOTECA DE EXERCÍCIOS
+// O que foi digitado ao montar séries se acumula aqui. Esta tela serve para
+// arrumar depois: corrigir nome, acrescentar o vídeo, tirar de circulação.
+// ═══════════════════════════════════════════════
+function renderBiblioteca() {
+  if(currentRole==='profissional') return `<div class="ph"><div class="ph-title">Acesso restrito</div></div>`;
+  return `<div class="ph"><div class="ph-title">Exercícios</div>
+    <div class="ph-sub">O que a equipe já usou fica guardado aqui para reutilizar</div></div>
+  <button class="addbtn" style="margin-bottom:14px" onclick="novoExercicio()">+ Novo exercício</button>
+  <div id="bibForm"></div>
+  <div id="bibLista">${loadingHTML()}</div>`;
+}
+
+async function loadBiblioteca() {
+  const res = await api('listar',{tabela:'exercicios'});
+  _exercicios = res.ok ? (res.dados||[]) : [];
+  _exercicios.sort((a,b)=>normalizar(a.nome||'').localeCompare(normalizar(b.nome||'')));
+  desenharBiblioteca();
+}
+
+function desenharBiblioteca() {
+  const el = document.getElementById('bibLista');
+  if(!el) return;
+  if(!_exercicios.length) {
+    el.innerHTML = `<div style="text-align:center;padding:42px 20px;color:var(--ink3)">
+      <div style="font-size:36px;margin-bottom:10px">🏃</div>
+      <div style="font-size:15px;font-weight:600;margin-bottom:5px">Biblioteca vazia</div>
+      <div style="font-size:13px">Ela se enche sozinha: o que a equipe digitar ao montar
+        uma série fica guardado aqui.</div>
+    </div>`;
+    return;
+  }
+  el.innerHTML = _exercicios.map(e=>{
+    const inativo = String(e.ativo||'Sim').toLowerCase().startsWith('n');
+    return `<div class="prog-item ${inativo?'prog-off':''}">
+      <div style="flex:1;min-width:0">
+        <div class="prog-nome">${esc(e.nome)}</div>
+        <div class="prog-desc">
+          ${e.series?esc(e.series)+' séries':''}${e.repeticoes?' · '+esc(e.repeticoes):''}
+          ${e.categoria?' · '+esc(e.categoria):''}
+          ${e.video?' · 🎬 com vídeo':''}
+        </div>
+      </div>
+      ${inativo?`<span class="chip ch-gray">Inativo</span>`:''}
+      <button class="backbtn" onclick="editarExercicio('${esc(e.id)}')">✏️</button>
+    </div>`;
+  }).join('');
+}
+
+function novoExercicio(existente) {
+  const e = existente || {};
+  const f = document.getElementById('bibForm');
+  if(!f) return;
+  f.innerHTML = `<div class="evo-form">
+    <div class="hist-tit" style="margin-bottom:10px">${existente?'✏️ Editar exercício':'+ Novo exercício'}</div>
+    <div class="f2">
+      <div class="fg fa"><label class="fl">Nome *</label>
+        <input class="fi" id="bxNome" value="${esc(e.nome)}" placeholder="Ex.: Ponte, Prancha, Alongamento de isquiotibiais"></div>
+      <div class="fg"><label class="fl">Séries (padrão)</label>
+        <input class="fi" id="bxSeries" value="${esc(e.series)}" placeholder="3"></div>
+      <div class="fg"><label class="fl">Repetições (padrão)</label>
+        <input class="fi" id="bxRep" value="${esc(e.repeticoes)}" placeholder="12"></div>
+      <div class="fg fa"><label class="fl">Categoria</label>
+        <input class="fi" id="bxCat" value="${esc(e.categoria)}" placeholder="Ex.: Core, Membros inferiores, Respiratório"></div>
+      <div class="fg fa"><label class="fl">Como fazer</label>
+        <textarea class="ft" id="bxDesc" placeholder="Explicação que o paciente vai ler...">${esc(e.descricao)}</textarea></div>
+      <div class="fg fa"><label class="fl">Link do vídeo</label>
+        <input class="fi" id="bxVideo" value="${esc(e.video)}" placeholder="https://...">
+        <div class="pt-nota">YouTube, Drive ou Instagram. Precisa começar com https://</div></div>
+      ${existente?`<div class="fg"><label class="fl">Situação</label>
+        <select class="fs" id="bxAtivo">
+          ${['Sim','Não'].map(s=>`<option value="${s}"${String(e.ativo||'Sim')===s?' selected':''}>${s==='Sim'?'Ativo':'Inativo'}</option>`).join('')}
+        </select>
+        <div class="pt-nota">Inativo some das sugestões, mas quem já recebeu continua com ele.</div>
+      </div>`:''}
+    </div>
+    <div id="bxErr" class="errbox"></div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="savebtn" id="bxBtn" style="flex:1" onclick="salvarExercicio(${existente?`'${esc(e.id)}'`:''})">
+        ${existente?'Salvar':'Adicionar'}</button>
+      <button class="backbtn" onclick="document.getElementById('bibForm').innerHTML=''">Cancelar</button>
+    </div>
+    ${existente&&currentRole==='admin'?`<button class="savebtn" style="background:var(--rose);margin-top:8px"
+      onclick="excluirExercicio('${esc(e.id)}')">🗑 Excluir</button>`:''}
+  </div>`;
+  f.scrollIntoView({behavior:'smooth', block:'nearest'});
+  document.getElementById('bxNome').focus();
+}
+
+function editarExercicio(id) {
+  const e = _exercicios.find(x=>String(x.id)===String(id));
+  if(e) novoExercicio(e);
+}
+
+async function salvarExercicio(id) {
+  const nome = (document.getElementById('bxNome').value||'').trim();
+  const err = document.getElementById('bxErr');
+  const btn = document.getElementById('bxBtn');
+  if(!nome){ err.textContent='Informe o nome.'; err.style.display='block'; return; }
+
+  const repetido = _exercicios.some(e=>String(e.id)!==String(id||'') && normalizar(e.nome)===normalizar(nome));
+  if(repetido){ err.textContent='Já existe um exercício com esse nome.'; err.style.display='block'; return; }
+
+  const videoBruto = (document.getElementById('bxVideo').value||'').trim();
+  const video = linkSeguro(videoBruto);
+  if(videoBruto && !video){
+    err.textContent='O link precisa começar com https:// (ou http://).';
+    err.style.display='block'; return;
+  }
+  err.style.display='none';
+
+  const dados = {
+    nome,
+    series: (document.getElementById('bxSeries').value||'').trim(),
+    repeticoes: (document.getElementById('bxRep').value||'').trim(),
+    categoria: (document.getElementById('bxCat').value||'').trim(),
+    descricao: (document.getElementById('bxDesc').value||'').trim(),
+    video,
+    ativo: document.getElementById('bxAtivo')?.value || 'Sim',
+  };
+
+  btn.disabled=true; btn.textContent='Salvando...';
+  const res = id
+    ? await api('atualizar',{tabela:'exercicios', id, dados})
+    : await api('salvar',{tabela:'exercicios', dados:{...dados, criado_por:currentUser.email}});
+  btn.disabled=false; btn.textContent = id?'Salvar':'Adicionar';
+
+  if(!res.ok){ err.textContent='Erro ao salvar: '+(res.erro||''); err.style.display='block'; return; }
+  document.getElementById('bibForm').innerHTML='';
+  await loadBiblioteca();
+  showToast('✅ Salvo','ok');
+}
+
+async function excluirExercicio(id) {
+  const e = _exercicios.find(x=>String(x.id)===String(id));
+  if(!confirm('Excluir "'+(e?e.nome:'este exercício')+'" da biblioteca?\n\nQuem já recebeu na série continua com ele.\n\nPara apenas parar de sugerir, use Situação: Inativo.')) return;
+  const res = await api('deletar',{tabela:'exercicios', id});
+  if(!res.ok){ showToast('Erro: '+(res.erro||''),'err'); return; }
+  document.getElementById('bibForm').innerHTML='';
+  await loadBiblioteca();
+  showToast('🗑 Excluído','ok');
 }
 
 // ═══════════════════════════════════════════════
@@ -4593,6 +4818,7 @@ function openUserMenu(){
   document.getElementById('umImportar').style.display=currentRole==='admin'?'flex':'none';
   document.getElementById('umProgramas').style.display=currentRole==='admin'?'flex':'none';
   document.getElementById('umClinica').style.display=currentRole==='admin'?'flex':'none';
+  document.getElementById('umBiblioteca').style.display=currentRole!=='profissional'?'flex':'none';
   document.getElementById('umOv').classList.add('open');
 }
 function closeMenu(){document.getElementById('umOv').classList.remove('open');}
@@ -4817,6 +5043,7 @@ const _afterRender = {
   alertas: ()=>setTimeout(loadAlertas,50),
   espera: ()=>setTimeout(loadEspera,50),
   programas: ()=>setTimeout(loadProgramas,50),
+  biblioteca: ()=>setTimeout(loadBiblioteca,50),
 };
 
 const _origLoadPage = loadPage;
@@ -4838,6 +5065,7 @@ window.addEventListener('DOMContentLoaded', async()=>{
   // Servem para testar sem tocar na planilha: nada sai para a rede.
   if(params.get('demo') === '1') {
     document.getElementById('demoSection').style.display = 'block';
+    document.getElementById('demoSectionPac').style.display = 'block';
   }
 
   // Área do paciente. Entra por três caminhos, todos equivalentes:
