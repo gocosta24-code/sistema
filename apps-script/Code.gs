@@ -699,8 +699,19 @@ function pastaDoPaciente(pacienteId, nomePaciente) {
   const achadas = DriveApp.getFoldersByName(PASTA_DOCS);
   const raiz = achadas.hasNext() ? achadas.next() : DriveApp.createFolder(PASTA_DOCS);
 
+  // O nome sozinho nao basta para quem abre o Drive: duas pessoas de mesmo
+  // nome dariam duas pastas identicas, impossiveis de distinguir. A data de
+  // nascimento e como a clinica ja diferencia homonimos; sem ela, entra um
+  // codigo curto tirado do id.
   const limpo = String(nomePaciente||'Paciente').replace(/[\\/:*?"<>|]/g,'-').trim() || 'Paciente';
-  const nova = raiz.createFolder(limpo);
+  let marca = '';
+  if (pac && pac.obj.data_nascimento) {
+    const d = String(pac.obj.data_nascimento).slice(0,10);
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(d);
+    marca = m ? (m[3] + '-' + m[2] + '-' + m[1]) : d;
+  }
+  if (!marca) marca = String(pacienteId).slice(-5);
+  const nova = raiz.createFolder(limpo + ' (' + marca + ')');
 
   // Guarda o id na ficha para nunca mais depender do nome
   if (pac) {
