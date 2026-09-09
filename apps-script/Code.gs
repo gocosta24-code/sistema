@@ -40,7 +40,21 @@ const ABAS = {
   programas:      'Programas',
   myscore:        'MyScore',
   atelie:         'Atelie',
+  documentos:     'Documentos',
+  mensagens:      'Mensagens',
+  orcamentos:     'Orcamentos',
+  exercicios:     'Exercicios',
+  prescricoes:    'Prescricoes',
 };
+
+// Onde os anexos ficam guardados no Drive da clinica. A pasta e criada
+// sozinha na primeira vez; cada paciente ganha uma subpasta.
+const PASTA_DOCS = 'Casa Oliveira - Documentos';
+
+// Limite por arquivo. O Apps Script aceita ~10 MB de requisicao e o base64
+// engorda o arquivo em cerca de um terco, entao 6 MB de PDF ainda cabe com
+// folga.
+const MAX_ARQUIVO_MB = 6;
 
 // --- ENTRY POINTS --------------------------------------------
 function doGet(e)  { return handle(e); }
@@ -72,7 +86,9 @@ function handle(e) {
     // decidida aqui pelo que esta gravado no token, nunca pelo que o
     // navegador diz ser - senao bastaria forjar o pedido para ler a ficha
     // de outra pessoa.
-    const ACOES_PACIENTE = ['logout','meu_prontuario','minha_posicao','alterar_senha_paciente'];
+    const ACOES_PACIENTE = ['logout','meu_prontuario','minha_posicao','alterar_senha_paciente',
+                            'meus_documentos','baixar_documento','minhas_mensagens','enviar_mensagem',
+                            'meus_exercicios'];
     if (SEM_LOGIN.indexOf(action) === -1) {
       const info = getInfoToken(token);
       const ehPaciente = info && info.role === 'paciente';
@@ -101,6 +117,17 @@ function handle(e) {
       case 'convidar_prof': return resp(convidarProf(body, token));
       case 'alterar_senha': return resp(alterarSenha(body, token));
       case 'dar_acesso_paciente': return resp(darAcessoPaciente(body, token));
+      case 'meus_documentos':   return resp(meusDocumentos(token));
+      case 'baixar_documento':  return resp(baixarDocumento(body, token));
+      case 'enviar_documento':  return resp(enviarDocumento(body, token));
+      case 'excluir_documento': return resp(excluirDocumento(body, token));
+      case 'minhas_mensagens':  return resp(minhasMensagens(token));
+      case 'enviar_mensagem':   return resp(enviarMensagem(body, token));
+      case 'mensagens_paciente':return resp(mensagensPaciente(body, token));
+      case 'obter_config':      return resp(obterConfig(token));
+      case 'salvar_config':     return resp(salvarConfigClinica(body, token));
+      case 'gerar_orcamento':   return resp(gerarOrcamento(body, token));
+      case 'meus_exercicios':   return resp(meusExercicios(token));
       default:              return resp({ok:false, erro:'A\u00e7\u00e3o desconhecida: '+action});
     }
   } catch(err) {
@@ -647,6 +674,518 @@ function darAcessoPaciente(body, token) {
   return {ok:true, modo:'link_enviado', enviado: !!r.ok};
 }
 
+
+// --- DOCUMENTOS -----------------------------------------------
+// Os arquivos ficam no Drive da clinica, nao na planilha. A planilha guarda
+// so os dados do anexo; o conteudo so sai daqui depois de conferir de quem
+// e o pedido, entao um link vazado nao entrega o arquivo de ninguem.
+
+// A pasta leva o nome do paciente, para a clinica se achar no Drive, mas o
+// vinculo e pelo id da pasta, guardado na ficha. Procurar pela pasta pelo
+// nome quebraria em dois casos reais: duas pessoas de mesmo nome cairiam na
+// mesma pasta, e renomear o paciente (ou a pasta, direto no Drive) faria o
+// sistema criar outra e perder de vista a primeira.
+function pastaDoPaciente(pacienteId, nomePaciente) {
+  const pac = acharPacientePorId(pacienteId);
+
+  // Ja vinculada? usa aquela, mesmo que tenha sido renomeada no Drive
+  if (pac && pac.obj.drive_pasta) {
+    try {
+      const p = DriveApp.getFolderById(pac.obj.drive_pasta);
+      if (!p.isTrashed()) return p;
+    } catch(e) { /* apagada de vez: cria outra abaixo */ }
+  }
+
+  const achadas = DriveApp.getFoldersByName(PASTA_DOCS);
+  const raiz = achadas.hasNext() ? achadas.next() : DriveApp.createFolder(PASTA_DOCS);
+
+  const limpo = String(nomePaciente||'Paciente').replace(/[\\/:*?"<>|]/g,'-').trim() || 'Paciente';
+  const nova = raiz.createFolder(limpo);
+
+  // Guarda o id na ficha para nunca mais depender do nome
+  if (pac) {
+    let iCol = pac.h.indexOf('drive_pasta');
+    if (iCol === -1) {
+      iCol = pac.h.length;
+      pac.sheet.getRange(1, iCol+1).setValue('drive_pasta');
+    }
+    pac.sheet.getRange(pac.linha, iCol+1).setValue(nova.getId());
+  }
+  return nova;
+}
+
+function enviarDocumento(body, token) {
+  const info = getInfoToken(token);
+  if (!info || info.role === 'paciente') return {ok:false, erro:'Sem permiss\u00e3o'};
+  if (!body.paciente_id) return {ok:false, erro:'Paciente n\u00e3o informado'};
+  if (!body.arquivo)     return {ok:false, erro:'Arquivo vazio'};
+  if (!body.nome)        return {ok:false, erro:'Nome do arquivo vazio'};
+
+  // base64 ocupa cerca de 4/3 do arquivo original
+  const bytesAprox = String(body.arquivo).length * 0.75;
+  if (bytesAprox > MAX_ARQUIVO_MB * 1024 * 1024) {
+    return {ok:false, erro:'Arquivo maior que ' + MAX_ARQUIVO_MB + ' MB'};
+  }
+
+  const pac = acharPacientePorId(body.paciente_id);
+  if (!pac) return {ok:false, erro:'Paciente n\u00e3o encontrado'};
+
+  let arquivo;
+  try {
+    const blob = Utilities.newBlob(
+      Utilities.base64Decode(body.arquivo),
+      body.tipo || 'application/octet-stream',
+      body.nome
+    );
+    arquivo = pastaDoPaciente(body.paciente_id, pac.obj.nome).createFile(blob);
+  } catch(e) {
+    return {ok:false, erro:'N\u00e3o foi poss\u00edvel guardar o arquivo: ' + e.toString()};
+  }
+
+  const ss = getSpreadsheet();
+  const sheet = getOuCria(ss, 'Documentos');
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(['id','paciente_id','nome','tipo','categoria','drive_id','tamanho',
+                     'visivel_paciente','enviado_por','enviado_nome','criado_em']);
+  }
+  const id = 'doc_' + Date.now() + '_' + Math.floor(Math.random()*9999);
+  sheet.appendRow([
+    id, body.paciente_id, body.nome, body.tipo||'', body.categoria||'Outro',
+    arquivo.getId(), Math.round(bytesAprox),
+    body.visivel_paciente === false ? 'Nao' : 'Sim',
+    info.email, body.enviado_nome || '', new Date().toISOString()
+  ]);
+
+  return {ok:true, id: id};
+}
+
+function linhaDocumento(id) {
+  const ss = getSpreadsheet();
+  const sheet = ss.getSheetByName('Documentos');
+  if (!sheet || sheet.getLastRow() < 2) return null;
+  const dados = sheet.getDataRange().getValues();
+  const h = dados[0];
+  const iId = h.indexOf('id');
+  for (let i=1;i<dados.length;i++) {
+    if (String(dados[i][iId]) === String(id)) {
+      const o = {}; h.forEach(function(k,j){ o[k]=dados[i][j]; });
+      return {obj:o, linha:i+1, h:h, sheet:sheet};
+    }
+  }
+  return null;
+}
+
+function baixarDocumento(body, token) {
+  const info = getInfoToken(token);
+  if (!info) return {ok:false, erro:'Sess\u00e3o inv\u00e1lida'};
+  if (!body.id) return {ok:false, erro:'Documento n\u00e3o informado'};
+
+  const doc = linhaDocumento(body.id);
+  if (!doc) return {ok:false, erro:'Documento n\u00e3o encontrado'};
+
+  // O paciente so alcanca o proprio arquivo, e so o que a clinica marcou
+  // como visivel. A conferencia usa o ref_id do token, nunca o id enviado.
+  if (info.role === 'paciente') {
+    if (String(doc.obj.paciente_id) !== String(info.refId)) {
+      return {ok:false, erro:'Sem permiss\u00e3o'};
+    }
+    if (String(doc.obj.visivel_paciente||'Sim').toLowerCase().indexOf('n') === 0) {
+      return {ok:false, erro:'Sem permiss\u00e3o'};
+    }
+  }
+
+  try {
+    const arquivo = DriveApp.getFileById(doc.obj.drive_id);
+    return {ok:true, dados:{
+      nome: doc.obj.nome,
+      tipo: doc.obj.tipo || arquivo.getMimeType(),
+      conteudo: Utilities.base64Encode(arquivo.getBlob().getBytes())
+    }};
+  } catch(e) {
+    return {ok:false, erro:'Arquivo n\u00e3o encontrado no Drive'};
+  }
+}
+
+function excluirDocumento(body, token) {
+  const info = getInfoToken(token);
+  if (!info || info.role === 'paciente') return {ok:false, erro:'Sem permiss\u00e3o'};
+  const doc = linhaDocumento(body.id);
+  if (!doc) return {ok:false, erro:'Documento n\u00e3o encontrado'};
+
+  // Vai para a lixeira do Drive, nao some de vez: anexo de prontuario
+  // apagado por engano precisa ter volta.
+  try { DriveApp.getFileById(doc.obj.drive_id).setTrashed(true); } catch(e) {}
+  doc.sheet.deleteRow(doc.linha);
+  return {ok:true};
+}
+
+function meusDocumentos(token) {
+  const info = getInfoToken(token);
+  if (!info || info.role !== 'paciente' || !info.refId) return {ok:false, erro:'Sess\u00e3o inv\u00e1lida'};
+
+  const ss = getSpreadsheet();
+  const sheet = ss.getSheetByName('Documentos');
+  if (!sheet || sheet.getLastRow() < 2) return {ok:true, dados:[]};
+
+  const dados = sheet.getDataRange().getValues();
+  const h = dados[0];
+  const saida = [];
+  for (let i=1;i<dados.length;i++) {
+    const o = {}; h.forEach(function(k,j){ o[k]=dados[i][j]; });
+    if (!o.id) continue;
+    if (String(o.paciente_id) !== String(info.refId)) continue;
+    if (String(o.visivel_paciente||'Sim').toLowerCase().indexOf('n') === 0) continue;
+    // drive_id fica de fora: o paciente nao precisa dele e ele identifica o
+    // arquivo dentro do Drive da clinica
+    saida.push({id:o.id, nome:o.nome, tipo:o.tipo, categoria:o.categoria,
+                tamanho:o.tamanho, criado_em:o.criado_em});
+  }
+  return {ok:true, dados:saida};
+}
+
+// --- MENSAGENS ------------------------------------------------
+// A conversa e do paciente com a clinica, nao com uma pessoa. E o que
+// diferencia isto do WhatsApp: qualquer um da equipe responsavel responde,
+// e a gestao enxerga tudo.
+
+function minhasMensagens(token) {
+  const info = getInfoToken(token);
+  if (!info || info.role !== 'paciente' || !info.refId) return {ok:false, erro:'Sess\u00e3o inv\u00e1lida'};
+  return {ok:true, dados: lerMensagens(info.refId), marcadas: marcarLidas(info.refId, 'paciente')};
+}
+
+function mensagensPaciente(body, token) {
+  const info = getInfoToken(token);
+  if (!info || info.role === 'paciente') return {ok:false, erro:'Sem permiss\u00e3o'};
+  if (!body.paciente_id) return {ok:false, erro:'Paciente n\u00e3o informado'};
+  return {ok:true, dados: lerMensagens(body.paciente_id), marcadas: marcarLidas(body.paciente_id, 'equipe')};
+}
+
+function lerMensagens(pacienteId) {
+  const ss = getSpreadsheet();
+  const sheet = ss.getSheetByName('Mensagens');
+  if (!sheet || sheet.getLastRow() < 2) return [];
+  const dados = sheet.getDataRange().getValues();
+  const h = dados[0];
+  const saida = [];
+  for (let i=1;i<dados.length;i++) {
+    const o = {}; h.forEach(function(k,j){ o[k]=dados[i][j]; });
+    if (o.id && String(o.paciente_id) === String(pacienteId)) saida.push(o);
+  }
+  saida.sort(function(a,b){ return String(a.criado_em||'').localeCompare(String(b.criado_em||'')); });
+  return saida;
+}
+
+// Marca como lido o que veio do outro lado, para o contador de nao lidas
+function marcarLidas(pacienteId, quemLe) {
+  const ss = getSpreadsheet();
+  const sheet = ss.getSheetByName('Mensagens');
+  if (!sheet || sheet.getLastRow() < 2) return 0;
+  const dados = sheet.getDataRange().getValues();
+  const h = dados[0];
+  const iPac = h.indexOf('paciente_id');
+  const iDe  = h.indexOf('de');
+  let iLida  = h.indexOf('lida_' + quemLe);
+  if (iLida === -1) {
+    iLida = h.length;
+    sheet.getRange(1, iLida+1).setValue('lida_' + quemLe);
+  }
+  const outro = quemLe === 'paciente' ? 'equipe' : 'paciente';
+  let n = 0;
+  for (let i=1;i<dados.length;i++) {
+    if (String(dados[i][iPac]) !== String(pacienteId)) continue;
+    if (String(dados[i][iDe]) !== outro) continue;
+    if (dados[i][iLida]) continue;
+    sheet.getRange(i+1, iLida+1).setValue(new Date().toISOString());
+    n++;
+  }
+  return n;
+}
+
+function enviarMensagem(body, token) {
+  const info = getInfoToken(token);
+  if (!info) return {ok:false, erro:'Sess\u00e3o inv\u00e1lida'};
+
+  const texto = String(body.texto||'').trim();
+  if (!texto) return {ok:false, erro:'Escreva a mensagem'};
+  if (texto.length > 4000) return {ok:false, erro:'Mensagem longa demais'};
+
+  const ehPaciente = info.role === 'paciente';
+  // Paciente so escreve na propria conversa: o destino vem do token
+  const pacienteId = ehPaciente ? info.refId : body.paciente_id;
+  if (!pacienteId) return {ok:false, erro:'Paciente n\u00e3o informado'};
+
+  const ss = getSpreadsheet();
+  const sheet = getOuCria(ss, 'Mensagens');
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(['id','paciente_id','de','autor_email','autor_nome','texto',
+                     'criado_em','lida_paciente','lida_equipe']);
+  }
+  const id = 'msg_' + Date.now() + '_' + Math.floor(Math.random()*9999);
+  sheet.appendRow([
+    id, pacienteId, ehPaciente ? 'paciente' : 'equipe',
+    info.email, body.autor_nome || '', texto, new Date().toISOString(), '', ''
+  ]);
+
+  return {ok:true, id:id};
+}
+
+
+// --- CONFIGURACAO DA CLINICA ----------------------------------
+// Cabecalho dos documentos gerados: nome, CNPJ, contato e logo. Fica numa
+// aba de chave/valor para a clinica mudar sem mexer no codigo.
+function lerConfig() {
+  const ss = getSpreadsheet();
+  const sheet = ss.getSheetByName('Config');
+  const cfg = {};
+  if (!sheet || sheet.getLastRow() < 2) return cfg;
+  const dados = sheet.getDataRange().getValues();
+  for (let i=1;i<dados.length;i++) {
+    if (dados[i][0]) cfg[String(dados[i][0])] = dados[i][1];
+  }
+  return cfg;
+}
+
+function obterConfig(token) {
+  const info = getInfoToken(token);
+  if (!info || info.role === 'paciente') return {ok:false, erro:'Sem permissao'};
+  return {ok:true, dados: lerConfig()};
+}
+
+function salvarConfigClinica(body, token) {
+  const info = getInfoToken(token);
+  if (!info || info.role !== 'admin') return {ok:false, erro:'Sem permissao de admin'};
+
+  const ss = getSpreadsheet();
+  const sheet = getOuCria(ss, 'Config');
+  if (sheet.getLastRow() === 0) sheet.appendRow(['chave','valor']);
+
+  const dados = sheet.getDataRange().getValues();
+  const linhaDe = {};
+  for (let i=1;i<dados.length;i++) linhaDe[String(dados[i][0])] = i+1;
+
+  Object.keys(body.dados||{}).forEach(function(k){
+    const v = body.dados[k];
+    if (linhaDe[k]) sheet.getRange(linhaDe[k], 2).setValue(v);
+    else sheet.appendRow([k, v]);
+  });
+  return {ok:true};
+}
+
+// --- ORCAMENTO ------------------------------------------------
+// Gera um PDF com o cabecalho da clinica e guarda como documento do
+// paciente, entao ele baixa pela propria area e leva ao convenio.
+function gerarOrcamento(body, token) {
+  const info = getInfoToken(token);
+  if (!info || info.role === 'paciente') return {ok:false, erro:'Sem permissao'};
+  if (!body.paciente_id) return {ok:false, erro:'Paciente nao informado'};
+
+  const itens = body.itens || [];
+  if (!itens.length) return {ok:false, erro:'Inclua ao menos um item'};
+
+  const pac = acharPacientePorId(body.paciente_id);
+  if (!pac) return {ok:false, erro:'Paciente nao encontrado'};
+
+  const cfg = lerConfig();
+  const numero = proximoNumeroOrcamento();
+  const html = htmlOrcamento(cfg, pac.obj, itens, body, numero, info);
+
+  let arquivo;
+  try {
+    const blob = Utilities.newBlob(html, 'text/html', 'orcamento.html')
+                          .getAs('application/pdf')
+                          .setName('Orcamento ' + numero + ' - ' + (pac.obj.nome||'') + '.pdf');
+    arquivo = pastaDoPaciente(body.paciente_id, pac.obj.nome).createFile(blob);
+  } catch(e) {
+    return {ok:false, erro:'Nao foi possivel gerar o PDF: ' + e.toString()};
+  }
+
+  const ss = getSpreadsheet();
+  const sheet = getOuCria(ss, 'Documentos');
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(['id','paciente_id','nome','tipo','categoria','drive_id','tamanho',
+                     'visivel_paciente','enviado_por','enviado_nome','criado_em']);
+  }
+  const id = 'doc_' + Date.now() + '_' + Math.floor(Math.random()*9999);
+  sheet.appendRow([
+    id, body.paciente_id, arquivo.getName(), 'application/pdf', 'Orcamento',
+    arquivo.getId(), arquivo.getSize(),
+    body.visivel_paciente === false ? 'Nao' : 'Sim',
+    info.email, body.autor_nome || '', new Date().toISOString()
+  ]);
+
+  // Guarda tambem os dados do orcamento, para reabrir e refazer depois
+  const so = getOuCria(ss, 'Orcamentos');
+  if (so.getLastRow() === 0) {
+    so.appendRow(['id','numero','paciente_id','itens','total','validade','observacoes',
+                  'documento_id','criado_por','criado_em']);
+  }
+  so.appendRow([
+    'orc_' + Date.now(), numero, body.paciente_id, JSON.stringify(itens),
+    totalDosItens(itens), body.validade||'', body.observacoes||'',
+    id, info.email, new Date().toISOString()
+  ]);
+
+  return {ok:true, documento_id:id, numero:numero};
+}
+
+function proximoNumeroOrcamento() {
+  const ss = getSpreadsheet();
+  const sheet = ss.getSheetByName('Orcamentos');
+  const ano = new Date().getFullYear();
+  let maior = 0;
+  if (sheet && sheet.getLastRow() > 1) {
+    const dados = sheet.getDataRange().getValues();
+    const iNum = dados[0].indexOf('numero');
+    for (let i=1;i<dados.length;i++) {
+      const m = /^(\d+)\/(\d{4})$/.exec(String(dados[i][iNum]||''));
+      if (m && Number(m[2]) === ano) maior = Math.max(maior, Number(m[1]));
+    }
+  }
+  return (maior + 1) + '/' + ano;
+}
+
+function totalDosItens(itens) {
+  let t = 0;
+  itens.forEach(function(i){
+    t += (Number(i.quantidade)||0) * (Number(i.valor)||0);
+  });
+  return t;
+}
+
+function dinheiro(v) {
+  const n = Number(v)||0;
+  return 'R$ ' + n.toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
+function escapeHtml(s) {
+  return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function htmlOrcamento(cfg, pac, itens, body, numero, info) {
+  const hoje = new Date();
+  const dataBR = hoje.getDate() + '/' + (hoje.getMonth()+1) + '/' + hoje.getFullYear();
+  const total = totalDosItens(itens);
+
+  const linhas = itens.map(function(i){
+    const qtd = Number(i.quantidade)||0;
+    const val = Number(i.valor)||0;
+    return '<tr>' +
+      '<td>' + escapeHtml(i.descricao||'') + '</td>' +
+      '<td class="c">' + qtd + '</td>' +
+      '<td class="d">' + dinheiro(val) + '</td>' +
+      '<td class="d">' + dinheiro(qtd*val) + '</td>' +
+    '</tr>';
+  }).join('');
+
+  const logo = cfg.logo
+    ? '<img src="' + escapeHtml(cfg.logo) + '" style="max-height:70px;max-width:220px">'
+    : '<div style="font-family:Georgia,serif;font-size:26px;color:#1d6b58">' +
+      escapeHtml(cfg.nome || 'Casa Oliveira') + '</div>';
+
+  return '<!DOCTYPE html><html><head><meta charset="UTF-8"><style>' +
+    'body{font-family:Arial,Helvetica,sans-serif;color:#1a1714;font-size:12px;padding:34px 38px;}' +
+    '.topo{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #1d6b58;padding-bottom:14px;margin-bottom:18px;}' +
+    '.cl{font-size:11px;color:#5c5650;line-height:1.55;text-align:right;}' +
+    'h1{font-size:17px;margin:0 0 3px;color:#1d6b58;}' +
+    '.sub{font-size:11px;color:#5c5650;margin-bottom:18px;}' +
+    '.bloco{background:#f5f3ef;border-radius:6px;padding:11px 13px;margin-bottom:16px;}' +
+    '.bloco b{display:inline-block;min-width:88px;color:#5c5650;font-weight:normal;}' +
+    'table{width:100%;border-collapse:collapse;margin-top:6px;}' +
+    'th{background:#1d6b58;color:#fff;text-align:left;padding:7px 9px;font-size:11px;}' +
+    'td{padding:7px 9px;border-bottom:1px solid #e8e2d9;}' +
+    '.c{text-align:center;} .d{text-align:right;white-space:nowrap;}' +
+    '.tot{margin-top:14px;text-align:right;font-size:15px;font-weight:bold;color:#1d6b58;}' +
+    '.obs{margin-top:20px;font-size:11px;color:#5c5650;line-height:1.6;white-space:pre-wrap;}' +
+    '.rod{margin-top:34px;padding-top:12px;border-top:1px solid #e8e2d9;font-size:10px;color:#9e9890;text-align:center;line-height:1.6;}' +
+    '</style></head><body>' +
+    '<div class="topo"><div>' + logo + '</div><div class="cl">' +
+      (cfg.cnpj ? 'CNPJ ' + escapeHtml(cfg.cnpj) + '<br>' : '') +
+      (cfg.endereco ? escapeHtml(cfg.endereco) + '<br>' : '') +
+      (cfg.telefone ? escapeHtml(cfg.telefone) + '<br>' : '') +
+      (cfg.email ? escapeHtml(cfg.email) : '') +
+    '</div></div>' +
+    '<h1>Orcamento ' + escapeHtml(numero) + '</h1>' +
+    '<div class="sub">Emitido em ' + dataBR + (body.validade ? ' &middot; Valido ate ' + escapeHtml(body.validade) : '') + '</div>' +
+    '<div class="bloco">' +
+      '<div><b>Paciente</b> ' + escapeHtml(pac.nome||'') + '</div>' +
+      (pac.data_nascimento ? '<div><b>Nascimento</b> ' + escapeHtml(String(pac.data_nascimento).slice(0,10)) + '</div>' : '') +
+      (pac.terapeuta_nome ? '<div><b>Profissional</b> ' + escapeHtml(pac.terapeuta_nome) + '</div>' : '') +
+      (body.cpf ? '<div><b>CPF</b> ' + escapeHtml(body.cpf) + '</div>' : '') +
+    '</div>' +
+    '<table><tr><th>Descricao</th><th class="c">Qtd.</th><th class="d">Valor unit.</th><th class="d">Subtotal</th></tr>' +
+    linhas + '</table>' +
+    '<div class="tot">Total: ' + dinheiro(total) + '</div>' +
+    (body.observacoes ? '<div class="obs"><b>Observacoes</b><br>' + escapeHtml(body.observacoes) + '</div>' : '') +
+    '<div class="rod">' + escapeHtml(cfg.rodape || 'Documento emitido pelo sistema da clinica.') +
+    '<br>Emitido por ' + escapeHtml(body.autor_nome || info.email) + ' em ' + dataBR + '</div>' +
+    '</body></html>';
+}
+
+
+// --- EXERCICIOS -----------------------------------------------
+// A clinica mantem a biblioteca (aba Exercicios, pelo CRUD comum) e o
+// profissional monta a serie de cada paciente em Prescricoes. Aqui so
+// entregamos ao paciente a serie que e dele.
+function meusExercicios(token) {
+  const info = getInfoToken(token);
+  if (!info || info.role !== 'paciente' || !info.refId) return {ok:false, erro:'Sessao invalida'};
+
+  const ss = getSpreadsheet();
+  const sp = ss.getSheetByName('Prescricoes');
+  if (!sp || sp.getLastRow() < 2) return {ok:true, dados:null};
+
+  const dados = sp.getDataRange().getValues();
+  const h = dados[0];
+  let minha = null;
+  for (let i=1;i<dados.length;i++) {
+    const o = {}; h.forEach(function(k,j){ o[k]=dados[i][j]; });
+    if (!o.id || String(o.paciente_id) !== String(info.refId)) continue;
+    if (String(o.ativa||'Sim').toLowerCase().indexOf('n') === 0) continue;
+    // vale a mais recente
+    if (!minha || String(o.criado_em||'') > String(minha.criado_em||'')) minha = o;
+  }
+  if (!minha) return {ok:true, dados:null};
+
+  // Traz os dados de cada exercicio da biblioteca, para o paciente ver
+  // nome, series e como fazer - nao so um identificador
+  const se = ss.getSheetByName('Exercicios');
+  const biblioteca = {};
+  if (se && se.getLastRow() > 1) {
+    const de = se.getDataRange().getValues();
+    const he = de[0];
+    for (let i=1;i<de.length;i++) {
+      const o = {}; he.forEach(function(k,j){ o[k]=de[i][j]; });
+      if (o.id) biblioteca[String(o.id)] = o;
+    }
+  }
+
+  let escolhidos = [];
+  try { escolhidos = JSON.parse(minha.exercicios || '[]'); } catch(e) {}
+
+  const lista = escolhidos.map(function(x){
+    const b = biblioteca[String(x.id)] || {};
+    return {
+      nome: b.nome || x.nome || '',
+      categoria: b.categoria || '',
+      descricao: b.descricao || '',
+      video: b.video || '',
+      series: x.series || b.series || '',
+      repeticoes: x.repeticoes || b.repeticoes || '',
+      frequencia: x.frequencia || '',
+      observacao: x.observacao || ''
+    };
+  }).filter(function(x){ return x.nome; });
+
+  return {ok:true, dados:{
+    titulo: minha.titulo || 'Exercicios para casa',
+    orientacoes: minha.orientacoes || '',
+    atualizado_em: minha.criado_em || '',
+    exercicios: lista
+  }};
+}
+
 // --- CRUD -----------------------------------------------------
 function listar(body) {
   const tabela = ABAS[body.tabela];
@@ -868,7 +1407,7 @@ function setupAdmin() {
   sr.getRange(1,1,1,5).setValues([['token','email','expira','usado','criado_em']]);
 
   // Abas de dados
-  const abas = ['Pacientes','PTS','Avaliacoes','Reunioes','Alertas','Monitoramentos','Checklists','Evolucoes','ListaEspera','Servicos','MyScore','Atelie','Programas'];
+  const abas = ['Pacientes','PTS','Avaliacoes','Reunioes','Alertas','Monitoramentos','Checklists','Evolucoes','ListaEspera','Servicos','MyScore','Atelie','Programas','Documentos','Mensagens','Orcamentos','Exercicios','Prescricoes','Config'];
   abas.forEach(nome => {
     const s = getOuCria(ss,nome);
     if (s.getLastRow()===0) s.appendRow(['id','criado_em']);

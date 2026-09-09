@@ -299,6 +299,7 @@ input,select,textarea{outline:none;}
 .pt-prog-t{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink3);margin-bottom:7px;}
 .pt-aviso{background:var(--teal-lt);border-radius:9px;padding:11px;margin-top:12px;font-size:13px;color:var(--ink);}
 .pt-nota{font-size:11.5px;color:var(--ink3);margin-top:12px;line-height:1.5;}
+.pac-msgs{max-height:300px;overflow-y:auto;}
 .pt-rodape{text-align:center;font-size:12px;color:var(--ink3);margin-top:26px;}
 
 .pac-status{background:var(--sur2);border:1px solid var(--bor);border-radius:9px;padding:11px 13px;font-size:13px;margin-bottom:14px;line-height:1.5;}
@@ -347,6 +348,36 @@ input,select,textarea{outline:none;}
 .prog-off{opacity:.55;}
 .prog-nome{font-size:14px;font-weight:600;color:var(--ink);}
 .prog-desc{font-size:12px;color:var(--ink3);margin-top:2px;}
+
+.doc{display:flex;gap:11px;align-items:flex-start;background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);padding:12px 14px;margin-bottom:9px;}
+.doc-off{opacity:.6;}
+.doc-ico{font-size:22px;flex-shrink:0;}
+.doc-nome{font-size:14px;font-weight:600;color:var(--ink);word-break:break-word;}
+.doc-meta{font-size:12px;color:var(--ink3);margin-top:2px;}
+.doc-previa{background:var(--sur2);border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:13px;word-break:break-word;}
+
+.msg{max-width:82%;padding:10px 13px;border-radius:13px;margin-bottom:9px;font-size:14px;line-height:1.5;}
+.msg-eq{background:var(--teal-lt);border:1px solid var(--teal);margin-left:auto;}
+.msg-pac{background:var(--sur2);border:1px solid var(--bor);}
+.msg-quem{font-size:11px;font-weight:700;color:var(--ink3);margin-bottom:3px;}
+.msg-txt{white-space:pre-wrap;word-break:break-word;color:var(--ink);}
+.msg-hora{font-size:10px;color:var(--ink3);margin-top:5px;}
+#msgLista{max-height:420px;overflow-y:auto;padding:4px;}
+.msg-form{margin-top:12px;padding-top:12px;border-top:1px solid var(--bor);}
+.exe{display:flex;gap:11px;align-items:flex-start;background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);padding:12px 14px;margin-bottom:9px;}
+.exe-n{width:26px;height:26px;border-radius:50%;background:var(--teal);color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.exe-nome{font-size:14px;font-weight:600;color:var(--ink);}
+.exe-meta{font-size:12px;color:var(--ink3);margin-top:2px;}
+.exe-obs{font-size:12px;color:var(--ink2);margin-top:5px;padding-top:5px;border-top:1px solid var(--bor);}
+.exe-linha{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);padding:11px;margin-bottom:8px;}
+.exe-linha-topo{display:flex;gap:7px;align-items:center;}
+.exe-linha-campos{display:flex;gap:7px;margin-top:6px;}
+.exe-linha-campos .fi{flex:1;min-width:0;}
+
+.orc-item{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);padding:11px;margin-bottom:8px;}
+.orc-item-campos{display:flex;gap:7px;margin-top:6px;align-items:center;}
+.orc-item-campos .fi{flex:1;min-width:0;}
+.orc-total{text-align:right;font-family:'Fraunces',serif;font-size:22px;color:var(--teal);margin-top:12px;padding-top:10px;border-top:1px solid var(--bor);}
 
 /* LOADING INLINE */
 .loading-inline{text-align:center;padding:36px;color:var(--ink3);font-size:14px;}
@@ -600,7 +631,7 @@ let demoMode = false;
 // Muda a cada publicação. Serve para o aparelho perceber que está com uma
 // versão velha em cache — sem isto a pessoa continua vendo o problema já
 // corrigido e jura que não foi corrigido.
-const VERSAO = '2026-08-25.03';
+const VERSAO = '2026-09-09.01';
 let _profsCache = null;
 let _demoPacienteId = null;
 
@@ -711,6 +742,11 @@ const DEMO_DB = {
   ],
   checklists: [],
   evolucoes: [],
+  documentos: [],
+  mensagens: [],
+  exercicios: [],
+  prescricoes: [],
+  config: {},
 };
 
 function demoApi(action, body) {
@@ -802,6 +838,59 @@ function demoApi(action, body) {
       return {ok:true, modo:'link_enviado', enviado:true};
     }
     case 'alterar_senha_paciente': return {ok:false, erro:'Não disponível no modo demonstração.'};
+    case 'enviar_documento': {
+      const id='doc_'+Date.now();
+      DEMO_DB.documentos.push({id, paciente_id:body.paciente_id, nome:body.nome, tipo:body.tipo,
+        categoria:body.categoria, tamanho:Math.round((body.arquivo||'').length*0.75),
+        visivel_paciente: body.visivel_paciente===false?'Nao':'Sim',
+        enviado_por:'demo', criado_em:new Date().toISOString(), _conteudo:body.arquivo});
+      return {ok:true, id};
+    }
+    case 'baixar_documento': {
+      const d=(DEMO_DB.documentos||[]).find(x=>String(x.id)===String(body.id));
+      if(!d) return {ok:false, erro:'Documento não encontrado'};
+      if(_demoPacienteId && String(d.paciente_id)!==String(_demoPacienteId)) return {ok:false, erro:'Sem permissão'};
+      return {ok:true, dados:{nome:d.nome, tipo:d.tipo, conteudo:d._conteudo||btoa('demo')}};
+    }
+    case 'excluir_documento': {
+      const i=(DEMO_DB.documentos||[]).findIndex(x=>String(x.id)===String(body.id));
+      if(i>=0) DEMO_DB.documentos.splice(i,1);
+      return {ok:true};
+    }
+    case 'meus_documentos': {
+      const lista=(DEMO_DB.documentos||[]).filter(d=>String(d.paciente_id)===String(_demoPacienteId)
+        && !String(d.visivel_paciente||'Sim').toLowerCase().startsWith('n'));
+      return {ok:true, dados:lista};
+    }
+    case 'mensagens_paciente':
+      return {ok:true, dados:(DEMO_DB.mensagens||[]).filter(m=>String(m.paciente_id)===String(body.paciente_id))};
+    case 'minhas_mensagens':
+      return {ok:true, dados:(DEMO_DB.mensagens||[]).filter(m=>String(m.paciente_id)===String(_demoPacienteId))};
+    case 'enviar_mensagem': {
+      const pid = _demoPacienteId || body.paciente_id;
+      DEMO_DB.mensagens.push({id:'msg_'+Date.now(), paciente_id:pid,
+        de:_demoPacienteId?'paciente':'equipe', autor_email:'demo',
+        autor_nome:body.autor_nome||'', texto:body.texto, criado_em:new Date().toISOString()});
+      return {ok:true};
+    }
+    case 'meus_exercicios': {
+      const pr=(DEMO_DB.prescricoes||[]).filter(p=>String(p.paciente_id)===String(_demoPacienteId));
+      if(!pr.length) return {ok:true, dados:null};
+      const ult=pr[pr.length-1];
+      let itens=[]; try{ itens=JSON.parse(ult.exercicios||'[]'); }catch(e){}
+      return {ok:true, dados:{titulo:ult.titulo, orientacoes:ult.orientacoes, exercicios:itens}};
+    }
+    case 'obter_config': return {ok:true, dados: DEMO_DB.config||{}};
+    case 'salvar_config': { DEMO_DB.config={...(DEMO_DB.config||{}), ...(body.dados||{})}; return {ok:true}; }
+    case 'gerar_orcamento': {
+      const id='doc_'+Date.now();
+      const total=(body.itens||[]).reduce((s,i)=>s+(i.quantidade||0)*(i.valor||0),0);
+      DEMO_DB.documentos.push({id, paciente_id:body.paciente_id, nome:'Orcamento 1-2026.pdf',
+        tipo:'application/pdf', categoria:'Orçamento', tamanho:12345,
+        visivel_paciente: body.visivel_paciente===false?'Nao':'Sim',
+        criado_em:new Date().toISOString(), _conteudo:btoa('pdf demo total '+total)});
+      return {ok:true, documento_id:id, numero:'1/2026'};
+    }
     case 'redefinir_senha': return {ok:false, erro:'Não disponível no modo demonstração.'};
     case 'convidar_prof': return {ok:false, erro:'Não disponível no modo demonstração.'};
     default: return {ok:false, erro:'Ação desconhecida no modo demo'};
@@ -1558,6 +1647,45 @@ async function liberarAcessoPaciente(id) {
 // o backend só deixa chegar ao próprio prontuário.
 // ═══════════════════════════════════════════════
 let pacienteLogado = null;
+let _pacDocs = [], _pacMsgs = [], _pacExer = null;
+
+function listaMsgPacienteHTML() {
+  if(!_pacMsgs.length) {
+    return `<div class="pt-p" style="color:var(--ink3)">Nenhuma mensagem ainda.
+      Escreva abaixo para falar com a equipe.</div>`;
+  }
+  return `<div class="pac-msgs">${_pacMsgs.map(m=>{
+    const meu = String(m.de)==='paciente';
+    return `<div class="msg ${meu?'msg-eq':'msg-pac'}">
+      <div class="msg-quem">${meu?'Você':esc(m.autor_nome||'Equipe')}</div>
+      <div class="msg-txt">${esc(m.texto||'')}</div>
+      <div class="msg-hora">${m.criado_em?esc(fmtDataHora(m.criado_em)):''}</div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+async function baixarMeuDoc(id) {
+  showToast('Baixando…','ok');
+  const res = await api('baixar_documento',{id});
+  if(!res.ok){ showToast('Erro: '+(res.erro||''),'err'); return; }
+  salvarArquivoLocal(res.dados.nome, res.dados.tipo, res.dados.conteudo);
+}
+
+async function enviarMinhaMensagem() {
+  const campo = document.getElementById('pacMsgTexto');
+  const texto = (campo.value||'').trim();
+  if(!texto){ showToast('Escreva sua mensagem.','err'); return; }
+  const btn = document.getElementById('pacMsgBtn');
+  btn.disabled=true; btn.textContent='Enviando...';
+  const res = await api('enviar_mensagem',{texto});
+  btn.disabled=false; btn.textContent='Enviar';
+  if(!res.ok){ showToast('Erro: '+(res.erro||''),'err'); return; }
+  campo.value='';
+  const r = await api('minhas_mensagens',{});
+  _pacMsgs = r.ok ? (r.dados||[]) : _pacMsgs;
+  document.getElementById('pacMsgLista').innerHTML = listaMsgPacienteHTML();
+  showToast('✅ Mensagem enviada','ok');
+}
 
 function mostrarLoginPaciente() {
   ['loginScreen','esqueciScreen','resetScreen','configBanner','pacSenhaScreen'].forEach(t=>{
@@ -1666,10 +1794,16 @@ async function abrirPortal() {
     </div>
     <div class="pt-corpo">${loadingHTML()}</div>`;
 
-  const [pront, fila] = await Promise.all([
+  const [pront, fila, docs, msgs, exers] = await Promise.all([
     api('meu_prontuario',{}),
     api('minha_posicao',{}),
+    api('meus_documentos',{}),
+    api('minhas_mensagens',{}),
+    api('meus_exercicios',{}),
   ]);
+  _pacDocs = docs.ok ? (docs.dados||[]) : [];
+  _pacMsgs = msgs.ok ? (msgs.dados||[]) : [];
+  _pacExer = exers.ok ? exers.dados : null;
 
   if(!pront.ok){
     tela.querySelector('.pt-corpo').innerHTML =
@@ -1730,6 +1864,51 @@ async function abrirPortal() {
       <div class="pt-t">🏠 Orientações para casa</div>
       <div class="pt-p">${esc(d.orientacoes)}</div>
     </div>` : ''}
+
+    ${_pacExer && _pacExer.exercicios && _pacExer.exercicios.length ? `<div class="pt-card">
+      <div class="pt-t">🏃 ${esc(_pacExer.titulo||'Exercícios para casa')}</div>
+      ${_pacExer.orientacoes?`<div class="pt-aviso" style="margin-bottom:12px">${esc(_pacExer.orientacoes)}</div>`:''}
+      ${_pacExer.exercicios.map((x,i)=>`<div class="exe">
+        <div class="exe-n">${i+1}</div>
+        <div style="flex:1;min-width:0">
+          <div class="exe-nome">${esc(x.nome)}</div>
+          <div class="exe-meta">
+            ${x.series?esc(x.series)+' série'+(String(x.series)!=='1'?'s':''):''}
+            ${x.repeticoes?' · '+esc(x.repeticoes)+' repetições':''}
+            ${x.frequencia?' · '+esc(x.frequencia):''}</div>
+          ${x.descricao?`<div class="exe-obs">${esc(x.descricao)}</div>`:''}
+          ${x.observacao?`<div class="exe-obs">${esc(x.observacao)}</div>`:''}
+          ${x.video?`<a class="chip ch-sky" href="${esc(x.video)}" target="_blank" rel="noopener"
+                        style="margin-top:6px;display:inline-block;text-decoration:none">▶ ver vídeo</a>`:''}
+        </div>
+      </div>`).join('')}
+    </div>` : ''}
+
+    <div class="pt-card">
+      <div class="pt-t">📎 Meus documentos</div>
+      ${_pacDocs.length
+        ? _pacDocs.map(d=>`<div class="doc" style="margin-bottom:8px">
+            <div class="doc-ico">${iconeArquivo(d.tipo, d.nome)}</div>
+            <div style="flex:1;min-width:0">
+              <div class="doc-nome">${esc(d.nome)}</div>
+              <div class="doc-meta">${esc(d.categoria||'')}
+                ${d.criado_em?' · '+esc(fmtDataBR(String(d.criado_em).slice(0,10))):''}</div>
+            </div>
+            <button class="backbtn" onclick="baixarMeuDoc('${esc(d.id)}')">⬇</button>
+          </div>`).join('')
+        : `<div class="pt-p" style="color:var(--ink3)">Nenhum documento disponível ainda.
+             Notas fiscais, relatórios e orçamentos aparecem aqui.</div>`}
+    </div>
+
+    <div class="pt-card">
+      <div class="pt-t">💬 Falar com a clínica</div>
+      <div id="pacMsgLista">${listaMsgPacienteHTML()}</div>
+      <textarea class="ft" id="pacMsgTexto" placeholder="Escreva sua mensagem..."
+                style="min-height:76px;margin-top:10px"></textarea>
+      <button class="savebtn" id="pacMsgBtn" style="margin-top:8px" onclick="enviarMinhaMensagem()">Enviar</button>
+      <div class="pt-nota">Sua equipe responde por aqui. Assim tudo fica registrado no seu
+        acompanhamento, e qualquer pessoa da equipe consegue te ajudar.</div>
+    </div>
 
     <button class="backbtn" style="width:100%;margin-top:6px" onclick="trocarSenhaPaciente()">🔑 Alterar minha senha</button>
     <div class="pt-rodape">Dúvidas sobre o tratamento? Fale com sua equipe na clínica.</div>`;
@@ -2716,6 +2895,619 @@ async function excluirRegistroHist(tipo, id) {
   showToast('🗑 Registro excluído','ok');
 }
 
+
+// ═══════════════════════════════════════════════
+// DOCUMENTOS DO PACIENTE
+// Os arquivos ficam no Drive da clínica; a planilha guarda só os dados do
+// anexo. O conteúdo só é entregue depois que o backend confere de quem é.
+// ═══════════════════════════════════════════════
+let _documentos = [];
+const CATEGORIAS_DOC = ['Nota fiscal','Relatório de atendimento','Orçamento','Laudo','Recibo','Outro'];
+const MAX_MB = 6;
+
+async function carregarDocumentos(pacienteId) {
+  const res = await api('listar',{tabela:'documentos', filtros:{paciente_id:pacienteId}});
+  _documentos = res.ok ? (res.dados||[]) : [];
+  _documentos.sort((a,b)=>String(b.criado_em||'').localeCompare(String(a.criado_em||'')));
+  desenharDocumentos(pacienteId);
+}
+
+function desenharDocumentos(pacienteId) {
+  const el = document.getElementById('docPainel');
+  if(!el) return;
+  el.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <span style="font-size:13px;color:var(--ink3)">${_documentos.length} documento${_documentos.length!==1?'s':''}</span>
+      <label class="addbtn" style="cursor:pointer">
+        📎 Anexar arquivo
+        <input type="file" id="docArquivo" style="display:none"
+               accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
+               onchange="prepararUpload('${pacienteId}', event)">
+      </label>
+    </div>
+    <div id="docForm"></div>
+    <div id="docLista">${listaDocumentosHTML()}</div>`;
+}
+
+function listaDocumentosHTML() {
+  if(!_documentos.length) {
+    return `<div style="text-align:center;padding:38px 20px;color:var(--ink3)">
+      <div style="font-size:34px;margin-bottom:8px">📎</div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:4px">Nenhum documento anexado</div>
+      <div style="font-size:13px">Nota fiscal, relatório, laudo — o paciente vê na área dele.</div>
+    </div>`;
+  }
+  return _documentos.map(d=>{
+    const oculto = String(d.visivel_paciente||'Sim').toLowerCase().startsWith('n');
+    return `<div class="doc ${oculto?'doc-off':''}">
+      <div class="doc-ico">${iconeArquivo(d.tipo, d.nome)}</div>
+      <div style="flex:1;min-width:0">
+        <div class="doc-nome">${esc(d.nome)}</div>
+        <div class="doc-meta">${esc(d.categoria||'Outro')}
+          ${d.tamanho?' · '+tamanhoLegivel(d.tamanho):''}
+          ${d.criado_em?' · '+esc(fmtDataBR(String(d.criado_em).slice(0,10))):''}</div>
+        <div style="margin-top:5px;display:flex;gap:5px;flex-wrap:wrap;align-items:center">
+          ${oculto
+            ? `<span class="chip ch-gray">só a clínica vê</span>`
+            : `<span class="chip ch-teal">o paciente vê</span>`}
+        </div>
+      </div>
+      <div class="esp-acoes">
+        <button class="backbtn" title="Baixar" onclick="baixarDoc('${esc(d.id)}')">⬇</button>
+        <button class="backbtn" title="${oculto?'Mostrar ao paciente':'Ocultar do paciente'}"
+                onclick="alternarVisibilidade('${esc(d.id)}')">${oculto?'🔒':'👁'}</button>
+        ${currentRole==='admin'?`<button class="backbtn" title="Excluir"
+                onclick="excluirDoc('${esc(d.id)}')">🗑</button>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function iconeArquivo(tipo, nome) {
+  const t = String(tipo||'') + ' ' + String(nome||'');
+  if(/pdf/i.test(t)) return '📕';
+  if(/(jpg|jpeg|png|gif|image)/i.test(t)) return '🖼';
+  if(/(doc|word)/i.test(t)) return '📘';
+  return '📄';
+}
+
+function tamanhoLegivel(bytes) {
+  const n = Number(bytes)||0;
+  if(n < 1024) return n+' B';
+  if(n < 1024*1024) return Math.round(n/1024)+' KB';
+  return (n/1024/1024).toFixed(1).replace('.',',')+' MB';
+}
+
+function prepararUpload(pacienteId, ev) {
+  const arq = ev.target.files && ev.target.files[0];
+  if(!arq) return;
+  ev.target.value = '';   // permite escolher o mesmo arquivo de novo depois
+
+  if(arq.size > MAX_MB*1024*1024) {
+    showToast('Arquivo maior que '+MAX_MB+' MB. Comprima o PDF ou reduza a imagem.','err');
+    return;
+  }
+
+  const f = document.getElementById('docForm');
+  const categoriaChutada = /nota|nf/i.test(arq.name) ? 'Nota fiscal'
+                         : /relat/i.test(arq.name) ? 'Relatório de atendimento'
+                         : /laudo/i.test(arq.name) ? 'Laudo'
+                         : /orc|orç/i.test(arq.name) ? 'Orçamento' : 'Outro';
+  f.innerHTML = `<div class="evo-form">
+    <div class="doc-previa">${iconeArquivo(arq.type, arq.name)} <strong>${esc(arq.name)}</strong>
+      <span style="color:var(--ink3)"> · ${tamanhoLegivel(arq.size)}</span></div>
+    <div class="fg"><label class="fl">Tipo de documento</label>
+      <select class="fs" id="docCategoria">
+        ${CATEGORIAS_DOC.map(c=>`<option${c===categoriaChutada?' selected':''}>${c}</option>`).join('')}
+      </select></div>
+    <label class="pill-chk" style="margin-bottom:10px">
+      <input type="checkbox" id="docVisivel" checked style="accent-color:var(--teal)">
+      O paciente pode ver e baixar
+    </label>
+    <div class="pt-nota" style="margin-top:0">Desmarque para guardar o arquivo só na clínica.</div>
+    <div id="docErr" class="errbox"></div>
+    <div id="docProgresso"></div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="savebtn" id="docBtn" style="flex:1" onclick="enviarDoc('${pacienteId}')">Anexar</button>
+      <button class="backbtn" onclick="document.getElementById('docForm').innerHTML='';_arquivoPendente=null">Cancelar</button>
+    </div>
+  </div>`;
+  _arquivoPendente = arq;
+  f.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+let _arquivoPendente = null;
+
+async function enviarDoc(pacienteId) {
+  const arq = _arquivoPendente;
+  if(!arq) return;
+  const err = document.getElementById('docErr');
+  const btn = document.getElementById('docBtn');
+  const prog = document.getElementById('docProgresso');
+  err.style.display='none';
+  btn.disabled=true; btn.textContent='Enviando...';
+  prog.innerHTML = `<div class="loading-inline"><div class="loading-spin"></div>Enviando ${esc(arq.name)}…</div>`;
+
+  let base64;
+  try {
+    base64 = await new Promise((ok,falhou)=>{
+      const fr = new FileReader();
+      fr.onload = ()=>ok(String(fr.result).split(',')[1]);
+      fr.onerror = ()=>falhou(new Error('Não foi possível ler o arquivo'));
+      fr.readAsDataURL(arq);
+    });
+  } catch(e) {
+    btn.disabled=false; btn.textContent='Anexar'; prog.innerHTML='';
+    err.textContent=e.message; err.style.display='block'; return;
+  }
+
+  const res = await api('enviar_documento',{
+    paciente_id: pacienteId,
+    nome: arq.name,
+    tipo: arq.type || 'application/octet-stream',
+    categoria: document.getElementById('docCategoria').value,
+    visivel_paciente: document.getElementById('docVisivel').checked,
+    enviado_nome: currentUser.nome,
+    arquivo: base64,
+  });
+
+  btn.disabled=false; btn.textContent='Anexar'; prog.innerHTML='';
+  if(!res.ok){ err.textContent='Erro ao anexar: '+(res.erro||''); err.style.display='block'; return; }
+
+  _arquivoPendente = null;
+  document.getElementById('docForm').innerHTML='';
+  await carregarDocumentos(pacienteId);
+  showToast('✅ Documento anexado','ok');
+}
+
+async function baixarDoc(id) {
+  const d = _documentos.find(x=>String(x.id)===String(id));
+  showToast('Baixando…','ok');
+  const res = await api('baixar_documento',{id});
+  if(!res.ok){ showToast('Erro: '+(res.erro||''),'err'); return; }
+  salvarArquivoLocal(res.dados.nome, res.dados.tipo, res.dados.conteudo);
+}
+
+// Monta o arquivo de volta a partir do base64 e entrega ao navegador
+function salvarArquivoLocal(nome, tipo, base64) {
+  const bin = atob(base64);
+  const bytes = new Uint8Array(bin.length);
+  for(let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+  const blob = new Blob([bytes], {type: tipo || 'application/octet-stream'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = nome || 'documento';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 5000);
+}
+
+async function alternarVisibilidade(id) {
+  const d = _documentos.find(x=>String(x.id)===String(id));
+  if(!d) return;
+  const oculto = String(d.visivel_paciente||'Sim').toLowerCase().startsWith('n');
+  const res = await api('atualizar',{tabela:'documentos', id, dados:{visivel_paciente: oculto?'Sim':'Nao'}});
+  if(!res.ok){ showToast('Erro: '+(res.erro||''),'err'); return; }
+  d.visivel_paciente = oculto?'Sim':'Nao';
+  document.getElementById('docLista').innerHTML = listaDocumentosHTML();
+  showToast(oculto?'👁 O paciente passa a ver':'🔒 Oculto do paciente','ok');
+}
+
+async function excluirDoc(id) {
+  const d = _documentos.find(x=>String(x.id)===String(id));
+  if(!confirm('Excluir "'+(d?d.nome:'este documento')+'"?\n\nO arquivo vai para a lixeira do Drive.')) return;
+  const res = await api('excluir_documento',{id});
+  if(!res.ok){ showToast('Erro: '+(res.erro||''),'err'); return; }
+  await carregarDocumentos(_pacienteAberto);
+  showToast('🗑 Documento excluído','ok');
+}
+
+
+// ═══════════════════════════════════════════════
+// MENSAGENS
+// A conversa é do paciente com a clínica, não com uma pessoa. É o que
+// diferencia isto do WhatsApp: quem estiver responsável responde, e a
+// gestão enxerga tudo — o vínculo fica com a clínica.
+// ═══════════════════════════════════════════════
+let _mensagens = [];
+
+async function carregarMensagens(pacienteId) {
+  const res = await api('mensagens_paciente',{paciente_id:pacienteId});
+  _mensagens = res.ok ? (res.dados||[]) : [];
+  desenharMensagens(pacienteId);
+}
+
+function desenharMensagens(pacienteId) {
+  const el = document.getElementById('msgPainel');
+  if(!el) return;
+  el.innerHTML = `
+    <div class="pt-nota" style="margin-top:0;margin-bottom:12px">
+      A conversa fica registrada no prontuário e é visível para a equipe responsável
+      e para a gestão. O paciente vê apenas esta conversa, na área dele.
+    </div>
+    <div id="msgLista">${listaMensagensHTML()}</div>
+    <div class="msg-form">
+      <textarea class="ft" id="msgTexto" placeholder="Escreva para o paciente..."
+                style="min-height:80px"></textarea>
+      <button class="savebtn" id="msgBtn" style="margin-top:8px"
+              onclick="responderPaciente('${pacienteId}')">Enviar</button>
+    </div>`;
+  const lista = document.getElementById('msgLista');
+  if(lista) lista.scrollTop = lista.scrollHeight;
+}
+
+function listaMensagensHTML() {
+  if(!_mensagens.length) {
+    return `<div style="text-align:center;padding:34px 20px;color:var(--ink3)">
+      <div style="font-size:32px;margin-bottom:8px">💬</div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:4px">Nenhuma mensagem ainda</div>
+      <div style="font-size:13px">O que for combinado aqui fica registrado.</div>
+    </div>`;
+  }
+  return _mensagens.map(m=>{
+    const daEquipe = String(m.de)==='equipe';
+    return `<div class="msg ${daEquipe?'msg-eq':'msg-pac'}">
+      <div class="msg-quem">${daEquipe?esc(m.autor_nome||nomeDoAutor(m.autor_email,'')):'Paciente'}</div>
+      <div class="msg-txt">${esc(m.texto||'')}</div>
+      <div class="msg-hora">${m.criado_em?esc(fmtDataHora(m.criado_em)):''}</div>
+    </div>`;
+  }).join('');
+}
+
+async function responderPaciente(pacienteId) {
+  const campo = document.getElementById('msgTexto');
+  const texto = (campo.value||'').trim();
+  if(!texto){ showToast('Escreva a mensagem.','err'); return; }
+  const btn = document.getElementById('msgBtn');
+  btn.disabled=true; btn.textContent='Enviando...';
+  const res = await api('enviar_mensagem',{paciente_id:pacienteId, texto, autor_nome:currentUser.nome});
+  btn.disabled=false; btn.textContent='Enviar';
+  if(!res.ok){ showToast('Erro: '+(res.erro||''),'err'); return; }
+  campo.value='';
+  limparSujo();
+  await carregarMensagens(pacienteId);
+}
+
+// ═══════════════════════════════════════════════
+// EXERCÍCIOS — biblioteca que cresce com o uso
+// O profissional monta a série escolhendo o que já existe ou digitando na
+// hora; o que ele digita entra na biblioteca para a próxima vez. Assim não
+// há um cadastro inicial de dezenas de itens travando o começo.
+// ═══════════════════════════════════════════════
+let _exercicios = [];      // biblioteca
+let _prescricao = null;    // série do paciente aberto
+
+async function carregarPrescricao(pacienteId) {
+  const [resEx, resPr] = await Promise.all([
+    api('listar',{tabela:'exercicios'}),
+    api('listar',{tabela:'prescricoes', filtros:{paciente_id:pacienteId}}),
+  ]);
+  _exercicios = resEx.ok ? (resEx.dados||[]).filter(e=>!String(e.ativo||'Sim').toLowerCase().startsWith('n')) : [];
+  const todas = resPr.ok ? (resPr.dados||[]) : [];
+  todas.sort((a,b)=>String(b.criado_em||'').localeCompare(String(a.criado_em||'')));
+  _prescricao = todas[0] || null;
+  desenharExercicios(pacienteId);
+}
+
+function itensDaPrescricao() {
+  if(!_prescricao) return [];
+  try { return JSON.parse(_prescricao.exercicios||'[]'); } catch(e){ return []; }
+}
+
+function desenharExercicios(pacienteId) {
+  const el = document.getElementById('exePainel');
+  if(!el) return;
+  const itens = itensDaPrescricao();
+  el.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <span style="font-size:13px;color:var(--ink3)">
+        ${itens.length?itens.length+' exercício'+(itens.length!==1?'s':'')+' na série':'Sem série montada'}
+        ${_prescricao&&_prescricao.criado_em?' · '+esc(fmtDataBR(String(_prescricao.criado_em).slice(0,10))):''}
+      </span>
+      <button class="addbtn" onclick="montarSerie('${pacienteId}')">
+        ${itens.length?'✏️ Editar série':'+ Montar série'}</button>
+    </div>
+    <div id="exeForm"></div>
+    <div id="exeLista">${listaExerciciosHTML(itens)}</div>`;
+}
+
+function listaExerciciosHTML(itens) {
+  if(!itens.length) {
+    return `<div style="text-align:center;padding:34px 20px;color:var(--ink3)">
+      <div style="font-size:32px;margin-bottom:8px">🏃</div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:4px">Nenhum exercício prescrito</div>
+      <div style="font-size:13px">O paciente vê a série na área dele, com séries e repetições.</div>
+    </div>`;
+  }
+  return `${_prescricao&&_prescricao.orientacoes?`<div class="pt-aviso" style="margin-bottom:12px">${esc(_prescricao.orientacoes)}</div>`:''}
+    ${itens.map((x,i)=>`<div class="exe">
+      <div class="exe-n">${i+1}</div>
+      <div style="flex:1;min-width:0">
+        <div class="exe-nome">${esc(x.nome)}</div>
+        <div class="exe-meta">
+          ${x.series?esc(x.series)+' série'+(String(x.series)!=='1'?'s':''):''}
+          ${x.repeticoes?' · '+esc(x.repeticoes)+' repetições':''}
+          ${x.frequencia?' · '+esc(x.frequencia):''}</div>
+        ${x.observacao?`<div class="exe-obs">${esc(x.observacao)}</div>`:''}
+      </div>
+    </div>`).join('')}`;
+}
+
+function montarSerie(pacienteId) {
+  const f = document.getElementById('exeForm');
+  if(!f) return;
+  const itens = itensDaPrescricao();
+  f.innerHTML = `<div class="evo-form">
+    <div class="fg"><label class="fl">Orientações gerais</label>
+      <textarea class="ft" id="exeOrient" placeholder="Ex.: fazer pela manhã, parar se doer...">${esc(_prescricao?_prescricao.orientacoes:'')}</textarea></div>
+    <div class="fl" style="margin:14px 0 6px">Exercícios da série</div>
+    <div id="exeItens">${itens.map((x,i)=>linhaExercicioHTML(x,i)).join('')}</div>
+    <button class="addbtn" style="margin-top:8px" onclick="addLinhaExercicio()">+ Adicionar exercício</button>
+    <div id="exeErr" class="errbox"></div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button class="savebtn" id="exeBtn" style="flex:1" onclick="salvarSerie('${pacienteId}')">Salvar série</button>
+      <button class="backbtn" onclick="document.getElementById('exeForm').innerHTML=''">Cancelar</button>
+    </div>
+  </div>`;
+  if(!itens.length) addLinhaExercicio();
+  f.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function linhaExercicioHTML(x, i) {
+  x = x || {};
+  const jaNaBiblioteca = _exercicios.some(e=>normalizar(e.nome)===normalizar(x.nome||''));
+  return `<div class="exe-linha" data-i="${i}">
+    <div class="exe-linha-topo">
+      <input class="fi" list="listaExercicios" placeholder="Nome do exercício"
+             value="${esc(x.nome)}" data-ek="nome">
+      <button class="backbtn" title="Remover" onclick="this.closest('.exe-linha').remove()">✕</button>
+    </div>
+    <div class="exe-linha-campos">
+      <input class="fi" placeholder="Séries" value="${esc(x.series)}" data-ek="series">
+      <input class="fi" placeholder="Repetições" value="${esc(x.repeticoes)}" data-ek="repeticoes">
+      <input class="fi" placeholder="Frequência" value="${esc(x.frequencia)}" data-ek="frequencia">
+    </div>
+    <input class="fi" placeholder="Observação para este paciente (opcional)"
+           value="${esc(x.observacao)}" data-ek="observacao" style="margin-top:6px">
+    <label class="pill-chk" style="margin-top:6px">
+      <input type="checkbox" data-ek="salvar" style="accent-color:var(--teal)"${jaNaBiblioteca?'':' checked'}>
+      Guardar na biblioteca para reutilizar
+    </label>
+  </div>`;
+}
+
+function addLinhaExercicio() {
+  const cx = document.getElementById('exeItens');
+  if(!cx) return;
+  cx.insertAdjacentHTML('beforeend', linhaExercicioHTML({}, cx.children.length));
+  atualizarListaExercicios();
+  cx.lastElementChild.querySelector('[data-ek="nome"]').focus();
+}
+
+// datalist com a biblioteca: sugere ao digitar, sem obrigar a escolher
+function atualizarListaExercicios() {
+  let dl = document.getElementById('listaExercicios');
+  if(!dl) {
+    dl = document.createElement('datalist');
+    dl.id = 'listaExercicios';
+    document.body.appendChild(dl);
+  }
+  dl.innerHTML = _exercicios.map(e=>`<option value="${esc(e.nome)}">`).join('');
+}
+
+async function salvarSerie(pacienteId) {
+  const cx = document.getElementById('exeItens');
+  const err = document.getElementById('exeErr');
+  const btn = document.getElementById('exeBtn');
+
+  const itens = [];
+  const novosParaBiblioteca = [];
+  [...cx.querySelectorAll('.exe-linha')].forEach(linha=>{
+    const val = k => (linha.querySelector(`[data-ek="${k}"]`)||{}).value || '';
+    const nome = val('nome').trim();
+    if(!nome) return;
+    const jaExiste = _exercicios.find(e=>normalizar(e.nome)===normalizar(nome));
+    const item = {
+      id: jaExiste ? jaExiste.id : '',
+      nome,
+      series: val('series').trim(),
+      repeticoes: val('repeticoes').trim(),
+      frequencia: val('frequencia').trim(),
+      observacao: val('observacao').trim(),
+    };
+    itens.push(item);
+    const querSalvar = (linha.querySelector('[data-ek="salvar"]')||{}).checked;
+    if(querSalvar && !jaExiste) novosParaBiblioteca.push(item);
+  });
+
+  if(!itens.length){ err.textContent='Inclua ao menos um exercício.'; err.style.display='block'; return; }
+  err.style.display='none';
+  btn.disabled=true; btn.textContent='Salvando...';
+
+  // O que foi digitado agora entra na biblioteca, então da próxima vez
+  // aparece como sugestão em vez de ser redigitado
+  for(const novo of novosParaBiblioteca) {
+    const res = await api('salvar',{tabela:'exercicios', dados:{
+      nome: novo.nome, series: novo.series, repeticoes: novo.repeticoes,
+      categoria:'', descricao:'', video:'', ativo:'Sim',
+      criado_por: currentUser.email
+    }});
+    if(res.ok) itens.forEach(i=>{ if(i.nome===novo.nome) i.id = res.id; });
+  }
+
+  const dados = {
+    paciente_id: pacienteId,
+    titulo: 'Exercícios para casa',
+    orientacoes: (document.getElementById('exeOrient').value||'').trim(),
+    exercicios: JSON.stringify(itens),
+    ativa: 'Sim',
+    criado_por: currentUser.email,
+    criado_nome: currentUser.nome,
+  };
+  // Cada série vira um registro novo: dá para ver o que foi prescrito antes
+  const res = await api('salvar',{tabela:'prescricoes', dados});
+  btn.disabled=false; btn.textContent='Salvar série';
+  if(!res.ok){ err.textContent='Erro ao salvar: '+(res.erro||''); err.style.display='block'; return; }
+
+  document.getElementById('exeForm').innerHTML='';
+  limparSujo();
+  await carregarPrescricao(pacienteId);
+  showToast('✅ Série salva'+(novosParaBiblioteca.length?' · '+novosParaBiblioteca.length+' na biblioteca':''),'ok');
+}
+
+
+// ═══════════════════════════════════════════════
+// ORÇAMENTO
+// O PDF é gerado no servidor com o cabeçalho da clínica e já entra como
+// documento do paciente — assim ele baixa pela própria área e leva ao
+// convênio, sem ninguém precisar mandar arquivo por fora.
+// ═══════════════════════════════════════════════
+function orcamentoHTML(p) {
+  return `<div class="pt-nota" style="margin-top:0">
+      O orçamento sai em PDF com o cabeçalho da clínica e fica disponível
+      para o paciente na área dele.
+      <span class="esp-limpar" onclick="abrirConfigClinica()">Editar cabeçalho</span>
+    </div>
+    <div class="fg"><label class="fl">CPF do paciente (opcional, para o convênio)</label>
+      <input class="fi" id="orcCpf" placeholder="000.000.000-00"></div>
+    <div class="fg"><label class="fl">Válido até</label>
+      <input class="fi" id="orcValidade" type="date"></div>
+
+    <div class="fl" style="margin:14px 0 6px">Itens</div>
+    <div id="orcItens"></div>
+    <button class="addbtn" style="margin-top:8px" onclick="addItemOrcamento()">+ Adicionar item</button>
+
+    <div class="orc-total" id="orcTotal">Total: R$ 0,00</div>
+
+    <div class="fg" style="margin-top:12px"><label class="fl">Observações</label>
+      <textarea class="ft" id="orcObs" placeholder="Formas de pagamento, condições..."></textarea></div>
+
+    <label class="pill-chk" style="margin-top:4px">
+      <input type="checkbox" id="orcVisivel" checked style="accent-color:var(--teal)">
+      O paciente pode ver e baixar
+    </label>
+
+    <div id="orcErr" class="errbox"></div>
+    <button class="savebtn" id="orcBtn" style="margin-top:12px"
+            onclick="gerarOrcamentoPdf('${p.id}')">📄 Gerar PDF</button>`;
+}
+
+function addItemOrcamento(item) {
+  const cx = document.getElementById('orcItens');
+  if(!cx) return;
+  item = item || {};
+  const div = document.createElement('div');
+  div.className = 'orc-item';
+  div.innerHTML = `
+    <input class="fi" placeholder="Descrição do serviço" value="${esc(item.descricao)}" data-ok="descricao">
+    <div class="orc-item-campos">
+      <input class="fi" type="number" min="1" step="1" placeholder="Qtd" value="${esc(item.quantidade||1)}" data-ok="quantidade" oninput="recalcularOrcamento()">
+      <input class="fi" type="number" min="0" step="0.01" placeholder="Valor unit." value="${esc(item.valor)}" data-ok="valor" oninput="recalcularOrcamento()">
+      <button class="backbtn" title="Remover" onclick="this.closest('.orc-item').remove();recalcularOrcamento()">✕</button>
+    </div>`;
+  cx.appendChild(div);
+  recalcularOrcamento();
+}
+
+function itensDoOrcamento() {
+  return [...document.querySelectorAll('#orcItens .orc-item')].map(el=>{
+    const v = k => (el.querySelector(`[data-ok="${k}"]`)||{}).value || '';
+    return {descricao:v('descricao').trim(), quantidade:Number(v('quantidade'))||0, valor:Number(v('valor'))||0};
+  }).filter(i=>i.descricao);
+}
+
+function recalcularOrcamento() {
+  const total = itensDoOrcamento().reduce((s,i)=>s + i.quantidade*i.valor, 0);
+  const el = document.getElementById('orcTotal');
+  if(el) el.textContent = 'Total: ' + moeda(total);
+}
+
+function moeda(v) {
+  return 'R$ ' + (Number(v)||0).toFixed(2).replace('.',',').replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+}
+
+async function gerarOrcamentoPdf(pacienteId) {
+  const itens = itensDoOrcamento();
+  const err = document.getElementById('orcErr');
+  const btn = document.getElementById('orcBtn');
+  if(!itens.length){ err.textContent='Inclua ao menos um item com descrição.'; err.style.display='block'; return; }
+  err.style.display='none';
+  btn.disabled=true; btn.textContent='Gerando PDF...';
+
+  const res = await api('gerar_orcamento',{
+    paciente_id: pacienteId,
+    itens,
+    cpf: (document.getElementById('orcCpf').value||'').trim(),
+    validade: (()=>{ const d=document.getElementById('orcValidade').value; return d?fmtDataBR(d):''; })(),
+    observacoes: (document.getElementById('orcObs').value||'').trim(),
+    visivel_paciente: document.getElementById('orcVisivel').checked,
+    autor_nome: currentUser.nome,
+  });
+
+  btn.disabled=false; btn.textContent='📄 Gerar PDF';
+  if(!res.ok){ err.textContent='Erro ao gerar: '+(res.erro||''); err.style.display='block'; return; }
+
+  showToast('✅ Orçamento '+res.numero+' gerado','ok');
+  if(confirm('Orçamento '+res.numero+' gerado e anexado ao paciente.\n\nBaixar agora?')) {
+    await baixarDoc(res.documento_id);
+  }
+  await carregarDocumentos(pacienteId);
+}
+
+// ── CABEÇALHO DA CLÍNICA ────────────────────────
+async function abrirConfigClinica() {
+  if(currentRole!=='admin'){ showToast('Só a gestão edita o cabeçalho.','err'); return; }
+  const res = await api('obter_config',{});
+  const c = res.ok ? (res.dados||{}) : {};
+  document.getElementById('sheetTitle').textContent = '🏥 Cabeçalho dos documentos';
+  document.getElementById('sheetBody').innerHTML = `
+    <div class="pt-nota" style="margin-top:0">Aparece no topo dos orçamentos e demais documentos gerados.</div>
+    ${[['nome','Nome da clínica'],['cnpj','CNPJ'],['endereco','Endereço'],
+       ['telefone','Telefone'],['email','E-mail']].map(([k,l])=>`
+      <div class="fg"><label class="fl">${l}</label>
+        <input class="fi" id="cfg_${k}" value="${esc(c[k])}"></div>`).join('')}
+    <div class="fg"><label class="fl">Rodapé</label>
+      <input class="fi" id="cfg_rodape" value="${esc(c.rodape)}"
+             placeholder="Ex.: Documento sem valor fiscal"></div>
+    <div class="fg"><label class="fl">Logo</label>
+      ${c.logo?`<img src="${esc(c.logo)}" style="max-height:64px;max-width:200px;display:block;margin-bottom:8px">`:''}
+      <label class="addbtn" style="cursor:pointer;display:inline-block">
+        🖼 ${c.logo?'Trocar logo':'Enviar logo'}
+        <input type="file" accept=".png,.jpg,.jpeg" style="display:none" onchange="lerLogo(event)">
+      </label>
+      <div class="pt-nota">PNG ou JPG, até 300 KB.</div>
+      <input type="hidden" id="cfg_logo" value="${esc(c.logo)}"></div>
+    <div id="cfgErr" class="errbox"></div>
+    <button class="savebtn" id="cfgBtn" onclick="salvarConfigClinica()">Salvar</button>`;
+  openSheet();
+}
+
+function lerLogo(ev) {
+  const arq = ev.target.files && ev.target.files[0];
+  if(!arq) return;
+  if(arq.size > 300*1024){ showToast('Logo maior que 300 KB.','err'); return; }
+  const fr = new FileReader();
+  fr.onload = ()=>{
+    document.getElementById('cfg_logo').value = fr.result;   // data: URI
+    showToast('Logo carregado — clique em Salvar','ok');
+  };
+  fr.readAsDataURL(arq);
+}
+
+async function salvarConfigClinica() {
+  const btn = document.getElementById('cfgBtn');
+  const err = document.getElementById('cfgErr');
+  const dados = {};
+  ['nome','cnpj','endereco','telefone','email','rodape','logo'].forEach(k=>{
+    dados[k] = (document.getElementById('cfg_'+k)||{}).value || '';
+  });
+  btn.disabled=true; btn.textContent='Salvando...';
+  const res = await api('salvar_config',{dados});
+  btn.disabled=false; btn.textContent='Salvar';
+  if(!res.ok){ err.textContent='Erro: '+(res.erro||''); err.style.display='block'; return; }
+  closeSheet(true);
+  showToast('✅ Cabeçalho salvo','ok');
+}
+
 // ═══════════════════════════════════════════════
 // EVOLUÇÕES — histórico cronológico do atendimento
 // Uma linha por sessão, que não se sobrescreve: é o registro clínico
@@ -3171,10 +3963,15 @@ async function openPaciente(linha, id) {
     geriatria:    ['📋 Checklist','🎯 PTS','🏠 Casa Segura','📅 Reuniões'],
     mental:       ['📋 Checklist','🎯 PTS','🎨 Ateliê'],
   };
-  const tabs = [...(tabsDef[linha]||['📋 Dados']), '🗒 Evoluções'];
+  const tabs = [...(tabsDef[linha]||['📋 Dados']), '🗒 Evoluções', '🏃 Exercícios', '📎 Documentos', '💬 Mensagens'];
+  if(currentRole==='admin') tabs.push('💰 Orçamento');
   if(currentRole!=='profissional') tabs.push('👤 Área do paciente');
   const iEvo = tabs.indexOf('🗒 Evoluções');
   const iPac = tabs.indexOf('👤 Área do paciente');
+  const iExe = tabs.indexOf('🏃 Exercícios');
+  const iDoc = tabs.indexOf('📎 Documentos');
+  const iMsg = tabs.indexOf('💬 Mensagens');
+  const iOrc = tabs.indexOf('💰 Orçamento');
 
   document.getElementById('sheetBody').innerHTML = `
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
@@ -3189,6 +3986,14 @@ async function openPaciente(linha, id) {
     ${tabs.map((t,i)=>`<div id="tb${i}" style="display:${i===0?'block':'none'}">
       ${i===iEvo
         ? `<div id="evoPainel">${loadingHTML()}</div>`
+        : i===iExe
+        ? `<div id="exePainel">${loadingHTML()}</div>`
+        : i===iDoc
+        ? `<div id="docPainel">${loadingHTML()}</div>`
+        : i===iMsg
+        ? `<div id="msgPainel">${loadingHTML()}</div>`
+        : i===iOrc
+        ? orcamentoHTML(p)
         : i===iPac
         ? areaPacienteHTML(p, i)
         : (()=>{ const c = renderTabContent(linha, p, i);
@@ -3199,6 +4004,10 @@ async function openPaciente(linha, id) {
     </div>`).join('')}`;
 
   carregarEvolucoes(id);
+  carregarDocumentos(id);
+  carregarMensagens(id);
+  carregarPrescricao(id);
+  setTimeout(()=>{ if(document.getElementById('orcItens') && !document.querySelector('#orcItens .orc-item')) addItemOrcamento(); }, 120);
   Object.entries(_histAba).forEach(([, tipo])=>carregarHistorico(tipo, id));
 }
 
