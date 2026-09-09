@@ -354,6 +354,9 @@ input,select,textarea{outline:none;}
 .doc-ico{font-size:22px;flex-shrink:0;}
 .doc-nome{font-size:14px;font-weight:600;color:var(--ink);word-break:break-word;}
 .doc-meta{font-size:12px;color:var(--ink3);margin-top:2px;}
+.doc-grupo{display:flex;align-items:center;gap:7px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--ink3);margin:14px 0 7px;}
+.doc-grupo:first-child{margin-top:0;}
+.doc-grupo span{background:var(--sur2);border-radius:10px;padding:1px 7px;font-size:10px;}
 .doc-previa{background:var(--sur2);border-radius:8px;padding:10px 12px;margin-bottom:12px;font-size:13px;word-break:break-word;}
 
 .msg{max-width:82%;padding:10px 13px;border-radius:13px;margin-bottom:9px;font-size:14px;line-height:1.5;}
@@ -647,7 +650,7 @@ let demoMode = false;
 // Muda a cada publicação. Serve para o aparelho perceber que está com uma
 // versão velha em cache — sem isto a pessoa continua vendo o problema já
 // corrigido e jura que não foi corrigido.
-const VERSAO = '2026-09-09.05';
+const VERSAO = '2026-09-09.07';
 let _profsCache = null;
 let _demoPacienteId = null;
 
@@ -739,7 +742,9 @@ async function apiBruto(action, body={}) {
 // ═══════════════════════════════════════════════
 // PDF valido de uma pagina, para o download no modo demonstracao abrir no
 // leitor em vez de dar erro de arquivo corrompido
-const PDF_EXEMPLO = 'JVBERi0xLjQKMSAwIG9iago8PCAvVHlwZSAvQ2F0YWxvZyAvUGFnZXMgMiAwIFIgPj4KZW5kb2JqCjIgMCBvYmoKPDwgL1R5cGUgL1BhZ2VzIC9LaWRzIFszIDAgUl0gL0NvdW50IDEgPj4KZW5kb2JqCjMgMCBvYmoKPDwgL1R5cGUgL1BhZ2UgL1BhcmVudCAyIDAgUiAvTWVkaWFCb3ggWzAgMCA1OTUgODQyXSAvUmVzb3VyY2VzIDw8IC9Gb250IDw8IC9GMSA1IDAgUiA+PiA+PiAvQ29udGVudHMgNCAwIFIgPj4KZW5kb2JqCjQgMCBvYmoKPDwgL0xlbmd0aCAxMzIgPj4Kc3RyZWFtCkJUIC9GMSAyMCBUZiA2MCA3MDAgVGQgKERvY3VtZW50byBkZSBkZW1vbnN0cmFjYW8pIFRqIEVUCkJUIC9GMSAxMiBUZiA2MCA2NjAgVGQgKENhc2EgT2xpdmVpcmEgLSBleGVtcGxvIGRvIG1vZG8gZGVtb25zdHJhY2FvKSBUaiBFVAplbmRzdHJlYW0KZW5kb2JqCjUgMCBvYmoKPDwgL1R5cGUgL0ZvbnQgL1N1YnR5cGUgL1R5cGUxIC9CYXNlRm9udCAvSGVsdmV0aWNhID4+CmVuZG9iagp4cmVmCjAgNgowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwMDkgMDAwMDAgbiAKMDAwMDAwMDA1OCAwMDAwMCBuIAowMDAwMDAwMTE1IDAwMDAwIG4gCjAwMDAwMDAyNDEgMDAwMDAgbiAKMDAwMDAwMDQyNCAwMDAwMCBuIAp0cmFpbGVyCjw8IC9TaXplIDYgL1Jvb3QgMSAwIFIgPj4Kc3RhcnR4cmVmCjQ5NAolJUVPRgo=';
+// O exemplo do modo demonstracao mora num arquivo a parte: embutido aqui,
+// pesaria a pagina em centenas de KB para todo mundo que abre o sistema
+const PDF_EXEMPLO_URL = 'exemplo-orcamento.pdf';
 
 const DEMO_DB = {
   pacientes: [
@@ -767,12 +772,21 @@ const DEMO_DB = {
   checklists: [],
   evolucoes: [],
   documentos: [
-    {id:'d1', paciente_id:'p4', nome:'Nota Fiscal 456.pdf', tipo:'application/pdf',
-     categoria:'Nota fiscal', tamanho:98304, visivel_paciente:'Sim',
-     criado_em:'2026-09-01T10:00:00.000Z', _conteudo:PDF_EXEMPLO},
-    {id:'d2', paciente_id:'p4', nome:'Relatório interno.pdf', tipo:'application/pdf',
+    {id:'d1', paciente_id:'p4', nome:'Orçamento 1-2026 - Antônio Silva.pdf', tipo:'application/pdf',
+     categoria:'Orçamento', tamanho:181627, visivel_paciente:'Sim',
+     criado_em:'2026-09-01T10:00:00.000Z', _conteudo:''},
+    {id:'d2', paciente_id:'p4', nome:'Proposta 2-2026 - Antônio Silva.pdf', tipo:'application/pdf',
+     categoria:'Proposta', tamanho:174080, visivel_paciente:'Sim',
+     criado_em:'2026-09-03T10:00:00.000Z', _conteudo:''},
+    {id:'d3', paciente_id:'p4', nome:'Declaração de acompanhamento.pdf', tipo:'application/pdf',
+     categoria:'Declaração', tamanho:96256, visivel_paciente:'Sim',
+     criado_em:'2026-09-04T10:00:00.000Z', _conteudo:''},
+    {id:'d4', paciente_id:'p4', nome:'NF 4521 - agosto.pdf', tipo:'application/pdf',
+     categoria:'Nota fiscal', tamanho:71680, visivel_paciente:'Sim',
+     criado_em:'2026-09-05T10:00:00.000Z', _conteudo:''},
+    {id:'d5', paciente_id:'p4', nome:'Relatório interno.pdf', tipo:'application/pdf',
      categoria:'Relatório de atendimento', tamanho:65536, visivel_paciente:'Nao',
-     criado_em:'2026-09-02T10:00:00.000Z', _conteudo:PDF_EXEMPLO},
+     criado_em:'2026-09-02T10:00:00.000Z', _conteudo:''},
   ],
   mensagens: [
     {id:'m1', paciente_id:'p4', de:'equipe', autor_nome:'Dra. Ana Paula',
@@ -903,7 +917,7 @@ function demoApi(action, body) {
       const d=(DEMO_DB.documentos||[]).find(x=>String(x.id)===String(body.id));
       if(!d) return {ok:false, erro:'Documento não encontrado'};
       if(_demoPacienteId && String(d.paciente_id)!==String(_demoPacienteId)) return {ok:false, erro:'Sem permissão'};
-      return {ok:true, dados:{nome:d.nome, tipo:d.tipo, conteudo:d._conteudo||btoa('demo')}};
+      return {ok:true, dados:{nome:d.nome, tipo:d.tipo, conteudo:d._conteudo||'', buscarExemplo:!d._conteudo}};
     }
     case 'excluir_documento': {
       const i=(DEMO_DB.documentos||[]).findIndex(x=>String(x.id)===String(body.id));
@@ -1732,7 +1746,23 @@ async function baixarMeuDoc(id) {
   showToast('Baixando…','ok');
   const res = await api('baixar_documento',{id});
   if(!res.ok){ showToast('Erro: '+(res.erro||''),'err'); return; }
+  if(res.dados.buscarExemplo) return baixarExemploDemo(res.dados.nome);
   salvarArquivoLocal(res.dados.nome, res.dados.tipo, res.dados.conteudo);
+}
+
+// No modo demonstração o arquivo vem de um PDF de exemplo servido junto do
+// sistema, para mostrar como o documento fica de verdade
+async function baixarExemploDemo(nome) {
+  try {
+    const r = await fetch(PDF_EXEMPLO_URL);
+    if(!r.ok) throw new Error('exemplo indisponível');
+    const blob = await r.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = nome || 'exemplo.pdf';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 5000);
+  } catch(e) { showToast('Exemplo indisponível no modo demonstração.','err'); }
 }
 
 async function enviarMinhaMensagem() {
@@ -1961,15 +1991,16 @@ async function abrirPortal() {
     <div class="pt-card">
       <div class="pt-t">📎 Meus documentos</div>
       ${_pacDocs.length
-        ? _pacDocs.map(d=>`<div class="doc" style="margin-bottom:8px">
-            <div class="doc-ico">${iconeArquivo(d.tipo, d.nome)}</div>
-            <div style="flex:1;min-width:0">
-              <div class="doc-nome">${esc(d.nome)}</div>
-              <div class="doc-meta">${esc(d.categoria||'')}
-                ${d.criado_em?' · '+esc(fmtDataBR(String(d.criado_em).slice(0,10))):''}</div>
-            </div>
-            <button class="backbtn" onclick="baixarMeuDoc('${esc(d.id)}')">⬇</button>
-          </div>`).join('')
+        ? agruparDocumentos(_pacDocs).map(([categoria, docs])=>`
+            <div class="doc-grupo">${esc(categoria)} <span>${docs.length}</span></div>
+            ${docs.map(d=>`<div class="doc" style="margin-bottom:8px">
+              <div class="doc-ico">${iconeArquivo(d.tipo, d.nome)}</div>
+              <div style="flex:1;min-width:0">
+                <div class="doc-nome">${esc(d.nome)}</div>
+                <div class="doc-meta">${d.criado_em?esc(fmtDataBR(String(d.criado_em).slice(0,10))):''}</div>
+              </div>
+              <button class="backbtn" onclick="baixarMeuDoc('${esc(d.id)}')">⬇</button>
+            </div>`).join('')}`).join('')
         : `<div class="pt-p" style="color:var(--ink3)">Nenhum documento disponível ainda.
              Notas fiscais, relatórios e orçamentos aparecem aqui.</div>`}
     </div>
@@ -2976,7 +3007,22 @@ async function excluirRegistroHist(tipo, id) {
 // anexo. O conteúdo só é entregue depois que o backend confere de quem é.
 // ═══════════════════════════════════════════════
 let _documentos = [];
-const CATEGORIAS_DOC = ['Nota fiscal','Relatório de atendimento','Orçamento','Laudo','Recibo','Outro'];
+// A ordem aqui é a ordem dos grupos na tela
+const CATEGORIAS_DOC = ['Nota fiscal','Orçamento','Proposta','Declaração',
+                        'Relatório de atendimento','Laudo','Recibo','Outro'];
+
+// Agrupa por tipo, mantendo a ordem acima e jogando para o fim o que não
+// estiver previsto — uma lista corrida de 30 anexos não se navega
+function agruparDocumentos(lista) {
+  const grupos = {};
+  lista.forEach(d=>{
+    const c = String(d.categoria||'Outro').trim() || 'Outro';
+    (grupos[c] = grupos[c] || []).push(d);
+  });
+  const ordenadas = CATEGORIAS_DOC.filter(c=>grupos[c]);
+  const extras = Object.keys(grupos).filter(c=>!CATEGORIAS_DOC.includes(c)).sort();
+  return [...ordenadas, ...extras].map(c=>[c, grupos[c]]);
+}
 const MAX_MB = 6;
 
 async function carregarDocumentos(pacienteId) {
@@ -3011,7 +3057,9 @@ function listaDocumentosHTML() {
       <div style="font-size:13px">Nota fiscal, relatório, laudo — o paciente vê na área dele.</div>
     </div>`;
   }
-  return _documentos.map(d=>{
+  return agruparDocumentos(_documentos).map(([categoria, docs])=>`
+    <div class="doc-grupo">${esc(categoria)} <span>${docs.length}</span></div>
+    ${docs.map(d=>{
     const oculto = String(d.visivel_paciente||'Sim').toLowerCase().startsWith('n');
     return `<div class="doc ${oculto?'doc-off':''}">
       <div class="doc-ico">${iconeArquivo(d.tipo, d.nome)}</div>
@@ -3034,7 +3082,7 @@ function listaDocumentosHTML() {
                 onclick="excluirDoc('${esc(d.id)}')">🗑</button>`:''}
       </div>
     </div>`;
-  }).join('');
+  }).join('')}`).join('');
 }
 
 function iconeArquivo(tipo, nome) {
@@ -3135,10 +3183,10 @@ async function enviarDoc(pacienteId) {
 }
 
 async function baixarDoc(id) {
-  const d = _documentos.find(x=>String(x.id)===String(id));
   showToast('Baixando…','ok');
   const res = await api('baixar_documento',{id});
   if(!res.ok){ showToast('Erro: '+(res.erro||''),'err'); return; }
+  if(res.dados.buscarExemplo) return baixarExemploDemo(res.dados.nome);
   salvarArquivoLocal(res.dados.nome, res.dados.tipo, res.dados.conteudo);
 }
 
@@ -3477,7 +3525,8 @@ async function abrirConfigClinica() {
     <div class="pt-nota" style="margin-top:0">Aparece no topo dos orçamentos e demais documentos gerados.</div>
     ${[['nome','Nome da clínica'],['razao_social','Razão social'],['cnpj','CNPJ'],
        ['endereco','Endereço'],['telefone','Telefone'],['email','E-mail'],
-       ['cidade','Cidade (para a data dos documentos)'],['lema','Lema']].map(([k,l])=>`
+       ['cidade','Cidade (para a data dos documentos)'],
+       ['assinatura','Nome na assinatura'],['lema','Lema']].map(([k,l])=>`
       <div class="fg"><label class="fl">${l}</label>
         <input class="fi" id="cfg_${k}" value="${esc(c[k])}"></div>`).join('')}
     <div class="fg"><label class="fl">Rodapé</label>
@@ -3512,7 +3561,7 @@ async function salvarConfigClinica() {
   const btn = document.getElementById('cfgBtn');
   const err = document.getElementById('cfgErr');
   const dados = {};
-  ['nome','razao_social','cnpj','endereco','telefone','email','cidade','lema','rodape','logo'].forEach(k=>{
+  ['nome','razao_social','cnpj','endereco','telefone','email','cidade','assinatura','lema','rodape','logo'].forEach(k=>{
     dados[k] = (document.getElementById('cfg_'+k)||{}).value || '';
   });
   btn.disabled=true; btn.textContent='Salvando...';

@@ -975,6 +975,7 @@ const CONFIG_PADRAO = {
   endereco: 'Rua Dr. Samuel Porto, 396, Sa\u00fade, S\u00e3o Paulo - SP',
   telefone: '(11) 96579-0254',
   cidade: 'S\u00e3o Paulo',
+  assinatura: 'Casa Oliveira Sa\u00fade',
   lema: 'N\u00e3o \u00e9 cl\u00ednica, \u00e9 Casa',
   rodape: 'Metr\u00f4 Sa\u00fade \u2022 Desenvolvimento Infantil \u00b7 Sa\u00fade da Mulher \u00b7 Reabilita\u00e7\u00e3o F\u00edsica \u00b7 Sa\u00fade Mental \u00b7 Gerontologia \u00b7 Bem-Estar',
 };
@@ -1047,7 +1048,7 @@ function gerarOrcamento(body, token) {
   const numero = proximoNumeroOrcamento();
   const html = htmlDocumento(cfg, pac.obj, body, info);
 
-  const rotulos = {declaracao:'Declaracao', orcamento:'Orcamento', proposta:'Proposta'};
+  const rotulos = {declaracao:'Declara\u00e7\u00e3o', orcamento:'Or\u00e7amento', proposta:'Proposta'};
   const rotulo = rotulos[tipo] || 'Documento';
 
   let arquivo;
@@ -1154,7 +1155,7 @@ function htmlDocumento(cfg, pac, body, info) {
         (body.assina_registro ? '<div>' + escapeHtml(body.assina_registro) + '</div>' : '') +
       '</div>'
     : '<div class="assina">' +
-        '<div class="assina-nome">' + escapeHtml(cfg.nome || 'Casa Oliveira Saude') + '</div>' +
+        '<div class="assina-nome">' + escapeHtml(cfg.assinatura || cfg.nome || '') + '</div>' +
         (body.linha_rotulo ? '<div>Linha ' + escapeHtml(body.linha_rotulo) + '</div>' : '') +
       '</div>';
 
@@ -1199,7 +1200,7 @@ function htmlDocumento(cfg, pac, body, info) {
     (body.subtitulo ? '<div class="sub">' + escapeHtml(body.subtitulo) + '</div>' : '') +
     (tipo !== 'declaracao' ? blocoPaciente(pac, body) : '') +
     miolo +
-    '<p style="margin-top:22px"><i>A disposicao.</i></p>' +
+    '<p style="margin-top:22px"><i>\u00c0 disposi\u00e7\u00e3o.</i></p>' +
     assinatura +
     '<div class="rodape">' +
       (cfg.lema ? '<div class="lema">"' + escapeHtml(cfg.lema) + '"</div>' : '') +
@@ -1232,7 +1233,7 @@ function mioloProposta(body, tipo) {
   }
   if ((body.objetivos||[]).length) {
     n++;
-    h += '<h2>' + n + '. Objetivos Terapeuticos</h2><ul>' +
+    h += '<h2>' + n + '. Objetivos Terap\u00eauticos</h2><ul>' +
       body.objetivos.map(function(i){ return '<li>' + escapeHtml(i) + '</li>'; }).join('') + '</ul>';
   }
   // O cronograma e o que distingue a proposta do orcamento
