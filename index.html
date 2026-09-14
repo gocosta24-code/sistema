@@ -83,6 +83,20 @@ input,select,textarea{outline:none;}
 /* TOPBAR */
 .topbar{position:sticky;top:0;z-index:200;height:56px;background:rgba(250,248,245,.94);border-bottom:1px solid var(--bor);display:flex;align-items:center;justify-content:space-between;padding:0 18px;backdrop-filter:blur(12px);}
 .tb-logo{font-family:'Fraunces',serif;font-size:20px;letter-spacing:-.5px;}
+.tb-left{display:flex;align-items:center;gap:12px;min-width:0;}
+.tb-burger{width:34px;height:34px;border-radius:9px;background:var(--sur2);border:1px solid var(--bor);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3.5px;cursor:pointer;flex-shrink:0;}
+.tb-burger:active{background:var(--bor);}
+.tb-burger span{display:block;width:16px;height:2px;background:var(--ink2);border-radius:2px;}
+.drw-ov{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.38);opacity:0;pointer-events:none;transition:opacity .2s;}
+.drw-ov.open{opacity:1;pointer-events:auto;}
+.drw{position:absolute;top:0;left:0;bottom:0;width:272px;max-width:84vw;background:var(--sur);border-right:1px solid var(--bor);display:flex;flex-direction:column;overflow-y:auto;transform:translateX(-100%);transition:transform .22s ease;}
+.drw-ov.open .drw{transform:none;}
+.drw-topo{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 14px;border-bottom:1px solid var(--bor);}
+.drw-x{font-size:22px;color:var(--ink3);cursor:pointer;line-height:1;padding:0 4px;}
+.sd-conta{padding:6px 18px 10px;font-size:13px;font-weight:600;}
+.sd-conta-mail{font-size:11px;color:var(--ink3);font-weight:400;margin-top:1px;word-break:break-all;}
+.sd-danger{color:var(--rose);}
+.sd-versao{padding:14px 18px 20px;font-size:11px;color:var(--ink3);}
 .tb-right{display:flex;align-items:center;gap:10px;}
 .tb-role{font-size:10px;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:.8px;}
 .tb-btn{width:34px;height:34px;border-radius:50%;background:var(--sur2);border:1px solid var(--bor);display:flex;align-items:center;justify-content:center;font-size:17px;cursor:pointer;position:relative;}
@@ -90,12 +104,25 @@ input,select,textarea{outline:none;}
 
 /* BOTTOM NAV */
 .bnav{position:fixed;bottom:0;left:0;right:0;z-index:200;background:rgba(250,248,245,.96);border-top:1px solid var(--bor);display:flex;padding:6px 0 max(6px,env(safe-area-inset-bottom));backdrop-filter:blur(16px);}
-.bnt{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 4px;cursor:pointer;color:var(--ink3);font-size:10px;font-weight:500;position:relative;}
+.bnt{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 3px;cursor:pointer;color:var(--ink3);font-size:10px;font-weight:500;position:relative;}
+.bnt-lbl{max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .bnt.active{color:var(--teal);}
 .bnt-icon{font-size:20px;line-height:1;}
 .bnt-bar{position:absolute;top:-1px;left:50%;transform:translateX(-50%);width:24px;height:3px;background:var(--teal);border-radius:0 0 3px 3px;display:none;}
 .bnt.active .bnt-bar{display:block;}
 .bnt-badge{position:absolute;top:3px;right:calc(50% - 18px);width:7px;height:7px;background:var(--rose);border-radius:50%;border:1.5px solid var(--bg);}
+.bnt-num{position:absolute;top:0;right:calc(50% - 24px);min-width:16px;height:16px;padding:0 4px;background:var(--rose);color:#fff;border-radius:8px;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--bg);}
+.sd-num{margin-left:auto;min-width:19px;height:19px;padding:0 6px;background:var(--rose);color:#fff;border-radius:10px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;}
+.mc-item{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);padding:14px;margin-bottom:10px;box-shadow:var(--sh);}
+.mc-topo{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;}
+.mc-nome{font-size:15px;font-weight:700;cursor:pointer;}
+.mc-meta{font-size:11.5px;color:var(--ink3);margin-top:3px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.mc-espera{margin-left:auto;flex-shrink:0;font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;background:var(--sur2);color:var(--ink2);}
+.mc-espera.crit{background:var(--rose-lt);color:var(--rose);}
+.mc-espera.warn{background:var(--amber-lt);color:var(--amber);}
+.mc-texto{font-size:13.5px;line-height:1.5;color:var(--ink);white-space:pre-wrap;word-break:break-word;padding:10px 12px;background:var(--sur2);border-radius:var(--r-sm);}
+.mc-acoes{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+.msg-aberta{display:flex;align-items:center;gap:7px;margin-top:9px;font-size:12.5px;color:var(--ink2);cursor:pointer;}
 
 /* PAGES */
 .page{display:none;padding:18px 18px 0;animation:pi .22s ease;}
@@ -343,6 +370,31 @@ input,select,textarea{outline:none;}
 .esp-resumo{font-size:12px;color:var(--ink3);margin-top:9px;}
 .esp-limpar{color:var(--teal);cursor:pointer;text-decoration:underline;}
 
+.lead-topo{display:flex;align-items:center;gap:12px;margin-bottom:10px;flex-wrap:wrap;}
+.lead-filtros{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center;}
+.lead-filtros .fs,.lead-filtros .fi{width:auto;min-width:150px;flex:0 1 auto;}
+.kanban{display:flex;gap:10px;overflow-x:auto;padding-bottom:10px;-webkit-overflow-scrolling:touch;}
+.kb-col{flex:0 0 210px;background:var(--sur2);border:1px solid var(--bor);border-radius:var(--r);padding:10px;}
+.kb-tit{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--ink2);margin-bottom:10px;}
+.kb-bola{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.kb-n{margin-left:auto;background:var(--sur);border:1px solid var(--bor);border-radius:10px;padding:0 7px;font-size:11px;}
+.kb-card{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r-sm);padding:10px;margin-bottom:8px;cursor:pointer;transition:border-color .15s;}
+.kb-card:hover{border-color:var(--teal);}
+.kb-nome{font-size:13.5px;font-weight:600;margin-bottom:5px;}
+.kb-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:11px;color:var(--ink3);}
+.kb-campanha{font-size:11px;color:var(--ink3);margin-top:5px;word-break:break-word;}
+.kb-vazio{text-align:center;color:var(--ink3);font-size:12px;padding:10px 0;}
+.srv-chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px;}
+.srv-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:20px;font-size:12.5px;font-weight:600;background:var(--teal-lt);color:var(--teal);}
+.srv-chip-off{background:var(--sur2);color:var(--ink3);}
+.srv-chip-vazio{background:var(--sur2);color:var(--ink3);font-weight:400;font-style:italic;}
+.srv-chip-tag{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.4px;opacity:.8;}
+.srv-item{display:flex;align-items:flex-start;gap:10px;padding:11px 0;border-bottom:1px solid var(--bor);}
+.srv-item:last-child{border-bottom:none;}
+.srv-off{opacity:.5;}
+.srv-nome{font-size:14px;font-weight:600;color:var(--ink);}
+.srv-desc{font-size:12px;color:var(--ink3);margin-top:2px;line-height:1.45;}
+.srv-valor{flex-shrink:0;font-size:13px;font-weight:700;color:var(--teal);white-space:nowrap;}
 .prog-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--bor);}
 .prog-item:last-of-type{border-bottom:none;}
 .prog-off{opacity:.55;}
@@ -398,6 +450,7 @@ input,select,textarea{outline:none;}
   #app.aberto{display:grid;grid-template-columns:240px 1fr;grid-template-rows:56px 1fr;padding-bottom:0;min-height:100vh;}
   .topbar{grid-column:1/-1;}
   .bnav{display:none;}
+  .tb-burger{display:none;}
   .sidebar{display:flex!important;flex-direction:column;background:var(--sur);border-right:1px solid var(--bor);overflow-y:auto;}
   .page{padding:28px;}
   .stats-grid{grid-template-columns:repeat(3,1fr);}
@@ -414,11 +467,6 @@ input,select,textarea{outline:none;}
 .sd-icon{font-size:17px;width:20px;text-align:center;}
 
 /* USER MENU */
-.umenu-item{display:flex;align-items:center;gap:12px;padding:15px 18px;border-bottom:1px solid var(--bor);cursor:pointer;font-size:14px;font-weight:500;}
-.umenu-item:last-child{border-bottom:none;}
-.umenu-item:active{background:var(--sur2);}
-.umenu-item.danger{color:var(--rose);}
-.umenu-icon{font-size:18px;width:24px;text-align:center;}
 
 /* TOAST */
 .toast{position:fixed;top:66px;left:50%;transform:translateX(-50%) translateY(-16px);background:var(--ink);color:#faf8f5;padding:10px 18px;border-radius:30px;font-size:13px;font-weight:600;z-index:9990;white-space:nowrap;opacity:0;transition:all .25s;pointer-events:none;}
@@ -480,6 +528,7 @@ input,select,textarea{outline:none;}
         <div class="demo-pill" onclick="demoLogin('admin')">👑 Gestora</div>
         <div class="demo-pill" onclick="demoLogin('coordenador')">📋 Coordenadora</div>
         <div class="demo-pill" onclick="demoLogin('profissional')">👩‍⚕️ Profissional</div>
+        <div class="demo-pill" onclick="demoLogin('recepcao')">📣 Recepção</div>
       </div>
     </div>
   </div>
@@ -570,19 +619,30 @@ input,select,textarea{outline:none;}
 <!-- APP -->
 <div id="app">
   <div class="topbar">
-    <div class="tb-logo">Casa Oliveira</div>
+    <div class="tb-left">
+      <div class="tb-burger" id="burgerBtn" onclick="openDrawer()" title="Menu">
+        <span></span><span></span><span></span>
+      </div>
+      <div class="tb-logo">Casa Oliveira</div>
+    </div>
     <div class="tb-right">
       <div class="tb-role" id="roleLabel"></div>
       <div class="tb-btn" onclick="loadPage('alertas')">🔔<div class="tb-dot" id="notifDot" style="display:none"></div></div>
-      <div class="tb-btn" id="avatarBtn" onclick="openUserMenu()">A</div>
+      <div class="tb-btn" id="avatarBtn" onclick="openDrawer()">A</div>
     </div>
   </div>
   <div class="sidebar" id="sidebarEl"></div>
+  <div class="drw-ov" id="drwOv" onclick="maybeCloseDrawer(event)">
+    <div class="drw" id="drwEl"></div>
+  </div>
   <div id="mainArea" style="overflow-y:auto;min-width:0;">
     <div id="pgHome"      class="page"></div>
     <div id="pgLinhas"    class="page"></div>
     <div id="pgEquipe"    class="page"></div>
     <div id="pgAlertas"   class="page"></div>
+    <div id="pgMensagens" class="page"></div>
+    <div id="pgServicos"  class="page"></div>
+    <div id="pgLeads"     class="page"></div>
     <div id="pgEspera"    class="page"></div>
     <div id="pgProgramas" class="page"></div>
     <div id="pgBiblioteca" class="page"></div>
@@ -603,25 +663,6 @@ input,select,textarea{outline:none;}
 </div>
 
 <!-- USER MENU -->
-<div class="sov" id="umOv" onclick="maybeCloseMenu(event)">
-  <div class="sheet" style="max-height:46vh;">
-    <div class="sh-handle"></div>
-    <div style="padding:16px 18px 0;">
-      <div style="font-family:'Fraunces',serif;font-size:22px;" id="umName"></div>
-      <div style="font-size:12px;color:var(--ink3);margin-top:2px;" id="umEmail"></div>
-    </div>
-    <div style="margin-top:12px;">
-      <div class="umenu-item" id="umEquipe" onclick="loadPage('equipe');closeMenu();"><span class="umenu-icon">👥</span>Gerenciar equipe</div>
-      <div class="umenu-item" id="umProgramas" onclick="loadPage('programas');closeMenu();"><span class="umenu-icon">🧩</span>Etapas e Programas</div>
-      <div class="umenu-item" id="umBiblioteca" onclick="loadPage('biblioteca');closeMenu();"><span class="umenu-icon">🏃</span>Exercícios</div>
-      <div class="umenu-item" id="umClinica" onclick="closeMenu();abrirConfigClinica();"><span class="umenu-icon">🏥</span>Dados da clínica</div>
-      <div class="umenu-item" id="umImportar" onclick="closeMenu();abrirImportacao();"><span class="umenu-icon">📥</span>Importar pacientes</div>
-      <div class="umenu-item" onclick="showAlterarSenha()"><span class="umenu-icon">🔑</span>Alterar senha</div>
-      <div class="umenu-item danger" onclick="doLogout()"><span class="umenu-icon">🚪</span>Sair</div>
-      <div style="padding:10px 18px;font-size:11px;color:var(--ink3);text-align:center" id="umVersao"></div>
-    </div>
-  </div>
-</div>
 
 <div class="toast" id="toastEl"></div>
 
@@ -650,7 +691,7 @@ let demoMode = false;
 // Muda a cada publicação. Serve para o aparelho perceber que está com uma
 // versão velha em cache — sem isto a pessoa continua vendo o problema já
 // corrigido e jura que não foi corrigido.
-const VERSAO = '2026-09-09.07';
+const VERSAO = '2026-09-14.05';
 let _profsCache = null;
 let _demoPacienteId = null;
 
@@ -750,13 +791,13 @@ const DEMO_DB = {
   pacientes: [
     {id:'p1', nome:'Lucas Oliveira', linha:'infantil', data_nascimento:'2017-03-15', responsavel:'Fernanda Oliveira', escola:'E.M. Monteiro Lobato', terapeuta_nome:'TO Juliana', servicos:'TO Infantil', status:'Ativo', criado_em:'2025-01-10'},
     {id:'p2', nome:'Sofia Campos',   linha:'infantil', data_nascimento:'2019-08-20', responsavel:'Roberto Campos', escola:'CEI Pequeno Príncipe', terapeuta_nome:'TO Juliana', servicos:'TO Infantil', status:'Ativo', criado_em:'2025-02-01'},
-    {id:'p3', nome:'Maria Santos',   linha:'mulher',   data_nascimento:'1982-05-10', terapeuta_nome:'Dr. Carlos', servicos:'Fisio Pélvica, Acupuntura', status:'Ativo', criado_em:'2025-03-01'},
+    {id:'p3', nome:'Maria Santos',   linha:'mulher',   data_nascimento:'1982-05-10', terapeuta_nome:'Dr. Carlos', servicos:'Fisioterapia Pélvica, Roda de Amamentação', status:'Ativo', criado_em:'2025-03-01'},
     {id:'p4', nome:'Antônio Silva',  linha:'reabilitacao', data_nascimento:'1962-11-03', terapeuta_nome:'Dr. Paulo', servicos:'Fisioterapia', status:'Ativo', criado_em:'2025-04-01',
      email:'paciente@teste.com', acesso:'Liberado',
      plano_paciente:'Recuperar a força e a mobilidade do tornozelo, retomando a caminhada sem dor.',
      orientacoes_paciente:'Aplicar gelo por 15 minutos após os exercícios.',
      plano_atualizado_em:'2026-09-01', proximo_contato:'2026-09-20'},
-    {id:'p5', nome:'Patricia Rocha', linha:'pilates', data_nascimento:'1989-07-22', terapeuta_nome:'Dra. Paula', servicos:'Pilates', status:'Ativo', criado_em:'2025-04-20'},
+    {id:'p5', nome:'Patricia Rocha', linha:'pilates', data_nascimento:'1989-07-22', terapeuta_nome:'Dra. Paula', servicos:'Pilates — plano mensal (2x/semana), Massagem Relaxante', status:'Ativo', criado_em:'2025-04-20'},
     {id:'p6', nome:'Roberto Lima',   linha:'geriatria', data_nascimento:'1946-02-14', responsavel:'Ana Lima', terapeuta_nome:'TO Marcia', servicos:'TO Individual, Casa Segura', status:'Ativo', criado_em:'2025-03-10'},
     {id:'p7', nome:'Clara Mendes',   linha:'mental', data_nascimento:'1986-09-05', terapeuta_nome:'TO Beatriz', servicos:'TO, Ateliê Expressivo', status:'Ativo', criado_em:'2025-03-20'},
   ],
@@ -768,6 +809,7 @@ const DEMO_DB = {
     {id:'prof_5',      nome:'Dr. Paulo',       email:'paulo@casaoliveira.com',      funcao:'Fisioterapeuta', registro:'CREFITO 32519-F', nivel_acesso:'profissional', linhas:'reabilitacao', status:'Ativo'},
     {id:'prof_6',      nome:'TO Marcia',       email:'marcia@casaoliveira.com',     funcao:'Terapeuta Ocup.',    nivel_acesso:'profissional', linhas:'geriatria', status:'Ativo'},
     {id:'prof_7',      nome:'TO Beatriz',      email:'beatriz@casaoliveira.com',    funcao:'Terapeuta Ocup.',    nivel_acesso:'profissional', linhas:'mental', status:'Ativo'},
+    {id:'prof_8',      nome:'Renata Souza',    email:'recepcao@casaoliveira.com',   funcao:'Recepção',           nivel_acesso:'profissional', linhas:'', status:'Ativo'},
   ],
   checklists: [],
   evolucoes: [],
@@ -791,7 +833,81 @@ const DEMO_DB = {
   mensagens: [
     {id:'m1', paciente_id:'p4', de:'equipe', autor_nome:'Dra. Ana Paula',
      texto:'Oi Antônio! Sua nota fiscal de agosto já está aqui na sua área.',
-     criado_em:'2026-09-01T11:00:00.000Z'},
+     criado_em:'2026-09-01T11:00:00.000Z', status:'fechada'},
+    {id:'m2', paciente_id:'p1', de:'paciente', autor_nome:'',
+     texto:'Bom dia! O Lucas teve febre na quinta e faltou. Dá para repor a sessão nesta semana?',
+     criado_em:'2026-09-05T12:12:00.000Z', status:'aberta'},
+    {id:'m5', paciente_id:'p6', de:'equipe', autor_nome:'TO Marcia',
+     texto:'A filha do seu Roberto ligou pedindo o relatório da Casa Segura. Ficou de retornar com a data da visita.',
+     criado_em:'2026-09-08T19:40:00.000Z', status:'aberta'},
+    {id:'m3', paciente_id:'p3', de:'paciente', autor_nome:'',
+     texto:'Posso trocar meu horário de terça para quinta? No trabalho mudaram minha escala.',
+     criado_em:'2026-09-10T17:05:00.000Z', status:'aberta'},
+    {id:'m4', paciente_id:'p4', de:'paciente', autor_nome:'',
+     texto:'O tornozelo inchou depois dos exercícios de ontem. Continuo ou paro?',
+     criado_em:'2026-09-12T11:30:00.000Z', status:'aberta'},
+    {id:'m6', paciente_id:'p7', de:'paciente', autor_nome:'',
+     texto:'Consegui a declaração, obrigada!',
+     criado_em:'2026-09-11T13:00:00.000Z', status:'respondida'},
+  ],
+  leads: [
+    {id:'ld1', nome:'Juliana Prado', telefone:'(11) 98811-2020', email:'ju.prado@email.com',
+     data_contato:'2026-09-12', origem:'Meta Ads', campanha:'Meta Ads — CEP 04500 — Reabilitação — set/26',
+     indicado_por:'', linha:'reabilitacao', responsavel:'Renata Souza', estagio:'Novo Lead',
+     motivo_perda:'', paciente_id:'', criado_em:'2026-09-12T13:00:00.000Z'},
+    {id:'ld2', nome:'Marcos Vieira', telefone:'(11) 97722-3311', email:'',
+     data_contato:'2026-09-10', origem:'Indicação', campanha:'',
+     indicado_por:'Maria Santos (paciente)', linha:'pilates', responsavel:'Renata Souza',
+     estagio:'Qualificado', motivo_perda:'', paciente_id:'', criado_em:'2026-09-10T14:20:00.000Z'},
+    {id:'ld3', nome:'Beatriz Nunes', telefone:'(11) 96633-4455', email:'bia.nunes@email.com',
+     data_contato:'2026-09-08', origem:'Instagram', campanha:'Orgânico — Reels Casa Segura',
+     indicado_por:'', linha:'geriatria', responsavel:'Renata Souza', estagio:'Agendou Avaliação',
+     motivo_perda:'', paciente_id:'', criado_em:'2026-09-08T09:15:00.000Z'},
+    {id:'ld4', nome:'Camila Ferraz', telefone:'(11) 95544-7788', email:'',
+     data_contato:'2026-09-03', origem:'Rua/Passante', campanha:'',
+     indicado_por:'', linha:'mulher', responsavel:'Renata Souza', estagio:'Perdido',
+     motivo_perda:'Fora da área de atendimento', paciente_id:'', criado_em:'2026-09-03T16:40:00.000Z'},
+    {id:'ld5', nome:'Antônio Silva', telefone:'(11) 94433-1122', email:'paciente@teste.com',
+     data_contato:'2026-08-20', origem:'Meta Ads', campanha:'Meta Ads — CEP 04500 — Reabilitação — ago/26',
+     indicado_por:'', linha:'reabilitacao', responsavel:'Renata Souza', estagio:'Virou Paciente',
+     motivo_perda:'', paciente_id:'p4', criado_em:'2026-08-20T10:00:00.000Z'},
+  ],
+  lead_historico: [
+    {id:'lg1', lead_id:'ld3', em:'2026-09-08T12:15:00.000Z', de_estagio:'', para_estagio:'Novo Lead',
+     obs:'Chamou no direct perguntando sobre a avaliação da casa.', por:'Renata Souza'},
+    {id:'lg2', lead_id:'ld3', em:'2026-09-09T13:30:00.000Z', de_estagio:'Novo Lead',
+     para_estagio:'Primeiro Contato Feito', obs:'Retornei no WhatsApp, mandei os valores.', por:'Renata Souza'},
+    {id:'lg3', lead_id:'ld3', em:'2026-09-11T18:05:00.000Z', de_estagio:'Primeiro Contato Feito',
+     para_estagio:'Agendou Avaliação', obs:'Marcou visita para 18/09, manhã.', por:'Renata Souza'},
+  ],
+  catalogo: [
+    {id:'c1', nome:'TO Infantil — sessão individual', linha:'infantil',
+     descricao:'50 min de terapia ocupacional com foco em integração sensorial.',
+     valor:'180,00', ativo:'Sim'},
+    {id:'c2', nome:'Terapia Floral', linha:'infantil',
+     descricao:'Avaliação e fórmula personalizada, com reavaliação mensal.',
+     valor:'120,00', ativo:'Sim'},
+    {id:'c3', nome:'Fisioterapia Pélvica', linha:'mulher',
+     descricao:'Avaliação e tratamento de disfunções do assoalho pélvico.',
+     valor:'200,00', ativo:'Sim'},
+    {id:'c4', nome:'Roda de Amamentação', linha:'mulher',
+     descricao:'Encontro em grupo, quinzenal, para gestantes e puérperas.',
+     valor:'Sob consulta', ativo:'Sim'},
+    {id:'c5', nome:'RPG — Reeducação Postural Global', linha:'reabilitacao',
+     descricao:'Sessão individual de 60 min.', valor:'190,00', ativo:'Sim'},
+    {id:'c6', nome:'Palmilha Postural', linha:'reabilitacao',
+     descricao:'Avaliação baropodométrica e confecção sob medida.',
+     valor:'450,00', ativo:'Sim'},
+    {id:'c7', nome:'Casa Segura — visita domiciliar', linha:'geriatria',
+     descricao:'Avaliação de riscos de queda na casa e relatório com adaptações.',
+     valor:'320,00', ativo:'Sim'},
+    {id:'c8', nome:'Pilates — plano mensal (2x/semana)', linha:'pilates',
+     descricao:'Aulas em grupo de até 4 pessoas.', valor:'420,00', ativo:'Sim'},
+    {id:'c9', nome:'Ateliê Expressivo', linha:'mental',
+     descricao:'Grupo semanal de arte como recurso terapêutico.', valor:'', ativo:'Sim'},
+    {id:'c10', nome:'Massagem Relaxante', linha:'pilates',
+     descricao:'Descontinuado em 2026 — encaminhar para Reabilitação.',
+     valor:'150,00', ativo:'Não'},
   ],
   exercicios: [
     {id:'ex1', nome:'Ponte', series:'3', repeticoes:'12', categoria:'Core',
@@ -814,7 +930,36 @@ const DEMO_DB = {
   config: {},
 };
 
+// Mesma regra do backend: linha antiga, sem status, continua em aberto se
+// veio do paciente.
+function demoStatusMsg(m) {
+  return String(m.status||'').trim().toLowerCase() || (m.de==='paciente' ? 'aberta' : 'fechada');
+}
+
+// Espelham ESTAGIOS_LEAD e companhia do Code.gs. Mudou o funil lá? Mude aqui
+// também, senão o modo demonstração mostra um funil que não existe mais.
+const DEMO_ESTAGIOS = ['Novo Lead','Primeiro Contato Feito','Qualificado',
+                       'Agendou Avaliação','Compareceu','Virou Paciente','Perdido'];
+const DEMO_ORIGENS = ['Instagram','Meta Ads','Indicação','Rua/Passante','Google','Outro'];
+const DEMO_MOTIVOS = ['Não respondeu','Não tinha orçamento','Desistiu',
+                      'Fora da área de atendimento','Outro'];
+
+function demoPodeEditarLeads() {
+  return currentRole==='admin' || /recep|comercial/i.test(String((currentUser||{}).funcao||''));
+}
+
+function demoLog(leadId, de, para, obs) {
+  DEMO_DB.lead_historico.push({id:'lg_'+Date.now()+'_'+Math.floor(Math.random()*999),
+    lead_id:leadId, em:new Date().toISOString(), de_estagio:de, para_estagio:para,
+    obs:obs, por:(currentUser||{}).nome||''});
+}
+
 function demoApi(action, body) {
+  // Espelha a guarda do backend: no demo também não adianta chamar direto
+  if(['salvar','atualizar','deletar'].includes(action)
+     && body.tabela==='catalogo' && currentRole!=='admin')
+    return {ok:false, erro:'Só a gestão pode alterar o catálogo'};
+
   switch(action) {
     case 'login': {
       const u = DEMO_DB.profissionais.find(p=>p.email.toLowerCase()===body.email.toLowerCase());
@@ -929,15 +1074,117 @@ function demoApi(action, body) {
         && !String(d.visivel_paciente||'Sim').toLowerCase().startsWith('n'));
       return {ok:true, dados:lista};
     }
+    case 'listar_leads': {
+      const p = (DEMO_DB.profissionais||[]).find(x=>x.email===currentUser.email)||{};
+      const recep = /recep|comercial/i.test(String(currentUser.funcao||p.funcao||''));
+      if(!(currentRole==='admin' || currentRole==='coordenador' || recep))
+        return {ok:false, erro:'Sem permissão'};
+      const minhas = String(p.linhas||'').toLowerCase().split(',').map(x=>x.trim()).filter(Boolean);
+      const pode = l => (currentRole==='admin' || recep) ? true
+        : (currentRole==='coordenador'
+            ? (!minhas.length || minhas.includes('todos') || minhas.includes(String(l.linha||'').toLowerCase()))
+            : false);
+      return {ok:true,
+        dados:(DEMO_DB.leads||[]).filter(pode)
+          .sort((a,b)=>String(b.data_contato||'').localeCompare(String(a.data_contato||''))),
+        estagios:DEMO_ESTAGIOS, origens:DEMO_ORIGENS, motivos:DEMO_MOTIVOS,
+        estagio_ganho:'Virou Paciente', estagio_perdido:'Perdido',
+        pode_editar: currentRole==='admin' || recep};
+    }
+    case 'historico_lead':
+      return {ok:true, dados:(DEMO_DB.lead_historico||[])
+        .filter(h=>String(h.lead_id)===String(body.id))
+        .sort((a,b)=>String(b.em).localeCompare(String(a.em)))};
+    case 'salvar_lead': {
+      if(!demoPodeEditarLeads()) return {ok:false, erro:'Sem permissão'};
+      if(body.id) {
+        const l=(DEMO_DB.leads||[]).find(x=>String(x.id)===String(body.id));
+        if(!l) return {ok:false, erro:'Lead não encontrado'};
+        // estágio só muda por mover_lead, que é quem escreve o histórico
+        const {estagio, paciente_id, ...resto} = body.dados||{};
+        Object.assign(l, resto);
+        return {ok:true, id:body.id};
+      }
+      const id='ld_'+Date.now();
+      DEMO_DB.leads.push({...body.dados, id, estagio:DEMO_ESTAGIOS[0], motivo_perda:'',
+                          paciente_id:'', criado_em:new Date().toISOString()});
+      demoLog(id,'',DEMO_ESTAGIOS[0], (body.dados||{}).obs||'Lead cadastrado');
+      return {ok:true, id};
+    }
+    case 'mover_lead': {
+      if(!demoPodeEditarLeads()) return {ok:false, erro:'Sem permissão'};
+      const l=(DEMO_DB.leads||[]).find(x=>String(x.id)===String(body.id));
+      if(!l) return {ok:false, erro:'Lead não encontrado'};
+      const novo = body.estagio || l.estagio;
+      if(!DEMO_ESTAGIOS.includes(novo)) return {ok:false, erro:'Estágio inválido'};
+      const motivo = novo==='Perdido' ? String(body.motivo_perda||'') : '';
+      if(novo==='Perdido' && !motivo) return {ok:false, erro:'Informe o motivo da perda'};
+      const de = l.estagio;
+      l.estagio = novo; l.motivo_perda = motivo;
+      demoLog(body.id, de, novo,
+        String(body.obs||'') + (motivo ? (body.obs?' — ':'')+'Motivo: '+motivo : ''));
+      return {ok:true, id:body.id, estagio:novo};
+    }
+    case 'converter_lead': {
+      if(!demoPodeEditarLeads()) return {ok:false, erro:'Sem permissão'};
+      const l=(DEMO_DB.leads||[]).find(x=>String(x.id)===String(body.id));
+      const pac=(DEMO_DB.pacientes||[]).find(x=>String(x.id)===String(body.paciente_id));
+      if(!l) return {ok:false, erro:'Lead não encontrado'};
+      if(!pac) return {ok:false, erro:'Paciente não encontrado'};
+      const de = l.estagio;
+      l.paciente_id = pac.id; l.estagio = 'Virou Paciente'; l.motivo_perda='';
+      l.linha = l.linha || pac.linha;
+      demoLog(body.id, de, 'Virou Paciente', 'Vinculado ao cadastro de '+pac.nome);
+      return {ok:true, id:body.id, paciente_id:pac.id, paciente_nome:pac.nome};
+    }
+    case 'listar_catalogo': {
+      const veValor = currentRole==='admin' || currentRole==='coordenador';
+      const dados = (DEMO_DB.catalogo||[])
+        .map(s=>({...s, valor: veValor ? (s.valor||'') : ''}))
+        .sort((a,b)=>String(a.nome).localeCompare(String(b.nome),'pt-BR'));
+      return {ok:true, dados, pode_editar: currentRole==='admin', ve_valor: veValor};
+    }
+    case 'mensagens_abertas': {
+      const perfil = (DEMO_DB.profissionais||[]).find(p=>p.email===currentUser.email)||{};
+      const minhas = String(perfil.linhas||'').toLowerCase().split(',').map(x=>x.trim()).filter(Boolean);
+      const pode = pac => {
+        if(!pac) return false;
+        if(currentRole==='admin') return true;
+        if(currentRole==='coordenador')
+          return !minhas.length || minhas.includes('todos') || minhas.includes(String(pac.linha||'').toLowerCase());
+        return String(pac.terapeuta_nome||'').toLowerCase()===String(currentUser.nome||'').toLowerCase();
+      };
+      const dados = (DEMO_DB.mensagens||[])
+        .filter(m=>demoStatusMsg(m)==='aberta')
+        .map(m=>{
+          const pac=(DEMO_DB.pacientes||[]).find(x=>String(x.id)===String(m.paciente_id));
+          return pode(pac) ? {...m, paciente_nome:pac.nome, linha:pac.linha, terapeuta_nome:pac.terapeuta_nome} : null;
+        })
+        .filter(Boolean)
+        .sort((a,b)=>String(a.criado_em).localeCompare(String(b.criado_em)));
+      return {ok:true, dados};
+    }
+    case 'marcar_mensagem': {
+      const m=(DEMO_DB.mensagens||[]).find(x=>String(x.id)===String(body.id));
+      if(!m) return {ok:false, erro:'Mensagem não encontrada'};
+      m.status = body.status||'fechada';
+      return {ok:true};
+    }
     case 'mensagens_paciente':
       return {ok:true, dados:(DEMO_DB.mensagens||[]).filter(m=>String(m.paciente_id)===String(body.paciente_id))};
     case 'minhas_mensagens':
       return {ok:true, dados:(DEMO_DB.mensagens||[]).filter(m=>String(m.paciente_id)===String(_demoPacienteId))};
     case 'enviar_mensagem': {
       const pid = _demoPacienteId || body.paciente_id;
+      const daEquipe = !_demoPacienteId;
+      const aberta = !daEquipe || String(body.status||'').toLowerCase()==='aberta';
+      if(daEquipe && !aberta) DEMO_DB.mensagens.forEach(m=>{
+        if(String(m.paciente_id)===String(pid) && demoStatusMsg(m)==='aberta') m.status='respondida';
+      });
       DEMO_DB.mensagens.push({id:'msg_'+Date.now(), paciente_id:pid,
-        de:_demoPacienteId?'paciente':'equipe', autor_email:'demo',
-        autor_nome:body.autor_nome||'', texto:body.texto, criado_em:new Date().toISOString()});
+        de:daEquipe?'equipe':'paciente', autor_email:'demo',
+        autor_nome:body.autor_nome||'', texto:body.texto, criado_em:new Date().toISOString(),
+        status:aberta?'aberta':'fechada'});
       return {ok:true};
     }
     case 'meus_exercicios': {
@@ -1024,12 +1271,14 @@ async function doLogin() {
 function demoLogin(role) {
   demoMode = true;
   const m = {
-    admin:        {id:'prof_admin',nome:'Dra. Ana Paula',email:'clinicaoliveira20@gmail.com',role:'admin'},
-    coordenador:  {id:'prof_2',    nome:'TO Juliana',    email:'juliana@casaoliveira.com',   role:'coordenador'},
-    profissional: {id:'prof_3',    nome:'Dr. Carlos',    email:'carlos@casaoliveira.com',    role:'profissional'},
+    admin:        {id:'prof_admin',nome:'Dra. Ana Paula',email:'clinicaoliveira20@gmail.com',role:'admin', funcao:'Gestora/Sócia'},
+    coordenador:  {id:'prof_2',    nome:'TO Juliana',    email:'juliana@casaoliveira.com',   role:'coordenador', funcao:'Terapeuta Ocup.'},
+    profissional: {id:'prof_3',    nome:'Dr. Carlos',    email:'carlos@casaoliveira.com',    role:'profissional', funcao:'Fisioterapeuta Sênior'},
+    // Recepção entra como profissional: o que abre o funil é a função
+    recepcao:     {id:'prof_8',    nome:'Renata Souza',  email:'recepcao@casaoliveira.com',  role:'profissional', funcao:'Recepção'},
   };
   currentUser = m[role];
-  currentRole = role;
+  currentRole = currentUser.role;
   startApp();
 }
 
@@ -1179,17 +1428,37 @@ const FUNCOES = [
   'Nutricionista','Terapeuta Floral','Gestão','Recepção',
 ];
 
+// `barra:false` fica de fora da barra do celular e vive no menu lateral e no
+// menu do avatar. Com Leads seriam oito ícones espremidos num telefone; no
+// desktop a lateral continua mostrando tudo.
 const NAVS = {
-  admin:        [{id:'home',icon:'🏠',label:'Início'},{id:'linhas',icon:'🩺',label:'Linhas'},{id:'espera',icon:'🪑',label:'Espera'},{id:'equipe',icon:'👥',label:'Equipe'},{id:'alertas',icon:'🔔',label:'Alertas',badge:true}],
-  coordenador:  [{id:'home',icon:'🏠',label:'Início'},{id:'linhas',icon:'🩺',label:'Pacientes'},{id:'espera',icon:'🪑',label:'Espera'},{id:'alertas',icon:'🔔',label:'Alertas',badge:true}],
-  profissional: [{id:'home',icon:'🏠',label:'Hoje'}, {id:'linhas',icon:'🩺',label:'Meus Pcts'},{id:'alertas',icon:'🔔',label:'Pendências',badge:true}],
+  admin:        [{id:'home',icon:'🏠',label:'Início'},{id:'linhas',icon:'🩺',label:'Linhas'},{id:'mensagens',icon:'💬',label:'Mensagens',num:true},{id:'leads',icon:'📣',label:'Leads'},{id:'servicos',icon:'🗂️',label:'Serviços',barra:false},{id:'espera',icon:'🪑',label:'Espera',barra:false},{id:'equipe',icon:'👥',label:'Equipe',barra:false},{id:'alertas',icon:'🔔',label:'Alertas',badge:true}],
+  coordenador:  [{id:'home',icon:'🏠',label:'Início'},{id:'linhas',icon:'🩺',label:'Pacientes'},{id:'mensagens',icon:'💬',label:'Mensagens',num:true},{id:'leads',icon:'📣',label:'Leads'},{id:'servicos',icon:'🗂️',label:'Serviços',barra:false},{id:'espera',icon:'🪑',label:'Espera',barra:false},{id:'alertas',icon:'🔔',label:'Alertas',badge:true}],
+  profissional: [{id:'home',icon:'🏠',label:'Hoje'}, {id:'linhas',icon:'🩺',label:'Meus Pcts'},{id:'mensagens',icon:'💬',label:'Mensagens',num:true},{id:'servicos',icon:'🗂️',label:'Serviços'},{id:'alertas',icon:'🔔',label:'Pendências',badge:true}],
 };
+
+// Recepção é função, não nível de acesso: quem atende o telefone entra como
+// profissional. Foi o jeito de dar o funil a ela sem inventar um quarto papel.
+function ehRecepcao() {
+  return /recep|comercial/i.test(String((currentUser||{}).funcao||''));
+}
+
+function navDoUsuario() {
+  const itens = (NAVS[currentRole]||NAVS.profissional).map(i=>({...i}));
+  if(itens.some(i=>i.id==='leads') || !ehRecepcao()) return itens;
+  itens.splice(3, 0, {id:'leads',icon:'📣',label:'Leads'});
+  // Leads entrou: Serviços sai da barra do celular para não passar de cinco
+  const srv = itens.find(i=>i.id==='servicos');
+  if(srv) srv.barra = false;
+  return itens;
+}
 
 // Os caches são por usuário — cada papel enxerga um conjunto diferente de pacientes
 function limparCaches() {
   _todosPacientes = null;
   _pacientesCache = {};
   _fichasCache = {};
+  _catalogo = null;   // o valor visível depende do papel de quem entrou
 }
 
 function startApp() {
@@ -1201,29 +1470,77 @@ function startApp() {
   document.getElementById('roleLabel').textContent = {admin:'Gestora',coordenador:'Coordenadora',profissional:'Profissional'}[currentRole]||currentRole;
   buildNav(); buildSidebar();
   loadPage('home');
+  atualizarMensagensAbertas();
 }
 
 function buildNav() {
-  const items = NAVS[currentRole]||NAVS.profissional;
+  const items = navDoUsuario().filter(i=>i.barra!==false);
   document.getElementById('bnavEl').innerHTML = items.map(i=>`
     <div class="bnt" id="bn-${i.id}" onclick="loadPage('${i.id}')">
       <div class="bnt-bar"></div>
       <div class="bnt-icon">${i.icon}</div>
-      <div>${i.label}</div>
+      <div class="bnt-lbl">${i.label}</div>
       ${i.badge?'<div class="bnt-badge"></div>':''}
+      ${i.num?`<div class="bnt-num" id="bnnum-${i.id}" style="display:none"></div>`:''}
     </div>`).join('');
 }
 
-function buildSidebar() {
-  const items = NAVS[currentRole]||NAVS.profissional;
-  document.getElementById('sidebarEl').innerHTML =
-    `<div class="sd-logo">Casa Oliveira</div><div class="sd-sec">Menu</div>`+
-    items.map(i=>`<div class="sd-item" id="sd-${i.id}" onclick="loadPage('${i.id}')"><span class="sd-icon">${i.icon}</span>${i.label}</div>`).join('')+
-    `<div style="flex:1"></div>
-     <div style="padding:14px 18px;border-top:1px solid var(--bor);font-size:13px;font-weight:600;">${currentUser.nome}
-       <div style="font-size:11px;color:var(--ink3);font-weight:400;margin-top:1px;">${currentUser.email}</div>
-     </div>`;
+// Ferramentas e cadastros que não são página do menu principal. Viviam só no
+// menu do avatar, onde ninguém achava — agora saem no mesmo lugar do resto.
+function extrasDoMenu() {
+  return [
+    {icon:'🧩', label:'Etapas e Programas', acao:`loadPage('programas')`, so:'admin'},
+    {icon:'🏃', label:'Exercícios',         acao:`loadPage('biblioteca')`, so:'equipe'},
+    {icon:'🏥', label:'Dados da clínica',   acao:`abrirConfigClinica()`,   so:'admin'},
+    {icon:'📥', label:'Importar pacientes', acao:`abrirImportacao()`,      so:'admin'},
+  ].filter(x=> x.so==='admin' ? currentRole==='admin' : currentRole!=='profissional');
 }
+
+// Uma lista só para o menu lateral do computador e para a gaveta do celular:
+// o que aparecer num tem de aparecer no outro.
+// Páginas, ferramentas e conta — tudo num lugar só. O menu lateral do
+// computador e a gaveta do celular saem daqui, então não há como um item
+// aparecer num e faltar no outro.
+function itensMenuHTML(prefixo, aoClicar) {
+  const fecha = aoClicar ? aoClicar+';' : '';
+  const extras = extrasDoMenu();
+  const num = prefixo==='sd-' ? 'sdnum-' : 'drwnum-';
+  const item = (icone, rotulo, acao, id, extra) =>
+    `<div class="sd-item${extra||''}"${id?` id="${id}"`:''} onclick="${fecha}${acao}">
+       <span class="sd-icon">${icone}</span>${rotulo}</div>`;
+
+  return `<div class="sd-sec">Menu</div>` +
+    navDoUsuario().map(i=>
+      `<div class="sd-item" id="${prefixo}${i.id}" onclick="${fecha}loadPage('${i.id}')">
+         <span class="sd-icon">${i.icon}</span>${i.label}${
+         i.num?`<span class="sd-num" id="${num}${i.id}" style="display:none"></span>`:''}</div>`).join('') +
+    (extras.length ? `<div class="sd-sec">Gestão</div>` +
+      extras.map(x=>item(x.icon, x.label, x.acao)).join('') : '') +
+    `<div class="sd-sec">Conta</div>` +
+    `<div class="sd-conta">${esc(currentUser.nome)}
+       <div class="sd-conta-mail">${esc(currentUser.email)}</div></div>` +
+    item('🔑','Alterar senha','showAlterarSenha()') +
+    item('🚪','Sair','doLogout()',null,' sd-danger') +
+    `<div class="sd-versao">versão ${esc(VERSAO)}</div>`;
+}
+
+function buildSidebar() {
+  document.getElementById('sidebarEl').innerHTML =
+    `<div class="sd-logo">Casa Oliveira</div>` + itensMenuHTML('sd-', '');
+  buildDrawer();
+}
+
+function buildDrawer() {
+  document.getElementById('drwEl').innerHTML =
+    `<div class="drw-topo">
+       <div style="font-family:'Fraunces',serif;font-size:20px;">Casa Oliveira</div>
+       <div class="drw-x" onclick="closeDrawer()">✕</div>
+     </div>` + itensMenuHTML('drw-', 'closeDrawer()');
+}
+
+function openDrawer(){ buildDrawer(); marcarAtivo(_activePage); document.getElementById('drwOv').classList.add('open'); }
+function closeDrawer(){ document.getElementById('drwOv').classList.remove('open'); }
+function maybeCloseDrawer(e){ if(e.target===document.getElementById('drwOv')) closeDrawer(); }
 
 // ═══════════════════════════════════════════════
 // ROUTER
@@ -1231,14 +1548,18 @@ function buildSidebar() {
 let _activePage = '';
 function loadPage(id) {
   _activePage = id;
-  document.querySelectorAll('.bnt,.sd-item').forEach(e=>e.classList.remove('active'));
-  ['bn-','sd-'].forEach(p=>{const e=document.getElementById(p+id);if(e)e.classList.add('active');});
-  const map={home:'pgHome',linhas:'pgLinhas',equipe:'pgEquipe',alertas:'pgAlertas',espera:'pgEspera',programas:'pgProgramas',biblioteca:'pgBiblioteca'};
+  marcarAtivo(id);
+  const map={home:'pgHome',linhas:'pgLinhas',equipe:'pgEquipe',alertas:'pgAlertas',mensagens:'pgMensagens',servicos:'pgServicos',leads:'pgLeads',espera:'pgEspera',programas:'pgProgramas',biblioteca:'pgBiblioteca'};
   document.querySelectorAll('.page').forEach(e=>{e.classList.remove('active');e.innerHTML='';});
   const el = document.getElementById(map[id]);
   if(!el) return;
-  const renders={home:renderHome,linhas:renderLinhas,equipe:renderEquipe,alertas:renderAlertas,espera:renderEspera,programas:renderProgramas,biblioteca:renderBiblioteca};
+  const renders={home:renderHome,linhas:renderLinhas,equipe:renderEquipe,alertas:renderAlertas,mensagens:renderMensagensCentral,servicos:renderServicos,leads:renderLeads,espera:renderEspera,programas:renderProgramas,biblioteca:renderBiblioteca};
   if(renders[id]){el.innerHTML=renders[id]();el.classList.add('active');}
+}
+
+function marcarAtivo(id) {
+  document.querySelectorAll('.bnt,.sd-item').forEach(e=>e.classList.remove('active'));
+  ['bn-','sd-','drw-'].forEach(p=>{const e=document.getElementById(p+id);if(e)e.classList.add('active');});
 }
 
 // ═══════════════════════════════════════════════
@@ -1283,6 +1604,12 @@ function renderLinhas() {
 function renderAlertas() {
   return `<div class="ph"><div class="ph-title">Alertas</div><div class="ph-sub">Pendências e prazos</div></div>
   <div id="alertasBody">${loadingHTML()}</div>`;
+}
+
+function renderMensagensCentral() {
+  return `<div class="ph"><div class="ph-title">Mensagens</div>
+    <div class="ph-sub">O que ainda espera resposta — mais antigo primeiro</div></div>
+  <div id="msgCentralBody">${loadingHTML()}</div>`;
 }
 
 function renderEquipe() {
@@ -1436,12 +1763,13 @@ async function openFormNovoPaciente(linha, existente) {
   limparSujo();
   const cfg = LINHAS[linha];
   // Carregar profissionais
-  const resProfs = await api('listar_profs',{});
+  const [resProfs] = await Promise.all([api('listar_profs',{}), carregarCatalogo()]);
   const profs = resProfs.ok ? resProfs.dados : [];
   if(resProfs.ok) _profsCache = profs;
   const p = existente || {};
   const editando = !!(existente && existente.id);
-  const servicosAtuais = String(p.servicos||'').split(',').map(s=>s.trim()).filter(Boolean);
+  const servicosAtuais = servicosDoPaciente(p);
+  const opcoesDoForm = opcoesServicos(linha, servicosAtuais);
   const nascVal = /^(\d{4}-\d{2}-\d{2})/.exec(String(p.data_nascimento||''));
 
   document.getElementById('sheetTitle').textContent = editando ? '✏️ Editar Paciente' : '+ Novo Paciente';
@@ -1470,11 +1798,14 @@ async function openFormNovoPaciente(linha, existente) {
       </div>`:''}
       <div class="fg fa"><label class="fl">Serviços</label>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
-          ${cfg.servicos.split(' · ').map(s=>`
-          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;background:var(--sur2);padding:6px 12px;border-radius:20px;border:1px solid var(--bor);">
-            <input type="checkbox" value="${esc(s)}" id="srv_${s.replace(/\s/g,'_')}" style="accent-color:var(--teal)"${servicosAtuais.includes(s)?' checked':''}> ${s}
+          ${opcoesDoForm.map((o,i)=>`
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;background:var(--sur2);padding:6px 12px;border-radius:20px;border:1px solid var(--bor);${o.fora?'opacity:.65;':''}"
+                 ${o.fora?'title="Não é mais oferecido — desmarcar apaga o vínculo"':''}>
+            <input type="checkbox" value="${esc(o.nome)}" id="srv_${i}" style="accent-color:var(--teal)"${
+              servicosAtuais.some(n=>normalizar(n)===normalizar(o.nome))?' checked':''}> ${esc(o.nome)}${o.fora?' ⋯':''}
           </label>`).join('')}
         </div>
+        <div class="pt-nota">Vem da tela 🗂️ Serviços, só os ativos da linha. Os marcados com ⋯ não são mais oferecidos, mas seguem vinculados enquanto ficarem marcados.</div>
       </div>
       <div class="fg fa"><label class="fl">Observações</label><textarea class="ft" id="np_obs" placeholder="Queixa principal, motivo do encaminhamento...">${esc(p.observacoes)}</textarea></div>
     </div>
@@ -2228,6 +2559,559 @@ async function excluirPrograma(id) {
   document.getElementById('progForm').innerHTML='';
   await loadProgramas();
   showToast('🗑 Excluído','ok');
+}
+
+// ═══════════════════════════════════════════════
+// CATÁLOGO DE SERVIÇOS
+// O que a clínica oferece, agrupado por linha de cuidado, para a equipe
+// consultar na hora de atender o telefone. Fica na aba Catalogo — a aba
+// Servicos já guarda o serviço agendado de cada paciente, que é outra coisa,
+// e a aba Programas guarda as etapas que alimentam a lista de espera.
+// Todo mundo consulta; só a gestão altera, e quem barra isso é o backend.
+// ═══════════════════════════════════════════════
+let _catalogo = null;    // null = ainda não carregado
+let _podeEditarCatalogo = false;
+let _veValorCatalogo = false;
+
+function renderServicos() {
+  return `<div class="ph"><div class="ph-title">Serviços</div>
+    <div class="ph-sub">O que a clínica oferece, por linha de cuidado</div></div>
+  <div id="srvLista">${loadingHTML()}</div>`;
+}
+
+// A ficha do paciente também puxa daqui, então o catálogo fica em cache e é
+// recarregado só quando a tela de Serviços pede
+async function carregarCatalogo(forcar) {
+  if(_catalogo && !forcar) return _catalogo;
+  const res = await api('listar_catalogo',{});
+  if(!res.ok) { if(!_catalogo) _catalogo = []; return _catalogo; }
+  _catalogo = res.dados||[];
+  // Quem pode o quê vem do servidor, não do papel guardado no navegador
+  _podeEditarCatalogo = !!res.pode_editar;
+  _veValorCatalogo = !!res.ve_valor;
+  return _catalogo;
+}
+
+async function loadServicos() {
+  const el = document.getElementById('srvLista');
+  if(!el) return;
+  const res = await api('listar_catalogo',{});
+  if(!res.ok) {
+    el.innerHTML = `<div class="card" style="color:var(--rose)">Não foi possível carregar: ${esc(res.erro||'')}</div>`;
+    return;
+  }
+  _catalogo = res.dados||[];
+  _podeEditarCatalogo = !!res.pode_editar;
+  _veValorCatalogo = !!res.ve_valor;
+  desenharServicos();
+}
+
+// ── Vínculo paciente ↔ serviço ────────────────────────────────
+// O campo `servicos` do paciente já existia como lista separada por vírgula;
+// o que muda é de onde vêm as opções — antes a lista fixa no código, agora o
+// catálogo da clínica.
+
+function servicosDoPaciente(p) {
+  return String(p.servicos||'').split(',').map(x=>x.trim()).filter(Boolean);
+}
+
+function catalogoAtivo(linha) {
+  return (_catalogo||[]).filter(s=>String(s.linha)===String(linha) && !inativoServico(s));
+}
+
+// Só serviço ativo entra como opção nova. Mas o que o paciente já usa fica na
+// lista mesmo inativado: sem isso, salvar a ficha apagaria o vínculo antigo,
+// que é justamente o histórico que se quer preservar.
+function opcoesServicos(linha, atuais) {
+  const ativos = catalogoAtivo(linha).map(s=>s.nome);
+  // Enquanto a clínica não montar o catálogo, vale a lista que já existia no
+  // código — assim o formulário nunca aparece sem opção nenhuma
+  const base = ativos.length
+    ? ativos
+    : String((LINHAS[linha]||{}).servicos||'').split(' · ').filter(Boolean);
+  const vistos = new Set(base.map(normalizar));
+  return base.map(nome=>({nome, fora:false}))
+    .concat(atuais.filter(n=>!vistos.has(normalizar(n))).map(nome=>({nome, fora:true})));
+}
+
+function chipsServicosHTML(p) {
+  const lista = servicosDoPaciente(p);
+  if(!lista.length) return `<div class="srv-chips"><span class="srv-chip srv-chip-vazio">Nenhum serviço vinculado</span></div>`;
+  const ativos = new Set(catalogoAtivo(p.linha).map(s=>normalizar(s.nome)));
+  return `<div class="srv-chips">${lista.map(nome=>{
+    const fora = ativos.size && !ativos.has(normalizar(nome));
+    return `<span class="srv-chip${fora?' srv-chip-off':''}"${
+      fora?' title="Não é mais oferecido — mantido no histórico do paciente"':''
+    }>${esc(nome)}${fora?' <span class="srv-chip-tag">fora do catálogo</span>':''}</span>`;
+  }).join('')}</div>`;
+}
+
+function desenharServicos() {
+  const el = document.getElementById('srvLista');
+  if(!el) return;
+
+  // Item com linha que não existe mais no código não pode sumir da tela sem
+  // ninguém perceber — ganha um grupo próprio no fim.
+  const grupos = Object.keys(LINHAS).map(k=>[k, LINHAS[k]]);
+  const orfaos = _catalogo.filter(s=>!LINHAS[s.linha]);
+
+  el.innerHTML = grupos.map(([k,cfg])=>{
+    const itens = _catalogo.filter(s=>String(s.linha)===String(k));
+    if(!itens.length && !_podeEditarCatalogo) return '';
+    return `<div class="card" style="margin-bottom:12px">
+      <div class="card-title">
+        <div class="ct-bar" style="background:var(--${cfg.color})"></div>
+        ${cfg.emoji} ${esc(cfg.label)}
+      </div>
+      ${itens.length
+        ? itens.map(itemServicoHTML).join('')
+        : `<div class="pt-nota" style="margin:0">Nada cadastrado nesta linha ainda.</div>`}
+      ${_podeEditarCatalogo
+        ? `<button class="addbtn" style="margin-top:12px" onclick="novoServico('${k}')">+ Adicionar em ${esc(cfg.label)}</button>`
+        : ''}
+    </div>`;
+  }).join('')
+  + (orfaos.length ? `<div class="card" style="margin-bottom:12px">
+      <div class="card-title"><div class="ct-bar" style="background:var(--ink3)"></div>📄 Sem linha reconhecida</div>
+      ${orfaos.map(itemServicoHTML).join('')}
+    </div>` : '')
+  + (!_catalogo.length && !_podeEditarCatalogo
+      ? `<div class="card" style="text-align:center;padding:36px 20px;color:var(--ink3)">
+          <div style="font-size:40px;margin-bottom:10px">🗂️</div>
+          <div style="font-weight:600;color:var(--ink)">Nada cadastrado ainda</div>
+          <div style="font-size:13px;margin-top:4px">A gestão ainda não montou a lista de serviços.</div></div>`
+      : '')
+  + `<div id="srvForm"></div>`;
+}
+
+function itemServicoHTML(s) {
+  const inativo = inativoServico(s);
+  return `<div class="srv-item ${inativo?'srv-off':''}">
+    <div style="flex:1;min-width:0">
+      <div class="srv-nome">${esc(s.nome)}${inativo?' <span class="chip ch-gray">Inativo</span>':''}</div>
+      ${s.descricao?`<div class="srv-desc">${esc(s.descricao)}</div>`:''}
+    </div>
+    ${_veValorCatalogo && s.valor ? `<div class="srv-valor">${esc(precoServico(s.valor))}</div>` : ''}
+    ${_podeEditarCatalogo?`<button class="backbtn" onclick="editarServico('${esc(s.id)}')">✏️</button>`:''}
+  </div>`;
+}
+
+function inativoServico(s) {
+  return ['não','nao'].includes(String(s.ativo||'Sim').trim().toLowerCase());
+}
+
+// A clínica digita "180", "180,00" ou "sob consulta". O que for número vira
+// moeda; o resto sai como foi escrito, em vez de virar "R$ NaN".
+function precoServico(v) {
+  const txt = String(v||'').trim();
+  if(!txt) return '';
+  const n = Number(txt.replace(/[R$\s.]/g,'').replace(',','.'));
+  return (isFinite(n) && /\d/.test(txt) && !/[a-zA-Z]/.test(txt))
+    ? n.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})
+    : txt;
+}
+
+function novoServico(linha, existente) {
+  if(!_podeEditarCatalogo) return;
+  const s = existente || {linha};
+  const f = document.getElementById('srvForm');
+  if(!f) return;
+  const cfg = LINHAS[s.linha] || {label:s.linha||'—'};
+  f.innerHTML = `<div class="evo-form">
+    <div class="hist-tit" style="margin-bottom:10px">
+      ${existente?'✏️ Editar serviço':'+ Novo serviço'} — ${esc(cfg.label)}</div>
+    <div class="fg"><label class="fl">Nome *</label>
+      <input class="fi" id="svNome" value="${esc(s.nome)}"
+             placeholder="Ex.: Fisioterapia Pélvica, Pilates Individual"></div>
+    <div class="fg"><label class="fl">Linha de cuidado</label>
+      <select class="fs" id="svLinha">
+        ${Object.entries(LINHAS).map(([k,c])=>
+          `<option value="${k}"${String(s.linha)===k?' selected':''}>${c.emoji} ${esc(c.label)}</option>`).join('')}
+      </select></div>
+    <div class="fg"><label class="fl">Descrição curta (opcional)</label>
+      <input class="fi" id="svDesc" value="${esc(s.descricao)}"
+             placeholder="Para que serve, para quem é, duração"></div>
+    <div class="fg"><label class="fl">Valor (opcional)</label>
+      <input class="fi" id="svValor" value="${esc(s.valor)}" placeholder="Ex.: 180,00 ou Sob consulta">
+      <div class="pt-nota">Só a gestão e a coordenação veem o valor na lista.</div></div>
+    ${existente?`<div class="fg"><label class="fl">Situação</label>
+      <select class="fs" id="svAtivo">
+        ${['Sim','Não'].map(o=>`<option value="${o}"${String(s.ativo||'Sim')===o?' selected':''}>${o==='Sim'?'Ativo':'Inativo'}</option>`).join('')}
+      </select>
+      <div class="pt-nota">Inativo continua na lista, marcado, para quem perguntar por um serviço que a clínica deixou de oferecer.</div>
+    </div>`:''}
+    <div id="svErr" class="errbox"></div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="savebtn" id="svBtn" style="flex:1"
+        onclick="salvarServico(${existente?`'${esc(s.id)}'`:''})">${existente?'Salvar':'Adicionar'}</button>
+      <button class="backbtn" onclick="document.getElementById('srvForm').innerHTML=''">Cancelar</button>
+    </div>
+    ${existente?`<button class="savebtn" style="background:var(--rose);margin-top:8px"
+      onclick="excluirServico('${esc(s.id)}')">🗑 Excluir serviço</button>`:''}
+  </div>`;
+  f.scrollIntoView({behavior:'smooth', block:'nearest'});
+  document.getElementById('svNome').focus();
+}
+
+function editarServico(id) {
+  const s = _catalogo.find(x=>String(x.id)===String(id));
+  if(s) novoServico(s.linha, s);
+}
+
+async function salvarServico(id) {
+  const err = document.getElementById('svErr');
+  const btn = document.getElementById('svBtn');
+  const nome = (document.getElementById('svNome').value||'').trim();
+  const linha = document.getElementById('svLinha').value;
+  const falhar = msg => { err.textContent=msg; err.style.display='block'; };
+
+  if(!nome) return falhar('Informe o nome do serviço.');
+  // Dois iguais na mesma linha viram duas entradas indistinguíveis na consulta
+  const repetido = _catalogo.some(s=>
+    String(s.linha)===String(linha) && String(s.id)!==String(id||'') &&
+    normalizar(s.nome)===normalizar(nome));
+  if(repetido) return falhar('Já existe um serviço com esse nome nesta linha.');
+  err.style.display='none';
+
+  const dados = {
+    nome, linha,
+    descricao: (document.getElementById('svDesc').value||'').trim(),
+    valor: (document.getElementById('svValor').value||'').trim(),
+    ativo: document.getElementById('svAtivo')?.value || 'Sim',
+  };
+
+  btn.disabled=true; btn.textContent='Salvando...';
+  const res = id
+    ? await api('atualizar',{tabela:'catalogo', id, dados})
+    : await api('salvar',{tabela:'catalogo', dados});
+  btn.disabled=false; btn.textContent = id?'Salvar':'Adicionar';
+
+  if(!res.ok) return falhar('Erro ao salvar: '+(res.erro||''));
+  document.getElementById('srvForm').innerHTML='';
+  await loadServicos();
+  showToast('✅ Salvo','ok');
+}
+
+async function excluirServico(id) {
+  const s = _catalogo.find(x=>String(x.id)===String(id));
+  if(!s) return;
+  if(!confirm('Excluir "'+s.nome+'"?\n\nPara apenas parar de oferecer sem perder o registro, use Situação: Inativo.')) return;
+  const res = await api('deletar',{tabela:'catalogo', id});
+  if(!res.ok){ showToast('Erro ao excluir: '+(res.erro||''),'err'); return; }
+  document.getElementById('srvForm').innerHTML='';
+  await loadServicos();
+  showToast('🗑 Excluído','ok');
+}
+
+// ═══════════════════════════════════════════════
+// LEADS / CAPTAÇÃO
+// Funil de quem procurou a clínica antes de virar paciente. O estágio nunca
+// muda em silêncio: toda mudança grava uma linha de histórico, senão não dá
+// para saber por que alguém parou no meio do caminho.
+//
+// A lista de estágios vem do backend (ESTAGIOS_LEAD no Code.gs) — as colunas
+// são montadas com o que o servidor mandar, então mudar o funil é mexer num
+// lugar só.
+// ═══════════════════════════════════════════════
+let _leads = [];
+let _leadCfg = {estagios:[], origens:[], motivos:[], pode_editar:false};
+let _leadFiltro = {origem:'', campanha:'', linha:''};
+
+function renderLeads() {
+  return `<div class="ph"><div class="ph-title">Leads</div>
+    <div class="ph-sub">Quem procurou a clínica e ainda não virou paciente</div></div>
+  <div id="leadsBody">${loadingHTML()}</div>`;
+}
+
+async function loadLeads() {
+  const el = document.getElementById('leadsBody');
+  if(!el) return;
+  const res = await api('listar_leads',{});
+  if(!res.ok) {
+    el.innerHTML = `<div class="card" style="color:var(--rose)">Não foi possível carregar: ${esc(res.erro||'')}</div>`;
+    return;
+  }
+  _leads = res.dados||[];
+  _leadCfg = {
+    estagios: res.estagios||[], origens: res.origens||[], motivos: res.motivos||[],
+    ganho: res.estagio_ganho||'', perdido: res.estagio_perdido||'',
+    pode_editar: !!res.pode_editar
+  };
+  desenharLeads();
+}
+
+function leadsFiltrados() {
+  const f = _leadFiltro;
+  return _leads.filter(l=>
+    (!f.origem || String(l.origem)===f.origem) &&
+    (!f.linha  || String(l.linha)===f.linha) &&
+    (!f.campanha || normalizar(l.campanha).includes(normalizar(f.campanha))));
+}
+
+function desenharLeads() {
+  const el = document.getElementById('leadsBody');
+  if(!el) return;
+  const lista = leadsFiltrados();
+  const campanhas = [...new Set(_leads.map(l=>String(l.campanha||'').trim()).filter(Boolean))].sort();
+
+  el.innerHTML = `
+    <div class="lead-topo">
+      ${_leadCfg.pode_editar?`<button class="addbtn" onclick="novoLead()">+ Novo lead</button>`:''}
+      <span style="font-size:13px;color:var(--ink3)">${lista.length} de ${_leads.length} lead${_leads.length!==1?'s':''}</span>
+    </div>
+    <div class="lead-filtros">
+      <select class="fs" onchange="filtrarLeads('origem',this.value)">
+        <option value="">Todas as origens</option>
+        ${_leadCfg.origens.map(o=>`<option value="${esc(o)}"${_leadFiltro.origem===o?' selected':''}>${esc(o)}</option>`).join('')}
+      </select>
+      <select class="fs" onchange="filtrarLeads('linha',this.value)">
+        <option value="">Todas as linhas</option>
+        ${Object.entries(LINHAS).map(([k,c])=>`<option value="${k}"${_leadFiltro.linha===k?' selected':''}>${c.emoji} ${esc(c.label)}</option>`).join('')}
+      </select>
+      <input class="fi" list="leadCampanhas" placeholder="🔎 Campanha" value="${esc(_leadFiltro.campanha)}"
+             oninput="filtrarLeads('campanha',this.value)">
+      <datalist id="leadCampanhas">${campanhas.map(c=>`<option value="${esc(c)}">`).join('')}</datalist>
+      ${(_leadFiltro.origem||_leadFiltro.linha||_leadFiltro.campanha)
+        ? `<span class="esp-limpar" onclick="limparFiltroLeads()">limpar filtros</span>`:''}
+    </div>
+    <div class="kanban">
+      ${_leadCfg.estagios.map(e=>colunaLeadHTML(e, lista.filter(l=>String(l.estagio)===e))).join('')}
+    </div>
+    <div id="leadForm"></div>`;
+}
+
+function filtrarLeads(campo, valor) {
+  _leadFiltro[campo] = valor;
+  // Só a parte que muda é redesenhada; redesenhar tudo tiraria o foco do campo
+  const lista = leadsFiltrados();
+  const k = document.querySelector('.kanban');
+  if(k) k.innerHTML = _leadCfg.estagios.map(e=>
+    colunaLeadHTML(e, lista.filter(l=>String(l.estagio)===e))).join('');
+}
+
+function limparFiltroLeads() {
+  _leadFiltro = {origem:'', campanha:'', linha:''};
+  desenharLeads();
+}
+
+function colunaLeadHTML(estagio, itens) {
+  const cor = estagio===_leadCfg.ganho ? 'var(--teal)'
+            : estagio===_leadCfg.perdido ? 'var(--ink3)' : 'var(--amber)';
+  return `<div class="kb-col">
+    <div class="kb-tit"><span class="kb-bola" style="background:${cor}"></span>
+      ${esc(estagio)} <span class="kb-n">${itens.length}</span></div>
+    ${itens.length
+      ? itens.map(leadCardHTML).join('')
+      : `<div class="kb-vazio">—</div>`}
+  </div>`;
+}
+
+function leadCardHTML(l) {
+  const cfg = LINHAS[l.linha];
+  return `<div class="kb-card" onclick="abrirLead('${esc(l.id)}')">
+    <div class="kb-nome">${esc(l.nome)}</div>
+    <div class="kb-meta">
+      ${cfg?`<span class="chip ch-${cfg.color}">${cfg.emoji} ${esc(cfg.label)}</span>`:''}
+      ${l.origem?`<span>${esc(l.origem)}</span>`:''}
+    </div>
+    ${l.campanha?`<div class="kb-campanha">📣 ${esc(l.campanha)}</div>`:''}
+    ${l.motivo_perda?`<div class="kb-campanha">✖ ${esc(l.motivo_perda)}</div>`:''}
+    ${l.paciente_id?`<div class="kb-campanha">✅ virou paciente</div>`:''}
+  </div>`;
+}
+
+// ── Ficha do lead: dados, histórico e as ações do funil ──
+async function abrirLead(id) {
+  const l = _leads.find(x=>String(x.id)===String(id));
+  if(!l) return;
+  const f = document.getElementById('leadForm');
+  f.innerHTML = `<div class="evo-form">${loadingHTML()}</div>`;
+  f.scrollIntoView({behavior:'smooth', block:'nearest'});
+
+  const res = await api('historico_lead',{id});
+  const hist = res.ok ? (res.dados||[]) : [];
+  const cfg = LINHAS[l.linha];
+  const pode = _leadCfg.pode_editar;
+
+  f.innerHTML = `<div class="evo-form">
+    <div class="hist-tit" style="margin-bottom:4px">${esc(l.nome)}</div>
+    <div class="mc-meta" style="margin-bottom:12px">
+      ${cfg?`<span class="chip ch-${cfg.color}">${cfg.emoji} ${esc(cfg.label)}</span>`:''}
+      ${l.telefone?`<span>📱 ${esc(l.telefone)}</span>`:''}
+      ${l.email?`<span>✉️ ${esc(l.email)}</span>`:''}
+    </div>
+    <div class="cadgrid" style="margin-bottom:12px">
+      ${[['Estágio',l.estagio],['Origem',l.origem],['Campanha',l.campanha],
+         ['Indicado por',l.indicado_por],['Primeiro contato',valorCampo('data',l.data_contato)],
+         ['Responsável',l.responsavel],['Motivo da perda',l.motivo_perda]]
+        .filter(([,v])=>v).map(([k,v])=>`<div class="cadrow">
+          <div class="cadk">${esc(k)}</div><div class="cadv">${esc(v)}</div></div>`).join('')}
+    </div>
+
+    ${pode?`<div class="fg"><label class="fl">Registrar interação / mover no funil</label>
+      <select class="fs" id="ldEstagio" onchange="alternarMotivo()">
+        ${_leadCfg.estagios.map(e=>`<option value="${esc(e)}"${String(l.estagio)===e?' selected':''}>${esc(e)}</option>`).join('')}
+      </select>
+      <div id="ldMotivoBox" style="display:none;margin-top:8px">
+        <select class="fs" id="ldMotivo">
+          <option value="">Motivo da perda...</option>
+          ${_leadCfg.motivos.map(m=>`<option value="${esc(m)}">${esc(m)}</option>`).join('')}
+        </select>
+      </div>
+      <textarea class="ft" id="ldObs" style="min-height:64px;margin-top:8px"
+        placeholder="O que aconteceu (ex.: respondeu no WhatsApp, quer saber valores)"></textarea>
+      <div id="ldErr" class="errbox"></div>
+      <button class="savebtn" id="ldBtn" style="margin-top:8px" onclick="moverLead('${esc(l.id)}')">Registrar</button>
+    </div>
+    ${l.paciente_id
+      ? `<div class="pt-nota">✅ Já vinculado a um cadastro de paciente.</div>`
+      : `<div class="fg" style="margin-top:14px"><label class="fl">Virou paciente?</label>
+          <div class="pt-nota" style="margin-top:0">Aponte para um cadastro que já existe — não cria paciente novo.</div>
+          <input class="fi" id="ldBuscaPac" list="ldPacientes" placeholder="🔎 Buscar paciente pelo nome"
+                 style="margin-top:6px">
+          <datalist id="ldPacientes"></datalist>
+          <button class="addbtn" style="margin-top:8px" onclick="converterLead('${esc(l.id)}')">✅ Vincular ao cadastro</button>
+        </div>`}`:''}
+
+    <div class="hist-tit" style="margin:16px 0 8px">Histórico de interações</div>
+    ${hist.length ? hist.map(h=>`<div class="tl-item">
+        <div class="tl-dot">${h.de_estagio&&h.de_estagio!==h.para_estagio?'↪':'📝'}</div>
+        <div><div class="tl-title">${h.de_estagio&&h.de_estagio!==h.para_estagio
+              ? esc(h.de_estagio)+' → '+esc(h.para_estagio)
+              : esc(h.para_estagio||'Anotação')}</div>
+          ${h.obs?`<div class="tl-meta">${esc(h.obs)}</div>`:''}
+          <div class="tl-meta">${esc(fmtDataHora(h.em))}${h.por?' · '+esc(h.por):''}</div>
+        </div></div>`).join('')
+      : `<div class="pt-nota" style="margin-top:0">Sem interações registradas.</div>`}
+
+    <div style="display:flex;gap:8px;margin-top:12px">
+      ${pode?`<button class="backbtn" onclick="novoLead(_leads.find(x=>String(x.id)==='${esc(l.id)}'))">✏️ Editar dados</button>`:''}
+      <button class="backbtn" onclick="document.getElementById('leadForm').innerHTML=''">Fechar</button>
+    </div>
+  </div>`;
+
+  if(pode && !l.paciente_id) preencherPacientesLead();
+  alternarMotivo();
+}
+
+// O motivo só faz sentido quando o lead é dado por perdido
+function alternarMotivo() {
+  const sel = document.getElementById('ldEstagio');
+  const box = document.getElementById('ldMotivoBox');
+  if(sel && box) box.style.display = sel.value===_leadCfg.perdido ? 'block' : 'none';
+}
+
+async function preencherPacientesLead() {
+  const pacs = await carregarTodosPacientes();
+  const dl = document.getElementById('ldPacientes');
+  if(dl) dl.innerHTML = pacs.map(p=>`<option value="${esc(p.nome)}">`).join('');
+}
+
+async function moverLead(id) {
+  const err = document.getElementById('ldErr');
+  const btn = document.getElementById('ldBtn');
+  const estagio = document.getElementById('ldEstagio').value;
+  const obs = (document.getElementById('ldObs').value||'').trim();
+  const motivo = (document.getElementById('ldMotivo')||{}).value||'';
+
+  if(estagio===_leadCfg.perdido && !motivo) {
+    err.textContent='Escolha o motivo da perda.'; err.style.display='block'; return;
+  }
+  err.style.display='none';
+  btn.disabled=true; btn.textContent='Registrando...';
+  const res = await api('mover_lead',{id, estagio, obs, motivo_perda:motivo});
+  btn.disabled=false; btn.textContent='Registrar';
+  if(!res.ok){ err.textContent='Erro: '+(res.erro||''); err.style.display='block'; return; }
+  await loadLeads();
+  abrirLead(id);
+  showToast('✅ Registrado','ok');
+}
+
+async function converterLead(id) {
+  const nome = (document.getElementById('ldBuscaPac').value||'').trim();
+  if(!nome){ showToast('Escolha o paciente.','err'); return; }
+  const pacs = await carregarTodosPacientes();
+  const p = pacs.find(x=>normalizar(x.nome)===normalizar(nome));
+  if(!p){ showToast('Paciente não encontrado. Cadastre primeiro em Linhas.','err'); return; }
+  const res = await api('converter_lead',{id, paciente_id:p.id});
+  if(!res.ok){ showToast('Erro: '+(res.erro||''),'err'); return; }
+  await loadLeads();
+  abrirLead(id);
+  showToast('✅ Vinculado a '+p.nome,'ok');
+}
+
+function novoLead(existente) {
+  if(!_leadCfg.pode_editar) return;
+  const l = existente || {};
+  const f = document.getElementById('leadForm');
+  f.innerHTML = `<div class="evo-form">
+    <div class="hist-tit" style="margin-bottom:10px">${existente?'✏️ Editar lead':'+ Novo lead'}</div>
+    <div class="f2">
+      <div class="fg fa"><label class="fl">Nome *</label>
+        <input class="fi" id="ndNome" value="${esc(l.nome)}" placeholder="Quem entrou em contato"></div>
+      <div class="fg"><label class="fl">Telefone / WhatsApp</label>
+        <input class="fi" id="ndTel" type="tel" value="${esc(l.telefone)}" placeholder="(11) 99999-9999"></div>
+      <div class="fg"><label class="fl">E-mail</label>
+        <input class="fi" id="ndEmail" type="email" value="${esc(l.email)}"></div>
+      <div class="fg"><label class="fl">Primeiro contato</label>
+        <input class="fi" id="ndData" type="date" value="${esc(String(l.data_contato||'').slice(0,10)) || new Date().toISOString().slice(0,10)}"></div>
+      <div class="fg"><label class="fl">Origem</label>
+        <select class="fs" id="ndOrigem" onchange="alternarIndicacao()">
+          <option value="">Selecione...</option>
+          ${_leadCfg.origens.map(o=>`<option value="${esc(o)}"${String(l.origem)===o?' selected':''}>${esc(o)}</option>`).join('')}
+        </select></div>
+      <div class="fg"><label class="fl">Linha de interesse</label>
+        <select class="fs" id="ndLinha">
+          <option value="">Ainda não sabe</option>
+          ${Object.entries(LINHAS).map(([k,c])=>`<option value="${k}"${String(l.linha)===k?' selected':''}>${c.emoji} ${esc(c.label)}</option>`).join('')}
+        </select></div>
+      <div class="fg fa"><label class="fl">Campanha</label>
+        <input class="fi" id="ndCampanha" value="${esc(l.campanha)}"
+               placeholder="Ex.: Meta Ads — CEP 04500 — Reabilitação — set/26"></div>
+      <div class="fg fa" id="ndIndicaBox"><label class="fl">Indicado por</label>
+        <input class="fi" id="ndIndicado" value="${esc(l.indicado_por)}" placeholder="Paciente ou parceiro que indicou"></div>
+      <div class="fg fa"><label class="fl">Responsável pelo atendimento</label>
+        <input class="fi" id="ndResp" value="${esc(l.responsavel||currentUser.nome)}"></div>
+    </div>
+    <div id="ndErr" class="errbox"></div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="savebtn" id="ndBtn" style="flex:1"
+        onclick="salvarLead(${existente?`'${esc(l.id)}'`:''})">${existente?'Salvar':'Cadastrar lead'}</button>
+      <button class="backbtn" onclick="document.getElementById('leadForm').innerHTML=''">Cancelar</button>
+    </div>
+  </div>`;
+  f.scrollIntoView({behavior:'smooth', block:'nearest'});
+  alternarIndicacao();
+  document.getElementById('ndNome').focus();
+}
+
+// "Indicado por" só aparece quando a origem é indicação — perguntar sempre
+// deixa o formulário cheio de campo que não se aplica
+function alternarIndicacao() {
+  const o = document.getElementById('ndOrigem');
+  const box = document.getElementById('ndIndicaBox');
+  if(o && box) box.style.display = /indica/i.test(o.value) ? 'block' : 'none';
+}
+
+async function salvarLead(id) {
+  const err = document.getElementById('ndErr');
+  const btn = document.getElementById('ndBtn');
+  const v = k => (document.getElementById(k).value||'').trim();
+  if(!v('ndNome')){ err.textContent='Informe o nome.'; err.style.display='block'; return; }
+  err.style.display='none';
+
+  const dados = {
+    nome:v('ndNome'), telefone:v('ndTel'), email:v('ndEmail'), data_contato:v('ndData'),
+    origem:v('ndOrigem'), campanha:v('ndCampanha'),
+    indicado_por: /indica/i.test(v('ndOrigem')) ? v('ndIndicado') : '',
+    linha:v('ndLinha'), responsavel:v('ndResp'),
+  };
+  btn.disabled=true; btn.textContent='Salvando...';
+  const res = await api('salvar_lead',{id, dados});
+  btn.disabled=false; btn.textContent = id?'Salvar':'Cadastrar lead';
+  if(!res.ok){ err.textContent='Erro: '+(res.erro||''); err.style.display='block'; return; }
+  await loadLeads();
+  showToast('✅ Salvo','ok');
 }
 
 // ═══════════════════════════════════════════════
@@ -3250,6 +4134,8 @@ function desenharMensagens(pacienteId) {
     <div class="msg-form">
       <textarea class="ft" id="msgTexto" placeholder="Escreva para o paciente..."
                 style="min-height:80px"></textarea>
+      <label class="msg-aberta"><input type="checkbox" id="msgAberta">
+        Ainda espera retorno — manter em 💬 Mensagens</label>
       <button class="savebtn" id="msgBtn" style="margin-top:8px"
               onclick="responderPaciente('${pacienteId}')">Enviar</button>
     </div>`;
@@ -3281,12 +4167,127 @@ async function responderPaciente(pacienteId) {
   if(!texto){ showToast('Escreva a mensagem.','err'); return; }
   const btn = document.getElementById('msgBtn');
   btn.disabled=true; btn.textContent='Enviando...';
-  const res = await api('enviar_mensagem',{paciente_id:pacienteId, texto, autor_nome:currentUser.nome});
+  // Sem marcar, enviar é responder: sai da central. Marcado, é o registro de
+  // uma conversa que aconteceu por fora e ficou de ter retorno.
+  const aberta = !!(document.getElementById('msgAberta')||{}).checked;
+  const res = await api('enviar_mensagem',
+    {paciente_id:pacienteId, texto, autor_nome:currentUser.nome, status: aberta?'aberta':''});
   btn.disabled=false; btn.textContent='Enviar';
   if(!res.ok){ showToast('Erro: '+(res.erro||''),'err'); return; }
   campo.value='';
   limparSujo();
   await carregarMensagens(pacienteId);
+  atualizarMensagensAbertas();
+}
+
+// ═══════════════════════════════════════════════
+// CENTRAL DE MENSAGENS
+// Tudo que está em aberto numa tela só. Antes era preciso abrir prontuário
+// por prontuário para descobrir quem estava esperando resposta — quem não
+// fosse aberto naquele dia simplesmente não era visto.
+// ═══════════════════════════════════════════════
+let _msgAbertas = [];
+
+async function loadMensagensCentral() {
+  const alvo = document.getElementById('msgCentralBody');
+  if(!alvo) return;
+  const res = await api('mensagens_abertas',{});
+  if(!res.ok) {
+    alvo.innerHTML = `<div class="card" style="color:var(--rose)">Não foi possível carregar: ${esc(res.erro||'')}</div>`;
+    return;
+  }
+  _msgAbertas = res.dados||[];
+  atualizarContadorMensagens(_msgAbertas.length);
+  desenharCentral();
+}
+
+function desenharCentral() {
+  const alvo = document.getElementById('msgCentralBody');
+  if(!alvo) return;
+  alvo.innerHTML = _msgAbertas.length
+    ? `<div class="pt-nota" style="margin-top:0;margin-bottom:12px">
+         ${_msgAbertas.length} conversa${_msgAbertas.length!==1?'s':''} esperando retorno.
+         Você vê aqui apenas os pacientes a que já tem acesso.
+       </div>` + _msgAbertas.map(itemMensagemHTML).join('')
+    : `<div class="card" style="text-align:center;padding:36px 20px;color:var(--ink3)">
+        <div style="font-size:40px;margin-bottom:10px">✅</div>
+        <div style="font-weight:600;color:var(--ink)">Nada em aberto</div>
+        <div style="font-size:13px;margin-top:4px">Todo mundo já teve retorno.</div></div>`;
+}
+
+// Há quanto tempo a pessoa espera. É o que faz a lista valer: o número em
+// dias mostra na hora quem já passou do aceitável.
+function esperaHTML(iso) {
+  const d = new Date(iso);
+  if(isNaN(d)) return '';
+  const dias = Math.floor((Date.now()-d)/86400000);
+  const rotulo = dias<1 ? 'hoje' : dias===1 ? '1 dia' : dias+' dias';
+  return `<div class="mc-espera ${dias>=7?'crit':dias>=3?'warn':''}">⏳ ${rotulo}</div>`;
+}
+
+function itemMensagemHTML(m) {
+  const cfg = LINHAS[m.linha] || {emoji:'📄', label:m.linha||'sem linha', color:'sky'};
+  const origem = String(m.de)==='paciente'
+    ? 'O paciente escreveu'
+    : 'Registrado por '+(m.autor_nome||'alguém da equipe');
+  const abrir = `abrirDaMensagem('${esc(m.linha)}','${esc(m.paciente_id)}')`;
+  return `<div class="mc-item">
+    <div class="mc-topo">
+      <div style="min-width:0">
+        <div class="mc-nome" onclick="${abrir}">${esc(m.paciente_nome||'Paciente')}</div>
+        <div class="mc-meta">
+          <span class="chip ch-${cfg.color}">${cfg.emoji} ${esc(cfg.label)}</span>
+          <span>${esc(m.terapeuta_nome||'sem terapeuta')}</span>
+          <span>· ${esc(fmtDataHora(m.criado_em))}</span>
+        </div>
+      </div>
+      ${esperaHTML(m.criado_em)}
+    </div>
+    <div class="mc-texto">${esc(m.texto)}</div>
+    <div class="mc-meta" style="margin-top:7px">${esc(origem)}</div>
+    <div class="mc-acoes">
+      <button class="backbtn" onclick="${abrir}">💬 Abrir prontuário</button>
+      <button class="backbtn" onclick="marcarMensagemComo('${esc(m.id)}','respondida')">✓ Respondida</button>
+      <button class="backbtn" onclick="marcarMensagemComo('${esc(m.id)}','fechada')">Fechar</button>
+    </div>
+  </div>`;
+}
+
+// Resolver sem sair da lista: tirar da fila é um clique, senão ninguém marca
+// e a central deixa de refletir a realidade em uma semana.
+async function marcarMensagemComo(id, status) {
+  const res = await api('marcar_mensagem',{id, status});
+  if(!res.ok){ showToast('Erro: '+(res.erro||''),'err'); return; }
+  _msgAbertas = _msgAbertas.filter(m=>String(m.id)!==String(id));
+  atualizarContadorMensagens(_msgAbertas.length);
+  desenharCentral();
+  showToast(status==='respondida' ? '✓ Marcada como respondida.' : '✓ Conversa fechada.');
+}
+
+async function abrirDaMensagem(linha, pacienteId) {
+  if(!LINHAS[linha]) { showToast('Paciente sem linha de cuidado definida.','err'); return; }
+  await openLinha(linha);
+  await openPaciente(linha, pacienteId);
+}
+
+// O badge é a razão de a tela existir: dá para ver que tem gente esperando
+// sem precisar entrar na central.
+function atualizarContadorMensagens(n) {
+  ['sdnum-mensagens','bnnum-mensagens','drwnum-mensagens'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.textContent = n>99 ? '99+' : n;
+    el.style.display = n ? '' : 'none';
+  });
+}
+
+async function atualizarMensagensAbertas() {
+  if(!currentUser || currentRole==='paciente') return;
+  const res = await api('mensagens_abertas',{});
+  if(!res.ok) return;
+  _msgAbertas = res.dados||[];
+  atualizarContadorMensagens(_msgAbertas.length);
+  if(_activePage==='mensagens') desenharCentral();
 }
 
 // ═══════════════════════════════════════════════
@@ -4376,7 +5377,7 @@ async function openPaciente(linha, id) {
 
   document.getElementById('sheetTitle').textContent = p.nome;
   document.getElementById('sheetBody').innerHTML = loadingHTML();
-  await carregarFichas(id);
+  await Promise.all([carregarFichas(id), carregarCatalogo()]);
 
   const cfg = LINHAS[linha];
   const nasc = p.data_nascimento;
@@ -4408,6 +5409,7 @@ async function openPaciente(linha, id) {
       <span style="font-size:12px;color:var(--ink3);flex:1">${idade !== '—' ? idade+' anos · ' : ''}${esc(p.terapeuta_nome||'—')}${p.status&&p.status!=='Ativo'?' · '+esc(p.status):''}</span>
       <button class="backbtn" onclick="editarPaciente('${linha}','${id}')">✏️ Editar</button>
     </div>
+    ${chipsServicosHTML(p)}
     ${fichaCadastroHTML(p)}
     <div class="tabs">
       ${tabs.map((t,i)=>`<div class="tab ${i===0?'active':''}" onclick="swTab('tb${i}',this)">${t}</div>`).join('')}
@@ -4461,7 +5463,7 @@ const CAD_ROTULOS = {
   criado_por:'Cadastrado por', atualizado_em:'Última alteração',
   atualizado_por:'Alterado por', data_inicio:'Início',
 };
-const CAD_OCULTOS = ['id','linha','nome'];
+const CAD_OCULTOS = ['id','linha','nome','servicos'];  // servicos aparece como chip
 
 function rotuloCampo(k) {
   if(CAD_ROTULOS[k]) return CAD_ROTULOS[k];
@@ -5027,18 +6029,10 @@ function maybeCloseSheet(e){if(e.target===document.getElementById('sheetOv'))clo
 window.addEventListener('beforeunload', e=>{
   if(_sheetSujo){ e.preventDefault(); e.returnValue=''; }
 });
-function openUserMenu(){
-  document.getElementById('umName').textContent=currentUser.nome;
-  document.getElementById('umEmail').textContent=currentUser.email;
-  document.getElementById('umEquipe').style.display=currentRole!=='profissional'?'flex':'none';
-  document.getElementById('umImportar').style.display=currentRole==='admin'?'flex':'none';
-  document.getElementById('umProgramas').style.display=currentRole==='admin'?'flex':'none';
-  document.getElementById('umClinica').style.display=currentRole==='admin'?'flex':'none';
-  document.getElementById('umBiblioteca').style.display=currentRole!=='profissional'?'flex':'none';
-  document.getElementById('umOv').classList.add('open');
-}
-function closeMenu(){document.getElementById('umOv').classList.remove('open');}
-function maybeCloseMenu(e){if(e.target===document.getElementById('umOv'))closeMenu();}
+// Não existe mais menu do avatar: o botão abre a mesma gaveta. `closeMenu`
+// ficou porque é chamado de vários lugares que só querem sair do menu.
+function openUserMenu(){ openDrawer(); }
+function closeMenu(){ closeDrawer(); }
 
 function showToast(msg,type){
   const t=document.getElementById('toastEl');
@@ -5249,7 +6243,11 @@ function mostrarAvisoVersao() {
 
 // Confere ao abrir e sempre que a pessoa volta para a aba
 setTimeout(conferirVersao, 4000);
-document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) conferirVersao(); });
+document.addEventListener('visibilitychange', ()=>{
+  if(document.hidden) return;
+  conferirVersao();
+  atualizarMensagensAbertas();
+});
 
 // ── HOOKS para carregar dados dinâmicos após render ──
 const _afterRender = {
@@ -5257,6 +6255,9 @@ const _afterRender = {
   home: ()=>setTimeout(loadHomeResumo,50),
   linhas: ()=>setTimeout(loadContadores,50),
   alertas: ()=>setTimeout(loadAlertas,50),
+  mensagens: ()=>setTimeout(loadMensagensCentral,50),
+  servicos: ()=>setTimeout(loadServicos,50),
+  leads: ()=>setTimeout(loadLeads,50),
   espera: ()=>setTimeout(loadEspera,50),
   programas: ()=>setTimeout(loadProgramas,50),
   biblioteca: ()=>setTimeout(loadBiblioteca,50),

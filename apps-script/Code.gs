@@ -37,6 +37,9 @@ const ABAS = {
   evolucoes:      'Evolucoes',
   espera:         'ListaEspera',
   servicos:       'Servicos',
+  catalogo:       'Catalogo',
+  leads:          'Leads',
+  lead_historico: 'LeadHistorico',
   programas:      'Programas',
   myscore:        'MyScore',
   atelie:         'Atelie',
@@ -100,6 +103,17 @@ function handle(e) {
       }
     }
 
+    // O CRUD generico nao confere papel: quem esta logado escreve em qualquer
+    // aba. Para o catalogo isso nao serve - e cadastro da clinica, nao
+    // registro de atendimento -, entao a escrita e barrada aqui, no servidor,
+    // e nao so escondendo o botao na tela.
+    if (ACOES_ESCRITA.indexOf(action) !== -1 && ABAS_SO_GESTAO.indexOf(body.tabela) !== -1) {
+      const perfil = perfilDaEquipe(token);
+      if (!perfil || perfil.role !== 'admin') {
+        return resp({ok:false, erro:'S\u00f3 a gest\u00e3o pode alterar o cat\u00e1logo'});
+      }
+    }
+
     switch(action) {
       case 'login':           return resp(login(body));
       case 'login_paciente':  return resp(loginPaciente(body));
@@ -124,6 +138,14 @@ function handle(e) {
       case 'minhas_mensagens':  return resp(minhasMensagens(token));
       case 'enviar_mensagem':   return resp(enviarMensagem(body, token));
       case 'mensagens_paciente':return resp(mensagensPaciente(body, token));
+      case 'mensagens_abertas': return resp(mensagensAbertas(token));
+      case 'listar_catalogo':   return resp(listarCatalogo(token));
+      case 'listar_leads':      return resp(listarLeads(token));
+      case 'salvar_lead':       return resp(salvarLead(body, token));
+      case 'mover_lead':        return resp(moverLead(body, token));
+      case 'historico_lead':    return resp(historicoLead(body, token));
+      case 'converter_lead':    return resp(converterLead(body, token));
+      case 'marcar_mensagem':   return resp(marcarMensagem(body, token));
       case 'obter_config':      return resp(obterConfig(token));
       case 'salvar_config':     return resp(salvarConfigClinica(body, token));
       case 'gerar_orcamento':   return resp(gerarOrcamento(body, token));
@@ -183,6 +205,7 @@ function login(body) {
   const iSenha = h.indexOf('senha_hash');
   const iNome  = h.indexOf('nome');
   const iRole  = h.indexOf('nivel_acesso');
+  const iFuncao= h.indexOf('funcao');
   const iId    = h.indexOf('id');
   const iStatus= h.indexOf('status');
 
@@ -201,7 +224,9 @@ function login(body) {
 
       const token = Utilities.base64Encode(email+':'+Date.now()+':'+Math.random());
       salvarToken(token, email, row[iRole]||'profissional');
-      return {ok:true, token, usuario:{id:row[iId],nome:row[iNome],email:row[iEmail],role:row[iRole]||'profissional'}};
+      return {ok:true, token, usuario:{id:row[iId],nome:row[iNome],email:row[iEmail],
+                                      role:row[iRole]||'profissional',
+                                      funcao:(iFuncao===-1?'':row[iFuncao])||''}};
     }
   }
   return {ok:false, erro:'E-mail n\u00e3o encontrado'};
@@ -882,6 +907,29 @@ function meusDocumentos(token) {
 // diferencia isto do WhatsApp: qualquer um da equipe responsavel responde,
 // e a gestao enxerga tudo.
 
+// Colunas da aba. As tres ultimas nasceram com a central de mensagens; a
+// planilha em producao ja tinha as outras, entao elas sao acrescentadas em
+// vez de recriadas.
+const MSG_CABECALHO = ['id','paciente_id','de','autor_email','autor_nome','texto',
+                       'criado_em','lida_paciente','lida_equipe',
+                       'status','fechada_em','fechada_por'];
+
+function abaMensagens() {
+  const sheet = getOuCria(getSpreadsheet(), 'Mensagens');
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(MSG_CABECALHO);
+    return sheet;
+  }
+  const h = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const faltando = MSG_CABECALHO.filter(function(c){ return h.indexOf(c) === -1; });
+  if (faltando.length) sheet.getRange(1, h.length+1, 1, faltando.length).setValues([faltando]);
+  return sheet;
+}
+
+function cabecalhoMensagens(sheet) {
+  return sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+}
+
 function minhasMensagens(token) {
   const info = getInfoToken(token);
   if (!info || info.role !== 'paciente' || !info.refId) return {ok:false, erro:'Sess\u00e3o inv\u00e1lida'};
@@ -896,9 +944,8 @@ function mensagensPaciente(body, token) {
 }
 
 function lerMensagens(pacienteId) {
-  const ss = getSpreadsheet();
-  const sheet = ss.getSheetByName('Mensagens');
-  if (!sheet || sheet.getLastRow() < 2) return [];
+  const sheet = abaMensagens();
+  if (sheet.getLastRow() < 2) return [];
   const dados = sheet.getDataRange().getValues();
   const h = dados[0];
   const saida = [];
@@ -949,19 +996,450 @@ function enviarMensagem(body, token) {
   const pacienteId = ehPaciente ? info.refId : body.paciente_id;
   if (!pacienteId) return {ok:false, erro:'Paciente n\u00e3o informado'};
 
-  const ss = getSpreadsheet();
-  const sheet = getOuCria(ss, 'Mensagens');
-  if (sheet.getLastRow() === 0) {
-    sheet.appendRow(['id','paciente_id','de','autor_email','autor_nome','texto',
-                     'criado_em','lida_paciente','lida_equipe']);
-  }
+  const sheet = abaMensagens();
+  const h = cabecalhoMensagens(sheet);
   const id = 'msg_' + Date.now() + '_' + Math.floor(Math.random()*9999);
-  sheet.appendRow([
-    id, pacienteId, ehPaciente ? 'paciente' : 'equipe',
-    info.email, body.autor_nome || '', texto, new Date().toISOString(), '', ''
-  ]);
+
+  // O que o paciente manda entra em aberto e so sai da central quando alguem
+  // responde. O registro manual da equipe (conversa que aconteceu por fora)
+  // so fica em aberto se quem anotou disser que ainda espera retorno.
+  const emAberto = ehPaciente || String(body.status||'').toLowerCase() === 'aberta';
+  const valores = {
+    id: id, paciente_id: pacienteId, de: ehPaciente ? 'paciente' : 'equipe',
+    autor_email: info.email, autor_nome: body.autor_nome || '', texto: texto,
+    criado_em: new Date().toISOString(), status: emAberto ? 'aberta' : 'fechada'
+  };
+  sheet.appendRow(h.map(function(k){ return valores[k] === undefined ? '' : valores[k]; }));
+
+  // Responder pelo prontuario ja baixa a bandeirinha na central: ninguem
+  // precisa lembrar de voltar na tela de Mensagens so para marcar de novo.
+  if (!ehPaciente && !emAberto) fecharPendencias(sheet, h, pacienteId, body.autor_nome || info.email);
 
   return {ok:true, id:id};
+}
+
+
+// --- CENTRAL DE MENSAGENS -------------------------------------
+// Uma tela unica com tudo que ainda espera a equipe, para ninguem ter de
+// abrir prontuario por prontuario atras de pendencia. "Aberta" e a mensagem
+// que pede acao: o que o paciente escreveu, ou a conversa que aconteceu por
+// fora e foi anotada aqui com retorno combinado.
+
+const MSG_STATUS = ['aberta','respondida','fechada'];
+
+// Linhas gravadas antes da coluna status: o que veio do paciente continua
+// pedindo resposta, o que a equipe mandou nao. Ter lido nao e ter respondido.
+function statusDaMensagem(o) {
+  const s = String(o.status||'').trim().toLowerCase();
+  if (s) return s;
+  return String(o.de) === 'paciente' ? 'aberta' : 'fechada';
+}
+
+// O papel e a area de quem pediu vem da planilha pelo e-mail do token, nunca
+// do que o navegador manda - e o que impede um profissional de pedir a fila
+// da clinica inteira.
+function perfilDaEquipe(token) {
+  const info = getInfoToken(token);
+  if (!info || info.role === 'paciente') return null;
+  const p = acharProfissional(info.email);
+  const campo = function(nome) {
+    if (!p) return '';
+    const i = p.h.indexOf(nome);
+    return i === -1 ? '' : String(p.row[i]||'').trim();
+  };
+  return {
+    email: info.email,
+    nome: campo('nome'),
+    funcao: campo('funcao'),
+    role: campo('nivel_acesso') || info.role || 'profissional',
+    linhas: campo('linhas').toLowerCase().split(',')
+              .map(function(x){ return x.trim(); }).filter(function(x){ return x; })
+  };
+}
+
+function podeVerPaciente(perfil, pac) {
+  if (!pac) return false;
+  if (perfil.role === 'admin') return true;
+  if (perfil.role === 'coordenador') {
+    // Coordenadora sem area preenchida enxerga tudo, como ja acontece no
+    // resto do sistema. E a coluna "linhas" da aba Profissionais que estreita.
+    if (!perfil.linhas.length || perfil.linhas.indexOf('todos') !== -1) return true;
+    return perfil.linhas.indexOf(String(pac.linha||'').trim().toLowerCase()) !== -1;
+  }
+  const meu = String(pac.terapeuta_nome||'').trim().toLowerCase();
+  return !!meu && meu === String(perfil.nome||'').trim().toLowerCase();
+}
+
+// Nome, linha e terapeuta saem sempre da ficha do paciente. Copiar isso para
+// dentro da mensagem daria uma lista desatualizada no dia em que o paciente
+// trocasse de terapeuta.
+function mapaPacientes() {
+  const sheet = getOuCria(getSpreadsheet(), 'Pacientes');
+  const dados = sheet.getDataRange().getValues();
+  const mapa = {};
+  if (dados.length < 2) return mapa;
+  const h = dados[0];
+  const iId = h.indexOf('id'), iNome = h.indexOf('nome');
+  const iLinha = h.indexOf('linha'), iTer = h.indexOf('terapeuta_nome');
+  for (let i=1;i<dados.length;i++) {
+    const id = String(dados[i][iId]||'');
+    if (!id) continue;
+    mapa[id] = {
+      id: id,
+      nome:  iNome  === -1 ? '' : String(dados[i][iNome]||''),
+      linha: iLinha === -1 ? '' : String(dados[i][iLinha]||''),
+      terapeuta_nome: iTer === -1 ? '' : String(dados[i][iTer]||'')
+    };
+  }
+  return mapa;
+}
+
+function textoData(v) {
+  return v instanceof Date ? v.toISOString() : String(v||'');
+}
+
+function mensagensAbertas(token) {
+  const perfil = perfilDaEquipe(token);
+  if (!perfil) return {ok:false, erro:'Sem permiss\u00e3o'};
+  const sheet = abaMensagens();
+  if (sheet.getLastRow() < 2) return {ok:true, dados:[]};
+
+  const dados = sheet.getDataRange().getValues();
+  const h = dados[0];
+  const pacs = mapaPacientes();
+  const saida = [];
+  for (let i=1;i<dados.length;i++) {
+    const o = {}; h.forEach(function(k,j){ o[k] = dados[i][j]; });
+    if (!o.id || statusDaMensagem(o) !== 'aberta') continue;
+    const pac = pacs[String(o.paciente_id)];
+    if (!podeVerPaciente(perfil, pac)) continue;
+    saida.push({
+      id: String(o.id),
+      paciente_id: String(o.paciente_id),
+      paciente_nome: pac.nome,
+      linha: pac.linha,
+      terapeuta_nome: pac.terapeuta_nome,
+      de: String(o.de||''),
+      autor_nome: String(o.autor_nome||''),
+      texto: String(o.texto||''),
+      criado_em: textoData(o.criado_em)
+    });
+  }
+  // Mais antigo primeiro: quem espera ha mais tempo fica no topo, que e o
+  // ponto de ter a central - nao deixar ninguem esquecido no fim da lista.
+  saida.sort(function(a,b){ return a.criado_em.localeCompare(b.criado_em); });
+  return {ok:true, dados: saida};
+}
+
+function marcarMensagem(body, token) {
+  const perfil = perfilDaEquipe(token);
+  if (!perfil) return {ok:false, erro:'Sem permiss\u00e3o'};
+  const novo = String(body.status||'fechada').trim().toLowerCase();
+  if (MSG_STATUS.indexOf(novo) === -1) return {ok:false, erro:'Status inv\u00e1lido'};
+  if (!body.id) return {ok:false, erro:'Mensagem n\u00e3o informada'};
+
+  const sheet = abaMensagens();
+  const dados = sheet.getDataRange().getValues();
+  const h = dados[0];
+  const iId = h.indexOf('id'), iPac = h.indexOf('paciente_id');
+  const pacs = mapaPacientes();
+  for (let i=1;i<dados.length;i++) {
+    if (String(dados[i][iId]) !== String(body.id)) continue;
+    // Mesma regra da listagem: so mexe no que teria direito de ver.
+    if (!podeVerPaciente(perfil, pacs[String(dados[i][iPac])])) return {ok:false, erro:'Sem permiss\u00e3o'};
+    gravarStatus(sheet, h, i+1, novo, perfil.nome || perfil.email);
+    return {ok:true, id:String(body.id), status:novo};
+  }
+  return {ok:false, erro:'Mensagem n\u00e3o encontrada'};
+}
+
+function gravarStatus(sheet, h, linha, status, quem) {
+  const fechada = status !== 'aberta';
+  sheet.getRange(linha, h.indexOf('status')+1).setValue(status);
+  sheet.getRange(linha, h.indexOf('fechada_em')+1).setValue(fechada ? new Date().toISOString() : '');
+  sheet.getRange(linha, h.indexOf('fechada_por')+1).setValue(fechada ? quem : '');
+}
+
+function fecharPendencias(sheet, h, pacienteId, quem) {
+  const dados = sheet.getDataRange().getValues();
+  const iPac = h.indexOf('paciente_id');
+  for (let i=1;i<dados.length;i++) {
+    if (String(dados[i][iPac]) !== String(pacienteId)) continue;
+    const o = {}; h.forEach(function(k,j){ o[k] = dados[i][j]; });
+    if (statusDaMensagem(o) !== 'aberta') continue;
+    gravarStatus(sheet, h, i+1, 'respondida', quem);
+  }
+}
+
+
+// --- CATALOGO DE SERVICOS -------------------------------------
+// O que a clinica oferece, para a equipe consultar sem perguntar a ninguem.
+// Mora na aba Catalogo e nao na aba Servicos: aquela ja guarda o servico
+// agendado de cada paciente, que e outra coisa.
+//
+// Nao se confunde com a aba Programas: programa e etapa do fluxo e alimenta
+// as opcoes da lista de espera; catalogo e o que a clinica oferece e tem
+// preco. Foi decidido manter os dois separados para nao transformar produto
+// em opcao de lista de espera.
+
+const ABAS_SO_GESTAO = ['catalogo'];
+const ACOES_ESCRITA  = ['salvar','atualizar','deletar'];
+
+const CATALOGO_CABECALHO = ['id','nome','linha','descricao','valor','ativo','criado_em'];
+
+function listarCatalogo(token) {
+  const perfil = perfilDaEquipe(token);
+  if (!perfil) return {ok:false, erro:'Sem permiss\u00e3o'};
+
+  const sheet = getOuCria(getSpreadsheet(), 'Catalogo');
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(CATALOGO_CABECALHO);
+    return {ok:true, dados:[], pode_editar:false, ve_valor:false};
+  }
+  const dados = sheet.getDataRange().getValues();
+  const h = dados[0];
+  // Preco e informacao comercial: o profissional ve o que oferecer, a gestao
+  // e a coordenacao veem por quanto. O valor nem sai daqui para quem nao ve,
+  // porque esconder so na tela nao esconde de quem olha a resposta.
+  const veValor = perfil.role === 'admin' || perfil.role === 'coordenador';
+  const saida = [];
+  for (let i=1;i<dados.length;i++) {
+    const o = {}; h.forEach(function(k,j){ o[k] = dados[i][j]; });
+    if (!o.id) continue;
+    saida.push({
+      id: String(o.id),
+      nome: String(o.nome||''),
+      linha: String(o.linha||''),
+      descricao: String(o.descricao||''),
+      valor: veValor ? String(o.valor||'') : '',
+      ativo: String(o.ativo||'Sim')
+    });
+  }
+  saida.sort(function(a,b){ return a.nome.localeCompare(b.nome, 'pt-BR'); });
+  return {ok:true, dados: saida, pode_editar: perfil.role === 'admin', ve_valor: veValor};
+}
+
+
+// --- LEADS / CAPTACAO -----------------------------------------
+// Funil de quem procurou a clinica antes de virar paciente. Duas abas: Leads
+// guarda o estado atual de cada pessoa, LeadHistorico guarda cada passo do
+// caminho. O estagio nunca e sobrescrito em silencio - toda mudanca vira uma
+// linha de log, senao nao da para saber por que alguem parou no meio.
+
+// >>> EDITE AQUI para mudar o funil <<<
+// Esta e a unica lista de estagios do sistema: a tela monta as colunas com o
+// que vier daqui. Mexer nesta linha muda o funil inteiro. Trocar um nome
+// depois de ter lead gravado nao apaga nada, mas o lead fica no estagio
+// antigo ate alguem move-lo - por isso renomear pede um passe na planilha.
+const ESTAGIOS_LEAD = [
+  'Novo Lead',
+  'Primeiro Contato Feito',
+  'Qualificado',
+  'Agendou Avalia\u00e7\u00e3o',
+  'Compareceu',
+  'Virou Paciente',
+  'Perdido'
+];
+const ESTAGIO_GANHO  = 'Virou Paciente';
+const ESTAGIO_PERDIDO = 'Perdido';
+
+const ORIGENS_LEAD = ['Instagram','Meta Ads','Indica\u00e7\u00e3o','Rua/Passante','Google','Outro'];
+const MOTIVOS_PERDA = ['N\u00e3o respondeu','N\u00e3o tinha or\u00e7amento','Desistiu',
+                       'Fora da \u00e1rea de atendimento','Outro'];
+
+const LEAD_CABECALHO = ['id','nome','telefone','email','data_contato','origem','campanha',
+                        'indicado_por','linha','responsavel','estagio','motivo_perda',
+                        'paciente_id','criado_em','atualizado_em'];
+const LEADLOG_CABECALHO = ['id','lead_id','em','de_estagio','para_estagio','obs','por'];
+
+function abaComCabecalho(nome, cabecalho) {
+  const sheet = getOuCria(getSpreadsheet(), nome);
+  if (sheet.getLastRow() === 0) { sheet.appendRow(cabecalho); return sheet; }
+  const h = sheet.getRange(1,1,1,sheet.getLastColumn()).getValues()[0];
+  const faltando = cabecalho.filter(function(c){ return h.indexOf(c) === -1; });
+  if (faltando.length) sheet.getRange(1, h.length+1, 1, faltando.length).setValues([faltando]);
+  return sheet;
+}
+
+// Recepcao e funcao, nao nivel de acesso: quem atende o telefone entra no
+// sistema como profissional. Por isso o funil olha a coluna funcao, e nao so
+// o nivel - foi o jeito de dar o acesso sem inventar um quarto papel.
+function ehRecepcao(perfil) {
+  return /recep|comercial/i.test(String(perfil.funcao||''));
+}
+function podeVerLeads(perfil) {
+  return perfil.role === 'admin' || perfil.role === 'coordenador' || ehRecepcao(perfil);
+}
+// Coordenacao acompanha o funil da area dela, mas quem mexe e a gestao e a
+// recepcao, que fazem a triagem.
+function podeEditarLeads(perfil) {
+  return perfil.role === 'admin' || ehRecepcao(perfil);
+}
+function podeVerLead(perfil, lead) {
+  if (perfil.role === 'admin' || ehRecepcao(perfil)) return true;
+  if (perfil.role !== 'coordenador') return false;
+  if (!perfil.linhas.length || perfil.linhas.indexOf('todos') !== -1) return true;
+  return perfil.linhas.indexOf(String(lead.linha||'').trim().toLowerCase()) !== -1;
+}
+
+function lerAba(sheet) {
+  const dados = sheet.getDataRange().getValues();
+  if (dados.length < 2) return [];
+  const h = dados[0];
+  const saida = [];
+  for (let i=1;i<dados.length;i++) {
+    const o = {}; h.forEach(function(k,j){ o[k] = textoData(dados[i][j]); });
+    if (o.id) saida.push(o);
+  }
+  return saida;
+}
+
+function listarLeads(token) {
+  const perfil = perfilDaEquipe(token);
+  if (!perfil || !podeVerLeads(perfil)) return {ok:false, erro:'Sem permiss\u00e3o'};
+  const leads = lerAba(abaComCabecalho('Leads', LEAD_CABECALHO))
+    .filter(function(l){ return podeVerLead(perfil, l); })
+    .sort(function(a,b){ return String(b.data_contato||'').localeCompare(String(a.data_contato||'')); });
+  return {
+    ok: true, dados: leads,
+    estagios: ESTAGIOS_LEAD, origens: ORIGENS_LEAD, motivos: MOTIVOS_PERDA,
+    estagio_ganho: ESTAGIO_GANHO, estagio_perdido: ESTAGIO_PERDIDO,
+    pode_editar: podeEditarLeads(perfil)
+  };
+}
+
+function acharLead(sheet, id) {
+  const dados = sheet.getDataRange().getValues();
+  const h = dados[0];
+  const iId = h.indexOf('id');
+  for (let i=1;i<dados.length;i++) {
+    if (String(dados[i][iId]) === String(id)) {
+      const o = {}; h.forEach(function(k,j){ o[k] = textoData(dados[i][j]); });
+      return {linha:i+1, h:h, dados:o};
+    }
+  }
+  return null;
+}
+
+function gravarLead(sheet, h, linha, valores) {
+  h.forEach(function(k, j){
+    if (valores[k] !== undefined) sheet.getRange(linha, j+1).setValue(valores[k]);
+  });
+}
+
+function registrarInteracao(leadId, de, para, obs, quem) {
+  const sheet = abaComCabecalho('LeadHistorico', LEADLOG_CABECALHO);
+  const h = sheet.getRange(1,1,1,sheet.getLastColumn()).getValues()[0];
+  const valores = {
+    id: 'lg_' + Date.now() + '_' + Math.floor(Math.random()*9999),
+    lead_id: leadId, em: new Date().toISOString(),
+    de_estagio: de || '', para_estagio: para || '', obs: obs || '', por: quem || ''
+  };
+  sheet.appendRow(h.map(function(k){ return valores[k] === undefined ? '' : valores[k]; }));
+  return valores.id;
+}
+
+function salvarLead(body, token) {
+  const perfil = perfilDaEquipe(token);
+  if (!perfil || !podeEditarLeads(perfil)) return {ok:false, erro:'Sem permiss\u00e3o'};
+  const d = body.dados || {};
+  const nome = String(d.nome||'').trim();
+  if (!nome) return {ok:false, erro:'Informe o nome do lead'};
+
+  const sheet = abaComCabecalho('Leads', LEAD_CABECALHO);
+  const h = sheet.getRange(1,1,1,sheet.getLastColumn()).getValues()[0];
+  const agora = new Date().toISOString();
+
+  if (body.id) {
+    const achado = acharLead(sheet, body.id);
+    if (!achado) return {ok:false, erro:'Lead n\u00e3o encontrado'};
+    if (!podeVerLead(perfil, achado.dados)) return {ok:false, erro:'Sem permiss\u00e3o'};
+    // Estagio so muda por moverLead, que e quem escreve o historico
+    const valores = {};
+    LEAD_CABECALHO.forEach(function(k){
+      if (['id','estagio','criado_em','paciente_id'].indexOf(k) === -1 && d[k] !== undefined) valores[k] = d[k];
+    });
+    valores.atualizado_em = agora;
+    gravarLead(sheet, achado.h, achado.linha, valores);
+    return {ok:true, id: body.id};
+  }
+
+  const id = 'ld_' + Date.now() + '_' + Math.floor(Math.random()*9999);
+  const estagio = ESTAGIOS_LEAD.indexOf(d.estagio) !== -1 ? d.estagio : ESTAGIOS_LEAD[0];
+  const valores = {
+    id: id, nome: nome, telefone: d.telefone||'', email: d.email||'',
+    data_contato: d.data_contato || agora.slice(0,10),
+    origem: d.origem||'', campanha: d.campanha||'', indicado_por: d.indicado_por||'',
+    linha: d.linha||'', responsavel: d.responsavel || perfil.nome,
+    estagio: estagio, motivo_perda: '', paciente_id: '',
+    criado_em: agora, atualizado_em: agora
+  };
+  sheet.appendRow(h.map(function(k){ return valores[k] === undefined ? '' : valores[k]; }));
+  registrarInteracao(id, '', estagio, d.obs || 'Lead cadastrado', perfil.nome || perfil.email);
+  return {ok:true, id:id};
+}
+
+// Toda mudanca de estagio passa por aqui, e por isso nenhuma passa sem log.
+// Serve tambem para so anotar uma conversa: sem estagio novo, vira uma linha
+// de historico com a observacao.
+function moverLead(body, token) {
+  const perfil = perfilDaEquipe(token);
+  if (!perfil || !podeEditarLeads(perfil)) return {ok:false, erro:'Sem permiss\u00e3o'};
+  const sheet = abaComCabecalho('Leads', LEAD_CABECALHO);
+  const achado = acharLead(sheet, body.id);
+  if (!achado) return {ok:false, erro:'Lead n\u00e3o encontrado'};
+
+  const atual = String(achado.dados.estagio||'');
+  const novo = body.estagio ? String(body.estagio) : atual;
+  if (ESTAGIOS_LEAD.indexOf(novo) === -1) return {ok:false, erro:'Est\u00e1gio inv\u00e1lido'};
+
+  const obs = String(body.obs||'').trim();
+  // Perder um lead sem dizer por que e o que faz o funil nao ensinar nada
+  const motivo = novo === ESTAGIO_PERDIDO ? String(body.motivo_perda||'') : '';
+  if (novo === ESTAGIO_PERDIDO && !motivo) return {ok:false, erro:'Informe o motivo da perda'};
+
+  const valores = {estagio: novo, atualizado_em: new Date().toISOString()};
+  if (novo === ESTAGIO_PERDIDO) valores.motivo_perda = motivo;
+  gravarLead(sheet, achado.h, achado.linha, valores);
+  registrarInteracao(body.id, atual, novo,
+    obs + (motivo ? (obs ? ' \u2014 ' : '') + 'Motivo: ' + motivo : ''),
+    perfil.nome || perfil.email);
+  return {ok:true, id:body.id, estagio:novo};
+}
+
+function historicoLead(body, token) {
+  const perfil = perfilDaEquipe(token);
+  if (!perfil || !podeVerLeads(perfil)) return {ok:false, erro:'Sem permiss\u00e3o'};
+  const achado = acharLead(abaComCabecalho('Leads', LEAD_CABECALHO), body.id);
+  if (!achado) return {ok:false, erro:'Lead n\u00e3o encontrado'};
+  if (!podeVerLead(perfil, achado.dados)) return {ok:false, erro:'Sem permiss\u00e3o'};
+  const linhas = lerAba(abaComCabecalho('LeadHistorico', LEADLOG_CABECALHO))
+    .filter(function(r){ return String(r.lead_id) === String(body.id); })
+    .sort(function(a,b){ return String(b.em||'').localeCompare(String(a.em||'')); });
+  return {ok:true, dados: linhas};
+}
+
+// Converter e apontar o lead para um cadastro que ja existe. Nao cria
+// paciente: duplicar cadastro e o que se quer evitar.
+function converterLead(body, token) {
+  const perfil = perfilDaEquipe(token);
+  if (!perfil || !podeEditarLeads(perfil)) return {ok:false, erro:'Sem permiss\u00e3o'};
+  const sheet = abaComCabecalho('Leads', LEAD_CABECALHO);
+  const achado = acharLead(sheet, body.id);
+  if (!achado) return {ok:false, erro:'Lead n\u00e3o encontrado'};
+
+  const pac = mapaPacientes()[String(body.paciente_id)];
+  if (!pac) return {ok:false, erro:'Paciente n\u00e3o encontrado'};
+
+  const atual = String(achado.dados.estagio||'');
+  gravarLead(sheet, achado.h, achado.linha, {
+    paciente_id: pac.id, estagio: ESTAGIO_GANHO, motivo_perda: '',
+    linha: achado.dados.linha || pac.linha,
+    atualizado_em: new Date().toISOString()
+  });
+  registrarInteracao(body.id, atual, ESTAGIO_GANHO,
+    'Vinculado ao cadastro de ' + pac.nome, perfil.nome || perfil.email);
+  return {ok:true, id:body.id, paciente_id:pac.id, paciente_nome:pac.nome};
 }
 
 
