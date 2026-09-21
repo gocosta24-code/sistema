@@ -48,6 +48,10 @@ const ABAS = {
   orcamentos:     'Orcamentos',
   exercicios:     'Exercicios',
   prescricoes:    'Prescricoes',
+  tarefas:        'Tarefas',
+  financeiro_pilates:   'FinanceiroPilates',
+  financeiro_terapias:  'FinanceiroTerapias',
+  financeiro_parceiros: 'FinanceiroParceiros',
 };
 
 // Onde os anexos ficam guardados no Drive da clinica. A pasta e criada
@@ -111,6 +115,27 @@ function handle(e) {
       const perfil = perfilDaEquipe(token);
       if (!perfil || perfil.role !== 'admin') {
         return resp({ok:false, erro:'S\u00f3 a gest\u00e3o pode alterar o cat\u00e1logo'});
+      }
+    }
+
+    // Tarefas da Casa: a Gabriela pediu que so gestao e coordenacao tenham
+    // acesso, nem leitura para o resto da equipe - por isso entra aqui e nao
+    // so no ABAS_SO_GESTAO (que barra so escrita, admin-only).
+    if (ACOES_TABELA.indexOf(action) !== -1 && ABAS_GESTAO_COORD.indexOf(body.tabela) !== -1) {
+      const perfil = perfilDaEquipe(token);
+      if (!perfil || (perfil.role !== 'admin' && perfil.role !== 'coordenador')) {
+        return resp({ok:false, erro:'S\u00f3 gest\u00e3o e coordena\u00e7\u00e3o t\u00eam acesso \u00e0s tarefas'});
+      }
+    }
+
+    // Financeiro (Pilates/Terapias/Parceiros): dinheiro \u00e9 mais sens\u00edvel que
+    // as Tarefas - aqui nem a coordena\u00e7\u00e3o entra, s\u00f3 quem \u00e9 admin ou tem a
+    // fun\u00e7\u00e3o "Administrativo" (quem preenche isso no dia a dia sem precisar
+    // virar admin de tudo, igual Recep\u00e7\u00e3o decide quem alcan\u00e7a Leads).
+    if (ACOES_TABELA.indexOf(action) !== -1 && ABAS_SO_ADMIN_TUDO.indexOf(body.tabela) !== -1) {
+      const perfil = perfilDaEquipe(token);
+      if (!perfil || (perfil.role !== 'admin' && !ehAdministracao(perfil))) {
+        return resp({ok:false, erro:'S\u00f3 a gest\u00e3o e o administrativo t\u00eam acesso ao financeiro'});
       }
     }
 
@@ -511,6 +536,31 @@ function acharPacientePorId(id) {
     }
   }
   return null;
+}
+
+// Cria o cadastro minimo de paciente que da acesso ao portal a um lead,
+// antes da conversao de verdade. status 'Lead' e o que faz o portal mostrar
+// so orcamento e mensagens (ver abrirPortal no index.html) - converterLead()
+// e quem troca para 'Ativo' quando o lead vira cliente, sem trocar de
+// cadastro nem perder o historico de mensagens que ja rolou.
+function criarPacienteLead(dados) {
+  const sheet = getOuCria(getSpreadsheet(), 'Pacientes');
+  let h = sheet.getLastRow() ? sheet.getRange(1,1,1,sheet.getLastColumn()).getValues()[0] : [];
+  if (!h.length) {
+    h = ['id','nome','email','telefone','data_nascimento','linha','status','criado_em','criado_por'];
+    sheet.appendRow(h);
+  }
+  const valores = Object.assign({}, dados, {
+    id: 'pac_' + Date.now() + '_' + Math.floor(Math.random()*9999),
+    status: 'Lead', acesso: 'Liberado', criado_em: new Date().toISOString()
+  });
+  const novos = Object.keys(valores).filter(function(k){ return h.indexOf(k) === -1; });
+  if (novos.length) {
+    h = h.concat(novos);
+    sheet.getRange(1,1,1,h.length).setValues([h]);
+  }
+  sheet.appendRow(h.map(function(k){ return valores[k] === undefined ? '' : valores[k]; }));
+  return valores.id;
 }
 
 function loginPaciente(body) {
@@ -930,6 +980,21 @@ function cabecalhoMensagens(sheet) {
   return sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
 }
 
+// Mensagem que a clinica "manda" sozinha ao converter um lead em cliente -
+// mesmo formato do que enviarMensagem() grava para a equipe, mas sem
+// depender de alguem digitar.
+function enviarMensagemDaClinica(pacienteId, texto, perfil) {
+  const sheet = abaMensagens();
+  const h = cabecalhoMensagens(sheet);
+  const valores = {
+    id: 'msg_' + Date.now() + '_' + Math.floor(Math.random()*9999),
+    paciente_id: pacienteId, de: 'equipe',
+    autor_email: perfil.email, autor_nome: perfil.nome || '',
+    texto: texto, criado_em: new Date().toISOString(), status: 'fechada'
+  };
+  sheet.appendRow(h.map(function(k){ return valores[k] === undefined ? '' : valores[k]; }));
+}
+
 function minhasMensagens(token) {
   const info = getInfoToken(token);
   if (!info || info.role !== 'paciente' || !info.refId) return {ok:false, erro:'Sess\u00e3o inv\u00e1lida'};
@@ -1185,6 +1250,12 @@ function fecharPendencias(sheet, h, pacienteId, quem) {
 const ABAS_SO_GESTAO = ['catalogo'];
 const ACOES_ESCRITA  = ['salvar','atualizar','deletar'];
 
+// Tabelas em que nem a leitura e livre - so gestao e coordenacao alcancam,
+// diferente do ABAS_SO_GESTAO acima (que barra so escrita, e so para admin).
+const ABAS_GESTAO_COORD = ['tarefas'];
+const ABAS_SO_ADMIN_TUDO = ['financeiro_pilates','financeiro_terapias','financeiro_parceiros'];
+const ACOES_TABELA = ['listar','salvar','atualizar','deletar'];
+
 const CATALOGO_CABECALHO = ['id','nome','linha','descricao','valor','ativo','criado_em'];
 
 function listarCatalogo(token) {
@@ -1269,6 +1340,13 @@ function ehRecepcao(perfil) {
 }
 function podeVerLeads(perfil) {
   return perfil.role === 'admin' || perfil.role === 'coordenador' || ehRecepcao(perfil);
+}
+
+// Quem preenche o financeiro no dia a dia pode não ter nível admin (que abre
+// tudo no sistema) - a função "Administrativo" é o que decide isso, igual
+// Recepção decide quem alcança Leads sem virar um quarto nível de acesso.
+function ehAdministracao(perfil) {
+  return /administra/i.test(String(perfil.funcao||''));
 }
 // Coordenacao acompanha o funil da area dela, mas quem mexe e a gestao e a
 // recepcao, que fazem a triagem.
@@ -1364,19 +1442,36 @@ function salvarLead(body, token) {
     return {ok:true, id: body.id};
   }
 
+  // Lead ja nasce com acesso ao portal (orcamento e mensagens direto com a
+  // equipe, sem depender so da recepcao) - por isso precisa de e-mail, que e
+  // o que entrega o acesso, e ja cria o cadastro em Pacientes com status
+  // 'Lead'. Ver criarPacienteLead().
+  const email = String(d.email||'').trim().toLowerCase();
+  if (!email || email.indexOf('@') === -1) return {ok:false, erro:'Informe um e-mail válido'};
+  const outroPac = acharPacientePorEmail(email);
+  if (outroPac) return {ok:false, erro:'Este e-mail já tem cadastro de paciente'};
+
+  const pacId = criarPacienteLead({
+    nome: nome, email: email, telefone: d.telefone||'',
+    data_nascimento: d.data_nascimento||'', linha: d.linha||'',
+    criado_por: perfil.nome || perfil.email
+  });
+
   const id = 'ld_' + Date.now() + '_' + Math.floor(Math.random()*9999);
   const estagio = ESTAGIOS_LEAD.indexOf(d.estagio) !== -1 ? d.estagio : ESTAGIOS_LEAD[0];
   const valores = {
-    id: id, nome: nome, telefone: d.telefone||'', email: d.email||'',
+    id: id, nome: nome, telefone: d.telefone||'', email: email,
     data_contato: d.data_contato || agora.slice(0,10),
     origem: d.origem||'', campanha: d.campanha||'', indicado_por: d.indicado_por||'',
     linha: d.linha||'', responsavel: d.responsavel || perfil.nome,
-    estagio: estagio, motivo_perda: '', paciente_id: '',
+    estagio: estagio, motivo_perda: '', paciente_id: pacId,
     criado_em: agora, atualizado_em: agora
   };
   sheet.appendRow(h.map(function(k){ return valores[k] === undefined ? '' : valores[k]; }));
   registrarInteracao(id, '', estagio, d.obs || 'Lead cadastrado', perfil.nome || perfil.email);
-  return {ok:true, id:id};
+
+  const convite = solicitarReset({email: email, tipo: 'paciente'});
+  return {ok:true, id:id, paciente_id:pacId, convite_enviado: !!(convite && convite.ok)};
 }
 
 // Toda mudanca de estagio passa por aqui, e por isso nenhuma passa sem log.
@@ -1428,10 +1523,28 @@ function converterLead(body, token) {
   const achado = acharLead(sheet, body.id);
   if (!achado) return {ok:false, erro:'Lead n\u00e3o encontrado'};
 
-  const pac = mapaPacientes()[String(body.paciente_id)];
-  if (!pac) return {ok:false, erro:'Paciente n\u00e3o encontrado'};
+  // Lead cadastrado depois do acesso automatico ja nasce vinculado a um
+  // paciente (criarPacienteLead, em salvarLead); leads antigos, de antes
+  // disso, ainda dependem de escolher um cadastro existente na tela.
+  const pacienteId = achado.dados.paciente_id || body.paciente_id;
+  if (!pacienteId) return {ok:false, erro:'Informe o paciente para vincular'};
+
+  const acPac = acharPacientePorId(pacienteId);
+  if (!acPac) return {ok:false, erro:'Paciente n\u00e3o encontrado'};
+  const pac = acPac.obj;
 
   const atual = String(achado.dados.estagio||'');
+
+  // So dispara a boas-vindas na primeira vez que sai de 'Lead' - reconverter
+  // (ex.: motivo_perda revertido) nao deve mandar a mensagem de novo.
+  if (String(pac.status||'').toLowerCase() === 'lead') {
+    const iStatus = acPac.h.indexOf('status');
+    if (iStatus !== -1) acPac.sheet.getRange(acPac.linha, iStatus+1).setValue('Ativo');
+    enviarMensagemDaClinica(pacienteId,
+      'Boas-vindas ao seu programa de acompanhamento personalizado na Casa Oliveira! \ud83c\udf89',
+      perfil);
+  }
+
   gravarLead(sheet, achado.h, achado.linha, {
     paciente_id: pac.id, estagio: ESTAGIO_GANHO, motivo_perda: '',
     linha: achado.dados.linha || pac.linha,

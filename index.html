@@ -285,6 +285,11 @@ input,select,textarea{outline:none;}
 .imp-tab{width:100%;border-collapse:collapse;font-size:12px;}
 .imp-tab th{text-align:left;padding:7px 9px;background:var(--sur2);color:var(--ink3);font-size:11px;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;}
 .imp-tab td{padding:7px 9px;border-top:1px solid var(--bor);white-space:nowrap;}
+.fin-tabela{width:100%;border-collapse:collapse;font-size:12px;}
+.fin-tabela th{text-align:left;padding:7px 9px;background:var(--sur2);color:var(--ink3);font-size:11px;text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;}
+.fin-tabela td{padding:7px 9px;border-top:1px solid var(--bor);white-space:nowrap;}
+.fin-tabela tbody tr{cursor:pointer;}
+.fin-tabela tbody tr:hover{background:var(--sur2);}
 
 .evo{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);padding:13px 15px;margin-bottom:10px;border-left:3px solid var(--teal);}
 .evo-topo{display:flex;align-items:center;gap:10px;margin-bottom:7px;}
@@ -642,6 +647,8 @@ input,select,textarea{outline:none;}
     <div id="pgAlertas"   class="page"></div>
     <div id="pgMensagens" class="page"></div>
     <div id="pgServicos"  class="page"></div>
+    <div id="pgTarefas"   class="page"></div>
+    <div id="pgFinanceiro" class="page"></div>
     <div id="pgLeads"     class="page"></div>
     <div id="pgEspera"    class="page"></div>
     <div id="pgProgramas" class="page"></div>
@@ -959,6 +966,13 @@ function demoApi(action, body) {
   if(['salvar','atualizar','deletar'].includes(action)
      && body.tabela==='catalogo' && currentRole!=='admin')
     return {ok:false, erro:'Só a gestão pode alterar o catálogo'};
+  if(['listar','salvar','atualizar','deletar'].includes(action)
+     && body.tabela==='tarefas' && !['admin','coordenador'].includes(currentRole))
+    return {ok:false, erro:'Só gestão e coordenação têm acesso às tarefas'};
+  if(['listar','salvar','atualizar','deletar'].includes(action)
+     && ['financeiro_pilates','financeiro_terapias','financeiro_parceiros'].includes(body.tabela)
+     && currentRole!=='admin' && !ehAdministracao())
+    return {ok:false, erro:'Só a gestão e o administrativo têm acesso ao financeiro'};
 
   switch(action) {
     case 'login': {
@@ -1105,11 +1119,20 @@ function demoApi(action, body) {
         Object.assign(l, resto);
         return {ok:true, id:body.id};
       }
+      const email = String((body.dados||{}).email||'').trim().toLowerCase();
+      if(!email || email.indexOf('@')===-1) return {ok:false, erro:'Informe um e-mail válido'};
+      if((DEMO_DB.pacientes||[]).some(p=>(p.email||'').toLowerCase()===email))
+        return {ok:false, erro:'Este e-mail já tem cadastro de paciente'};
       const id='ld_'+Date.now();
-      DEMO_DB.leads.push({...body.dados, id, estagio:DEMO_ESTAGIOS[0], motivo_perda:'',
-                          paciente_id:'', criado_em:new Date().toISOString()});
+      const pacId='pac_'+Date.now();
+      DEMO_DB.pacientes.push({id:pacId, nome:(body.dados||{}).nome, email,
+        telefone:(body.dados||{}).telefone||'', data_nascimento:(body.dados||{}).data_nascimento||'',
+        linha:(body.dados||{}).linha||'', status:'Lead', acesso:'Liberado',
+        criado_em:new Date().toISOString()});
+      DEMO_DB.leads.push({...body.dados, id, email, estagio:DEMO_ESTAGIOS[0], motivo_perda:'',
+                          paciente_id:pacId, criado_em:new Date().toISOString()});
       demoLog(id,'',DEMO_ESTAGIOS[0], (body.dados||{}).obs||'Lead cadastrado');
-      return {ok:true, id};
+      return {ok:true, id, paciente_id:pacId, convite_enviado:false};
     }
     case 'mover_lead': {
       if(!demoPodeEditarLeads()) return {ok:false, erro:'Sem permissão'};
@@ -1128,9 +1151,17 @@ function demoApi(action, body) {
     case 'converter_lead': {
       if(!demoPodeEditarLeads()) return {ok:false, erro:'Sem permissão'};
       const l=(DEMO_DB.leads||[]).find(x=>String(x.id)===String(body.id));
-      const pac=(DEMO_DB.pacientes||[]).find(x=>String(x.id)===String(body.paciente_id));
       if(!l) return {ok:false, erro:'Lead não encontrado'};
+      const pacienteId = l.paciente_id || body.paciente_id;
+      const pac=(DEMO_DB.pacientes||[]).find(x=>String(x.id)===String(pacienteId));
       if(!pac) return {ok:false, erro:'Paciente não encontrado'};
+      if(String(pac.status||'').toLowerCase()==='lead') {
+        pac.status = 'Ativo';
+        DEMO_DB.mensagens = DEMO_DB.mensagens||[];
+        DEMO_DB.mensagens.push({id:'msg_'+Date.now(), paciente_id:pac.id, de:'equipe',
+          autor_nome:(currentUser||{}).nome||'', texto:'Boas-vindas ao seu programa de acompanhamento '+
+          'personalizado na Casa Oliveira! 🎉', criado_em:new Date().toISOString(), status:'fechada'});
+      }
       const de = l.estagio;
       l.paciente_id = pac.id; l.estagio = 'Virou Paciente'; l.motivo_perda='';
       l.linha = l.linha || pac.linha;
@@ -1425,15 +1456,15 @@ const LINHAS = {
 const FUNCOES = [
   'Fisioterapeuta','Terapeuta Ocupacional','Psicólogo(a)','Fonoaudiólogo(a)',
   'Educador(a) Físico(a)','Instrutor(a) de Pilates','Acupunturista',
-  'Nutricionista','Terapeuta Floral','Gestão','Recepção',
+  'Nutricionista','Terapeuta Floral','Gestão','Recepção','Administrativo',
 ];
 
 // `barra:false` fica de fora da barra do celular e vive no menu lateral e no
 // menu do avatar. Com Leads seriam oito ícones espremidos num telefone; no
 // desktop a lateral continua mostrando tudo.
 const NAVS = {
-  admin:        [{id:'home',icon:'🏠',label:'Início'},{id:'linhas',icon:'🩺',label:'Linhas'},{id:'mensagens',icon:'💬',label:'Mensagens',num:true},{id:'leads',icon:'📣',label:'Leads'},{id:'servicos',icon:'🗂️',label:'Serviços',barra:false},{id:'espera',icon:'🪑',label:'Espera',barra:false},{id:'equipe',icon:'👥',label:'Equipe',barra:false},{id:'alertas',icon:'🔔',label:'Alertas',badge:true}],
-  coordenador:  [{id:'home',icon:'🏠',label:'Início'},{id:'linhas',icon:'🩺',label:'Pacientes'},{id:'mensagens',icon:'💬',label:'Mensagens',num:true},{id:'leads',icon:'📣',label:'Leads'},{id:'servicos',icon:'🗂️',label:'Serviços',barra:false},{id:'espera',icon:'🪑',label:'Espera',barra:false},{id:'alertas',icon:'🔔',label:'Alertas',badge:true}],
+  admin:        [{id:'home',icon:'🏠',label:'Início'},{id:'linhas',icon:'🩺',label:'Linhas'},{id:'mensagens',icon:'💬',label:'Mensagens',num:true},{id:'leads',icon:'📣',label:'Leads'},{id:'servicos',icon:'🗂️',label:'Serviços',barra:false},{id:'tarefas',icon:'🧰',label:'Tarefas',barra:false},{id:'financeiro',icon:'💰',label:'Financeiro',barra:false},{id:'espera',icon:'🪑',label:'Espera',barra:false},{id:'equipe',icon:'👥',label:'Equipe',barra:false},{id:'alertas',icon:'🔔',label:'Alertas',badge:true}],
+  coordenador:  [{id:'home',icon:'🏠',label:'Início'},{id:'linhas',icon:'🩺',label:'Pacientes'},{id:'mensagens',icon:'💬',label:'Mensagens',num:true},{id:'leads',icon:'📣',label:'Leads'},{id:'servicos',icon:'🗂️',label:'Serviços',barra:false},{id:'tarefas',icon:'🧰',label:'Tarefas',barra:false},{id:'espera',icon:'🪑',label:'Espera',barra:false},{id:'alertas',icon:'🔔',label:'Alertas',badge:true}],
   profissional: [{id:'home',icon:'🏠',label:'Hoje'}, {id:'linhas',icon:'🩺',label:'Meus Pcts'},{id:'mensagens',icon:'💬',label:'Mensagens',num:true},{id:'servicos',icon:'🗂️',label:'Serviços'},{id:'alertas',icon:'🔔',label:'Pendências',badge:true}],
 };
 
@@ -1443,13 +1474,24 @@ function ehRecepcao() {
   return /recep|comercial/i.test(String((currentUser||{}).funcao||''));
 }
 
+// Quem preenche o financeiro no dia a dia pode não ter nível admin - a
+// função "Administrativo" é quem decide isso, igual Recepção decide quem
+// alcança Leads sem virar um quarto nível de acesso.
+function ehAdministracao() {
+  return /administra/i.test(String((currentUser||{}).funcao||''));
+}
+
 function navDoUsuario() {
   const itens = (NAVS[currentRole]||NAVS.profissional).map(i=>({...i}));
-  if(itens.some(i=>i.id==='leads') || !ehRecepcao()) return itens;
-  itens.splice(3, 0, {id:'leads',icon:'📣',label:'Leads'});
-  // Leads entrou: Serviços sai da barra do celular para não passar de cinco
-  const srv = itens.find(i=>i.id==='servicos');
-  if(srv) srv.barra = false;
+  if(!itens.some(i=>i.id==='leads') && ehRecepcao()) {
+    itens.splice(3, 0, {id:'leads',icon:'📣',label:'Leads'});
+    // Leads entrou: Serviços sai da barra do celular para não passar de cinco
+    const srv = itens.find(i=>i.id==='servicos');
+    if(srv) srv.barra = false;
+  }
+  if(!itens.some(i=>i.id==='financeiro') && ehAdministracao()) {
+    itens.push({id:'financeiro',icon:'💰',label:'Financeiro',barra:false});
+  }
   return itens;
 }
 
@@ -1549,11 +1591,11 @@ let _activePage = '';
 function loadPage(id) {
   _activePage = id;
   marcarAtivo(id);
-  const map={home:'pgHome',linhas:'pgLinhas',equipe:'pgEquipe',alertas:'pgAlertas',mensagens:'pgMensagens',servicos:'pgServicos',leads:'pgLeads',espera:'pgEspera',programas:'pgProgramas',biblioteca:'pgBiblioteca'};
+  const map={home:'pgHome',linhas:'pgLinhas',equipe:'pgEquipe',alertas:'pgAlertas',mensagens:'pgMensagens',servicos:'pgServicos',tarefas:'pgTarefas',financeiro:'pgFinanceiro',leads:'pgLeads',espera:'pgEspera',programas:'pgProgramas',biblioteca:'pgBiblioteca'};
   document.querySelectorAll('.page').forEach(e=>{e.classList.remove('active');e.innerHTML='';});
   const el = document.getElementById(map[id]);
   if(!el) return;
-  const renders={home:renderHome,linhas:renderLinhas,equipe:renderEquipe,alertas:renderAlertas,mensagens:renderMensagensCentral,servicos:renderServicos,leads:renderLeads,espera:renderEspera,programas:renderProgramas,biblioteca:renderBiblioteca};
+  const renders={home:renderHome,linhas:renderLinhas,equipe:renderEquipe,alertas:renderAlertas,mensagens:renderMensagensCentral,servicos:renderServicos,tarefas:renderTarefas,financeiro:renderFinanceiro,leads:renderLeads,espera:renderEspera,programas:renderProgramas,biblioteca:renderBiblioteca};
   if(renders[id]){el.innerHTML=renders[id]();el.classList.add('active');}
 }
 
@@ -1793,8 +1835,11 @@ async function openFormNovoPaciente(linha, existente) {
       </div>
       ${editando?`<div class="fg"><label class="fl">Status</label>
         <select class="fs" id="np_status">
-          ${['Ativo','Em alta','Inativo'].map(s=>`<option${String(p.status||'Ativo')===s?' selected':''}>${s}</option>`).join('')}
+          ${['Lead','Ativo','Em alta','Inativo'].map(s=>`<option${String(p.status||'Ativo')===s?' selected':''}>${s}</option>`).join('')}
         </select>
+        ${String(p.status||'')==='Lead'?`<div class="pt-nota">Ainda não confirmou como cliente — veio de um lead
+          com acesso ao portal. Para virar cliente de verdade, use "Confirmar virada de cliente" na ficha do lead
+          em 📣 Leads (isso também dispara a mensagem de boas-vindas).</div>`:''}
       </div>`:''}
       <div class="fg fa"><label class="fl">Serviços</label>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
@@ -2248,12 +2293,21 @@ async function abrirPortal() {
   const d = pront.dados;
   const f = fila.ok ? fila.dados : null;
   const cfg = LINHAS[d.linha] || {emoji:'•', label:d.linha||''};
+  // Lead ainda nao tem prontuario, terapeuta ou plano - so orcamento e
+  // mensagens, ate a equipe confirmar a virada de cliente (converterLead)
+  const ehLead = String(d.status||'').toLowerCase()==='lead';
 
   tela.querySelector('.pt-corpo').innerHTML = `
     <div class="pt-ola">Olá, ${esc((d.nome||'').split(' ')[0])} 👋</div>
-    <div class="pt-sub">Acompanhe seu atendimento na Casa Oliveira</div>
+    <div class="pt-sub">${ehLead?'Assim que você virar cliente, seu acompanhamento aparece aqui':'Acompanhe seu atendimento na Casa Oliveira'}</div>
 
-    ${f ? `<div class="pt-card pt-fila">
+    ${ehLead ? `<div class="pt-card">
+      <div class="pt-t">Situação</div>
+      <div class="pt-p">Recebemos seu contato! Enquanto nossa equipe dá sequência ao seu atendimento,
+        você já pode ver seu orçamento e falar com a gente por aqui.</div>
+    </div>` : ''}
+
+    ${!ehLead && f ? `<div class="pt-card pt-fila">
       <div class="pt-t">🪑 Lista de espera</div>
       ${(f.filas && f.filas.length>1)
         ? f.filas.map(x=>`<div class="pt-fila-linha">
@@ -2273,34 +2327,34 @@ async function abrirPortal() {
         Entraremos em contato assim que abrir vaga.</div>
     </div>` : ''}
 
-    ${d.status && String(d.status).toLowerCase()!=='ativo' ? `<div class="pt-card">
+    ${!ehLead && d.status && String(d.status).toLowerCase()!=='ativo' ? `<div class="pt-card">
       <div class="pt-t">Situação</div><div class="pt-p">${esc(d.status)}</div></div>` : ''}
 
-    <div class="pt-card">
+    ${!ehLead ? `<div class="pt-card">
       <div class="pt-t">${cfg.emoji} Seu acompanhamento</div>
       ${d.terapeuta_nome?`<div class="pt-linha"><span>Profissional</span>
         <strong style="text-align:right">${esc(d.terapeuta_nome)}${d.terapeuta_funcao?`<div style="font-weight:400;font-size:12px;color:var(--ink3)">${esc(d.terapeuta_funcao)}${d.terapeuta_registro?' · '+esc(d.terapeuta_registro):''}</div>`:''}</strong></div>`:''}
       ${cfg.label?`<div class="pt-linha"><span>Área</span><strong>${esc(cfg.label)}</strong></div>`:''}
       ${d.servicos?`<div class="pt-linha"><span>Serviços</span><strong>${esc(d.servicos)}</strong></div>`:''}
       ${d.proximo_contato?`<div class="pt-linha"><span>Próximo contato</span><strong>${esc(fmtDataBR(d.proximo_contato))}</strong></div>`:''}
-    </div>
+    </div>` : ''}
 
-    ${d.plano ? `<div class="pt-card">
+    ${!ehLead && d.plano ? `<div class="pt-card">
       <div class="pt-t">🎯 Seu plano terapêutico</div>
       <div class="pt-p">${esc(d.plano)}</div>
       ${d.plano_atualizado_em?`<div class="pt-nota">Atualizado em ${esc(fmtDataBR(d.plano_atualizado_em))}</div>`:''}
-    </div>` : (f ? '' : `<div class="pt-card">
+    </div>` : (!ehLead && !f ? `<div class="pt-card">
       <div class="pt-t">🎯 Seu plano terapêutico</div>
       <div class="pt-p" style="color:var(--ink3)">Ainda não há um plano publicado.
         Sua equipe compartilha aqui os objetivos combinados.</div>
-    </div>`)}
+    </div>` : '')}
 
-    ${d.orientacoes ? `<div class="pt-card">
+    ${!ehLead && d.orientacoes ? `<div class="pt-card">
       <div class="pt-t">🏠 Orientações para casa</div>
       <div class="pt-p">${esc(d.orientacoes)}</div>
     </div>` : ''}
 
-    ${_pacExer && _pacExer.exercicios && _pacExer.exercicios.length ? `<div class="pt-card">
+    ${!ehLead && _pacExer && _pacExer.exercicios && _pacExer.exercicios.length ? `<div class="pt-card">
       <div class="pt-t">🏃 ${esc(_pacExer.titulo||'Exercícios para casa')}</div>
       ${_pacExer.orientacoes?`<div class="pt-aviso" style="margin-bottom:12px">${esc(_pacExer.orientacoes)}</div>`:''}
       ${_pacExer.exercicios.map((x,i)=>`<div class="exe">
@@ -2804,6 +2858,441 @@ async function excluirServico(id) {
 }
 
 // ═══════════════════════════════════════════════
+// TAREFAS DA CASA
+// Pendências administrativas/de manutenção por linha de cuidado (trocar
+// lâmpada, comprar material) — não confundir com os alertas clínicos da
+// aba Alertas, que são sobre pacientes. Reaproveita o CRUD genérico
+// (listar/salvar/atualizar/deletar), então não precisou de rota nova no
+// backend, só a aba 'tarefas' no ABAS do Code.gs. Quadro compartilhado:
+// qualquer pessoa logada vê e mexe em qualquer linha, não só a sua.
+// ═══════════════════════════════════════════════
+let _tarefas = null;
+let _tarefaLinha = Object.keys(LINHAS)[0];
+let _tarefaVerConcluidas = false;
+
+function renderTarefas() {
+  return `<div class="ph"><div class="ph-title">Tarefas da Casa</div>
+    <div class="ph-sub">O que falta em cada linha de cuidado — de quem é e prazo</div></div>
+  <div id="tarLista">${loadingHTML()}</div>`;
+}
+
+async function loadTarefas() {
+  const el = document.getElementById('tarLista');
+  if(!el) return;
+  const res = await api('listar',{tabela:'tarefas'});
+  if(!res.ok) {
+    el.innerHTML = `<div class="card" style="color:var(--rose)">Não foi possível carregar: ${esc(res.erro||'')}</div>`;
+    return;
+  }
+  _tarefas = res.dados||[];
+  desenharTarefas();
+}
+
+function trocarLinhaTarefa(k) {
+  _tarefaLinha = k;
+  _tarefaVerConcluidas = false;
+  desenharTarefas();
+}
+
+function desenharTarefas() {
+  const el = document.getElementById('tarLista');
+  if(!el || !_tarefas) return;
+  const k = _tarefaLinha, cfg = LINHAS[k] || {};
+  const doLinha = _tarefas.filter(t=>String(t.linha)===String(k));
+  const abertas = doLinha.filter(t=>String(t.status||'aberta')!=='concluida')
+    .sort((a,b)=>String(a.prazo||'9999').localeCompare(String(b.prazo||'9999')));
+  const concluidas = doLinha.filter(t=>String(t.status||'aberta')==='concluida')
+    .sort((a,b)=>String(b.concluido_em||'').localeCompare(String(a.concluido_em||'')));
+
+  el.innerHTML = `
+  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">
+    ${Object.entries(LINHAS).map(([tk,tc])=>`
+      <button class="chip ${tk===k?'ch-'+tc.color:'ch-gray'}" style="cursor:pointer;border:none"
+        onclick="trocarLinhaTarefa('${tk}')">${tc.emoji} ${esc(tc.label)}</button>`).join('')}
+  </div>
+  <div class="card" style="margin-bottom:12px">
+    <div class="card-title"><div class="ct-bar" style="background:var(--${cfg.color})"></div>${cfg.emoji} ${esc(cfg.label)}</div>
+    <div id="tarForm"></div>
+    <button class="addbtn" style="margin-top:12px" onclick="novaTarefaForm('${k}')">+ Nova tarefa</button>
+  </div>
+  <div class="card">
+    ${abertas.length ? abertas.map(itemTarefaHTML).join('') : `<div class="pt-nota" style="margin:0">Nada pendente por aqui.</div>`}
+  </div>
+  ${concluidas.length ? `
+  <div style="margin-top:12px">
+    <button class="backbtn" onclick="_tarefaVerConcluidas=!_tarefaVerConcluidas; desenharTarefas()">
+      ${_tarefaVerConcluidas?'Ocultar':'Ver'} concluídas (${concluidas.length})</button>
+    ${_tarefaVerConcluidas ? `<div class="card" style="margin-top:8px">${concluidas.map(itemTarefaHTML).join('')}</div>` : ''}
+  </div>` : ''}`;
+}
+
+function itemTarefaHTML(t) {
+  const feita = String(t.status||'aberta')==='concluida';
+  const atrasada = !feita && t.prazo && t.prazo < hojeISO();
+  return `<div class="srv-item ${feita?'srv-off':''}">
+    <input type="checkbox" ${feita?'checked':''} style="margin-top:3px"
+      onchange="${feita?'reabrirTarefa':'concluirTarefa'}('${esc(t.id)}')">
+    <div style="flex:1;min-width:0">
+      <div class="srv-nome">${esc(t.descricao)}</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">
+        ${t.responsavel?`<span class="chip ch-gray">👤 ${esc(t.responsavel)}</span>`:''}
+        ${t.prazo?`<span class="chip ${atrasada?'ch-rose':'ch-gray'}">📅 ${fmtDataBR(t.prazo)}${atrasada?' — atrasada':''}</span>`:''}
+        ${String(t.prioridade||'').toLowerCase()==='alta'?`<span class="chip ch-rose">Alta</span>`:''}
+      </div>
+      ${t.observacoes?`<div class="srv-desc">${esc(t.observacoes)}</div>`:''}
+    </div>
+    <button class="backbtn" onclick="excluirTarefa('${esc(t.id)}')">🗑</button>
+  </div>`;
+}
+
+function novaTarefaForm(linha) {
+  const f = document.getElementById('tarForm');
+  if(!f) return;
+  f.innerHTML = `<div class="evo-form">
+    <div class="fg"><label class="fl">O que precisa ser feito *</label>
+      <input class="fi" id="tarDesc" placeholder="Ex.: Trocar lâmpada da sala de Pilates"></div>
+    <div class="fg"><label class="fl">Responsável</label>
+      <input class="fi" id="tarResp" placeholder="Quem cuida disso"></div>
+    <div class="fg"><label class="fl">Prazo (opcional)</label>
+      <input class="fi" id="tarPrazo" type="date"></div>
+    <div class="fg"><label class="fl">Prioridade</label>
+      <select class="fs" id="tarPrior"><option value="baixa">Baixa</option><option value="alta">Alta</option></select></div>
+    <div class="fg"><label class="fl">Observações (opcional)</label>
+      <input class="fi" id="tarObs" placeholder="Detalhes, contexto..."></div>
+    <div id="tarErr" class="errbox"></div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="savebtn" id="tarBtn" style="flex:1" onclick="salvarTarefa('${linha}')">Adicionar</button>
+      <button class="backbtn" onclick="document.getElementById('tarForm').innerHTML=''">Cancelar</button>
+    </div>
+  </div>`;
+  f.scrollIntoView({behavior:'smooth', block:'nearest'});
+  document.getElementById('tarDesc').focus();
+}
+
+async function salvarTarefa(linha) {
+  const err = document.getElementById('tarErr');
+  const btn = document.getElementById('tarBtn');
+  const descricao = (document.getElementById('tarDesc').value||'').trim();
+  const falhar = msg => { err.textContent=msg; err.style.display='block'; };
+  if(!descricao) return falhar('Descreva o que precisa ser feito.');
+  err.style.display='none';
+
+  const dados = {
+    linha,
+    descricao,
+    responsavel: (document.getElementById('tarResp').value||'').trim(),
+    prazo: document.getElementById('tarPrazo').value||'',
+    prioridade: document.getElementById('tarPrior').value,
+    observacoes: (document.getElementById('tarObs').value||'').trim(),
+    status: 'aberta',
+    criado_por: currentUser.nome,
+  };
+
+  btn.disabled=true; btn.textContent='Salvando...';
+  const res = await api('salvar',{tabela:'tarefas', dados});
+  btn.disabled=false; btn.textContent='Adicionar';
+
+  if(!res.ok) return falhar('Erro ao salvar: '+(res.erro||''));
+  document.getElementById('tarForm').innerHTML='';
+  await loadTarefas();
+  showToast('✅ Adicionada','ok');
+}
+
+async function concluirTarefa(id) {
+  const res = await api('atualizar',{tabela:'tarefas', id, dados:{status:'concluida', concluido_em:new Date().toISOString()}});
+  if(!res.ok) showToast('Erro: '+(res.erro||''),'err');
+  await loadTarefas();
+  if(res.ok) showToast('✅ Concluída','ok');
+}
+
+async function reabrirTarefa(id) {
+  const res = await api('atualizar',{tabela:'tarefas', id, dados:{status:'aberta', concluido_em:''}});
+  if(!res.ok) showToast('Erro: '+(res.erro||''),'err');
+  await loadTarefas();
+}
+
+async function excluirTarefa(id) {
+  const t = (_tarefas||[]).find(x=>String(x.id)===String(id));
+  if(!t) return;
+  if(!confirm('Excluir "'+t.descricao+'"?')) return;
+  const res = await api('deletar',{tabela:'tarefas', id});
+  if(!res.ok) { showToast('Erro ao excluir: '+(res.erro||''),'err'); return; }
+  await loadTarefas();
+  showToast('🗑 Excluída','ok');
+}
+
+// ═══════════════════════════════════════════════
+// FINANCEIRO
+// Substitui a planilha "controle completo" que a Gabriela já usava mensalmente
+// (uma aba por frente: Pilates, Terapias, Parceiros). Lá cada mês virava um
+// bloco de colunas novo na horizontal; aqui cada lançamento é uma linha com
+// campo `mes` (YYYY-MM), no mesmo padrão do resto do sistema - dá pra filtrar,
+// e "Duplicar mês anterior" resolve a repetição de nome/valor sem precisar
+// de cadastro separado de aluno/paciente. Só admin acessa (ver ABAS_SO_ADMIN_TUDO
+// no Code.gs - nem a coordenação entra aqui, dinheiro é mais sensível que Tarefas).
+// ═══════════════════════════════════════════════
+const FIN_CONFIG = {
+  pilates: {
+    tabela: 'financeiro_pilates', titulo: 'Pilates', emoji: '🧘',
+    campoValor: 'valor_plano',
+    campos: [
+      {k:'nome', label:'Nome', tipo:'texto', obrigatorio:true},
+      {k:'status', label:'Status', tipo:'select', opcoes:['Ativo','Inativo'], padrao:'Ativo'},
+      {k:'servico', label:'Serviço', tipo:'texto', padrao:'Pilates'},
+      {k:'plano', label:'Plano', tipo:'select', opcoes:['Mensal','Trimestral','Semestral']},
+      {k:'dia_vencimento', label:'Dia de vencimento', tipo:'numero'},
+      {k:'valor_plano', label:'Valor do plano (R$)', tipo:'numero'},
+      {k:'pago', label:'Pago?', tipo:'select', opcoes:['Não','Sim'], padrao:'Não'},
+      {k:'data_pagamento', label:'Data de pagamento', tipo:'data'},
+      {k:'forma_pagamento', label:'Forma de pagamento', tipo:'select', opcoes:['','Pix','Cartão','Dinheiro','Boleto','Outro']},
+    ],
+    colunas: ['nome','plano','valor_plano','pago','data_pagamento','forma_pagamento'],
+  },
+  terapias: {
+    tabela: 'financeiro_terapias', titulo: 'Terapias', emoji: '🦴',
+    campoValor: 'faturamento_previsto',
+    campos: [
+      {k:'nome', label:'Nome', tipo:'texto', obrigatorio:true},
+      {k:'status', label:'Status', tipo:'select', opcoes:['Ativo','Inativo'], padrao:'Ativo'},
+      {k:'servico', label:'Terapia', tipo:'texto', placeholder:'Ex.: Fisioterapia, TO infantil I'},
+      {k:'terapeuta', label:'Terapeuta', tipo:'texto'},
+      {k:'frequencia', label:'Frequência', tipo:'texto', placeholder:'Ex.: 2x'},
+      {k:'plano', label:'Plano', tipo:'texto', placeholder:'Mensal, Sessão, Pacote 10...'},
+      {k:'dia_vencimento', label:'Dia de vencimento', tipo:'numero'},
+      {k:'valor_plano', label:'Valor do plano (R$)', tipo:'numero'},
+      {k:'sessoes_previstas', label:'Sessões previstas no mês', tipo:'numero'},
+      {k:'faturamento_previsto', label:'Faturamento previsto (R$)', tipo:'numero'},
+      {k:'sessoes_realizadas', label:'Sessões realizadas', tipo:'numero'},
+      {k:'faturamento_real', label:'Faturamento real (R$)', tipo:'numero'},
+      {k:'pago', label:'Pago?', tipo:'select', opcoes:['Não','Sim'], padrao:'Não'},
+      {k:'data_pagamento', label:'Data de pagamento', tipo:'data'},
+    ],
+    colunas: ['nome','servico','terapeuta','sessoes_previstas','faturamento_previsto','sessoes_realizadas','faturamento_real','pago','data_pagamento'],
+  },
+  parceiros: {
+    tabela: 'financeiro_parceiros', titulo: 'Parceiros', emoji: '🤝',
+    campoValor: 'valor',
+    campos: [
+      {k:'parceiro', label:'Parceiro', tipo:'texto', obrigatorio:true},
+      {k:'valor', label:'Valor (R$)', tipo:'numero'},
+      {k:'pago', label:'Pago?', tipo:'select', opcoes:['Não','Sim'], padrao:'Não'},
+      {k:'data_pagamento', label:'Data de pagamento', tipo:'data'},
+    ],
+    colunas: ['parceiro','valor','pago','data_pagamento'],
+  },
+};
+const FIN_COLUNA_LABEL = {
+  nome:'Nome', status:'Status', servico:'Serviço', plano:'Plano', dia_vencimento:'Venc.',
+  valor_plano:'Valor', pago:'Pago', data_pagamento:'Pagamento', forma_pagamento:'Forma',
+  terapeuta:'Terapeuta', frequencia:'Freq.', sessoes_previstas:'Sessões prev.',
+  faturamento_previsto:'Fat. previsto', sessoes_realizadas:'Sessões real.',
+  faturamento_real:'Fat. real', parceiro:'Parceiro', valor:'Valor',
+};
+
+let _finAba = 'pilates';
+let _finMes = mesAtualISO();
+let _finLista = [];
+
+function mesAtualISO() {
+  const d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+}
+function mesAnteriorISO(mes) {
+  const [y,m] = mes.split('-').map(Number);
+  const d = new Date(y, m-2, 1);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+}
+// Os valores sempre vêm de <input type=number> (ponto decimal, sem separador
+// de milhar) ou já como número da planilha - nunca no formato "R$ 1.234,56".
+// Só trata vírgula como decimal se alguém tiver digitado direto na planilha.
+function numDe(v) {
+  if (typeof v === 'number') return v;
+  const s = String(v==null?'':v).trim();
+  if (!s) return 0;
+  const n = Number(s.includes(',') ? s.replace(/\./g,'').replace(',','.') : s);
+  return isFinite(n) ? n : 0;
+}
+function fmtMoeda(v) {
+  if (v==='' || v==null) return '—';
+  return numDe(v).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+}
+
+function renderFinanceiro() {
+  return `<div class="ph"><div class="ph-title">Financeiro</div>
+    <div class="ph-sub">Pilates, terapias e parceiros — mensalidade e repasse, mês a mês</div></div>
+  <div id="finBody">${loadingHTML()}</div>`;
+}
+
+async function loadFinanceiro() {
+  const el = document.getElementById('finBody');
+  if(!el) return;
+  const cfg = FIN_CONFIG[_finAba];
+  const res = await api('listar',{tabela:cfg.tabela, filtros:{mes:_finMes}});
+  if(!res.ok) {
+    el.innerHTML = `<div class="card" style="color:var(--rose)">Não foi possível carregar: ${esc(res.erro||'')}</div>`;
+    return;
+  }
+  _finLista = res.dados||[];
+  desenharFinanceiro();
+}
+
+function trocarAbaFinanceiro(aba) { _finAba = aba; loadFinanceiro(); }
+function trocarMesFinanceiro(mes) { if(mes){ _finMes = mes; loadFinanceiro(); } }
+
+function resumoFinHTML(cfg) {
+  if(_finAba==='terapias') {
+    const previsto = _finLista.reduce((s,r)=>s+numDe(r.faturamento_previsto),0);
+    const real = _finLista.reduce((s,r)=>s+numDe(r.faturamento_real),0);
+    const recebido = _finLista.filter(r=>String(r.pago).toLowerCase()==='sim')
+      .reduce((s,r)=>s+(numDe(r.faturamento_real)||numDe(r.faturamento_previsto)),0);
+    return `<div class="mc-meta" style="margin-bottom:12px">
+      <span>Previsto <strong>${fmtMoeda(previsto)}</strong></span>
+      <span>Realizado <strong>${fmtMoeda(real)}</strong></span>
+      <span>Recebido <strong>${fmtMoeda(recebido)}</strong></span></div>`;
+  }
+  const total = _finLista.reduce((s,r)=>s+numDe(r[cfg.campoValor]),0);
+  const recebido = _finLista.filter(r=>String(r.pago).toLowerCase()==='sim')
+    .reduce((s,r)=>s+numDe(r[cfg.campoValor]),0);
+  return `<div class="mc-meta" style="margin-bottom:12px">
+    <span>Total <strong>${fmtMoeda(total)}</strong></span>
+    <span>Recebido <strong>${fmtMoeda(recebido)}</strong></span>
+    <span>Em aberto <strong>${fmtMoeda(total-recebido)}</strong></span></div>`;
+}
+
+function celulaFin(r, k) {
+  const v = r[k];
+  if(k==='pago') return `<span class="chip ${String(v).toLowerCase()==='sim'?'ch-sage':'ch-gray'}">${esc(v||'Não')}</span>`;
+  if(['valor_plano','faturamento_previsto','faturamento_real','valor'].includes(k)) return fmtMoeda(v);
+  if(k==='data_pagamento') return v?esc(fmtDataBR(v)):'—';
+  return v?esc(v):'—';
+}
+
+function desenharFinanceiro() {
+  const el = document.getElementById('finBody');
+  if(!el) return;
+  const cfg = FIN_CONFIG[_finAba];
+
+  el.innerHTML = `
+  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">
+    ${Object.entries(FIN_CONFIG).map(([k,c])=>`
+      <button class="chip ${k===_finAba?'ch-teal':'ch-gray'}" style="cursor:pointer;border:none"
+        onclick="trocarAbaFinanceiro('${k}')">${c.emoji} ${esc(c.titulo)}</button>`).join('')}
+  </div>
+  <div class="card" style="margin-bottom:12px">
+    <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:10px">
+      <div class="fg" style="margin:0"><label class="fl">Mês</label>
+        <input class="fi" type="month" value="${esc(_finMes)}" onchange="trocarMesFinanceiro(this.value)"></div>
+      <button class="addbtn" onclick="novoFinLancamento()">+ Novo lançamento</button>
+      <button class="backbtn" onclick="duplicarMesAnteriorFin()">📋 Duplicar mês anterior</button>
+    </div>
+    ${resumoFinHTML(cfg)}
+    ${_finLista.length ? `<div style="overflow-x:auto"><table class="fin-tabela">
+      <thead><tr>${cfg.colunas.map(k=>`<th>${esc(FIN_COLUNA_LABEL[k]||k)}</th>`).join('')}</tr></thead>
+      <tbody>${_finLista.map(r=>`<tr onclick="editarFinLancamento('${esc(r.id)}')">
+        ${cfg.colunas.map(k=>`<td>${celulaFin(r,k)}</td>`).join('')}
+      </tr>`).join('')}</tbody>
+    </table></div>` : `<div class="pt-nota" style="margin:0">Nada lançado neste mês ainda.</div>`}
+  </div>
+  <div id="finForm"></div>`;
+}
+
+function novoFinLancamento(existente) {
+  const cfg = FIN_CONFIG[_finAba];
+  const r = existente || {};
+  const f = document.getElementById('finForm');
+  if(!f) return;
+  f.innerHTML = `<div class="evo-form">
+    <div class="hist-tit" style="margin-bottom:10px">${existente?'✏️ Editar lançamento':'+ Novo lançamento'} — ${esc(cfg.titulo)}</div>
+    ${cfg.campos.map(c=>{
+      const v = r[c.k]!==undefined ? r[c.k] : (c.padrao||'');
+      if(c.tipo==='select') return `<div class="fg"><label class="fl">${esc(c.label)}</label>
+        <select class="fs" id="fin_${c.k}">${c.opcoes.map(o=>
+          `<option value="${esc(o)}"${String(v)===o?' selected':''}>${o||'—'}</option>`).join('')}</select></div>`;
+      if(c.tipo==='numero') return `<div class="fg"><label class="fl">${esc(c.label)}</label>
+        <input class="fi" id="fin_${c.k}" type="number" step="0.01" value="${esc(v)}"></div>`;
+      if(c.tipo==='data') return `<div class="fg"><label class="fl">${esc(c.label)}</label>
+        <input class="fi" id="fin_${c.k}" type="date" value="${esc(String(v||'').slice(0,10))}"></div>`;
+      return `<div class="fg"><label class="fl">${esc(c.label)}</label>
+        <input class="fi" id="fin_${c.k}" value="${esc(v)}" placeholder="${esc(c.placeholder||'')}"></div>`;
+    }).join('')}
+    <div id="finErr" class="errbox"></div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="savebtn" id="finBtn" style="flex:1"
+        onclick="salvarFinLancamento(${existente?`'${esc(r.id)}'`:''})">${existente?'Salvar':'Adicionar'}</button>
+      <button class="backbtn" onclick="document.getElementById('finForm').innerHTML=''">Cancelar</button>
+    </div>
+    ${existente?`<button class="savebtn" style="background:var(--rose);margin-top:8px"
+      onclick="excluirFinLancamento('${esc(r.id)}')">🗑 Excluir lançamento</button>`:''}
+  </div>`;
+  f.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function editarFinLancamento(id) {
+  const r = _finLista.find(x=>String(x.id)===String(id));
+  if(r) novoFinLancamento(r);
+}
+
+async function salvarFinLancamento(id) {
+  const cfg = FIN_CONFIG[_finAba];
+  const err = document.getElementById('finErr');
+  const btn = document.getElementById('finBtn');
+  const obrig = cfg.campos.find(c=>c.obrigatorio);
+  const dados = {};
+  cfg.campos.forEach(c=>{ dados[c.k] = (document.getElementById('fin_'+c.k).value||'').trim(); });
+
+  if(obrig && !dados[obrig.k]) {
+    err.textContent = 'Informe '+obrig.label.toLowerCase()+'.'; err.style.display='block'; return;
+  }
+  err.style.display='none';
+  if(!id) dados.mes = _finMes;
+
+  btn.disabled=true; btn.textContent='Salvando...';
+  const res = id
+    ? await api('atualizar',{tabela:cfg.tabela, id, dados})
+    : await api('salvar',{tabela:cfg.tabela, dados});
+  btn.disabled=false; btn.textContent = id?'Salvar':'Adicionar';
+
+  if(!res.ok) { err.textContent='Erro ao salvar: '+(res.erro||''); err.style.display='block'; return; }
+  document.getElementById('finForm').innerHTML='';
+  await loadFinanceiro();
+  showToast('✅ Salvo','ok');
+}
+
+async function excluirFinLancamento(id) {
+  const cfg = FIN_CONFIG[_finAba];
+  if(!confirm('Excluir este lançamento?')) return;
+  const res = await api('deletar',{tabela:cfg.tabela, id});
+  if(!res.ok) { showToast('Erro ao excluir: '+(res.erro||''),'err'); return; }
+  document.getElementById('finForm').innerHTML='';
+  await loadFinanceiro();
+  showToast('🗑 Excluído','ok');
+}
+
+// Resolve a repetição mensal de nome/valor/plano sem precisar de um cadastro
+// separado de aluno/paciente: copia os lançamentos do mês anterior, zerando
+// só o que muda todo mês (pago, data de pagamento e, em Terapias, o realizado).
+async function duplicarMesAnteriorFin() {
+  const cfg = FIN_CONFIG[_finAba];
+  const mesAnt = mesAnteriorISO(_finMes);
+  const res = await api('listar',{tabela:cfg.tabela, filtros:{mes:mesAnt}});
+  if(!res.ok || !(res.dados||[]).length) { showToast('Nada para duplicar de '+mesAnt,'err'); return; }
+  if(_finLista.length && !confirm('Este mês já tem '+_finLista.length+' lançamento(s). Duplicar mesmo assim?')) return;
+  if(!confirm('Duplicar '+res.dados.length+' lançamento(s) de '+mesAnt+' para '+_finMes+'?')) return;
+
+  for(const r of res.dados) {
+    const dados = {};
+    cfg.campos.forEach(c=>{ dados[c.k] = r[c.k]||''; });
+    dados.pago = 'Não';
+    dados.data_pagamento = '';
+    if(_finAba==='terapias') dados.sessoes_realizadas = dados.faturamento_real = '';
+    dados.mes = _finMes;
+    await api('salvar',{tabela:cfg.tabela, dados});
+  }
+  await loadFinanceiro();
+  showToast('✅ Duplicado','ok');
+}
+
+// ═══════════════════════════════════════════════
 // LEADS / CAPTAÇÃO
 // Funil de quem procurou a clínica antes de virar paciente. O estágio nunca
 // muda em silêncio: toda mudança grava uma linha de histórico, senão não dá
@@ -2963,15 +3452,22 @@ async function abrirLead(id) {
       <div id="ldErr" class="errbox"></div>
       <button class="savebtn" id="ldBtn" style="margin-top:8px" onclick="moverLead('${esc(l.id)}')">Registrar</button>
     </div>
-    ${l.paciente_id
+    ${l.estagio===_leadCfg.ganho
       ? `<div class="pt-nota">✅ Já vinculado a um cadastro de paciente.</div>`
-      : `<div class="fg" style="margin-top:14px"><label class="fl">Virou paciente?</label>
-          <div class="pt-nota" style="margin-top:0">Aponte para um cadastro que já existe — não cria paciente novo.</div>
-          <input class="fi" id="ldBuscaPac" list="ldPacientes" placeholder="🔎 Buscar paciente pelo nome"
-                 style="margin-top:6px">
-          <datalist id="ldPacientes"></datalist>
-          <button class="addbtn" style="margin-top:8px" onclick="converterLead('${esc(l.id)}')">✅ Vincular ao cadastro</button>
-        </div>`}`:''}
+      : l.paciente_id
+        ? `<div class="fg" style="margin-top:14px"><label class="fl">Virou paciente?</label>
+            <div class="pt-nota" style="margin-top:0">Este lead já tem acesso ao portal (orçamento e mensagens).
+              Confirme para virar cliente de verdade — dispara a mensagem de boas-vindas.</div>
+            <button class="addbtn" style="margin-top:8px"
+              onclick="converterLead('${esc(l.id)}','${esc(l.paciente_id)}')">🎉 Confirmar virada de cliente</button>
+          </div>`
+        : `<div class="fg" style="margin-top:14px"><label class="fl">Virou paciente?</label>
+            <div class="pt-nota" style="margin-top:0">Aponte para um cadastro que já existe — não cria paciente novo.</div>
+            <input class="fi" id="ldBuscaPac" list="ldPacientes" placeholder="🔎 Buscar paciente pelo nome"
+                   style="margin-top:6px">
+            <datalist id="ldPacientes"></datalist>
+            <button class="addbtn" style="margin-top:8px" onclick="converterLead('${esc(l.id)}')">✅ Vincular ao cadastro</button>
+          </div>`}`:''}
 
     <div class="hist-tit" style="margin:16px 0 8px">Histórico de interações</div>
     ${hist.length ? hist.map(h=>`<div class="tl-item">
@@ -3027,17 +3523,22 @@ async function moverLead(id) {
   showToast('✅ Registrado','ok');
 }
 
-async function converterLead(id) {
-  const nome = (document.getElementById('ldBuscaPac').value||'').trim();
-  if(!nome){ showToast('Escolha o paciente.','err'); return; }
-  const pacs = await carregarTodosPacientes();
-  const p = pacs.find(x=>normalizar(x.nome)===normalizar(nome));
-  if(!p){ showToast('Paciente não encontrado. Cadastre primeiro em Linhas.','err'); return; }
-  const res = await api('converter_lead',{id, paciente_id:p.id});
+async function converterLead(id, pacienteId) {
+  let alvo = pacienteId;
+  let nomeAlvo = '';
+  if(!alvo) {
+    const nome = (document.getElementById('ldBuscaPac').value||'').trim();
+    if(!nome){ showToast('Escolha o paciente.','err'); return; }
+    const pacs = await carregarTodosPacientes();
+    const p = pacs.find(x=>normalizar(x.nome)===normalizar(nome));
+    if(!p){ showToast('Paciente não encontrado. Cadastre primeiro em Linhas.','err'); return; }
+    alvo = p.id; nomeAlvo = p.nome;
+  }
+  const res = await api('converter_lead',{id, paciente_id:alvo});
   if(!res.ok){ showToast('Erro: '+(res.erro||''),'err'); return; }
   await loadLeads();
   abrirLead(id);
-  showToast('✅ Vinculado a '+p.nome,'ok');
+  showToast('🎉 '+(nomeAlvo?'Vinculado a '+nomeAlvo:'Virou cliente!'),'ok');
 }
 
 function novoLead(existente) {
@@ -3051,8 +3552,12 @@ function novoLead(existente) {
         <input class="fi" id="ndNome" value="${esc(l.nome)}" placeholder="Quem entrou em contato"></div>
       <div class="fg"><label class="fl">Telefone / WhatsApp</label>
         <input class="fi" id="ndTel" type="tel" value="${esc(l.telefone)}" placeholder="(11) 99999-9999"></div>
-      <div class="fg"><label class="fl">E-mail</label>
+      <div class="fg"><label class="fl">E-mail${existente?'':' *'}</label>
         <input class="fi" id="ndEmail" type="email" value="${esc(l.email)}"></div>
+      ${existente?'':`<div class="pt-nota fa" style="margin:-6px 0 0">É o que dá acesso ao portal do
+        paciente — orçamento e mensagens direto com a equipe, mesmo antes de virar cliente.</div>`}
+      <div class="fg"><label class="fl">Data de nascimento</label>
+        <input class="fi" id="ndNasc" type="date" value="${esc(String(l.data_nascimento||'').slice(0,10))}"></div>
       <div class="fg"><label class="fl">Primeiro contato</label>
         <input class="fi" id="ndData" type="date" value="${esc(String(l.data_contato||'').slice(0,10)) || new Date().toISOString().slice(0,10)}"></div>
       <div class="fg"><label class="fl">Origem</label>
@@ -3098,10 +3603,14 @@ async function salvarLead(id) {
   const btn = document.getElementById('ndBtn');
   const v = k => (document.getElementById(k).value||'').trim();
   if(!v('ndNome')){ err.textContent='Informe o nome.'; err.style.display='block'; return; }
+  if(!id && (!v('ndEmail') || v('ndEmail').indexOf('@')===-1)) {
+    err.textContent='Informe um e-mail válido — é o que dá acesso ao portal.'; err.style.display='block'; return;
+  }
   err.style.display='none';
 
   const dados = {
     nome:v('ndNome'), telefone:v('ndTel'), email:v('ndEmail'), data_contato:v('ndData'),
+    data_nascimento:v('ndNasc'),
     origem:v('ndOrigem'), campanha:v('ndCampanha'),
     indicado_por: /indica/i.test(v('ndOrigem')) ? v('ndIndicado') : '',
     linha:v('ndLinha'), responsavel:v('ndResp'),
@@ -3111,7 +3620,7 @@ async function salvarLead(id) {
   btn.disabled=false; btn.textContent = id?'Salvar':'Cadastrar lead';
   if(!res.ok){ err.textContent='Erro: '+(res.erro||''); err.style.display='block'; return; }
   await loadLeads();
-  showToast('✅ Salvo','ok');
+  showToast(!id ? '✅ Lead cadastrado — link de acesso ao portal enviado por e-mail' : '✅ Salvo','ok');
 }
 
 // ═══════════════════════════════════════════════
@@ -6257,6 +6766,8 @@ const _afterRender = {
   alertas: ()=>setTimeout(loadAlertas,50),
   mensagens: ()=>setTimeout(loadMensagensCentral,50),
   servicos: ()=>setTimeout(loadServicos,50),
+  tarefas: ()=>setTimeout(loadTarefas,50),
+  financeiro: ()=>setTimeout(loadFinanceiro,50),
   leads: ()=>setTimeout(loadLeads,50),
   espera: ()=>setTimeout(loadEspera,50),
   programas: ()=>setTimeout(loadProgramas,50),
