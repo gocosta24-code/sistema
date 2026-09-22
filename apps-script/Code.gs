@@ -102,7 +102,10 @@ function handle(e) {
       if (ehPaciente && ACOES_PACIENTE.indexOf(action) === -1) {
         return resp({ok:false, erro:'Sem permiss\u00e3o'});
       }
-      if (!ehPaciente && ACOES_PACIENTE.indexOf(action) !== -1 && action !== 'logout') {
+      // 'enviar_mensagem' e dos dois lados: e como a equipe responde o
+      // paciente na central de mensagens, nao e area exclusiva dele.
+      const ACOES_COMPARTILHADAS = ['logout','enviar_mensagem'];
+      if (!ehPaciente && ACOES_PACIENTE.indexOf(action) !== -1 && ACOES_COMPARTILHADAS.indexOf(action) === -1) {
         return resp({ok:false, erro:'Esta \u00e1rea \u00e9 do paciente'});
       }
     }
@@ -2097,7 +2100,18 @@ function convidarProf(body, token) {
 
 // --- HELPERS --------------------------------------------------
 function getOuCria(ss, nome) {
-  return ss.getSheetByName(nome) || ss.insertSheet(nome);
+  const existente = ss.getSheetByName(nome);
+  if (existente) return existente;
+  try {
+    return ss.insertSheet(nome);
+  } catch (e) {
+    // Duas chamadas simultaneas podem checar "nao existe" ao mesmo tempo e
+    // as duas tentarem criar a aba; quem perdeu a corrida so precisa pegar
+    // a referencia que a outra ja criou, em vez de quebrar a tela.
+    const criada = ss.getSheetByName(nome);
+    if (criada) return criada;
+    throw e;
+  }
 }
 
 function resp(obj) {
