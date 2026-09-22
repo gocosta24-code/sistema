@@ -4740,6 +4740,7 @@ function itemMensagemHTML(m) {
     ? 'O paciente escreveu'
     : 'Registrado por '+(m.autor_nome||'alguém da equipe');
   const abrir = `abrirDaMensagem('${esc(m.linha)}','${esc(m.paciente_id)}')`;
+  const mid = esc(m.id);
   return `<div class="mc-item">
     <div class="mc-topo">
       <div style="min-width:0">
@@ -4754,12 +4755,37 @@ function itemMensagemHTML(m) {
     </div>
     <div class="mc-texto">${esc(m.texto)}</div>
     <div class="mc-meta" style="margin-top:7px">${esc(origem)}</div>
+    <div class="msg-form" style="margin-top:8px">
+      <textarea class="ft" id="mcTexto_${mid}" placeholder="Responder ${esc(m.paciente_nome||'paciente')}..."
+                style="min-height:56px"></textarea>
+      <label class="msg-aberta"><input type="checkbox" id="mcAberta_${mid}">
+        Ainda espera retorno — manter em 💬 Mensagens</label>
+      <button class="savebtn" id="mcBtn_${mid}" style="margin-top:6px"
+              onclick="responderDaCentral('${mid}','${esc(m.paciente_id)}')">Enviar</button>
+    </div>
     <div class="mc-acoes">
       <button class="backbtn" onclick="${abrir}">💬 Abrir prontuário</button>
-      <button class="backbtn" onclick="marcarMensagemComo('${esc(m.id)}','respondida')">✓ Respondida</button>
-      <button class="backbtn" onclick="marcarMensagemComo('${esc(m.id)}','fechada')">Fechar</button>
+      <button class="backbtn" onclick="marcarMensagemComo('${esc(m.id)}','fechada')">Fechar sem responder</button>
     </div>
   </div>`;
+}
+
+// Responder direto na central: quem usa aqui nao precisa abrir o
+// prontuario so pra mandar a resposta. Sem marcar "ainda espera retorno",
+// enviarMensagem() ja fecha as pendencias abertas desse paciente sozinho.
+async function responderDaCentral(msgId, pacienteId) {
+  const campo = document.getElementById('mcTexto_'+msgId);
+  const texto = (campo.value||'').trim();
+  if(!texto){ showToast('Escreva a mensagem.','err'); return; }
+  const aberta = !!(document.getElementById('mcAberta_'+msgId)||{}).checked;
+  const btn = document.getElementById('mcBtn_'+msgId);
+  btn.disabled=true; btn.textContent='Enviando...';
+  const res = await api('enviar_mensagem',
+    {paciente_id:pacienteId, texto, autor_nome:currentUser.nome, status: aberta?'aberta':''});
+  btn.disabled=false; btn.textContent='Enviar';
+  if(!res.ok){ showToast('Erro: '+(res.erro||''),'err'); return; }
+  showToast('✅ Respondido','ok');
+  await loadMensagensCentral();
 }
 
 // Resolver sem sair da lista: tirar da fila é um clique, senão ninguém marca
