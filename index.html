@@ -3127,12 +3127,15 @@ async function loadFinanceiro() {
   const el = document.getElementById('finBody');
   if(!el) return;
   const cfg = FIN_CONFIG[_finAba];
-  const res = await api('listar',{tabela:cfg.tabela, filtros:{mes:_finMes}});
+  // Filtra aqui no navegador em vez de mandar filtros:{mes} pro Apps Script:
+  // o filtro no servidor estava voltando vazio mesmo com o mes gravado
+  // certinho na planilha, e nao valia a pena caçar a causa exata la.
+  const res = await api('listar',{tabela:cfg.tabela});
   if(!res.ok) {
     el.innerHTML = `<div class="card" style="color:var(--rose)">Não foi possível carregar: ${esc(res.erro||'')}</div>`;
     return;
   }
-  _finLista = res.dados||[];
+  _finLista = (res.dados||[]).filter(r=>String(r.mes||'')===_finMes);
   desenharFinanceiro();
 }
 
@@ -3274,12 +3277,13 @@ async function excluirFinLancamento(id) {
 async function duplicarMesAnteriorFin() {
   const cfg = FIN_CONFIG[_finAba];
   const mesAnt = mesAnteriorISO(_finMes);
-  const res = await api('listar',{tabela:cfg.tabela, filtros:{mes:mesAnt}});
-  if(!res.ok || !(res.dados||[]).length) { showToast('Nada para duplicar de '+mesAnt,'err'); return; }
+  const resTudo = await api('listar',{tabela:cfg.tabela});
+  const dadosAnt = resTudo.ok ? (resTudo.dados||[]).filter(r=>String(r.mes||'')===mesAnt) : [];
+  if(!dadosAnt.length) { showToast('Nada para duplicar de '+mesAnt,'err'); return; }
   if(_finLista.length && !confirm('Este mês já tem '+_finLista.length+' lançamento(s). Duplicar mesmo assim?')) return;
-  if(!confirm('Duplicar '+res.dados.length+' lançamento(s) de '+mesAnt+' para '+_finMes+'?')) return;
+  if(!confirm('Duplicar '+dadosAnt.length+' lançamento(s) de '+mesAnt+' para '+_finMes+'?')) return;
 
-  for(const r of res.dados) {
+  for(const r of dadosAnt) {
     const dados = {};
     cfg.campos.forEach(c=>{ dados[c.k] = r[c.k]||''; });
     dados.pago = 'Não';
