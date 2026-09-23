@@ -3135,9 +3135,11 @@ async function loadFinanceiro() {
     el.innerHTML = `<div class="card" style="color:var(--rose)">Não foi possível carregar: ${esc(res.erro||'')}</div>`;
     return;
   }
+  _finTotal = (res.dados||[]).length;
   _finLista = (res.dados||[]).filter(r=>String(r.mes||'')===_finMes);
   desenharFinanceiro();
 }
+let _finTotal = 0;
 
 function trocarAbaFinanceiro(aba) { _finAba = aba; loadFinanceiro(); }
 function trocarMesFinanceiro(mes) { if(mes){ _finMes = mes; loadFinanceiro(); } }
@@ -3194,7 +3196,7 @@ function desenharFinanceiro() {
       <tbody>${_finLista.map(r=>`<tr onclick="editarFinLancamento('${esc(r.id)}')">
         ${cfg.colunas.map(k=>`<td>${celulaFin(r,k)}</td>`).join('')}
       </tr>`).join('')}</tbody>
-    </table></div>` : `<div class="pt-nota" style="margin:0">Nada lançado neste mês ainda.</div>`}
+    </table></div>` : `<div class="pt-nota" style="margin:0">Nada lançado neste mês ainda. (Debug: ${_finTotal} lançamento(s) no total nesta aba, sem filtro de mês.)</div>`}
   </div>
   <div id="finForm"></div>`;
 }
