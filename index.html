@@ -698,7 +698,7 @@ let demoMode = false;
 // Muda a cada publicação. Serve para o aparelho perceber que está com uma
 // versão velha em cache — sem isto a pessoa continua vendo o problema já
 // corrigido e jura que não foi corrigido.
-const VERSAO = '2026-09-29.01';
+const VERSAO = '2026-09-29.02';
 let _profsCache = null;
 let _demoPacienteId = null;
 
@@ -1510,6 +1510,9 @@ function startApp() {
   document.getElementById('app').classList.add('aberto');
   document.getElementById('avatarBtn').textContent = currentUser.nome.charAt(0).toUpperCase();
   document.getElementById('roleLabel').textContent = {admin:'Gestora',coordenador:'Coordenadora',profissional:'Profissional'}[currentRole]||currentRole;
+  // A Avaliação por sensor (avaliacao/) entra com esta mesma sessão e
+  // precisa saber qual implantação do Apps Script está em uso
+  if(!demoMode) localStorage.setItem('co_api_ativa', API_URL);
   buildNav(); buildSidebar();
   loadPage('home');
   atualizarMensagensAbertas();

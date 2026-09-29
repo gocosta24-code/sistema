@@ -105,16 +105,10 @@ textarea{width:100%;min-height:200px;font:14px/1.45 var(--body);color:var(--ink)
   <div class="patient">
     <div>
       <label for="pSel">Paciente</label>
-      <div class="row">
-        <select id="pSel"></select>
-        <button class="btn ghost" id="pNewBtn" type="button">Novo</button>
-      </div>
+      <select id="pSel" disabled><option value="">Carregando pacientes…</option></select>
     </div>
-    <div class="row" id="pNew" hidden>
-      <input type="text" id="pName" placeholder="Nome ou iniciais" autocomplete="off">
-      <button class="btn" id="pAdd" type="button">Adicionar</button>
-    </div>
-    <p class="hint">Os dados ficam salvos só neste aparelho. Use iniciais se preferir.</p>
+    <p class="err" id="pErr" hidden></p>
+    <p class="hint">Cada medida salva entra no prontuário do paciente, como evolução.</p>
   </div>
 
   <nav class="tabs" role="tablist">
@@ -202,12 +196,6 @@ textarea{width:100%;min-height:200px;font:14px/1.45 var(--body);color:var(--ink)
 <script>
 (function(){
 const $=s=>document.querySelector(s);
-const KEY='co-avalia-v1';
-let db={patients:{},current:null};
-function load(){try{const r=localStorage.getItem(KEY);if(r){const d=JSON.parse(r);if(d&&d.patients)db=d}}catch(e){}}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){toast('Este navegador não deixou salvar os dados.')}}
-function uid(){return Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4)}
-function cur(){return db.current?db.patients[db.current]:null}
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 const nf1=new Intl.NumberFormat('pt-BR',{maximumFractionDigits:1,minimumFractionDigits:1});
 const nf0=new Intl.NumberFormat('pt-BR',{maximumFractionDigits:0});
@@ -215,24 +203,66 @@ function dShort(iso){const d=new Date(iso);return d.toLocaleDateString('pt-BR',{
 let tt;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2600)}
 function showErr(id,m){const e=$(id);e.textContent=m;e.hidden=!m}
 
+/* ---------- sessão do sistema ---------- */
+// Usa o mesmo login do sistema (mesmo endereço, mesmo localStorage). O
+// endereço da API é o que o sistema gravou ao abrir, para não ter uma cópia
+// dele aqui que fique para trás quando a implantação mudar.
+const S=(()=>{try{return{token:localStorage.getItem('co_token'),user:JSON.parse(localStorage.getItem('co_user')||'null'),api:localStorage.getItem('co_api_ativa')}}catch(e){return{}}})();
+const logado=!!(S.token&&S.user&&S.api);
+function semSessao(msg){
+  const e=$('#pErr');e.innerHTML=esc(msg||'Para salvar no prontuário, entre no sistema primeiro.')+' <a href="../" style="color:inherit;font-weight:600">Entrar no sistema</a>';e.hidden=false;
+  $('#pSel').innerHTML='<option value="">—</option>';$('#pSel').disabled=true;pacientes=[];atual=null;
+}
+// Mesmo formato do sistema: POST em text/plain, que não dispara o preflight
+// de CORS que o Apps Script não responde
+async function api(action,body={}){
+  let d;
+  try{const r=await fetch(S.api,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({...body,action,token:S.token}),redirect:'follow'});
+    if(!r.ok)return{ok:false,erro:'erro HTTP '+r.status};d=JSON.parse(await r.text())}
+  catch(e){return{ok:false,erro:'sem conexão, tente de novo'}}
+  if(!d.ok&&/token inv[aá]lido|expirad/i.test(String(d.erro||''))){semSessao('Sua sessão expirou.');return{ok:false,erro:'sua sessão expirou'}}
+  return d;
+}
+function hojeISO(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+
 /* ---------- pacientes ---------- */
-function renderPatients(){
-  const s=$('#pSel');const ids=Object.keys(db.patients).sort((a,b)=>db.patients[a].name.localeCompare(db.patients[b].name,'pt-BR'));
-  if(!ids.length){s.innerHTML='<option value="">Cadastre um paciente</option>';s.disabled=true;return}
+let pacientes=[],atual=null,registros=[],registrosDe=null;
+function cur(){return pacientes.find(p=>String(p.id)===String(atual))||null}
+async function carregarPacientes(){
+  if(!logado){semSessao();return}
+  const r=await api('listar',{tabela:'pacientes',role:S.user.role,nome_usuario:S.user.nome});
+  if(!r.ok){if(logado&&!$('#pErr').innerHTML)showErr('#pErr','Não consegui carregar os pacientes: '+(r.erro||''));return}
+  pacientes=(r.dados||[]).filter(p=>p.nome).sort((a,b)=>String(a.nome).localeCompare(String(b.nome),'pt-BR'));
+  const s=$('#pSel');
+  if(!pacientes.length){s.innerHTML='<option value="">Nenhum paciente seu cadastrado</option>';return}
+  // Sem escolha prévia de propósito: salvar no prontuário errado é pior do
+  // que ter de escolher o paciente de novo
+  s.innerHTML='<option value="">Escolha o paciente</option>'+pacientes.map(p=>`<option value="${esc(p.id)}">${esc(p.nome)}</option>`).join('');
   s.disabled=false;
-  s.innerHTML=ids.map(id=>`<option value="${id}"${id===db.current?' selected':''}>${esc(db.patients[id].name)}</option>`).join('');
-  if(!db.current||!db.patients[db.current]){db.current=ids[0];save()}
 }
-$('#pSel').addEventListener('change',e=>{db.current=e.target.value;save();renderReport()});
-$('#pNewBtn').addEventListener('click',()=>{const n=$('#pNew');n.hidden=!n.hidden;if(!n.hidden)$('#pName').focus()});
-function addPatient(){
-  const name=$('#pName').value.trim();if(!name){$('#pName').focus();return}
-  const id=uid();db.patients[id]={name,created:new Date().toISOString(),records:[]};db.current=id;save();
-  $('#pName').value='';$('#pNew').hidden=true;renderPatients();renderReport();toast('Paciente adicionado: '+name);
+$('#pSel').addEventListener('change',e=>{atual=e.target.value||null;registrosDe=null;if(!$('#tab-rel').hidden)renderReport()});
+function textoDoRegistro(r){
+  if(r.type==='gonio')return`Avaliação por sensor — ${JOINTS[r.joint].label}, lado ${r.side==='D'?'direito':'esquerdo'}: ${r.value}° (pico ativo).`;
+  return`Avaliação por sensor — Equilíbrio, ${PROTOS[r.protocol].label.toLowerCase()}, ${r.dur} s: área de oscilação ${nf1.format(r.area)} cm²/s⁴, RMS lateral ${nf1.format(r.rmsML)} cm/s², RMS anteroposterior ${nf1.format(r.rmsAP)} cm/s² (${r.n} leituras).`;
 }
-$('#pAdd').addEventListener('click',addPatient);
-$('#pName').addEventListener('keydown',e=>{if(e.key==='Enter')addPatient()});
-function addRecord(r){const p=cur();if(!p){toast('Escolha ou cadastre um paciente antes de salvar.');return false}r.id=uid();r.date=r.date||new Date().toISOString();p.records.push(r);save();return true}
+// Cada medida vira uma evolução: aparece no prontuário como texto, e o campo
+// "sensor" guarda os números para o relatório refazer os gráficos
+async function addRecord(r){
+  const p=cur();if(!p){toast('Escolha o paciente antes de salvar.');$('#pSel').focus();return false}
+  r.date=new Date().toISOString();
+  const res=await api('salvar',{tabela:'evolucoes',dados:{paciente_id:p.id,data:hojeISO(),texto:textoDoRegistro(r),
+    autor_email:S.user.email,autor_nome:S.user.nome,origem:'sensor',sensor:JSON.stringify(r)}});
+  if(!res.ok){toast('Não salvou: '+(res.erro||'tente de novo'));return false}
+  if(String(registrosDe)===String(p.id))registros.push({...r,id:res.id,autor_email:S.user.email});
+  return true;
+}
+async function carregarRegistros(p){
+  const res=await api('listar',{tabela:'evolucoes',filtros:{paciente_id:p.id}});
+  if(!res.ok)return false;
+  registros=(res.dados||[]).filter(e=>e.origem==='sensor').map(e=>{try{return{...JSON.parse(e.sensor),id:e.id,autor_email:e.autor_email}}catch(x){return null}}).filter(Boolean);
+  registrosDe=p.id;return true;
+}
+function podeApagar(r){return S.user.role==='admin'||String(r.autor_email||'').toLowerCase()===String(S.user.email||'').toLowerCase()}
 
 /* ---------- abas ---------- */
 document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>{
@@ -306,9 +336,13 @@ $('#gOn').addEventListener('click',async()=>{
   $('#gOn').disabled=false;gRender();
 });
 $('#gZero').addEventListener('click',()=>{if(!g.lp)return;g.ref=g.lp.slice();g.peak=0;g.angle=0;beep(660,.12);gRender()});
-$('#gSave').addEventListener('click',()=>{
-  const j=$('#gJoint').value,side=$('#gSide').value,v=Math.round(g.peak);
-  if(addRecord({type:'gonio',joint:j,side,value:v})){toast(`Salvo: ${JOINTS[j].label} ${side}, ${v}°`);g.ref=null;g.peak=0;g.angle=0;gRender()}
+$('#gSave').addEventListener('click',async()=>{
+  const j=$('#gJoint').value,side=$('#gSide').value,v=Math.round(g.peak),bt=$('#gSave');
+  bt.disabled=true;bt.textContent='Salvando…';
+  const ok=await addRecord({type:'gonio',joint:j,side,value:v});
+  bt.textContent='Salvar pico';
+  if(ok){toast(`Salvo no prontuário: ${JOINTS[j].label} ${side}, ${v}°`);g.ref=null;g.peak=0;g.angle=0}
+  gRender();
 });
 
 /* ---------- equilíbrio ---------- */
@@ -380,10 +414,12 @@ function bFinish(){
   $('#bRes').hidden=false;
 }
 $('#bDiscard').addEventListener('click',()=>{$('#bRes').hidden=true;b.res=null;b.xs=[];b.zs=[];$('#bInfo').textContent='Pronto para iniciar';drawB()});
-$('#bSave').addEventListener('click',()=>{
-  const s=b.res;if(!s)return;const p=$('#bProto').value;
-  if(addRecord({type:'equilibrio',protocol:p,dur:b.dur,area:+s.area.toFixed(2),rmsML:+s.rmsML.toFixed(2),rmsAP:+s.rmsAP.toFixed(2),n:s.n})){
-    toast('Salvo: '+PROTOS[p].label);$('#bRes').hidden=true}
+$('#bSave').addEventListener('click',async()=>{
+  const s=b.res;if(!s)return;const p=$('#bProto').value,bt=$('#bSave');
+  bt.disabled=true;bt.textContent='Salvando…';
+  const ok=await addRecord({type:'equilibrio',protocol:p,dur:b.dur,area:+s.area.toFixed(2),rmsML:+s.rmsML.toFixed(2),rmsAP:+s.rmsAP.toFixed(2),n:s.n});
+  bt.disabled=false;bt.textContent='Salvar resultado';
+  if(ok){toast('Salvo no prontuário: '+PROTOS[p].label);$('#bRes').hidden=true}
 });
 
 /* ---------- relatório ---------- */
@@ -396,18 +432,24 @@ function chart(pts,fmt){
     if(lbl){s+=`<text x="${X(i).toFixed(1)}" y="${(Y(q.v)-10).toFixed(1)}" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink)">${fmt(q.v)}</text><text x="${X(i).toFixed(1)}" y="${H-3}" text-anchor="middle" font-size="11" fill="var(--muted)">${dShort(q.d)}</text>`}});
   return s+'</svg>';
 }
-function groups(p){
+function groups(){
   const gon={},eq={};
-  [...p.records].sort((a,c)=>a.date.localeCompare(c.date)).forEach(r=>{
+  [...registros].sort((a,c)=>a.date.localeCompare(c.date)).forEach(r=>{
     if(r.type==='gonio'){const k=r.joint+'|'+r.side;(gon[k]=gon[k]||[]).push({d:r.date,v:r.value})}
     else{(eq[r.protocol]=eq[r.protocol]||[]).push({d:r.date,v:r.area,r})}});
   return{gon,eq};
 }
-function renderReport(){
+async function renderReport(){
   const el=$('#rBody');const p=cur();
-  if(!p){el.innerHTML=`<div class="empty"><p>Cadastre um paciente para ver a evolução aqui.</p><button class="btn ghost" id="rDemo" type="button">Criar paciente de exemplo</button></div>`;$('#rDemo').onclick=makeExample;return}
-  if(!p.records.length){el.innerHTML=`<div class="empty"><p>${esc(p.name)} ainda não tem medidas. Faça uma goniometria ou um teste de equilíbrio e salve.</p><button class="btn ghost" id="rDemo" type="button">Criar paciente de exemplo</button></div>`;$('#rDemo').onclick=makeExample;return}
-  const {gon,eq}=groups(p);let h=`<div style="display:grid;gap:12px"><h2>${esc(p.name)}</h2>`;
+  if(!p){el.innerHTML=`<div class="empty"><p>Escolha o paciente para ver a evolução aqui.</p></div>`;return}
+  if(String(registrosDe)!==String(p.id)){
+    el.innerHTML=`<div class="empty"><p class="hint">Buscando as medidas no prontuário…</p></div>`;
+    const ok=await carregarRegistros(p);
+    if(cur()!==p||$('#tab-rel').hidden)return;
+    if(!ok){el.innerHTML=`<div class="empty"><p>Não consegui buscar as medidas.</p><button class="btn ghost" id="rRetry" type="button">Tentar de novo</button></div>`;$('#rRetry').onclick=renderReport;return}
+  }
+  if(!registros.length){el.innerHTML=`<div class="empty"><p>${esc(p.nome)} ainda não tem medidas. Faça uma goniometria ou um teste de equilíbrio e salve.</p></div>`;return}
+  const {gon,eq}=groups();let h=`<div style="display:grid;gap:12px"><h2>${esc(p.nome)}</h2>`;
   const gk=Object.keys(gon);
   if(gk.length){h+=`<h3>Amplitude de movimento</h3>`;gk.forEach(k=>{const [j,sd]=k.split('|');const a=gon[k];const last=a[a.length-1].v,first=a[0].v,dif=last-first;
     h+=`<div class="card"><p class="hint">${JOINTS[j]?JOINTS[j].label:j}, lado ${sd==='D'?'direito':'esquerdo'}</p><p class="big">${last}°</p>${a.length>1?`<p class="hint">${dif>=0?'+':'−'}${Math.abs(dif)}° desde a primeira medida (${dShort(a[0].d)})</p>`:''}${chart(a,v=>v+'°')}</div>`})}
@@ -420,14 +462,17 @@ function renderReport(){
   el.innerHTML=h;$('#rCopy').onclick=copySummary;$('#rShowAll').onclick=()=>{const a=$('#rAll');a.hidden=!a.hidden;if(!a.hidden)renderAll()};
 }
 function renderAll(){
-  const p=cur();const a=$('#rAll');const rs=[...p.records].sort((x,y)=>y.date.localeCompare(x.date));
-  a.innerHTML=`<div class="list" style="margin-top:10px">${rs.map(r=>`<div class="it"><span>${dShort(r.date)} · ${r.type==='gonio'?`${JOINTS[r.joint]?JOINTS[r.joint].label:r.joint} ${r.side}: <b>${r.value}°</b>`:`${PROTOS[r.protocol]?PROTOS[r.protocol].label:r.protocol}: <b>${nf1.format(r.area)}</b>`}</span><button type="button" data-id="${r.id}">Excluir</button></div>`).join('')}</div>`;
-  a.querySelectorAll('button').forEach(bt=>bt.onclick=()=>{
+  const a=$('#rAll');const rs=[...registros].sort((x,y)=>y.date.localeCompare(x.date));
+  a.innerHTML=`<div class="list" style="margin-top:10px">${rs.map(r=>`<div class="it"><span>${dShort(r.date)} · ${r.type==='gonio'?`${JOINTS[r.joint]?JOINTS[r.joint].label:r.joint} ${r.side}: <b>${r.value}°</b>`:`${PROTOS[r.protocol]?PROTOS[r.protocol].label:r.protocol}: <b>${nf1.format(r.area)}</b>`}</span>${podeApagar(r)?`<button type="button" data-id="${esc(r.id)}">Excluir</button>`:''}</div>`).join('')}</div>`;
+  a.querySelectorAll('button').forEach(bt=>bt.onclick=async()=>{
     if(!bt.classList.contains('armed')){bt.classList.add('armed');bt.textContent='Confirmar';setTimeout(()=>{bt.classList.remove('armed');bt.textContent='Excluir'},3000);return}
-    p.records=p.records.filter(r=>r.id!==bt.dataset.id);save();renderReport();$('#rAll').hidden=false;renderAll();toast('Medida excluída')});
+    bt.disabled=true;bt.textContent='Excluindo…';
+    const res=await api('deletar',{tabela:'evolucoes',id:bt.dataset.id});
+    if(!res.ok){bt.disabled=false;bt.textContent='Excluir';bt.classList.remove('armed');toast('Não excluiu: '+(res.erro||'tente de novo'));return}
+    registros=registros.filter(r=>String(r.id)!==bt.dataset.id);await renderReport();$('#rAll').hidden=false;renderAll();toast('Medida excluída do prontuário')});
 }
 function summaryText(){
-  const p=cur();const {gon,eq}=groups(p);const L=[`Avaliação por sensor — ${p.name}`,`Gerado em ${new Date().toLocaleDateString('pt-BR')}`,''];
+  const p=cur();const {gon,eq}=groups();const L=[`Avaliação por sensor — ${p.nome}`,`Gerado em ${new Date().toLocaleDateString('pt-BR')}`,''];
   const gk=Object.keys(gon);if(gk.length){L.push('Amplitude de movimento (pico ativo)');gk.forEach(k=>{const [j,sd]=k.split('|');L.push(`- ${JOINTS[j]?JOINTS[j].label:j} ${sd}: `+gon[k].map(q=>`${dShort(q.d)} ${q.v}°`).join(', '))});L.push('')}
   const ek=Object.keys(eq);if(ek.length){L.push('Equilíbrio, área de oscilação em cm²/s⁴ (menor é mais estável)');ek.forEach(k=>L.push(`- ${PROTOS[k]?PROTOS[k].label:k}: `+eq[k].map(q=>`${dShort(q.d)} ${nf1.format(q.v)}`).join(', ')));
     if(eq.oa&&eq.of)L.push(`- Quociente de Romberg: ${nf1.format(eq.of[eq.of.length-1].v/eq.oa[eq.oa.length-1].v)}`);L.push('')}
@@ -436,20 +481,11 @@ function summaryText(){
 }
 async function copySummary(){
   const t=summaryText();
-  try{await navigator.clipboard.writeText(t);toast('Resumo copiado. Cole no prontuário.')}
+  try{await navigator.clipboard.writeText(t);toast('Resumo copiado.')}
   catch(e){$('#rOut').innerHTML=`<p class="hint" style="margin:10px 0 6px">Selecione e copie o texto abaixo:</p><textarea readonly>${esc(t)}</textarea>`;const ta=$('#rOut textarea');ta.focus();ta.select()}
 }
-function makeExample(){
-  const id=uid();const now=Date.now(),D=86400000;const ds=[21,14,7,0].map(d=>new Date(now-d*D).toISOString());
-  const recs=[];
-  [[88,102,114,122]].forEach(a=>a.forEach((v,i)=>recs.push({id:uid(),type:'gonio',joint:'joelho_flex',side:'D',value:v,date:ds[i]})));
-  [120,138,151,163].forEach((v,i)=>recs.push({id:uid(),type:'gonio',joint:'ombro_flex',side:'E',value:v,date:ds[i]}));
-  [61.8,48.2,40.5,33.1].forEach((v,i)=>recs.push({id:uid(),type:'equilibrio',protocol:'oa',dur:30,area:v,rmsML:3,rmsAP:4,n:1800,date:ds[i]}));
-  [128.4,97.6,79.9,60.7].forEach((v,i)=>recs.push({id:uid(),type:'equilibrio',protocol:'of',dur:30,area:v,rmsML:4,rmsAP:6,n:1800,date:ds[i]}));
-  db.patients[id]={name:'Paciente exemplo',created:ds[0],records:recs};db.current=id;save();renderPatients();renderReport();toast('Paciente de exemplo criado');
-}
 
-load();renderPatients();gRender();bUI();
+carregarPacientes();gRender();bUI();
 })();
 </script>
 </body>
