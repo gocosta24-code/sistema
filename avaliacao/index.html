@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Avaliação por sensor — Casa Oliveira</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF2EE; --surface:#FAFCFA; --ink:#1C2B27; --muted:#55645E; --line:#D3DDD8;
+  --accent:#2E6B5B; --accent-ink:#FFFFFF; --soft:#DDE9E3; --live:#C9831F; --danger:#A83A3A;
+  --display:'Bricolage Grotesque','Segoe UI',system-ui,-apple-system,sans-serif;
+  --body:'Source Sans 3','Segoe UI',system-ui,-apple-system,sans-serif;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#111916; --surface:#19231F; --ink:#E6EEEA; --muted:#9CB0A8; --line:#2B3934;
+    --accent:#7CC3AE; --accent-ink:#0D1A15; --soft:#22322C; --live:#F0B44C; --danger:#E07B7B;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#111916; --surface:#19231F; --ink:#E6EEEA; --muted:#9CB0A8; --line:#2B3934;
+  --accent:#7CC3AE; --accent-ink:#0D1A15; --soft:#22322C; --live:#F0B44C; --danger:#E07B7B;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);background:var(--bg)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.wrap{max-width:560px;margin:0 auto;padding:20px 18px 56px}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:18px}
+.back{font-size:15px;font-weight:600;color:var(--accent);text-decoration:none;padding:12px 0;white-space:nowrap}
+.brand{font-family:var(--display);font-weight:600;font-size:15px;color:var(--accent);margin:0}
+h1{font-family:var(--display);font-weight:800;font-size:30px;line-height:1.05;margin:2px 0 0;letter-spacing:-.01em}
+h2{font-family:var(--display);font-weight:600;font-size:21px;margin:0 0 6px}
+h3{font-family:var(--display);font-weight:600;font-size:17px;margin:0}
+p{margin:0}
+.hint{font-size:14px;color:var(--muted)}
+label{font-weight:600;font-size:14px;display:block;margin-bottom:4px}
+select,input[type=text]{width:100%;min-height:48px;font:inherit;color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px}
+select:focus-visible,input:focus-visible,button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.row{display:flex;gap:10px;align-items:center}
+.row>*{flex:1}
+.row>.btn{flex:0 0 auto}
+.btn{min-height:48px;font:inherit;font-weight:600;border-radius:10px;padding:10px 16px;border:1.5px solid var(--accent);background:var(--accent);color:var(--accent-ink);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.quiet{border-color:var(--line);background:transparent;color:var(--ink)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.full{width:100%}
+.patient{background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:14px;display:grid;gap:10px}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin:18px 0 16px;background:var(--soft);padding:4px;border-radius:12px}
+.tabs button{min-height:44px;border:0;border-radius:9px;background:transparent;font:inherit;font-weight:600;color:var(--muted);cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 0 var(--line)}
+section.panel{display:grid;gap:14px}
+section.panel[hidden]{display:none}
+.how{background:var(--soft);border-radius:12px;padding:12px 14px;font-size:15px}
+.reading{display:grid;justify-items:center;padding:6px 0 2px}
+.gauge{width:100%;max-width:340px;height:auto}
+.angle{font-family:var(--display);font-weight:800;font-size:clamp(84px,26vw,128px);line-height:.9;letter-spacing:-.03em;font-variant-numeric:tabular-nums;margin-top:-58px}
+.status{font-size:15px;color:var(--muted);margin-top:8px;text-align:center}
+.status b{color:var(--ink)}
+.btns{display:grid;gap:10px}
+.btns.two{grid-template-columns:1fr 1fr}
+.err{background:transparent;border:1.5px solid var(--danger);color:var(--danger);border-radius:10px;padding:10px 12px;font-size:15px}
+.err[hidden]{display:none}
+.stage{position:relative;background:var(--surface);border:1.5px solid var(--line);border-radius:14px;overflow:hidden}
+canvas{display:block;width:100%;aspect-ratio:1/1}
+.overlay{position:absolute;inset:auto 0 0 0;padding:10px 14px;display:flex;justify-content:space-between;font-size:14px;color:var(--muted)}
+.count{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:120px;color:var(--live);pointer-events:none}
+.count[hidden]{display:none}
+.metrics{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--line);border:1.5px solid var(--line);border-radius:12px;overflow:hidden}
+.metrics div{background:var(--surface);padding:10px 12px}
+.metrics .v{font-family:var(--display);font-weight:600;font-size:22px;font-variant-numeric:tabular-nums}
+.metrics .k{font-size:13px;color:var(--muted);line-height:1.3}
+.card{background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:14px;display:grid;gap:6px}
+.card .big{font-family:var(--display);font-weight:600;font-size:26px;font-variant-numeric:tabular-nums}
+.chart{width:100%;height:auto;display:block;margin-top:4px}
+.list{display:grid;gap:0;border:1.5px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface)}
+.list .it{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border-top:1px solid var(--line);font-size:15px}
+.list .it:first-child{border-top:0}
+.list button{min-height:40px;font:inherit;font-size:14px;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:8px;padding:4px 10px;cursor:pointer}
+.list button.armed{border-color:var(--danger);color:var(--danger)}
+.empty{text-align:center;padding:26px 10px;display:grid;gap:12px;justify-items:center}
+textarea{width:100%;min-height:200px;font:14px/1.45 var(--body);color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:10px}
+.demo{display:flex;gap:10px;align-items:center;margin-top:24px;font-size:14px;color:var(--muted)}
+.demo input{width:22px;height:22px;accent-color:var(--accent)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:15px;max-width:90vw;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+@media (prefers-reduced-motion: reduce){.toast{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <p class="brand">Casa Oliveira Saúde</p>
+      <h1>Avaliação por sensor</h1>
+    </div>
+    <a class="back" href="../">← Sistema</a>
+  </header>
+
+  <div class="patient">
+    <div>
+      <label for="pSel">Paciente</label>
+      <div class="row">
+        <select id="pSel"></select>
+        <button class="btn ghost" id="pNewBtn" type="button">Novo</button>
+      </div>
+    </div>
+    <div class="row" id="pNew" hidden>
+      <input type="text" id="pName" placeholder="Nome ou iniciais" autocomplete="off">
+      <button class="btn" id="pAdd" type="button">Adicionar</button>
+    </div>
+    <p class="hint">Os dados ficam salvos só neste aparelho. Use iniciais se preferir.</p>
+  </div>
+
+  <nav class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-tab="gonio">Goniometria</button>
+    <button role="tab" aria-selected="false" data-tab="equi">Equilíbrio</button>
+    <button role="tab" aria-selected="false" data-tab="rel">Relatório</button>
+  </nav>
+
+  <!-- GONIOMETRIA -->
+  <section class="panel" id="tab-gonio">
+    <div class="row">
+      <div>
+        <label for="gJoint">Movimento</label>
+        <select id="gJoint"></select>
+      </div>
+      <div style="flex:0 0 110px">
+        <label for="gSide">Lado</label>
+        <select id="gSide"><option value="D">Direito</option><option value="E">Esquerdo</option></select>
+      </div>
+    </div>
+    <p class="how" id="gHow"></p>
+    <div class="reading">
+      <svg class="gauge" viewBox="0 0 200 112" aria-hidden="true">
+        <path d="M12 100 A88 88 0 0 1 188 100" fill="none" stroke="var(--soft)" stroke-width="10" stroke-linecap="round"/>
+        <path id="gArc" d="M12 100 A88 88 0 0 1 12 100" fill="none" stroke="var(--accent)" stroke-width="10" stroke-linecap="round"/>
+        <circle id="gPk" cx="12" cy="100" r="6" fill="var(--live)" opacity="0"/>
+      </svg>
+      <div class="angle" id="gAngle" aria-live="off">0°</div>
+      <p class="status" id="gStatus">Sensor desligado</p>
+    </div>
+    <p class="err" id="gErr" hidden></p>
+    <div class="btns">
+      <button class="btn full" id="gOn" type="button">Ativar sensor</button>
+      <div class="btns two">
+        <button class="btn ghost" id="gZero" type="button" disabled>Zerar posição</button>
+        <button class="btn ghost" id="gSave" type="button" disabled>Salvar pico</button>
+      </div>
+    </div>
+    <p class="hint">Mede movimentos que sobem ou descem contra a gravidade. Rotações no plano horizontal (como rotação interna de ombro deitado de lado) não aparecem com precisão.</p>
+  </section>
+
+  <!-- EQUILÍBRIO -->
+  <section class="panel" id="tab-equi" hidden>
+    <div class="row">
+      <div>
+        <label for="bProto">Protocolo</label>
+        <select id="bProto"></select>
+      </div>
+      <div style="flex:0 0 110px">
+        <label for="bDur">Duração</label>
+        <select id="bDur"><option value="10">10 s</option><option value="20">20 s</option><option value="30" selected>30 s</option></select>
+      </div>
+    </div>
+    <p class="how">Prenda o celular na lombar, na altura de L5, com uma cinta firme. Tela para fora, celular em pé. Depois de tocar em Iniciar você tem 5 segundos para posicionar. Um bipe marca o início e dois bipes o fim.</p>
+    <div class="stage">
+      <canvas id="bCanvas" width="600" height="600" aria-label="Estabilograma: deslocamento lateral e anteroposterior"></canvas>
+      <div class="count" id="bCount" hidden>5</div>
+      <div class="overlay"><span id="bInfo">Pronto para iniciar</span><span>lateral ↔ · frente ↕</span></div>
+    </div>
+    <p class="err" id="bErr" hidden></p>
+    <button class="btn full" id="bGo" type="button">Iniciar teste</button>
+    <div id="bRes" hidden style="display:grid;gap:10px">
+      <div class="metrics">
+        <div><div class="v" id="mArea">–</div><div class="k">área de oscilação (cm²/s⁴)</div></div>
+        <div><div class="v" id="mML">–</div><div class="k">RMS lateral (cm/s²)</div></div>
+        <div><div class="v" id="mAP">–</div><div class="k">RMS anteroposterior (cm/s²)</div></div>
+      </div>
+      <p class="hint" id="mNote"></p>
+      <div class="btns two">
+        <button class="btn quiet" id="bDiscard" type="button">Descartar</button>
+        <button class="btn" id="bSave" type="button">Salvar resultado</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- RELATÓRIO -->
+  <section class="panel" id="tab-rel" hidden>
+    <div id="rBody"></div>
+  </section>
+
+  <label class="demo"><input type="checkbox" id="demo"> Modo demonstração (simula o sensor, para testar no computador)</label>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function(){
+const $=s=>document.querySelector(s);
+const KEY='co-avalia-v1';
+let db={patients:{},current:null};
+function load(){try{const r=localStorage.getItem(KEY);if(r){const d=JSON.parse(r);if(d&&d.patients)db=d}}catch(e){}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){toast('Este navegador não deixou salvar os dados.')}}
+function uid(){return Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4)}
+function cur(){return db.current?db.patients[db.current]:null}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+const nf1=new Intl.NumberFormat('pt-BR',{maximumFractionDigits:1,minimumFractionDigits:1});
+const nf0=new Intl.NumberFormat('pt-BR',{maximumFractionDigits:0});
+function dShort(iso){const d=new Date(iso);return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})}
+let tt;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2600)}
+function showErr(id,m){const e=$(id);e.textContent=m;e.hidden=!m}
+
+/* ---------- pacientes ---------- */
+function renderPatients(){
+  const s=$('#pSel');const ids=Object.keys(db.patients).sort((a,b)=>db.patients[a].name.localeCompare(db.patients[b].name,'pt-BR'));
+  if(!ids.length){s.innerHTML='<option value="">Cadastre um paciente</option>';s.disabled=true;return}
+  s.disabled=false;
+  s.innerHTML=ids.map(id=>`<option value="${id}"${id===db.current?' selected':''}>${esc(db.patients[id].name)}</option>`).join('');
+  if(!db.current||!db.patients[db.current]){db.current=ids[0];save()}
+}
+$('#pSel').addEventListener('change',e=>{db.current=e.target.value;save();renderReport()});
+$('#pNewBtn').addEventListener('click',()=>{const n=$('#pNew');n.hidden=!n.hidden;if(!n.hidden)$('#pName').focus()});
+function addPatient(){
+  const name=$('#pName').value.trim();if(!name){$('#pName').focus();return}
+  const id=uid();db.patients[id]={name,created:new Date().toISOString(),records:[]};db.current=id;save();
+  $('#pName').value='';$('#pNew').hidden=true;renderPatients();renderReport();toast('Paciente adicionado: '+name);
+}
+$('#pAdd').addEventListener('click',addPatient);
+$('#pName').addEventListener('keydown',e=>{if(e.key==='Enter')addPatient()});
+function addRecord(r){const p=cur();if(!p){toast('Escolha ou cadastre um paciente antes de salvar.');return false}r.id=uid();r.date=r.date||new Date().toISOString();p.records.push(r);save();return true}
+
+/* ---------- abas ---------- */
+document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>{
+  stopAll();
+  document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b?'true':'false'));
+  ['gonio','equi','rel'].forEach(t=>$('#tab-'+t).hidden=(t!==b.dataset.tab));
+  if(b.dataset.tab==='rel')renderReport();
+  if(b.dataset.tab==='equi')sizeCanvas();
+}));
+
+/* ---------- som, tela ligada ---------- */
+let actx=null;
+function unlockAudio(){try{if(!actx)actx=new (window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume()}catch(e){}}
+function beep(f=880,d=.18,delay=0){try{if(!actx)return;const o=actx.createOscillator(),g=actx.createGain();o.frequency.value=f;o.connect(g);g.connect(actx.destination);const t=actx.currentTime+delay;g.gain.setValueAtTime(.001,t);g.gain.exponentialRampToValueAtTime(.4,t+.02);g.gain.exponentialRampToValueAtTime(.001,t+d);o.start(t);o.stop(t+d+.02)}catch(e){}try{navigator.vibrate&&navigator.vibrate(120)}catch(e){}}
+let wl=null;async function keepAwake(on){try{if(on&&navigator.wakeLock){wl=await navigator.wakeLock.request('screen')}else if(!on&&wl){await wl.release();wl=null}}catch(e){}}
+
+/* ---------- sensor ---------- */
+const NO_SENSOR='Nenhum dado do sensor chegou. Abra este link no celular (Chrome no Android ou Safari no iPhone) e permita o acesso ao movimento. No computador, ligue o modo demonstração lá embaixo.';
+const demoOn=()=>$('#demo').checked;
+async function startMotion(cb,demoGen){
+  if(demoOn()){const t0=performance.now();const id=setInterval(()=>cb(demoGen((performance.now()-t0)/1000)),16);return()=>clearInterval(id)}
+  if(typeof DeviceMotionEvent==='undefined')throw new Error(NO_SENSOR);
+  if(typeof DeviceMotionEvent.requestPermission==='function'){
+    let r;try{r=await DeviceMotionEvent.requestPermission()}catch(e){throw new Error('O iPhone não liberou o sensor. Toque de novo no botão e escolha Permitir.')}
+    if(r!=='granted')throw new Error('Acesso ao movimento negado. Nos ajustes do Safari, permita Movimento e orientação e tente de novo.');
+  }
+  let count=0;
+  const h=e=>{const ag=e.accelerationIncludingGravity;if(!ag||ag.x==null)return;count++;const a=e.acceleration;const lin=!!(a&&a.x!=null);
+    cb({gx:ag.x,gy:ag.y,gz:ag.z,ax:lin?a.x:0,ay:lin?a.y:0,az:lin?a.z:0,hasLin:lin})};
+  window.addEventListener('devicemotion',h);
+  const stop=()=>window.removeEventListener('devicemotion',h);
+  await new Promise(r=>setTimeout(r,1200));
+  if(count===0){stop();throw new Error(NO_SENSOR)}
+  return stop;
+}
+function stopAll(){if(g.stop){g.stop();g.stop=null}g.on=false;g.ref=null;g.lp=null;g.peak=0;g.angle=0;gRender();if(b.state!=='idle')bCancel()}
+
+/* ---------- goniometria ---------- */
+const JOINTS={
+  joelho_flex:{label:'Flexão de joelho',ref:140,how:'Paciente em decúbito ventral, joelho estendido. Prenda o celular na face posterior da perna, logo abaixo do joelho. Toque em Zerar e peça a flexão máxima.'},
+  ombro_flex:{label:'Flexão de ombro',ref:180,how:'Paciente em pé, braço relaxado ao lado do corpo. Celular na face lateral do braço. Toque em Zerar e peça a elevação anterior máxima, cotovelo estendido.'},
+  ombro_abd:{label:'Abdução de ombro',ref:180,how:'Paciente em pé, braço ao lado do corpo. Celular na face anterior do braço. Toque em Zerar e peça a elevação lateral máxima.'},
+  quadril_flex:{label:'Flexão de quadril',ref:120,how:'Paciente em decúbito dorsal, pernas estendidas. Celular na face anterior da coxa. Toque em Zerar e peça a flexão do quadril com joelho fletido.'},
+  cotovelo_flex:{label:'Flexão de cotovelo',ref:145,how:'Paciente sentado, braço junto ao tronco e antebraço pendente. Celular na face lateral do antebraço. Toque em Zerar e peça a flexão máxima.'}
+};
+$('#gJoint').innerHTML=Object.entries(JOINTS).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join('');
+function gHow(){const j=JOINTS[$('#gJoint').value];$('#gHow').textContent=j.how+' Referência usual: 0 a '+j.ref+'°.'}
+$('#gJoint').addEventListener('change',()=>{gHow();g.ref=null;g.peak=0;g.angle=0;gRender()});gHow();
+
+const g={on:false,lp:null,ref:null,angle:0,peak:0,stop:null,raf:0};
+const vn=v=>{const m=Math.hypot(v[0],v[1],v[2])||1;return[v[0]/m,v[1]/m,v[2]/m]};
+function ang(a,c){const A=vn(a),B=vn(c);let d=A[0]*B[0]+A[1]*B[1]+A[2]*B[2];d=Math.max(-1,Math.min(1,d));return Math.acos(d)*180/Math.PI}
+function demoGonio(t){const th=(t<2?0:62*(1-Math.cos((t-2)*.8)))*Math.PI/180+(Math.random()-.5)*.004;return{gx:0,gy:9.81*Math.cos(th),gz:9.81*Math.sin(th),ax:0,ay:0,az:0,hasLin:false}}
+function onG(s){const v=[s.gx,s.gy,s.gz];g.lp=g.lp?g.lp.map((c,i)=>c*.8+v[i]*.2):v;if(g.ref){g.angle=ang(g.lp,g.ref);if(g.angle>g.peak)g.peak=g.angle}
+  if(!g.raf)g.raf=requestAnimationFrame(()=>{g.raf=0;gRender()})}
+function pt(deg){const r=deg*Math.PI/180;return[(100-88*Math.cos(r)).toFixed(1),(100-88*Math.sin(r)).toFixed(1)]}
+function gRender(){
+  const a=g.ref?Math.min(180,g.angle):0,pk=Math.min(180,g.peak);
+  $('#gAngle').textContent=Math.round(a)+'°';
+  const [x,y]=pt(a);$('#gArc').setAttribute('d',`M12 100 A88 88 0 0 1 ${x} ${y}`);
+  const [px,py]=pt(pk);const c=$('#gPk');c.setAttribute('cx',px);c.setAttribute('cy',py);c.setAttribute('opacity',g.ref&&pk>1?'1':'0');
+  $('#gStatus').innerHTML=!g.on?'Sensor desligado':(!g.ref?'Posicione o celular e toque em <b>Zerar posição</b>':'Pico: <b>'+Math.round(pk)+'°</b>');
+  $('#gOn').textContent=g.on?'Desligar sensor':'Ativar sensor';
+  $('#gZero').disabled=!g.on;$('#gSave').disabled=!(g.ref&&g.peak>=1);
+}
+$('#gOn').addEventListener('click',async()=>{
+  if(g.on){stopAll();return}
+  showErr('#gErr','');unlockAudio();
+  $('#gOn').disabled=true;$('#gOn').textContent='Ligando…';
+  try{g.stop=await startMotion(onG,demoGonio);g.on=true;keepAwake(true)}catch(e){showErr('#gErr',e.message)}
+  $('#gOn').disabled=false;gRender();
+});
+$('#gZero').addEventListener('click',()=>{if(!g.lp)return;g.ref=g.lp.slice();g.peak=0;g.angle=0;beep(660,.12);gRender()});
+$('#gSave').addEventListener('click',()=>{
+  const j=$('#gJoint').value,side=$('#gSide').value,v=Math.round(g.peak);
+  if(addRecord({type:'gonio',joint:j,side,value:v})){toast(`Salvo: ${JOINTS[j].label} ${side}, ${v}°`);g.ref=null;g.peak=0;g.angle=0;gRender()}
+});
+
+/* ---------- equilíbrio ---------- */
+const PROTOS={oa:{label:'Bipodal, olhos abertos',amp:.05},of:{label:'Bipodal, olhos fechados',amp:.085},ud:{label:'Unipodal direito',amp:.2},ue:{label:'Unipodal esquerdo',amp:.18}};
+$('#bProto').innerHTML=Object.entries(PROTOS).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join('');
+const b={state:'idle',xs:[],zs:[],stop:null,lp:null,f:[0,0],last:null,t0:0,dur:30,iv:0,to:0,raf:0,res:null};
+function demoBalance(t){const a=PROTOS[$('#bProto').value].amp;const n=()=>(Math.random()-.5)*a*.5;
+  const x=a*(.55*Math.sin(t*1.3)+.35*Math.sin(t*.41+1)+.2*Math.sin(t*3.1))+n();
+  const z=a*1.3*(.5*Math.sin(t*.9+2)+.4*Math.sin(t*.27)+.2*Math.sin(t*2.6+.5))+n();
+  return{gx:x,gy:9.81,gz:z,ax:x,ay:0,az:z,hasLin:true}}
+function onB(s){
+  let x,z;
+  if(s.hasLin){x=s.ax;z=s.az}else{if(!b.lp)b.lp=[s.gx,s.gy,s.gz];b.lp=[b.lp[0]*.95+s.gx*.05,b.lp[1]*.95+s.gy*.05,b.lp[2]*.95+s.gz*.05];x=s.gx-b.lp[0];z=s.gz-b.lp[2]}
+  b.f=[b.f[0]*.7+x*.3,b.f[1]*.7+z*.3];b.last=b.f.slice();
+  if(b.state==='rec'){b.xs.push(b.f[0]);b.zs.push(b.f[1])}
+  if(!b.raf)b.raf=requestAnimationFrame(()=>{b.raf=0;drawB()});
+}
+let cv,cx,W=600;
+function sizeCanvas(){cv=$('#bCanvas');const r=cv.getBoundingClientRect();const dpr=Math.min(2,window.devicePixelRatio||1);W=Math.max(200,Math.round(r.width*dpr));cv.width=W;cv.height=W;cx=cv.getContext('2d');drawB()}
+function css(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim()}
+function stats(xs,zs){
+  const n=xs.length;if(n<10)return null;
+  const mx=xs.reduce((a,c)=>a+c,0)/n,mz=zs.reduce((a,c)=>a+c,0)/n;
+  let vx=0,vz=0,cz=0;for(let i=0;i<n;i++){const dx=xs[i]-mx,dz=zs[i]-mz;vx+=dx*dx;vz+=dz*dz;cz+=dx*dz}vx/=n;vz/=n;cz/=n;
+  const tr=(vx+vz)/2,dt=Math.sqrt(((vx-vz)/2)**2+cz*cz);const l1=tr+dt,l2=Math.max(0,tr-dt);
+  return{n,mx,mz,vx,vz,cz,l1,l2,theta:.5*Math.atan2(2*cz,vx-vz),area:Math.PI*5.991*Math.sqrt(l1*l2)*1e4,rmsML:Math.sqrt(vx)*100,rmsAP:Math.sqrt(vz)*100};
+}
+function drawB(){
+  if(!cx)return;const ink=css('--ink'),muted=css('--muted'),line=css('--line'),acc=css('--accent'),live=css('--live');
+  cx.clearRect(0,0,W,W);const c=W/2;
+  cx.strokeStyle=line;cx.lineWidth=Math.max(1,W/400);cx.beginPath();cx.moveTo(c,W*.06);cx.lineTo(c,W*.94);cx.moveTo(W*.06,c);cx.lineTo(W*.94,c);cx.stroke();
+  cx.beginPath();cx.arc(c,c,W*.22,0,Math.PI*2);cx.arc(c,c,W*.44,0,Math.PI*2);cx.stroke();
+  let mx=0,mz=0;if(b.xs.length){mx=b.xs.reduce((a,v)=>a+v,0)/b.xs.length;mz=b.zs.reduce((a,v)=>a+v,0)/b.zs.length}
+  let m=.12;for(let i=0;i<b.xs.length;i++){m=Math.max(m,Math.abs(b.xs[i]-mx)*1.3,Math.abs(b.zs[i]-mz)*1.3)}
+  const k=(W*.44)/m;
+  if(b.xs.length>1){cx.strokeStyle=ink;cx.globalAlpha=.35;cx.lineWidth=Math.max(1,W/350);cx.beginPath();
+    for(let i=0;i<b.xs.length;i++){const X=c+(b.xs[i]-mx)*k,Y=c-(b.zs[i]-mz)*k;i?cx.lineTo(X,Y):cx.moveTo(X,Y)}cx.stroke();cx.globalAlpha=1}
+  if(b.res){const s=b.res;cx.save();cx.translate(c+(s.mx-mx)*k,c-(s.mz-mz)*k);cx.rotate(-s.theta);cx.strokeStyle=acc;cx.lineWidth=Math.max(2,W/150);
+    cx.beginPath();cx.ellipse(0,0,Math.sqrt(5.991*s.l1)*k,Math.sqrt(5.991*s.l2)*k,0,0,Math.PI*2);cx.stroke();cx.restore()}
+  if(b.last&&b.state!=='idle'){const X=c+(b.last[0]-mx)*k,Y=c-(b.last[1]-mz)*k;cx.fillStyle=live;cx.beginPath();cx.arc(Math.max(8,Math.min(W-8,X)),Math.max(8,Math.min(W-8,Y)),W/45,0,Math.PI*2);cx.fill()}
+  cx.fillStyle=muted;cx.font=`${Math.round(W/34)}px ${css('--body')}`;cx.fillText('escala ±'+nf0.format(m*100)+' cm/s²',W*.04,W*.06);
+}
+window.addEventListener('resize',()=>{if(!$('#tab-equi').hidden)sizeCanvas()});
+function bUI(){
+  $('#bGo').textContent=b.state==='idle'?'Iniciar teste':'Cancelar';
+  $('#bProto').disabled=$('#bDur').disabled=b.state!=='idle';
+}
+$('#bGo').addEventListener('click',async()=>{
+  if(b.state!=='idle'){bCancel();return}
+  showErr('#bErr','');unlockAudio();$('#bRes').hidden=true;b.res=null;
+  b.dur=+$('#bDur').value;b.xs=[];b.zs=[];b.lp=null;b.f=[0,0];b.last=null;b.state='count';bUI();
+  try{b.stop=await startMotion(onB,demoBalance)}catch(e){showErr('#bErr',e.message);b.state='idle';bUI();return}
+  if(b.state!=='count')return;
+  keepAwake(true);let n=5;const ce=$('#bCount');ce.hidden=false;ce.textContent=n;$('#bInfo').textContent='Posicione o paciente';
+  b.iv=setInterval(()=>{n--;if(n>0){ce.textContent=n;return}clearInterval(b.iv);ce.hidden=true;beep(880,.25);b.state='rec';b.t0=performance.now();
+    b.iv=setInterval(()=>{const r=Math.max(0,b.dur-(performance.now()-b.t0)/1000);$('#bInfo').textContent='Gravando: '+Math.ceil(r)+' s'},200);
+    b.to=setTimeout(bFinish,b.dur*1000)},1000);
+});
+function bCleanup(){clearInterval(b.iv);clearTimeout(b.to);if(b.stop){b.stop();b.stop=null}$('#bCount').hidden=true;keepAwake(false)}
+function bCancel(){bCleanup();b.state='idle';b.xs=[];b.zs=[];b.last=null;$('#bInfo').textContent='Teste cancelado';bUI();drawB()}
+function bFinish(){
+  bCleanup();beep(880,.15);beep(880,.15,.25);b.state='idle';bUI();
+  const s=stats(b.xs,b.zs);
+  if(!s){$('#bInfo').textContent='Poucos dados';showErr('#bErr','O sensor enviou poucos dados. Tente de novo com a tela ligada.');drawB();return}
+  b.res=s;b.last=null;drawB();
+  $('#bInfo').textContent=PROTOS[$('#bProto').value].label;
+  $('#mArea').textContent=nf1.format(s.area);$('#mML').textContent=nf1.format(s.rmsML);$('#mAP').textContent=nf1.format(s.rmsAP);
+  $('#mNote').textContent=`${s.n} leituras em ${b.dur} s (${nf0.format(s.n/b.dur)} por segundo). Quanto menor a área, mais estável.`;
+  $('#bRes').hidden=false;
+}
+$('#bDiscard').addEventListener('click',()=>{$('#bRes').hidden=true;b.res=null;b.xs=[];b.zs=[];$('#bInfo').textContent='Pronto para iniciar';drawB()});
+$('#bSave').addEventListener('click',()=>{
+  const s=b.res;if(!s)return;const p=$('#bProto').value;
+  if(addRecord({type:'equilibrio',protocol:p,dur:b.dur,area:+s.area.toFixed(2),rmsML:+s.rmsML.toFixed(2),rmsAP:+s.rmsAP.toFixed(2),n:s.n})){
+    toast('Salvo: '+PROTOS[p].label);$('#bRes').hidden=true}
+});
+
+/* ---------- relatório ---------- */
+function chart(pts,fmt){
+  if(pts.length<2)return'';const Wd=320,H=124,p=24;const vs=pts.map(q=>q.v);let lo=Math.min(...vs),hi=Math.max(...vs);
+  if(hi-lo<1e-9){hi+=1;lo-=1}const pad=(hi-lo)*.2;lo-=pad;hi+=pad;
+  const X=i=>p+i*(Wd-2*p)/(pts.length-1),Y=v=>H-p-(v-lo)/(hi-lo)*(H-2*p-6);const lbl=pts.length<=8;
+  let s=`<svg class="chart" viewBox="0 0 ${Wd} ${H}" role="img" aria-label="Gráfico de evolução"><polyline points="${pts.map((q,i)=>X(i).toFixed(1)+','+Y(q.v).toFixed(1)).join(' ')}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`;
+  pts.forEach((q,i)=>{s+=`<circle cx="${X(i).toFixed(1)}" cy="${Y(q.v).toFixed(1)}" r="4.5" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/>`;
+    if(lbl){s+=`<text x="${X(i).toFixed(1)}" y="${(Y(q.v)-10).toFixed(1)}" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink)">${fmt(q.v)}</text><text x="${X(i).toFixed(1)}" y="${H-3}" text-anchor="middle" font-size="11" fill="var(--muted)">${dShort(q.d)}</text>`}});
+  return s+'</svg>';
+}
+function groups(p){
+  const gon={},eq={};
+  [...p.records].sort((a,c)=>a.date.localeCompare(c.date)).forEach(r=>{
+    if(r.type==='gonio'){const k=r.joint+'|'+r.side;(gon[k]=gon[k]||[]).push({d:r.date,v:r.value})}
+    else{(eq[r.protocol]=eq[r.protocol]||[]).push({d:r.date,v:r.area,r})}});
+  return{gon,eq};
+}
+function renderReport(){
+  const el=$('#rBody');const p=cur();
+  if(!p){el.innerHTML=`<div class="empty"><p>Cadastre um paciente para ver a evolução aqui.</p><button class="btn ghost" id="rDemo" type="button">Criar paciente de exemplo</button></div>`;$('#rDemo').onclick=makeExample;return}
+  if(!p.records.length){el.innerHTML=`<div class="empty"><p>${esc(p.name)} ainda não tem medidas. Faça uma goniometria ou um teste de equilíbrio e salve.</p><button class="btn ghost" id="rDemo" type="button">Criar paciente de exemplo</button></div>`;$('#rDemo').onclick=makeExample;return}
+  const {gon,eq}=groups(p);let h=`<div style="display:grid;gap:12px"><h2>${esc(p.name)}</h2>`;
+  const gk=Object.keys(gon);
+  if(gk.length){h+=`<h3>Amplitude de movimento</h3>`;gk.forEach(k=>{const [j,sd]=k.split('|');const a=gon[k];const last=a[a.length-1].v,first=a[0].v,dif=last-first;
+    h+=`<div class="card"><p class="hint">${JOINTS[j]?JOINTS[j].label:j}, lado ${sd==='D'?'direito':'esquerdo'}</p><p class="big">${last}°</p>${a.length>1?`<p class="hint">${dif>=0?'+':'−'}${Math.abs(dif)}° desde a primeira medida (${dShort(a[0].d)})</p>`:''}${chart(a,v=>v+'°')}</div>`})}
+  const ek=Object.keys(eq);
+  if(ek.length){h+=`<h3 style="margin-top:6px">Equilíbrio</h3>`;
+    if(eq.oa&&eq.of){const q=eq.of[eq.of.length-1].v/eq.oa[eq.oa.length-1].v;h+=`<div class="card"><p class="hint">Quociente de Romberg (área olhos fechados ÷ olhos abertos, últimas medidas)</p><p class="big">${nf1.format(q)}</p><p class="hint">Quanto mais alto, maior a dependência da visão para se equilibrar.</p></div>`}
+    ek.forEach(k=>{const a=eq[k];const last=a[a.length-1].v,first=a[0].v;const pc=first?Math.round((last-first)/first*100):0;
+    h+=`<div class="card"><p class="hint">${PROTOS[k]?PROTOS[k].label:k}, área de oscilação (cm²/s⁴)</p><p class="big">${nf1.format(last)}</p>${a.length>1?`<p class="hint">${pc<=0?'':'+'}${pc}% desde a primeira medida. Menor é mais estável.</p>`:''}${chart(a,v=>nf0.format(v))}</div>`})}
+  h+=`<div class="btns two" style="margin-top:4px"><button class="btn" id="rCopy" type="button">Copiar resumo</button><button class="btn quiet" id="rShowAll" type="button">Ver todas as medidas</button></div><div id="rOut"></div><div id="rAll" hidden></div></div>`;
+  el.innerHTML=h;$('#rCopy').onclick=copySummary;$('#rShowAll').onclick=()=>{const a=$('#rAll');a.hidden=!a.hidden;if(!a.hidden)renderAll()};
+}
+function renderAll(){
+  const p=cur();const a=$('#rAll');const rs=[...p.records].sort((x,y)=>y.date.localeCompare(x.date));
+  a.innerHTML=`<div class="list" style="margin-top:10px">${rs.map(r=>`<div class="it"><span>${dShort(r.date)} · ${r.type==='gonio'?`${JOINTS[r.joint]?JOINTS[r.joint].label:r.joint} ${r.side}: <b>${r.value}°</b>`:`${PROTOS[r.protocol]?PROTOS[r.protocol].label:r.protocol}: <b>${nf1.format(r.area)}</b>`}</span><button type="button" data-id="${r.id}">Excluir</button></div>`).join('')}</div>`;
+  a.querySelectorAll('button').forEach(bt=>bt.onclick=()=>{
+    if(!bt.classList.contains('armed')){bt.classList.add('armed');bt.textContent='Confirmar';setTimeout(()=>{bt.classList.remove('armed');bt.textContent='Excluir'},3000);return}
+    p.records=p.records.filter(r=>r.id!==bt.dataset.id);save();renderReport();$('#rAll').hidden=false;renderAll();toast('Medida excluída')});
+}
+function summaryText(){
+  const p=cur();const {gon,eq}=groups(p);const L=[`Avaliação por sensor — ${p.name}`,`Gerado em ${new Date().toLocaleDateString('pt-BR')}`,''];
+  const gk=Object.keys(gon);if(gk.length){L.push('Amplitude de movimento (pico ativo)');gk.forEach(k=>{const [j,sd]=k.split('|');L.push(`- ${JOINTS[j]?JOINTS[j].label:j} ${sd}: `+gon[k].map(q=>`${dShort(q.d)} ${q.v}°`).join(', '))});L.push('')}
+  const ek=Object.keys(eq);if(ek.length){L.push('Equilíbrio, área de oscilação em cm²/s⁴ (menor é mais estável)');ek.forEach(k=>L.push(`- ${PROTOS[k]?PROTOS[k].label:k}: `+eq[k].map(q=>`${dShort(q.d)} ${nf1.format(q.v)}`).join(', ')));
+    if(eq.oa&&eq.of)L.push(`- Quociente de Romberg: ${nf1.format(eq.of[eq.of.length-1].v/eq.oa[eq.oa.length-1].v)}`);L.push('')}
+  L.push('Medidas obtidas com sensor inercial do celular, para acompanhamento da evolução do mesmo paciente com o mesmo protocolo.');
+  return L.join('\n');
+}
+async function copySummary(){
+  const t=summaryText();
+  try{await navigator.clipboard.writeText(t);toast('Resumo copiado. Cole no prontuário.')}
+  catch(e){$('#rOut').innerHTML=`<p class="hint" style="margin:10px 0 6px">Selecione e copie o texto abaixo:</p><textarea readonly>${esc(t)}</textarea>`;const ta=$('#rOut textarea');ta.focus();ta.select()}
+}
+function makeExample(){
+  const id=uid();const now=Date.now(),D=86400000;const ds=[21,14,7,0].map(d=>new Date(now-d*D).toISOString());
+  const recs=[];
+  [[88,102,114,122]].forEach(a=>a.forEach((v,i)=>recs.push({id:uid(),type:'gonio',joint:'joelho_flex',side:'D',value:v,date:ds[i]})));
+  [120,138,151,163].forEach((v,i)=>recs.push({id:uid(),type:'gonio',joint:'ombro_flex',side:'E',value:v,date:ds[i]}));
+  [61.8,48.2,40.5,33.1].forEach((v,i)=>recs.push({id:uid(),type:'equilibrio',protocol:'oa',dur:30,area:v,rmsML:3,rmsAP:4,n:1800,date:ds[i]}));
+  [128.4,97.6,79.9,60.7].forEach((v,i)=>recs.push({id:uid(),type:'equilibrio',protocol:'of',dur:30,area:v,rmsML:4,rmsAP:6,n:1800,date:ds[i]}));
+  db.patients[id]={name:'Paciente exemplo',created:ds[0],records:recs};db.current=id;save();renderPatients();renderReport();toast('Paciente de exemplo criado');
+}
+
+load();renderPatients();gRender();bUI();
+})();
+</script>
+</body>
+</html>
