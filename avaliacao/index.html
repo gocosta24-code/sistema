@@ -37,6 +37,7 @@ input[type=number]{width:100%;min-height:48px;font:inherit;font-size:22px;color:
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5;-webkit-font-smoothing:antialiased}
 .wrap{max-width:560px;margin:0 auto;padding:20px 18px 56px}
 header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:18px}
+.back{font-size:15px;font-weight:600;color:var(--accent);text-decoration:none;padding:12px 0;white-space:nowrap}
 .brand{font-family:var(--display);font-weight:600;font-size:15px;color:var(--accent);margin:0}
 h1{font-family:var(--display);font-weight:800;font-size:30px;line-height:1.05;margin:2px 0 0;letter-spacing:-.01em}
 h2{font-family:var(--display);font-weight:600;font-size:21px;margin:0 0 6px}
@@ -154,21 +155,16 @@ textarea.in{min-height:90px}
       <p class="brand">Casa Oliveira Saúde</p>
       <h1>Avaliação por sensor</h1>
     </div>
+    <a class="back" href="../">← Sistema</a>
   </header>
 
   <div class="patient">
     <div>
       <label for="pSel">Paciente</label>
-      <div class="row">
-        <select id="pSel"></select>
-        <button class="btn ghost" id="pNewBtn" type="button">Novo</button>
-      </div>
+      <select id="pSel" disabled><option value="">Carregando pacientes…</option></select>
     </div>
-    <div class="row" id="pNew" hidden>
-      <input type="text" id="pName" placeholder="Nome ou iniciais" autocomplete="off">
-      <button class="btn" id="pAdd" type="button">Adicionar</button>
-    </div>
-    <p class="hint">Os dados ficam salvos só neste aparelho. Use iniciais se preferir.</p>
+    <p class="err" id="pErr" hidden></p>
+    <p class="hint">Cada medida salva entra no prontuário do paciente, como evolução.</p>
   </div>
 
   <nav class="tabs" role="tablist">
@@ -366,7 +362,7 @@ textarea.in{min-height:90px}
         <button class="btn ghost" id="tSave" type="button" disabled>Salvar série</button>
       </div>
     </div>
-    <p class="hint">Quando o app estiver dentro do sistema de gestão, o mesmo treino poderá ser enviado para o paciente fazer em casa pela Área do Paciente.</p>
+    <p class="hint">Numa próxima etapa, o mesmo treino poderá ser enviado para o paciente fazer em casa pela Área do Paciente.</p>
   </section>
 
   <!-- CÂMERA -->
@@ -422,12 +418,6 @@ textarea.in{min-height:90px}
 <script>
 (function(){
 const $=s=>document.querySelector(s);
-const KEY='co-avalia-v1';
-let db={patients:{},current:null};
-function load(){try{const r=localStorage.getItem(KEY);if(r){const d=JSON.parse(r);if(d&&d.patients)db=d}}catch(e){}}
-function save(){try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){toast('Este navegador não deixou salvar os dados.')}}
-function uid(){return Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4)}
-function cur(){return db.current?db.patients[db.current]:null}
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 const nf1=new Intl.NumberFormat('pt-BR',{maximumFractionDigits:1,minimumFractionDigits:1});
 const nf0=new Intl.NumberFormat('pt-BR',{maximumFractionDigits:0});
@@ -435,24 +425,85 @@ function dShort(iso){const d=new Date(iso);return d.toLocaleDateString('pt-BR',{
 let tt;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2600)}
 function showErr(id,m){const e=$(id);e.textContent=m;e.hidden=!m}
 
+/* ---------- sessão do sistema ---------- */
+// Usa o mesmo login do sistema (mesmo endereço, mesmo localStorage). O
+// endereço da API é o que o sistema gravou ao abrir, para não ter uma cópia
+// dele aqui que fique para trás quando a implantação mudar.
+const S=(()=>{try{return{token:localStorage.getItem('co_token'),user:JSON.parse(localStorage.getItem('co_user')||'null'),api:localStorage.getItem('co_api_ativa')}}catch(e){return{}}})();
+const logado=!!(S.token&&S.user&&S.api);
+function semSessao(msg){
+  const e=$('#pErr');e.innerHTML=esc(msg||'Para salvar no prontuário, entre no sistema primeiro.')+' <a href="../" style="color:inherit;font-weight:600">Entrar no sistema</a>';e.hidden=false;
+  $('#pSel').innerHTML='<option value="">—</option>';$('#pSel').disabled=true;pacientes=[];atual=null;
+}
+// Mesmo formato do sistema: POST em text/plain, que não dispara o preflight
+// de CORS que o Apps Script não responde
+async function api(action,body={}){
+  let d;
+  try{const r=await fetch(S.api,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({...body,action,token:S.token}),redirect:'follow'});
+    if(!r.ok)return{ok:false,erro:'erro HTTP '+r.status};d=JSON.parse(await r.text())}
+  catch(e){return{ok:false,erro:'sem conexão, tente de novo'}}
+  if(!d.ok&&/token inv[aá]lido|expirad/i.test(String(d.erro||''))){semSessao('Sua sessão expirou.');return{ok:false,erro:'sua sessão expirou'}}
+  return d;
+}
+function hojeISO(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+
 /* ---------- pacientes ---------- */
-function renderPatients(){
-  const s=$('#pSel');const ids=Object.keys(db.patients).sort((a,b)=>db.patients[a].name.localeCompare(db.patients[b].name,'pt-BR'));
-  if(!ids.length){s.innerHTML='<option value="">Cadastre um paciente</option>';s.disabled=true;return}
+// Cada paciente do sistema vira {id, name, records}: o resto da página
+// continua usando p.name e p.records como na versão que guardava no aparelho.
+// records só vale depois de carregado (loaded), vindo das evoluções.
+let pacientes=[],atual=null;
+function cur(){return pacientes.find(p=>String(p.id)===String(atual))||null}
+async function carregarPacientes(){
+  if(!logado){semSessao();return}
+  const r=await api('listar',{tabela:'pacientes',role:S.user.role,nome_usuario:S.user.nome});
+  if(!r.ok){if(!$('#pErr').innerHTML)showErr('#pErr','Não consegui carregar os pacientes: '+(r.erro||''));return}
+  pacientes=(r.dados||[]).filter(p=>p.nome).map(p=>({id:p.id,name:String(p.nome),records:[],loaded:false}))
+    .sort((a,b)=>a.name.localeCompare(b.name,'pt-BR'));
+  const s=$('#pSel');
+  if(!pacientes.length){s.innerHTML='<option value="">Nenhum paciente seu cadastrado</option>';return}
+  // Sem escolha prévia de propósito: salvar no prontuário errado é pior do
+  // que ter de escolher o paciente de novo
+  s.innerHTML='<option value="">Escolha o paciente</option>'+pacientes.map(p=>`<option value="${esc(p.id)}">${esc(p.name)}</option>`).join('');
   s.disabled=false;
-  s.innerHTML=ids.map(id=>`<option value="${id}"${id===db.current?' selected':''}>${esc(db.patients[id].name)}</option>`).join('');
-  if(!db.current||!db.patients[db.current]){db.current=ids[0];save()}
 }
-$('#pSel').addEventListener('change',e=>{db.current=e.target.value;save();renderReport();renderProto()});
-$('#pNewBtn').addEventListener('click',()=>{const n=$('#pNew');n.hidden=!n.hidden;if(!n.hidden)$('#pName').focus()});
-function addPatient(){
-  const name=$('#pName').value.trim();if(!name){$('#pName').focus();return}
-  const id=uid();db.patients[id]={name,created:new Date().toISOString(),records:[]};db.current=id;save();
-  $('#pName').value='';$('#pNew').hidden=true;renderPatients();renderReport();renderProto();toast('Paciente adicionado: '+name);
+function doSensor(e){try{return{...JSON.parse(e.sensor),id:e.id,autor_email:e.autor_email}}catch(x){return null}}
+async function carregarRegistros(p){
+  const res=await api('listar',{tabela:'evolucoes',filtros:{paciente_id:p.id}});
+  if(!res.ok)return false;
+  p.records=(res.dados||[]).filter(e=>e.origem==='sensor').map(doSensor).filter(Boolean);
+  p.loaded=true;return true;
 }
-$('#pAdd').addEventListener('click',addPatient);
-$('#pName').addEventListener('keydown',e=>{if(e.key==='Enter')addPatient()});
-function addRecord(r){const p=cur();if(!p){toast('Escolha ou cadastre um paciente antes de salvar.');return false}r.id=uid();r.date=r.date||new Date().toISOString();p.records.push(r);save();return true}
+function podeApagar(r){return S.user.role==='admin'||String(r.autor_email||'').toLowerCase()===String(S.user.email||'').toLowerCase()}
+$('#pSel').addEventListener('change',async e=>{
+  atual=e.target.value||null;renderProto();
+  if(!$('#tab-rel').hidden)renderReport();
+  const p=cur();if(p&&!p.loaded){await carregarRegistros(p);if(cur()===p)renderProto()}
+});
+// Texto que aparece no prontuário; o campo "sensor" guarda os números para
+// o relatório e o painel refazerem os gráficos
+function textoDoRegistro(r){
+  const d=document.createElement('div');d.innerHTML=recText(r);let t=d.textContent;
+  if(r.type==='equilibrio')t+=`, RMS lateral ${nf1.format(r.rmsML)} cm/s² e anteroposterior ${nf1.format(r.rmsAP)} cm/s², em ${r.dur} s`;
+  if(r.type==='tug'&&r.giros!=null)t+=`, ${r.giros} giros detectados`;
+  if(r.type==='marcha')t+=`, ${r.passos} passos em ${nf1.format(r.tempo)} s num percurso de ${nf1.format(r.dist)} m`;
+  if(r.type==='sl30'&&r.classe)t+=` (${r.classe} da faixa esperada para ${r.sexo==='F'?'mulheres':'homens'} de ${r.faixa} anos)`;
+  if(r.type==='escala'&&r.tentativas&&r.tentativas.length>1)t+=`, média das tentativas de ${r.tentativas.map(v=>nf1.format(v)).join(' / ')} kgf`;
+  if(r.type==='escala'&&r.baixa)t+=', abaixo do ponto de corte de força reduzida';
+  if(r.type==='treino')t+=`, melhor ângulo ${r.best}°`;
+  if(r.type==='escala'&&r.obs)t+=`. Obs.: ${r.obs}`;
+  return'Avaliação por sensor — '+t+'.';
+}
+async function addRecord(r){
+  const p=cur();if(!p){toast('Escolha o paciente antes de salvar.');$('#pSel').focus();return false}
+  r.date=new Date().toISOString();
+  const res=await api('salvar',{tabela:'evolucoes',dados:{paciente_id:p.id,data:hojeISO(),texto:textoDoRegistro(r),
+    autor_email:S.user.email,autor_nome:S.user.nome,origem:'sensor',sensor:JSON.stringify(r)}});
+  if(!res.ok){toast('Não salvou: '+(res.erro||'tente de novo'));return false}
+  p.records.push({...r,id:res.id,autor_email:S.user.email});
+  return true;
+}
+// Botão fica "Salvando…" enquanto a planilha responde, para não salvar duas vezes
+async function salvando(bt,fn){const t=bt.textContent;bt.disabled=true;bt.textContent='Salvando…';try{return await fn()}finally{bt.textContent=t;bt.disabled=false}}
 
 /* ---------- abas ---------- */
 document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',()=>{
@@ -581,11 +632,11 @@ function onMove(){
 $('#gSeg').addEventListener('change',fillMoves);
 $('#gJoint').addEventListener('change',onMove);
 $('#gManToggle').addEventListener('click',()=>{const b=$('#gManBox');b.hidden=!b.hidden;if(!b.hidden)$('#gManVal').focus()});
-$('#gManSave').addEventListener('click',()=>{
+$('#gManSave').addEventListener('click',async()=>{
   const m=mv();const v=parseFloat(String($('#gManVal').value).replace(',','.'));
   if(!isFinite(v)){$('#gManVal').focus();toast('Digite o valor medido.');return}
   const r={type:'gonio',joint:m.k,side:$('#gSide').value,finger:m.finger?$('#gFinger').value:null,value:v,unit:m.unit,method:'manual'};
-  if(addRecord(r)){toast('Salvo: '+recLabel(r)+', '+fmtU(v,m.unit));$('#gManVal').value='';if(m.mode!=='manual')$('#gManBox').hidden=true}
+  if(await salvando($('#gManSave'),()=>addRecord(r))){toast('Salvo no prontuário: '+recLabel(r)+', '+fmtU(v,m.unit));$('#gManVal').value='';if(m.mode!=='manual')$('#gManBox').hidden=true}
 });
 
 const g={on:false,lp:null,ref:null,angle:0,peak:0,stop:null,raf:0,bias:null,int:[0,0,0],lt:0};
@@ -621,9 +672,10 @@ $('#gOn').addEventListener('click',async()=>{
   $('#gOn').disabled=false;gRender();
 });
 $('#gZero').addEventListener('click',()=>{if(!g.lp)return;g.ref=g.lp.slice();g.int=[0,0,0];g.peak=0;g.angle=0;beep(660,.12);gRender()});
-$('#gSave').addEventListener('click',()=>{
+$('#gSave').addEventListener('click',async()=>{
   const m=mv();const r={type:'gonio',joint:m.k,side:$('#gSide').value,finger:m.finger?$('#gFinger').value:null,value:Math.round(g.peak),unit:'°',method:m.mode};
-  if(addRecord(r)){toast('Salvo: '+recLabel(r)+', '+r.value+'°');g.ref=null;g.peak=0;g.angle=0;gRender()}
+  if(await salvando($('#gSave'),()=>addRecord(r))){toast('Salvo no prontuário: '+recLabel(r)+', '+r.value+'°');g.ref=null;g.peak=0;g.angle=0}
+  gRender();
 });
 fillMoves();
 
@@ -696,10 +748,10 @@ function bFinish(){
   $('#bRes').hidden=false;
 }
 $('#bDiscard').addEventListener('click',()=>{$('#bRes').hidden=true;b.res=null;b.xs=[];b.zs=[];$('#bInfo').textContent='Pronto para iniciar';drawB()});
-$('#bSave').addEventListener('click',()=>{
+$('#bSave').addEventListener('click',async()=>{
   const s=b.res;if(!s)return;const p=$('#bProto').value;
-  if(addRecord({type:'equilibrio',protocol:p,dur:b.dur,area:+s.area.toFixed(2),rmsML:+s.rmsML.toFixed(2),rmsAP:+s.rmsAP.toFixed(2),n:s.n})){
-    toast('Salvo: '+PROTOS[p].label);$('#bRes').hidden=true}
+  if(await salvando($('#bSave'),()=>addRecord({type:'equilibrio',protocol:p,dur:b.dur,area:+s.area.toFixed(2),rmsML:+s.rmsML.toFixed(2),rmsAP:+s.rmsAP.toFixed(2),n:s.n}))){
+    toast('Salvo no prontuário: '+PROTOS[p].label);$('#bRes').hidden=true}
 });
 
 /* ---------- funcional ---------- */
@@ -826,7 +878,7 @@ function fFinish(endT){
   m.forEach((x,i)=>{$('#fM'+(i+1)).textContent=x[0];$('#fK'+(i+1)).textContent=x[1]});$('#fNote').textContent=note;$('#fRes').hidden=false;fDraw();
 }
 $('#fDiscard').addEventListener('click',()=>{$('#fRes').hidden=true;f.res=null;$('#fStatus').textContent='Pronto para iniciar'});
-$('#fSave').addEventListener('click',()=>{const r=f.res;if(!r)return;if(addRecord({...r})){toast('Salvo: '+FT[r.type].label);$('#fRes').hidden=true;f.res=null}});
+$('#fSave').addEventListener('click',async()=>{const r=f.res;if(!r)return;if(await salvando($('#fSave'),()=>addRecord({...r}))){toast('Salvo no prontuário: '+FT[r.type].label);$('#fRes').hidden=true;f.res=null}});
 fOnTest();
 
 /* ---------- escalas ---------- */
@@ -851,13 +903,13 @@ $('#ePain').addEventListener('click',e=>{const bt=e.target.closest('button');if(
 function eClear(){ePainV=null;$('#ePain').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed','false'));['#eG1','#eG2','#eG3','#eVal','#eObs'].forEach(x=>$(x).value='')}
 function eOnSel(){const k=$('#eSel').value,e=ESC[k];$('#eHow').textContent=e.how;$('#eDor').hidden=k!=='dor';$('#eGrip').hidden=k!=='preensao';$('#eScore').hidden=(k==='dor'||k==='preensao');$('#eUnit').textContent=e.unit;eClear()}
 $('#eSel').addEventListener('change',eOnSel);eOnSel();
-$('#eSave').addEventListener('click',()=>{
+$('#eSave').addEventListener('click',async()=>{
   const k=$('#eSel').value,e=ESC[k];const obs=$('#eObs').value.trim()||null;let r;
   if(k==='dor'){if(ePainV==null){toast('Toque na nota de dor.');return}r={type:'escala',escala:k,value:ePainV,situacao:$('#eSit').value,obs}}
   else if(k==='preensao'){const t=['#eG1','#eG2','#eG3'].map(x=>num($(x).value)).filter(v=>v!=null&&v>0);if(!t.length){toast('Digite ao menos uma tentativa.');return}
     const m=+mean(t).toFixed(1),sx=$('#eGSex').value;r={type:'escala',escala:k,value:m,lado:$('#eGSide').value,sexo:sx,tentativas:t,baixa:m<(sx==='M'?27:16),obs}}
   else{const v=num($('#eVal').value);if(v==null||v<e.min||v>e.max){toast(`Digite um escore entre ${e.min} e ${e.max}.`);return}r={type:'escala',escala:k,value:v,obs}}
-  if(addRecord(r)){toast('Salvo: '+escLabel(r)+', '+escFmt(r)+(r.baixa?'. Abaixo do ponto de corte.':''));eClear()}
+  if(await salvando($('#eSave'),()=>addRecord(r))){toast('Salvo no prontuário: '+escLabel(r)+', '+escFmt(r)+(r.baixa?'. Abaixo do ponto de corte.':''));eClear()}
 });
 
 /* ---------- treino com biofeedback ---------- */
@@ -905,8 +957,8 @@ $('#tOn').addEventListener('click',async()=>{
   $('#tOn').disabled=false;tRender();
 });
 $('#tZero').addEventListener('click',()=>{if(!tr.lp)return;Object.assign(tr,{ref:tr.lp.slice(),int:[0,0,0],angle:0,best:0,reps:0,up:false,done:false});beep(660,.12);tRender()});
-$('#tSave').addEventListener('click',()=>{const m=tmv();const r={type:'treino',joint:m.k,side:$('#tSide').value,meta:Math.round(tMeta()),alvo:tAlvo(),reps:tr.reps,best:Math.round(tr.best)};
-  if(addRecord(r)){toast(`Série salva: ${r.reps} de ${r.alvo} repetições`);Object.assign(tr,{ref:null,reps:0,best:0,up:false,done:false,angle:0});tRender()}});
+$('#tSave').addEventListener('click',async()=>{const m=tmv();const r={type:'treino',joint:m.k,side:$('#tSide').value,meta:Math.round(tMeta()),alvo:tAlvo(),reps:tr.reps,best:Math.round(tr.best)};
+  if(await salvando($('#tSave'),()=>addRecord(r))){toast(`Série salva no prontuário: ${r.reps} de ${r.alvo} repetições`);Object.assign(tr,{ref:null,reps:0,best:0,up:false,done:false,angle:0});tRender()}});
 tFillMoves();
 
 /* ---------- câmera ---------- */
@@ -994,12 +1046,12 @@ $('#cReset').addEventListener('click',()=>{cam.peak=null;$('#cPk').textContent='
 $('#cSnap').addEventListener('click',()=>{
   try{const url=$('#cCv').toDataURL('image/jpeg',.9);const p=cur();const a=document.createElement('a');a.href=url;a.download=`${(p?p.name:'paciente').replace(/[^\wÀ-ú-]+/g,'_')}-${new Date().toISOString().slice(0,10)}.jpg`;document.body.appendChild(a);a.click();a.remove();toast('Foto salva no aparelho.')}catch(e){toast('Não foi possível salvar a foto aqui.')}
 });
-$('#cSave').addEventListener('click',()=>{
+$('#cSave').addEventListener('click',async()=>{
   if(cam.peak==null){toast('Nenhum ângulo medido ainda.');return}
   const cfg=CAMJ[$('#cJoint').value];let joint=cfg.joint,v=Math.round(cam.peak);
   if(!joint){joint=v>=0?'tornozelo_pf':'tornozelo_df';v=Math.abs(v)}
   const r={type:'gonio',joint,side:$('#cSide').value,finger:null,value:v,unit:'°',method:'camera'};
-  if(addRecord(r))toast('Salvo: '+recLabel(r)+', '+v+'° (câmera)');
+  if(await salvando($('#cSave'),()=>addRecord(r)))toast('Salvo no prontuário: '+recLabel(r)+', '+v+'° (câmera)');
 });
 
 /* ---------- protocolos ---------- */
@@ -1055,10 +1107,16 @@ function groups(p){
     else if(r.type==='treino'){const k=r.joint+'|'+r.side;(trn[k]=trn[k]||[]).push({d:r.date,v:r.best,r})}});
   return{gon,eq,fun,sc,trn};
 }
-function renderReport(){
+async function renderReport(){
   const el=$('#rBody');const p=cur();
-  if(!p){el.innerHTML=`<div class="empty"><p>Cadastre um paciente para ver a evolução aqui.</p><button class="btn ghost" id="rDemo" type="button">Criar paciente de exemplo</button></div>`;$('#rDemo').onclick=makeExample;return}
-  if(!p.records.length){el.innerHTML=`<div class="empty"><p>${esc(p.name)} ainda não tem medidas. Faça uma medida em qualquer aba e salve.</p><button class="btn ghost" id="rDemo" type="button">Criar paciente de exemplo</button></div>`;$('#rDemo').onclick=makeExample;return}
+  if(!p){el.innerHTML=`<div class="empty"><p>Escolha o paciente para ver a evolução aqui.</p></div>`;return}
+  if(!p.loaded){
+    el.innerHTML=`<div class="empty"><p class="hint">Buscando as medidas no prontuário…</p></div>`;
+    const ok=await carregarRegistros(p);
+    if(cur()!==p||$('#tab-rel').hidden)return;
+    if(!ok){el.innerHTML=`<div class="empty"><p>Não consegui buscar as medidas.</p><button class="btn ghost" id="rRetry" type="button">Tentar de novo</button></div>`;$('#rRetry').onclick=renderReport;return}
+  }
+  if(!p.records.length){el.innerHTML=`<div class="empty"><p>${esc(p.name)} ainda não tem medidas. Faça uma medida em qualquer aba e salve.</p></div>`;return}
   const {gon,eq,fun,sc,trn}=groups(p);let h=`<div style="display:grid;gap:12px"><h2>${esc(p.name)}</h2>`;
   const gk=Object.keys(gon);
   if(gk.length){h+=`<h3>Amplitude de movimento</h3>`;gk.forEach(k=>{const a=gon[k];const u=a[0].u;const last=a[a.length-1].v,first=a[0].v,dif=last-first;
@@ -1100,10 +1158,13 @@ function recText(r){
 }
 function renderAll(){
   const p=cur();const a=$('#rAll');const rs=[...p.records].sort((x,y)=>y.date.localeCompare(x.date));
-  a.innerHTML=`<div class="list" style="margin-top:10px">${rs.map(r=>`<div class="it"><span>${dShort(r.date)} · ${recText(r)}</span><button type="button" data-id="${r.id}">Excluir</button></div>`).join('')}</div>`;
-  a.querySelectorAll('button').forEach(bt=>bt.onclick=()=>{
+  a.innerHTML=`<div class="list" style="margin-top:10px">${rs.map(r=>`<div class="it"><span>${dShort(r.date)} · ${recText(r)}</span>${podeApagar(r)?`<button type="button" data-id="${esc(r.id)}">Excluir</button>`:''}</div>`).join('')}</div>`;
+  a.querySelectorAll('button').forEach(bt=>bt.onclick=async()=>{
     if(!bt.classList.contains('armed')){bt.classList.add('armed');bt.textContent='Confirmar';setTimeout(()=>{bt.classList.remove('armed');bt.textContent='Excluir'},3000);return}
-    p.records=p.records.filter(r=>r.id!==bt.dataset.id);save();renderReport();$('#rAll').hidden=false;renderAll();toast('Medida excluída')});
+    bt.disabled=true;bt.textContent='Excluindo…';
+    const res=await api('deletar',{tabela:'evolucoes',id:bt.dataset.id});
+    if(!res.ok){bt.disabled=false;bt.textContent='Excluir';bt.classList.remove('armed');toast('Não excluiu: '+(res.erro||'tente de novo'));return}
+    p.records=p.records.filter(r=>String(r.id)!==bt.dataset.id);await renderReport();$('#rAll').hidden=false;renderAll();toast('Medida excluída do prontuário')});
 }
 function summaryText(){
   const p=cur();const {gon,eq,fun,sc,trn}=groups(p);const L=[`Avaliação por sensor — ${p.name}`,`Gerado em ${new Date().toLocaleDateString('pt-BR')}`,''];
@@ -1121,24 +1182,8 @@ const sk=Object.keys(sc);if(sk.length){L.push('Dor e escalas');sk.forEach(k=>{co
 }
 async function copySummary(){
   const t=summaryText();
-  try{await navigator.clipboard.writeText(t);toast('Resumo copiado. Cole no prontuário.')}
+  try{await navigator.clipboard.writeText(t);toast('Resumo copiado.')}
   catch(e){$('#rOut').innerHTML=`<p class="hint" style="margin:10px 0 6px">Selecione e copie o texto abaixo:</p><textarea readonly>${esc(t)}</textarea>`;const ta=$('#rOut textarea');ta.focus();ta.select()}
-}
-function makeExample(){
-  const id=uid();const now=Date.now(),D=86400000;const ds=[21,14,7,0].map(d=>new Date(now-d*D).toISOString());
-  const recs=[];
-  [[88,102,114,122]].forEach(a=>a.forEach((v,i)=>recs.push({id:uid(),type:'gonio',joint:'joelho_flex',side:'D',value:v,date:ds[i]})));
-  [120,138,151,163].forEach((v,i)=>recs.push({id:uid(),type:'gonio',joint:'ombro_flex',side:'E',value:v,date:ds[i]}));
-  [61.8,48.2,40.5,33.1].forEach((v,i)=>recs.push({id:uid(),type:'equilibrio',protocol:'oa',dur:30,area:v,rmsML:3,rmsAP:4,n:1800,date:ds[i]}));
-  [128.4,97.6,79.9,60.7].forEach((v,i)=>recs.push({id:uid(),type:'equilibrio',protocol:'of',dur:30,area:v,rmsML:4,rmsAP:6,n:1800,date:ds[i]}));
-  [14.2,12.8,11.6,10.3].forEach((v,i)=>recs.push({id:uid(),type:'tug',total:v,giros:2,giro1:2.1,pico_giro:110,date:ds[i]}));
-  [[0.78,96,0.52],[0.86,101,0.55],[0.95,105,0.58],[1.04,109,0.61]].forEach((x,i)=>recs.push({id:uid(),type:'marcha',dist:10,tempo:+(10/x[0]).toFixed(2),passos:Math.round(10/x[2]),cadencia:x[1],velocidade:x[0],passo_m:x[2],cv:4.2,simetria:94,date:ds[i]}));
-  [9,10,12,13].forEach((v,i)=>recs.push({id:uid(),type:'sl30',count:v,faixa:'70-74',sexo:'F',classe:v<10?'abaixo':v>15?'acima':'dentro',date:ds[i]}));
-  [7,5,4,2].forEach((v,i)=>recs.push({id:uid(),type:'escala',escala:'dor',value:v,situacao:'movimento',date:ds[i]}));
-  [18.5,20.2,22,23.4].forEach((v,i)=>recs.push({id:uid(),type:'escala',escala:'preensao',value:v,lado:'D',sexo:'F',tentativas:[v],baixa:v<16,date:ds[i]}));
-  [48,59,67,76].forEach((v,i)=>recs.push({id:uid(),type:'escala',escala:'koos',value:v,obs:'Subescala AVD',date:ds[i]}));
-  [[6,98],[8,104],[10,112],[10,118]].forEach((x,i)=>recs.push({id:uid(),type:'treino',joint:'joelho_flex',side:'D',meta:100,alvo:10,reps:x[0],best:x[1],date:ds[i]}));
-  db.patients[id]={name:'Paciente exemplo',created:ds[0],records:recs};db.current=id;save();renderPatients();renderReport();toast('Paciente de exemplo criado');
 }
 
 function seriesAll(p){
@@ -1153,17 +1198,23 @@ function seriesAll(p){
 const dLong=iso=>new Date(iso).toLocaleDateString('pt-BR');
 function openDoc(){
   const p=cur();if(!p||!p.records.length){toast('Este paciente ainda não tem medidas.');return}
-  const st=db.settings||{};$('#dFisio').value=st.fisio||'';$('#dReg').value=st.reg||'';$('#dMed').value=p.medico||'';$('#dQueixa').value=p.queixa||'';$('#dConduta').value=p.conduta||'';
+  const st=docCfg();$('#dFisio').value=st.fisio||S.user.nome||'';$('#dReg').value=st.reg||'';$('#dMed').value=p.medico||'';$('#dQueixa').value=p.queixa||'';$('#dConduta').value=p.conduta||'';
   $('#docView').hidden=false;$('#docView').scrollTop=0;docRender();
 }
-function docSave(){const p=cur();if(!p)return;db.settings=db.settings||{};db.settings.fisio=$('#dFisio').value.trim();db.settings.reg=$('#dReg').value.trim();p.medico=$('#dMed').value.trim();p.queixa=$('#dQueixa').value.trim();p.conduta=$('#dConduta').value.trim();save()}
+// Nome e Crefito de quem assina ficam guardados no aparelho, por pessoa. Médico,
+// queixa e conduta são do paciente: ficam só enquanto a página está aberta,
+// para não sobrar dado clínico guardado no celular
+const DOC_KEY='co-avalia-doc';
+function docCfg(){try{return(JSON.parse(localStorage.getItem(DOC_KEY)||'{}')||{})[S.user.email]||{}}catch(e){return{}}}
+function docSave(){const p=cur();if(!p)return;p.medico=$('#dMed').value.trim();p.queixa=$('#dQueixa').value.trim();p.conduta=$('#dConduta').value.trim();
+  try{const all=JSON.parse(localStorage.getItem(DOC_KEY)||'{}')||{};all[S.user.email]={fisio:$('#dFisio').value.trim(),reg:$('#dReg').value.trim()};localStorage.setItem(DOC_KEY,JSON.stringify(all))}catch(e){}}
 ['#dFisio','#dReg','#dMed','#dQueixa','#dConduta'].forEach(x=>$(x).addEventListener('input',()=>{docSave();docRender()}));
 $('#docClose').addEventListener('click',()=>{$('#docView').hidden=true});
 $('#docPrint').addEventListener('click',()=>{docSave();try{window.print()}catch(e){toast('A impressão não abriu aqui. Use o link próprio da Casa.')}});
 function docRender(){
-  const p=cur();if(!p)return;const S=seriesAll(p).filter(x=>x.kind!=='treino');
+  const p=cur();if(!p)return;const SR=seriesAll(p).filter(x=>x.kind!=='treino');
   const ds=p.records.map(r=>r.date).sort();const g=x=>esc($(x).value.trim());const br=t=>t.replace(/\n/g,'<br>');
-  const rows=S.map(x=>{const a=x.pts[0],b=x.pts[x.pts.length-1],n=x.pts.length;let v='–',cls='';
+  const rows=SR.map(x=>{const a=x.pts[0],b=x.pts[x.pts.length-1],n=x.pts.length;let v='–',cls='';
     if(n>1){const d=b.v-a.v;const good=x.better==='high'?d>0:d<0;v=(d>=0?'+':'−')+x.fmt(Math.abs(d));cls=d===0?'':good?'good':'bad'}
     return `<tr><td>${esc(x.label)}</td><td>${x.fmt(a.v)}<br><small>${dLong(a.d)}</small></td><td>${n>1?x.fmt(b.v)+'<br><small>'+dLong(b.d)+'</small>':'–'}</td><td class="${cls}">${v}</td></tr>`}).join('');
   const tre=seriesAll(p).filter(x=>x.kind==='treino');
@@ -1176,8 +1227,18 @@ function docRender(){
   <p class="pnote">Amplitude de movimento, equilíbrio e testes funcionais medidos com sensor inercial do celular, com o mesmo protocolo em cada avaliação. Escalas aplicadas conforme os instrumentos oficiais.</p>
   <div class="psign"><div class="pline"></div>${g('#dFisio')||'Fisioterapeuta'}${g('#dReg')?'<br>Crefito '+g('#dReg'):''}</div>`;
 }
-function renderPainel(){
-  const el=$('#pnBody');const now=Date.now();const ps=Object.values(db.patients);
+// O painel junta as medidas de todos os pacientes que a pessoa enxerga no
+// sistema: a gestão vê a clínica toda, a profissional vê os dela
+async function renderPainel(){
+  const el=$('#pnBody');const now=Date.now();
+  if(!pacientes.length){el.innerHTML=`<div class="empty"><p>O painel aparece quando houver pacientes com medidas.</p></div>`;return}
+  el.innerHTML=`<div class="empty"><p class="hint">Juntando as medidas da equipe…</p></div>`;
+  const res=await api('listar',{tabela:'evolucoes',filtros:{origem:'sensor'}});
+  if($('#tab-painel').hidden)return;
+  if(!res.ok){el.innerHTML=`<div class="empty"><p>Não consegui buscar as medidas.</p><button class="btn ghost" id="pnRetry" type="button">Tentar de novo</button></div>`;$('#pnRetry').onclick=renderPainel;return}
+  const por={};(res.dados||[]).forEach(e=>{const r=doSensor(e);if(r)(por[e.paciente_id]=por[e.paciente_id]||[]).push(r)});
+  pacientes.forEach(p=>{p.records=por[p.id]||[];p.loaded=true});
+  const ps=pacientes;
   let nPac=0,n30=0;const gains=[],weeks=[],tug=[],alerts=[];
   ps.forEach(p=>{if(!p.records.length)return;nPac++;n30+=p.records.filter(r=>now-new Date(r.date)<30*864e5).length;
     seriesAll(p).forEach(x=>{if(x.pts.length<2||x.kind==='treino')return;const a=x.pts[0],b=x.pts[x.pts.length-1];
@@ -1191,11 +1252,11 @@ function renderPainel(){
   if(tug.length)h+=cardH('TUG, variação média',(mean(tug)<=0?'−':'+')+nf1.format(Math.abs(mean(tug)))+' s',`${tug.length} pacientes com duas ou mais medidas. Menor é melhor.`,'','');
   if(mg!=null&&mg>0)h+=cardH('Frase para a página de fisioterapia',`“Nossos pacientes ganham, em média, ${nf0.format(mg)}° de amplitude de movimento em ${mw} ${mw===1?'semana':'semanas'}.”`,`Base: ${gains.length} medidas repetidas. Confira o número antes de publicar e use só com uma base maior de pacientes.`,'','');
   h+=`<h3>Atenção: medidas que não melhoraram</h3>`+(alerts.length?`<div class="list">${alerts.map(a=>`<div class="it"><span><b>${esc(a.n)}</b>: ${esc(a.l)}</span></div>`).join('')}</div>`:`<p class="hint">Nenhuma medida repetida piorou ou ficou parada.</p>`);
-  h+=`<p class="hint">Aqui entram só os pacientes salvos neste aparelho. Dentro do sistema de gestão, o painel junta a equipe toda.</p></div>`;
+  h+=`<p class="hint">${S.user.role==='profissional'?'Entram os pacientes que você acompanha.':'Entram os pacientes da equipe toda.'}</p></div>`;
   el.innerHTML=h;
 }
 
-load();renderPatients();gRender();bUI();renderProto();tRender();
+carregarPacientes();gRender();bUI();renderProto();tRender();
 })();
 </script>
 </body>
