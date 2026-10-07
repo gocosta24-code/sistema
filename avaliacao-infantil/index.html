@@ -1,0 +1,1275 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Avaliação infantil — Casa Oliveira</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Source+Sans+3:wght@400;600;700&family=Lora:ital,wght@0,500;0,600;1,500&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF2EE; --surface:#FAFCFA; --ink:#1C2B27; --muted:#55645E; --line:#D3DDD8;
+  --accent:#2E6B5B; --accent-ink:#FFFFFF; --soft:#DDE9E3; --live:#C9831F; --danger:#A83A3A;
+  --good:#0ca30c; --warn:#fab219; --serious:#ec835a; --critical:#d03b3b;
+  --lv0:#BFDDC8; --lv0-ink:#1D4A30; --lv1:#F2D98E; --lv1-ink:#5A4508; --lv2:#E9876C; --lv2-ink:#551A0B; --na:#E4E7E0; --empty:#E9ECE5;
+  --r-familia:#B5621A; --r-escola:#2E62A0; --r-terapeuta:#2E6B5B; --r-crianca:#B03A6E;
+  --rd1:#A9CFC1; --rd2:#6FAE97; --rd3:#3F8A72; --rd4:#1F5445; --rdref:#8C958E;
+  --display:'Bricolage Grotesque','Segoe UI',system-ui,-apple-system,sans-serif;
+  --body:'Source Sans 3','Segoe UI',system-ui,-apple-system,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#111916; --surface:#19231F; --ink:#E6EEEA; --muted:#9CB0A8; --line:#2B3934;
+    --accent:#7CC3AE; --accent-ink:#0D1A15; --soft:#22322C; --live:#F0B44C; --danger:#E07B7B;
+    --lv0:#2E5A3F; --lv0-ink:#D1EEDA; --lv1:#6E5C1E; --lv1-ink:#F8E9B6; --lv2:#8E3C29; --lv2-ink:#FFDCD1; --na:#2A312C; --empty:#262D28;
+    --r-familia:#E39B55; --r-escola:#7FAAE0; --r-terapeuta:#7CC3AE; --r-crianca:#E580AE;
+    --rd1:#3A5A4F; --rd2:#4F8A75; --rd3:#6FB39B; --rd4:#A6E0CA; --rdref:#7C867F;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#111916; --surface:#19231F; --ink:#E6EEEA; --muted:#9CB0A8; --line:#2B3934;
+  --accent:#7CC3AE; --accent-ink:#0D1A15; --soft:#22322C; --live:#F0B44C; --danger:#E07B7B;
+  --lv0:#2E5A3F; --lv0-ink:#D1EEDA; --lv1:#6E5C1E; --lv1-ink:#F8E9B6; --lv2:#8E3C29; --lv2-ink:#FFDCD1; --na:#2A312C; --empty:#262D28;
+  --r-familia:#E39B55; --r-escola:#7FAAE0; --r-terapeuta:#7CC3AE; --r-crianca:#E580AE;
+  --rd1:#3A5A4F; --rd2:#4F8A75; --rd3:#6FB39B; --rd4:#A6E0CA; --rdref:#7C867F;
+}
+html{background:var(--bg)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.wrap{max-width:600px;margin:0 auto;padding:20px 18px 56px}
+header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:18px}
+.brand{font-family:var(--display);font-weight:600;font-size:15px;color:var(--accent);margin:0}
+h1{font-family:var(--display);font-weight:800;font-size:30px;line-height:1.05;margin:2px 0 0;letter-spacing:-.01em}
+h2{font-family:var(--display);font-weight:600;font-size:21px;margin:0 0 4px;line-height:1.2;text-wrap:balance}
+h3{font-family:var(--display);font-weight:600;font-size:17px;margin:0;line-height:1.25}
+p{margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+.hint{font-size:14px;color:var(--muted)}
+.small{font-size:13px}
+label{font-weight:600;font-size:14px;display:block;margin-bottom:4px}
+select,input[type=text],input[type=date],input[type=month],input[type=search]{width:100%;min-height:48px;font:inherit;color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:10px 12px}
+input[type=number]{width:100%;min-height:48px;font:inherit;font-size:22px;color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:8px 12px;font-variant-numeric:tabular-nums}
+textarea{width:100%;min-height:90px;font:15px/1.45 var(--body);color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:10px}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.stack{display:grid;gap:14px}
+.row{display:flex;gap:10px;align-items:center}
+.row>*{flex:1;min-width:0}
+.row>.btn{flex:0 0 auto}
+.btn{min-height:48px;font:inherit;font-weight:600;border-radius:10px;padding:10px 16px;border:1.5px solid var(--accent);background:var(--accent);color:var(--accent-ink);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.quiet{border-color:var(--line);background:transparent;color:var(--ink)}
+.btn.danger{border-color:var(--danger);background:transparent;color:var(--danger)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.full{width:100%}
+.btn.sm{min-height:40px;padding:6px 12px;font-size:15px}
+.btns{display:grid;gap:10px}.btns.two{grid-template-columns:1fr 1fr}
+.linkbtn{background:none;border:0;padding:6px 0;font:inherit;font-weight:600;color:var(--accent);text-decoration:underline;cursor:pointer;min-height:44px;text-align:left}
+.patient{background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:14px;display:grid;gap:10px}
+.pfacts{font-size:14px;color:var(--muted)}
+.pfacts b{color:var(--ink)}
+.tabs{display:flex;gap:4px;margin:18px -18px 16px;padding:4px 18px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{flex:0 0 auto;min-height:44px;border:0;border-radius:9px;background:var(--soft);font-size:15px;padding:0 14px;font-weight:600;color:var(--muted);cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 0 var(--line)}
+.panel{display:grid;gap:14px}
+.how{background:var(--soft);border-radius:12px;padding:12px 14px;font-size:15px}
+.how b{font-weight:700}
+.warnbox{border:1.5px solid var(--live);border-radius:10px;padding:10px 12px;font-size:15px}
+.err{border:1.5px solid var(--danger);color:var(--danger);border-radius:10px;padding:10px 12px;font-size:15px}
+.card{background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:14px;display:grid;gap:8px}
+.list{display:grid;border:1.5px solid var(--line);border-radius:12px;overflow:hidden;background:var(--surface)}
+.list .it{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border-top:1px solid var(--line);font-size:15px}
+.list .it:first-child{border-top:0}
+.list .it .l{min-width:0}
+.list .it .l b{display:block}
+.list .it .l span{font-size:13px;color:var(--muted)}
+.list .it .acts{display:flex;gap:6px;flex:0 0 auto;align-items:center}
+.list button.mini{min-height:40px;font-size:14px;border:1px solid var(--line);background:transparent;color:var(--muted);border-radius:8px;padding:4px 10px;cursor:pointer}
+.list button.mini.go{border-color:var(--accent);color:var(--accent);font-weight:600}
+.list button.mini.armed{border-color:var(--danger);color:var(--danger)}
+.done{color:var(--accent);font-weight:700;font-size:14px;white-space:nowrap}
+.todo{color:var(--muted);font-size:14px;white-space:nowrap}
+.bignum{font-family:var(--display);font-weight:800;font-size:clamp(64px,20vw,104px);line-height:.95;letter-spacing:-.02em;font-variant-numeric:tabular-nums;text-align:center;padding-top:14px}
+.bignum.sm{font-size:40px;padding:4px 0 10px}
+.status{font-size:15px;color:var(--muted);text-align:center;margin-top:6px;padding:0 10px 12px}
+.stage{position:relative;background:var(--surface);border:1.5px solid var(--line);border-radius:14px;overflow:hidden}
+.metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+.metrics>div{background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;min-width:0}
+.metrics .k{overflow-wrap:anywhere}
+.metrics .v{font-family:var(--display);font-weight:700;font-size:26px;white-space:nowrap;font-variant-numeric:tabular-nums;line-height:1.15}
+.metrics .k{font-size:13px;color:var(--muted);line-height:1.3}
+.metrics .hot .v{color:var(--danger)}
+.ktap{min-height:88px;font-size:24px;background:var(--live);border-color:var(--live);color:#1C1408}
+.seg{display:flex;border:1.5px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.seg button{flex:1;min-height:44px;border:0;background:transparent;font-size:15px;font-weight:600;color:var(--muted);cursor:pointer;padding:0 6px}
+.seg button+button{border-left:1.5px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+/* instrument form */
+.field{display:grid;gap:4px}
+.field .lim{font-weight:400;color:var(--muted)}
+.qopts{display:flex;flex-wrap:wrap;gap:6px}
+.qopts button{min-height:44px;flex:1 1 auto;border:1.5px solid var(--line);background:transparent;color:var(--ink);border-radius:9px;font-size:15px;font-weight:600;padding:6px 10px;cursor:pointer}
+.qopts button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.qopts.col{flex-direction:column}.qopts.col button{text-align:left;font-weight:500}
+.qres{background:var(--soft);border-radius:14px;padding:14px;display:grid;gap:8px}
+.qres:empty{display:none}
+.qres .qs{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.qres .qs b{font-family:var(--display);font-weight:800;font-size:44px;line-height:1;font-variant-numeric:tabular-nums}
+.qres .mr{display:flex;justify-content:space-between;gap:10px;align-items:center;font-size:15px;border-top:1px solid var(--line);padding-top:6px}
+.qres .mr:first-child{border-top:0;padding-top:0}
+.qres .mr .v{font-weight:700;font-variant-numeric:tabular-nums;margin-left:auto}
+.lvl{display:inline-flex;align-items:center;gap:5px;font-size:13px;font-weight:700;padding:2px 10px;border-radius:999px;background:var(--surface);border:1.5px solid currentColor;white-space:nowrap}
+.lvl.ok{color:#2E7D5B}.lvl.atencao{color:#8A6100}.lvl.alerta{color:#B4562A}.lvl.risco{color:#A83A3A}.lvl.na{color:var(--muted)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .lvl.ok{color:#7CC3AE}:root:not([data-theme="light"]) .lvl.atencao{color:#E8C25A}:root:not([data-theme="light"]) .lvl.alerta{color:#F0A070}:root:not([data-theme="light"]) .lvl.risco{color:#E07B7B}}
+:root[data-theme="dark"] .lvl.ok{color:#7CC3AE}:root[data-theme="dark"] .lvl.atencao{color:#E8C25A}:root[data-theme="dark"] .lvl.alerta{color:#F0A070}:root[data-theme="dark"] .lvl.risco{color:#E07B7B}
+.delta{font-size:13px;font-weight:700;white-space:nowrap}
+.delta.up{color:var(--accent)}.delta.down{color:var(--danger)}.delta.eq{color:var(--muted)}
+/* summary cards */
+.icard-h{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.icard-h .d{font-size:13px;color:var(--muted);white-space:nowrap}
+.mrow{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center;font-size:15px;padding-block:5px;border-top:1px solid var(--line)}
+.mrow:first-child{border-top:0}
+.mrow .v{font-weight:700;font-variant-numeric:tabular-nums;text-align:right}
+details.evo{background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:12px 14px}
+details.evo>summary{cursor:pointer;font-family:var(--display);font-weight:600;font-size:17px;list-style:none;display:flex;justify-content:space-between;gap:8px;align-items:center;min-height:32px}
+details.evo>summary::-webkit-details-marker{display:none}
+details.evo>summary::after{content:'+';font-size:22px;color:var(--accent)}
+details.evo[open]>summary::after{content:'–'}
+.minis{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;margin-top:10px}
+.mini{border:1px solid var(--line);border-radius:12px;padding:8px 10px;background:var(--bg)}
+.mini-h{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:14px;font-weight:700}
+svg{display:block}
+.mini svg,.radar svg{width:100%;height:auto}
+.ch-grid{stroke:var(--line);stroke-width:1}
+.ch-tick{fill:var(--muted);font-size:10px;font-family:var(--body)}
+.ch-line{fill:none;stroke:var(--accent);stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.ch-pt{fill:var(--accent);stroke:var(--surface);stroke-width:2;cursor:pointer}
+.ch-hit,.rd-hit{fill:transparent;cursor:pointer}
+.ch-lbl{fill:var(--ink);font-size:11px;font-weight:700;font-family:var(--body)}
+.bd-ok{fill:var(--good);fill-opacity:.10}.bd-atencao{fill:var(--warn);fill-opacity:.16}.bd-alerta{fill:var(--serious);fill-opacity:.16}.bd-risco{fill:var(--critical);fill-opacity:.14}
+.radar{margin-top:10px}
+.rd-grid{fill:none;stroke:var(--line);stroke-width:1}.rd-spoke{stroke:var(--line);stroke-width:1}
+.rd-lab{fill:var(--muted);font-size:11px;font-weight:700;font-family:var(--body)}.rd-tk{fill:var(--muted);font-size:9px;font-family:var(--body)}
+.rd-refin{fill:var(--rdref);fill-opacity:.16;stroke:var(--rdref);stroke-width:1.2;stroke-dasharray:4 3}
+.rd-refring{fill:var(--good);fill-opacity:.09;fill-rule:evenodd}
+.rd-refline{fill:none;stroke:var(--rdref);stroke-width:1.2;stroke-dasharray:4 3}
+.rd-s{fill:none;stroke-width:1.8;stroke-linejoin:round}.rd-s.last{stroke-width:2.5;fill-opacity:.2}.rd-s:not(.last){fill:none}
+.rd-c1{stroke:var(--rd1);fill:var(--rd1)}.rd-c2{stroke:var(--rd2);fill:var(--rd2)}.rd-c3{stroke:var(--rd3);fill:var(--rd3)}.rd-c4{stroke:var(--rd4);fill:var(--rd4)}
+.rd-dot{stroke:var(--surface);stroke-width:2}
+.rlegend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px;margin-top:6px;justify-content:center}
+.rlegend span{display:inline-flex;gap:6px;align-items:center}
+.rlegend i{width:22px;height:0;border-top:3px solid;display:inline-block}
+.rlegend i.fill{height:12px;border:2.5px solid;border-radius:3px}
+.rlegend i.ref{border-top:2px dashed var(--rdref)}
+.dchips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.dchips button{min-height:36px;border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:2px 12px;font-size:14px;font-weight:600;cursor:pointer}
+.dchips button[aria-pressed="true"]{background:var(--soft);border-color:var(--accent)}
+.scrollx{overflow-x:auto}
+table.dq{width:100%;border-collapse:collapse;font-size:14px;min-width:460px}
+table.dq th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);padding:6px;border-bottom:1px solid var(--line);white-space:nowrap}
+table.dq td{padding:6px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+table.dq tr.mg td{font-weight:700;background:var(--soft)}
+/* tasks */
+canvas.trace{display:block;width:100%;aspect-ratio:3/2;touch-action:none;background:var(--surface)}
+.react{height:280px;display:grid;place-items:center;cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+.react .stim{width:140px;height:140px;display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:22px;color:#fff}
+.react .go{background:#2E7D5B;border-radius:50%}
+.react .nogo{background:#A83A3A;border-radius:18px}
+.react .msg{font-size:18px;color:var(--muted);text-align:center;padding:0 20px}
+/* roda */
+.rcards{display:grid;gap:8px}
+.rcol{background:var(--soft);border-radius:14px;padding:10px;display:grid;gap:8px}
+.rcol-h{display:flex;align-items:center;gap:8px;font-family:var(--display);font-weight:600;font-size:16px}
+.rcol-h .sw{width:14px;height:14px;border-radius:4px}
+.rcol-h .ct{margin-left:auto;font-family:var(--body);font-size:13px;color:var(--muted)}
+.acard{background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:10px;display:grid;gap:8px}
+.acard-h{display:flex;align-items:center;gap:8px}
+.acard-h .em{font-size:22px;line-height:1}
+.acard-h .nm{font-weight:700;font-size:15px;flex:1;line-height:1.25}
+.star{min-height:36px;border:1.5px solid var(--line);background:transparent;border-radius:999px;padding:0 10px;font-size:14px;font-weight:700;color:var(--muted);cursor:pointer}
+.star[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.star:disabled{opacity:.35;cursor:not-allowed}
+.lvseg{display:flex;gap:4px;flex-wrap:wrap}
+.lvseg button{flex:1 1 0;min-width:0;min-height:40px;border:1.5px solid var(--line);background:var(--surface);border-radius:8px;padding:2px 6px;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lvseg button[data-lv="0"][aria-pressed="true"]{background:var(--lv0);color:var(--lv0-ink);border-color:transparent}
+.lvseg button[data-lv="1"][aria-pressed="true"]{background:var(--lv1);color:var(--lv1-ink);border-color:transparent}
+.lvseg button[data-lv="2"][aria-pressed="true"]{background:var(--lv2);color:var(--lv2-ink);border-color:transparent}
+.lvseg button[data-lv="na"]{flex:0 0 auto;color:var(--muted)}
+.lvseg button[data-lv="na"][aria-pressed="true"]{background:var(--na);color:var(--ink)}
+.faces{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.fcard{background:var(--surface);border:1.5px solid var(--line);border-radius:18px;padding:12px 8px 10px;display:grid;justify-items:center;gap:8px;text-align:center}
+.fcard.lv0{background:color-mix(in srgb,var(--lv0) 45%,var(--surface))}.fcard.lv1{background:color-mix(in srgb,var(--lv1) 45%,var(--surface))}.fcard.lv2{background:color-mix(in srgb,var(--lv2) 40%,var(--surface))}
+.fcard .big{font-size:42px;line-height:1}
+.fcard .nm{font-family:var(--display);font-weight:600;font-size:16px;line-height:1.2}
+.fbtns{display:flex;gap:6px}
+.fbtns button{width:44px;height:44px;border-radius:50%;border:2px solid var(--line);background:var(--surface);font-size:22px;line-height:1;display:grid;place-items:center;padding:0;cursor:pointer}
+.fbtns button[aria-pressed="true"]{border-color:var(--ink);transform:scale(1.1)}
+.frow{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.frow button{min-height:36px;border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:2px 10px;font-size:13px;font-weight:600;cursor:pointer}
+.frow button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.frow button:disabled{opacity:.4}
+.roles{display:flex;flex-wrap:wrap;gap:6px}
+.role{display:inline-flex;align-items:center;gap:7px;min-height:40px;border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:4px 12px 4px 8px;font-weight:600;font-size:14px;cursor:pointer}
+.role[aria-pressed="true"]{border-color:currentColor;box-shadow:inset 0 0 0 1px currentColor}
+.role .lbl{color:var(--ink)}
+.role .prog{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.dot{width:12px;height:12px;border-radius:50%;display:inline-block;flex:0 0 auto}
+.c-familia{color:var(--r-familia)}.c-escola{color:var(--r-escola)}.c-terapeuta{color:var(--r-terapeuta)}.c-crianca{color:var(--r-crianca)}
+.b-familia{background:var(--r-familia)}.b-escola{background:var(--r-escola)}.b-terapeuta{background:var(--r-terapeuta)}.b-crianca{background:var(--r-crianca)}
+.prio{background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:12px;display:grid;grid-template-columns:auto 1fr;gap:6px 12px;align-items:start}
+.rank{font-family:var(--display);font-weight:800;font-size:20px;width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:var(--soft);color:var(--accent)}
+.prio textarea{grid-column:2;min-height:56px}
+.rodasvg .lv0{fill:var(--lv0)}.rodasvg .lv1{fill:var(--lv1)}.rodasvg .lv2{fill:var(--lv2)}.rodasvg .lvna{fill:var(--na)}.rodasvg .lvx{fill:var(--empty)}
+.rodasvg .seg-path{stroke:var(--surface);stroke-width:1.5;cursor:pointer}
+.rodasvg .hl{fill:none;stroke:var(--ink);stroke-width:2.5;pointer-events:none}
+.rodasvg .hov{fill:none;stroke:var(--accent);stroke-width:2;stroke-dasharray:4 3;pointer-events:none}
+.rodasvg text{fill:var(--ink);font-family:var(--body)}
+.rodasvg .pr{fill:var(--surface);stroke:var(--ink);stroke-width:1}
+.rodasvg .prt{font-size:9px;font-weight:700;text-anchor:middle;dominant-baseline:central}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:13px;color:var(--muted);justify-content:center}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+.central{border-radius:14px;padding:14px;background:var(--accent);color:var(--accent-ink);display:grid;gap:8px}
+.central .eb{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;opacity:.85}
+.central h2{font-size:22px;color:inherit}
+.central .who{display:flex;flex-wrap:wrap;gap:6px}
+.central .who span{background:rgba(255,255,255,.18);border-radius:999px;padding:2px 10px;font-size:13px;font-weight:600}
+.central select{min-height:44px;background:var(--surface);color:var(--ink);border:0}
+.central .btn{background:var(--surface);color:var(--ink);border-color:transparent;justify-self:start}
+.rrow{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:10px;align-items:center;padding:6px 8px;border-radius:10px;border:1.5px solid transparent;background:transparent;text-align:left;width:100%;cursor:pointer}
+.rrow.is-central{border-color:var(--accent)}
+.rrow .em{font-size:20px;text-align:center}
+.bar{height:6px;border-radius:6px;background:var(--soft);margin-top:4px;overflow:hidden}.bar i{display:block;height:100%;background:var(--accent);border-radius:6px}
+.whodots{display:flex;gap:4px}
+.whodots .d{width:14px;height:14px;border-radius:50%;border:2px solid currentColor}
+.whodots .d.f2{background:currentColor}.whodots .d.f1{background:linear-gradient(90deg,currentColor 50%,transparent 50%)}.whodots .d.f0{opacity:.35}
+.note{border-radius:12px;padding:10px 12px;background:var(--soft);display:grid;gap:4px;font-size:15px}
+.note .h{display:flex;gap:8px;align-items:center;font-weight:700}
+.lvtag{margin-left:auto;font-size:12px;border-radius:999px;padding:1px 8px;font-weight:700}
+.lvtag.l0{background:var(--lv0);color:var(--lv0-ink)}.lvtag.l1{background:var(--lv1);color:var(--lv1-ink)}.lvtag.l2{background:var(--lv2);color:var(--lv2-ink)}.lvtag.lna,.lvtag.lx{background:var(--na);color:var(--muted)}
+.divit{border-left:3px solid var(--lv1);padding:4px 0 4px 10px;font-size:15px}
+.ccard{background:var(--surface);border:1.5px solid var(--line);border-radius:14px;overflow:hidden}
+.ccard-h{display:flex;gap:10px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line)}
+.ccard-h .av{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;color:#fff;font-family:var(--display);font-weight:800;flex:0 0 auto}
+.ccard-b{padding:10px 12px;display:grid;gap:12px}
+.clist{display:grid;gap:6px}
+.clist h4{margin:0;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.citem{display:flex;gap:8px;align-items:flex-start;background:var(--soft);border-radius:8px;padding:6px 8px;font-size:15px}
+.citem .t{flex:1}
+.citem .para{font-size:12px;font-weight:700;border-radius:999px;padding:1px 8px;color:#fff;white-space:nowrap}
+.x{border:0;background:transparent;color:var(--muted);font-size:18px;line-height:1;padding:2px 6px;border-radius:6px;cursor:pointer}
+.addrow{display:flex;gap:6px;flex-wrap:wrap}
+.addrow input{flex:1 1 160px;min-height:42px;font-size:15px}
+.addrow select{flex:0 0 auto;width:auto;min-height:42px;font-size:14px}
+.netsvg text{fill:var(--ink);font-family:var(--body)}
+.netsvg .edge{fill:none;stroke-linecap:round}
+.netsvg .cnt{font-size:11px;font-weight:700;text-anchor:middle;dominant-baseline:central}
+.netsvg .cntbg{fill:var(--surface);stroke:var(--line)}
+.ask{display:flex;gap:6px;align-items:center;font-size:15px;flex-wrap:wrap}
+.ask .tg{font-size:12px;font-weight:700;border-radius:999px;padding:1px 8px;color:#fff}
+.gas{display:grid;gap:6px}
+.glvl{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:10px;align-items:center;min-height:52px;border:1.5px solid var(--line);border-radius:10px;padding:6px 10px;background:var(--surface);text-align:left;cursor:pointer;width:100%}
+.glvl.mid{background:var(--soft)}
+.glvl .v{font-family:var(--display);font-weight:800;font-size:20px;font-variant-numeric:tabular-nums}
+.glvl .d{font-size:14px;color:var(--muted);line-height:1.3}
+.glvl .dots{display:flex;gap:4px}
+.glvl .dots .dt{width:16px;height:16px;border-radius:50%}
+.glvl .dots .gh{width:16px;height:16px;border-radius:50%;border:2px dashed currentColor}
+/* overlays */
+.docview{position:fixed;inset:0;z-index:40;background:var(--bg);overflow:auto;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.docview .wrap{display:grid;gap:12px;grid-template-columns:minmax(0,1fr)}
+.docview .wrap>*{min-width:0}
+.panel>*{min-width:0}
+.docview .wrap.wide{max-width:880px}
+.thanks{text-align:center;padding-block:60px;display:grid;gap:14px;justify-items:center}
+.thanks .big{font-size:56px}
+.tip{position:fixed;z-index:60;pointer-events:none;background:var(--ink);color:var(--bg);font-size:13px;font-weight:600;padding:6px 9px;border-radius:8px;max-width:260px;opacity:0;transition:opacity .12s}
+.tip.on{opacity:1}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:15px;max-width:90vw;opacity:0;transition:opacity .2s;pointer-events:none;z-index:70}
+.toast.show{opacity:1}
+.foot{margin-top:24px;font-size:13px;color:var(--muted)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* itens */
+.itlegend{font-size:14px;color:var(--muted)}
+.itgrp{font-family:var(--display);font-weight:600;font-size:16px;margin-top:6px}
+.itrow{display:grid;grid-template-columns:36px minmax(0,1fr);gap:8px;align-items:center;padding:4px 0;border-top:1px solid var(--line)}
+.itrow .n{font-family:var(--display);font-weight:700;font-size:16px;color:var(--muted);text-align:center}
+.itrow.flag .n{color:var(--danger)}
+.itrow .lab{grid-column:2;font-size:14px;color:var(--ink)}
+.iopts{display:flex;gap:6px}
+.iopts button{flex:1 1 0;min-height:44px;min-width:0;border:1.5px solid var(--line);background:var(--surface);border-radius:9px;font-size:16px;font-weight:700;cursor:pointer;font-variant-numeric:tabular-nums}
+.iopts button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.iopts.words button{font-size:14px;font-weight:600}
+.chk{display:flex!important;align-items:center;gap:10px;font-size:15px!important;font-weight:500!important;color:var(--ink);margin:0!important;min-height:36px}
+.chk input{width:22px;height:22px;accent-color:var(--accent);flex:0 0 auto}
+/* technical report */
+.tpaper{background:#fff;color:#1d2522;border:1px solid #d6ddd9;border-radius:10px;padding:24px;font:14px/1.5 'Source Sans 3','Segoe UI',sans-serif;overflow-wrap:break-word;
+  --line:#e3e8e5;--muted:#55645E;--ink:#1d2522;--surface:#fff;--accent:#2E6B5B;--soft:#EEF2EE;--rd1:#A9CFC1;--rd2:#6FAE97;--rd3:#3F8A72;--rd4:#1F5445;--rdref:#8C958E;--good:#0ca30c;--warn:#fab219;--serious:#ec835a;--critical:#d03b3b}
+.tpaper .ph{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom:2px solid #2E6B5B;padding-bottom:10px;margin-bottom:14px;font-size:12px;color:#55645E}
+.tpaper .pbrand{font-family:'Bricolage Grotesque',sans-serif;font-size:17px;font-weight:600;color:#2E6B5B}
+.tpaper h1{font-family:'Bricolage Grotesque',sans-serif;font-size:20px;margin:0 0 10px;color:#1d2522}
+.tpaper h2{font-family:'Bricolage Grotesque',sans-serif;font-size:15px;margin:18px 0 8px;color:#2E6B5B}
+.tpaper table{width:100%;border-collapse:collapse;font-size:13px}
+.tpaper th,.tpaper td{text-align:left;vertical-align:top;padding:5px 7px;border-bottom:1px solid #e3e8e5}
+.tpaper thead th{background:#EEF2EE}
+.tpaper .pinfo th{width:32%;color:#55645E;font-weight:600}
+.tpaper .lvt{font-weight:700}.tpaper .lvt.ok{color:#2E7D5B}.tpaper .lvt.atencao{color:#8A6100}.tpaper .lvt.alerta{color:#B4562A}.tpaper .lvt.risco{color:#A83A3A}
+.tpaper .pnote{font-size:11px;color:#6b7a74;margin-top:14px}
+.tpaper .psign{margin-top:40px;width:260px;text-align:center;font-size:13px;border-top:1px solid #1d2522;padding-top:6px}
+.tpaper .scrollx{overflow-x:auto}
+/* family report (paper) */
+.ptpaper{--pc:#F5EEE3;--pk:#FBF7F0;--pb:#E2D5C2;--pi:#3A2A1F;--ps:#6B5A4C;--pt:#A9573D;--pm:#545E3A;
+  --rd1:#E4C9B4;--rd2:#C99677;--rd3:#A9573D;--rd4:#6E2F1C;--rdref:#9C8B7C;--good:#4C7A3A;--warn:#E0A22B;--serious:#C9663F;--critical:#A83A3A;--line:#E2D5C2;--muted:#6B5A4C;--ink:#3A2A1F;--surface:#fff;--accent:#A9573D;
+  background:#fff;color:var(--pi);border:1px solid var(--pb);border-radius:12px;padding:26px 24px;font:15px/1.55 'Instrument Sans',system-ui,sans-serif;overflow-wrap:break-word}
+.ptpaper h1,.ptpaper h2,.ptpaper h3{font-family:'Lora',Georgia,serif;color:var(--pi);margin:0;line-height:1.2}
+.ptpaper .hd{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;border-bottom:2px solid var(--pt);padding-bottom:14px}
+.ptpaper .kick{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--pt)}
+.ptpaper h1{font-style:italic;font-weight:500;font-size:30px;margin-top:4px}
+.ptpaper .who{font-size:14px;color:var(--ps);text-align:right}
+.ptpaper .who b{color:var(--pi)}
+.ptpaper .sec{margin-top:24px}
+.ptpaper .sec>h2{font-size:22px;font-weight:600;margin-bottom:4px}
+.ptpaper .sd{color:var(--ps);font-size:14px;margin-bottom:12px}
+.ptpaper .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.ptpaper .pc{background:var(--pk);border:1px solid var(--pb);border-radius:16px;padding:16px;display:grid;gap:8px;align-content:start;break-inside:avoid}
+.ptpaper .pc h3{font-size:19px;font-weight:600}
+.ptpaper .pc .st{font-size:13px;color:var(--ps)}
+.ptpaper .pc .bigv{font-family:'Lora',Georgia,serif;font-weight:600;font-size:44px;line-height:1;font-variant-numeric:tabular-nums}
+.ptpaper .tagp{display:inline-block;font-size:12.5px;font-weight:700;padding:3px 11px;border-radius:999px;color:#fff;white-space:nowrap}
+.ptpaper .tagp.ok{background:#4C7A3A}.ptpaper .tagp.atencao{background:#B07D12}.ptpaper .tagp.alerta{background:#C9663F}.ptpaper .tagp.risco{background:#A83A3A}
+.ptpaper table{width:100%;border-collapse:collapse;font-size:13.5px}
+.ptpaper th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--ps);border-bottom:1px solid var(--pb);padding:5px 4px}
+.ptpaper td{border-bottom:1px solid #EFE6D9;padding:5px 4px;vertical-align:top}
+.ptpaper .box{border:1px solid var(--pb);border-radius:14px;padding:14px 16px;background:var(--pc)}
+.ptpaper ul{margin:6px 0;padding-left:20px}
+.ptpaper .ch-line{stroke:#A9573D}.ptpaper .ch-pt{fill:#A9573D;stroke:#fff}.ptpaper .rd-dot{stroke:#fff}
+.ptpaper .sign{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;margin-top:34px}
+.ptpaper .sign .ln{width:260px;border-top:1px solid var(--pi);padding-top:6px;text-align:center;font-size:13px}
+.ptpaper .foot2{font-family:'Lora',serif;font-style:italic;color:var(--ps);font-size:14px}
+.ptpaper .legal{font-size:11.5px;color:var(--ps);margin-top:18px}
+.ptpaper .rlegend{color:var(--ps)}
+@media (max-width:520px){.ptpaper{padding:18px 14px}.ptpaper .who{text-align:left}.ptpaper .grid{grid-template-columns:1fr}}
+.back{font-size:15px;font-weight:600;color:var(--accent);text-decoration:none;padding:12px 0;white-space:nowrap}
+</style>
+</head>
+<body>
+<div class="wrap" id="root">
+  <header>
+    <div><p class="brand">Casa Oliveira Saúde</p><h1>Avaliação infantil</h1></div>
+    <a class="back" href="../">← Sistema</a>
+  </header>
+  <div class="patient" id="pBox"><p class="hint">Carregando…</p></div>
+  <nav class="tabs" role="tablist" id="tabs"></nav>
+  <main id="main" class="panel" style="grid-template-columns:minmax(0,1fr)"></main>
+  <p class="foot" id="foot"></p>
+</div>
+<div class="docview" id="handView" hidden></div>
+<div class="docview" id="ptView" hidden></div>
+<div class="docview" id="tcView" hidden></div>
+<div class="tip" id="tip" role="tooltip"></div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+/* ======================= instrumentos ======================= */
+const INF=Infinity;
+let CFG={idadi:{a:70,b:85},pedicat:{a:30,b:40}};
+const SS100=()=>[{hi:CFG.idadi.a-.01,l:'alerta',t:'Muito abaixo do esperado (< '+CFG.idadi.a+')'},{hi:CFG.idadi.b-.01,l:'atencao',t:'Abaixo do esperado ('+CFG.idadi.a+'–'+(CFG.idadi.b-1)+')'},{hi:INF,l:'ok',t:'Dentro do esperado'}];
+const TSC=()=>[{hi:CFG.pedicat.a-.01,l:'alerta',t:'Abaixo do esperado (T < '+CFG.pedicat.a+')'},{hi:CFG.pedicat.b-.01,l:'atencao',t:'Limítrofe (T '+CFG.pedicat.a+'–'+(CFG.pedicat.b-1)+')'},{hi:INF,l:'ok',t:'Dentro do esperado'}];
+const cut=x=>[{hi:x,l:'ok',t:'Abaixo do corte'},{hi:INF,l:'alerta',t:'Acima do corte (≥ '+(x+1)+')'}];
+const PS2O=[{v:-2,t:'Muito menos que os outros'},{v:-1,t:'Menos que os outros'},{v:0,t:'Assim como a maioria'},{v:1,t:'Mais que os outros'},{v:2,t:'Muito mais que os outros'}];
+const PS2B=[{hi:-1.5,l:'alerta',t:'Muito menos que os outros'},{hi:-.5,l:'atencao',t:'Menos que os outros'},{hi:.5,l:'ok',t:'Assim como a maioria'},{hi:1.5,l:'atencao',t:'Mais que os outros'},{hi:INF,l:'alerta',t:'Muito mais que os outros'}];
+const MSS=[{hi:5,l:'alerta',t:'Muito abaixo (≤ 5º percentil)'},{hi:7,l:'atencao',t:'Em risco (até 16º percentil)'},{hi:INF,l:'ok',t:'Dentro do esperado'}];
+const sdq=(a,b)=>[{hi:a,l:'ok',t:'Esperado'},{hi:b,l:'atencao',t:'Limítrofe'},{hi:INF,l:'alerta',t:'Acima do esperado'}];
+const I={
+ idadi:{n:'IDADI',full:'Inventário Dimensional de Avaliação do Desenvolvimento Infantil',idade:[4,72],inf:'Pais (autoaplicado ou entrevista)',area:'Desenvolvimento global',
+  how:'Escolha o livro pela idade (4–35 ou 36–72 meses). Leia os itens como estão escritos e não sugira respostas. Registre o escore padronizado de cada domínio.',
+  get ref(){return`Faixas da equipe: < ${CFG.idadi.a} muito abaixo, ${CFG.idadi.a}–${CFG.idadi.b-1} abaixo, ≥ ${CFG.idadi.b} esperado. Ajuste em Protocolo conforme o manual.`},
+  m:[['cog','Cognitivo','COG'],['soc','Socioemocional','SOC'],['lr','Linguagem receptiva','LR'],['le','Linguagem expressiva','LE'],['ma','Motricidade ampla','MA'],['mf','Motricidade fina','MF'],['ca','Comportamento adaptativo','CA']].map(([k,n,r])=>({k,n,r,min:40,max:160,dir:'up',b:SS100}))},
+ esdm:{n:'Checklist Denver',full:'Checklist do currículo do Modelo Denver (ESDM)',idade:[12,72],inf:'Observação e relato da família',area:'Desenvolvimento global',idx:true,
+  how:'Observe a criança em brincadeira e rotinas e complete com o relato dos pais. Registre a idade de desenvolvimento (meses) estimada em cada esfera.',
+  ref:'O app calcula índice (idade calculada ÷ idade real × 100), atraso e ritmo no período. Índice 100 = idade real.',
+  m:[['cre','Comunicação receptiva','CRE'],['cex','Comunicação expressiva','CEX'],['cso','Competências sociais','CSO'],['imi','Imitação','IMI'],['cog','Cognição','COG'],['jog','Jogo','JOG'],['mfi','Motricidade fina','MFI'],['mgr','Motricidade grossa','MGR'],['com','Comportamento','COM'],['ipe','Independência pessoal','IPE']].map(([k,n,r])=>({k,n,r,min:0,max:72,dir:'up',unit:'m'}))},
+ ps2:{n:'Perfil Sensorial 2',full:'Perfil Sensorial 2 (Winnie Dunn)',idade:[0,179],inf:'Cuidador; versão escolar pelo professor',area:'Processamento sensorial',
+  how:'Entregue o questionário da idade certa (Bebê, Criança Pequena, Criança, Abreviado ou Escolar). Corrija pelo manual e marque a classificação de cada quadrante.',
+  ref:'“Assim como a maioria” é o esperado. Acima de 14a11m, use o Perfil do Adolescente/Adulto só como apoio.',
+  m:[['exp','Exploração'],['esq','Esquiva'],['sen','Sensibilidade'],['obs','Observação']].map(([k,n])=>({k,n,r:n,min:-2.5,max:2.5,dir:'mid',sel:PS2O,b:PS2B}))},
+ pedicat:{n:'PEDI-CAT',full:'Inventário de Avaliação Pediátrica de Incapacidade – versão computadorizada',idade:[0,251],inf:'Pais (entrevista)',area:'Funcionalidade',
+  how:'Faça em formato de entrevista. Versão rápida para acompanhamento; conteúdo-balanceada para planejar objetivos. Registre o escore T de cada domínio.',
+  get ref(){return`Escore T (média 50, DP 10). Faixas da equipe: < ${CFG.pedicat.a} abaixo, ${CFG.pedicat.a}–${CFG.pedicat.b-1} limítrofe, ≥ ${CFG.pedicat.b} esperado.`},
+  m:[['avd','Atividades diárias','AVD'],['mob','Mobilidade','Mobilidade'],['sc','Social/cognitivo','Social/cog.'],['resp','Responsabilidade','Responsab.']].map(([k,n,r])=>({k,n,r,min:10,max:90,dir:'up',b:TSC}))},
+ mabc2:{n:'MABC-2',full:'Movement Assessment Battery for Children – 2',idade:[36,203],inf:'Teste aplicado à criança',area:'Coordenação motora',
+  how:'Siga as instruções do manual: demonstração, tentativas de prática e válidas. Registre o percentil total e o escore padrão dos três componentes.',
+  ref:'Semáforo: total ≤ 5º percentil = dificuldade significativa; 6º–15º = em risco. Componentes: média 10, DP 3.',
+  m:[{k:'pct',n:'Total (percentil)',min:0,max:100,dir:'up',b:[{hi:5,l:'alerta',t:'Dificuldade motora significativa'},{hi:15,l:'atencao',t:'Em risco'},{hi:INF,l:'ok',t:'Sem dificuldade detectada'}]},
+     {k:'dm',n:'Destreza manual',r:'Destreza',min:1,max:19,dir:'up',b:MSS},{k:'lr',n:'Lançar e receber',r:'Lançar/receber',min:1,max:19,dir:'up',b:MSS},{k:'eq',n:'Equilíbrio',r:'Equilíbrio',min:1,max:19,dir:'up',b:MSS}]},
+ dcdq:{n:'DCDQ-Brasil',full:'Questionário de Transtorno do Desenvolvimento da Coordenação',idade:[60,191],inf:'Pais',area:'Coordenação motora',
+  how:'Entregue aos pais com o nome “Questionário de Coordenação”. Some os 15 itens (15 a 75).',
+  ref:'Corte por idade: 5–7a11m ≤ 46; 8–9a11m ≤ 55; 10–15 anos ≤ 57 indicam provável TDC. O app escolhe o corte pela idade.',
+  m:[{k:'tot',n:'Escore total',min:15,max:75,dir:'up',b:(a,p)=>{const m=ageM(p.nasc,a.data);if(m==null)return null;const c=m<60?null:m<96?46:m<120?55:m<192?57:null;if(!c)return null;
+     return[{hi:c,l:'alerta',t:'Indica provável TDC (corte '+c+')'},{hi:INF,l:'ok',t:'Sem indicação de TDC'}]}}]},
+ sdq:{n:'SDQ (pais)',full:'Questionário de Capacidades e Dificuldades – versão pais',idade:[24,203],inf:'Pais',area:'Saúde mental',
+  how:'Use a versão da idade. Referência: últimos 6 meses. Pontue pela chave oficial (há itens invertidos).',
+  ref:'Faixas da versão pais (Goodman). O total de dificuldades é calculado sozinho.',
+  m:[{k:'emo',n:'Sintomas emocionais',r:'Emocional',min:0,max:10,dir:'down',b:sdq(3,4)},{k:'con',n:'Problemas de conduta',r:'Conduta',min:0,max:10,dir:'down',b:sdq(2,3)},
+     {k:'hip',n:'Hiperatividade',r:'Hiperatividade',min:0,max:10,dir:'down',b:sdq(5,6)},{k:'par',n:'Relação com colegas',r:'Colegas',min:0,max:10,dir:'down',b:sdq(2,3)},
+     {k:'pro',n:'Comportamento pró-social',r:'Pró-social',min:0,max:10,dir:'up',b:[{hi:4,l:'alerta',t:'Abaixo do esperado'},{hi:5,l:'atencao',t:'Limítrofe'},{hi:INF,l:'ok',t:'Esperado'}]},
+     {k:'tot',n:'Total de dificuldades',min:0,max:40,dir:'down',calc:v=>['emo','con','hip','par'].every(k=>typeof v[k]==='number')?v.emo+v.con+v.hip+v.par:null,b:sdq(13,16)}]},
+ mchat:{n:'M-CHAT-R/F',full:'Modified Checklist for Autism in Toddlers – Revisado, com seguimento',idade:[16,30],inf:'Pais',area:'Rastreio de TEA',
+  how:'Pais respondem as 20 perguntas. Total 3 a 7: aplique a Entrevista de Seguimento antes de concluir. Anote na observação se o total é antes ou depois do seguimento.',
+  ref:'0–2 baixo risco; 3–7 moderado (fazer seguimento); 8–20 alto (encaminhar).',
+  m:[{k:'tot',n:'Total',min:0,max:20,dir:'down',b:[{hi:2,l:'ok',t:'Baixo risco'},{hi:7,l:'atencao',t:'Risco moderado: aplicar seguimento'},{hi:INF,l:'alerta',t:'Risco alto: encaminhar'}]}]},
+ snap:{n:'MTA-SNAP-IV',full:'MTA-SNAP-IV',idade:[72,203],inf:'Pais ou professor',area:'Saúde mental',
+  how:'Conte quantos itens de cada grupo foram marcados como “bastante” ou “demais”.',
+  ref:'Corte: ≥ 6 desatenção; ≥ 6 hiperatividade/impulsividade; ≥ 4 opositor.',
+  m:[{k:'des',n:'Desatenção (itens)',r:'Desatenção',min:0,max:9,dir:'down',b:[{hi:5,l:'ok',t:'Abaixo do corte'},{hi:INF,l:'alerta',t:'6 ou mais sintomas'}]},
+     {k:'hip',n:'Hiperatividade/impulsividade (itens)',r:'Hiperatividade',min:0,max:9,dir:'down',b:[{hi:5,l:'ok',t:'Abaixo do corte'},{hi:INF,l:'alerta',t:'6 ou mais sintomas'}]},
+     {k:'op',n:'Opositor (itens)',r:'Opositor',min:0,max:8,dir:'down',b:[{hi:3,l:'ok',t:'Abaixo do corte'},{hi:INF,l:'alerta',t:'4 ou mais sintomas'}]}]},
+ scared:{n:'SCARED',full:'Screen for Child Anxiety Related Emotional Disorders',idade:[84,215],inf:'Criança e/ou pais',area:'Saúde mental',
+  how:'Referência: últimos 3 meses. Itens de 0 a 2. Marque item a item e o app calcula total e subescalas.',ref:'Total ≥ 25 sugere transtorno de ansiedade. Subescalas: pânico ≥ 7, ansiedade generalizada ≥ 9, separação ≥ 5, social ≥ 8, evitação escolar ≥ 3.',
+  m:[{k:'tot',n:'Total',min:0,max:82,dir:'down',b:[{hi:24,l:'ok',t:'Abaixo do corte'},{hi:INF,l:'alerta',t:'25 ou mais: sugere ansiedade'}]},
+     {k:'pan',n:'Pânico/somático',r:'Pânico',min:0,max:26,dir:'down',b:cut(6)},{k:'gad',n:'Ansiedade generalizada',r:'Generalizada',min:0,max:18,dir:'down',b:cut(8)},
+     {k:'sep',n:'Ansiedade de separação',r:'Separação',min:0,max:16,dir:'down',b:cut(4)},{k:'soc',n:'Ansiedade social',r:'Social',min:0,max:14,dir:'down',b:cut(7)},{k:'esc',n:'Evitação escolar',r:'Escolar',min:0,max:8,dir:'down',b:cut(2)}]},
+ phq:{n:'PHQ-A',full:'Patient Health Questionnaire – versão adolescente',idade:[132,215],inf:'Adolescente',area:'Saúde mental',
+  how:'Aplique em local reservado. Leia o item 9 na hora, antes de o adolescente ir embora.',
+  ref:'0–4 mínimo; 5–9 leve; 10–14 moderado; 15–19 moderadamente grave; 20–27 grave. Item 9 com qualquer ponto = avaliação de risco no mesmo dia.',
+  m:[{k:'tot',n:'Total',min:0,max:27,dir:'down',b:[{hi:4,l:'ok',t:'Mínimo'},{hi:9,l:'atencao',t:'Leve'},{hi:14,l:'alerta',t:'Moderado'},{hi:19,l:'alerta',t:'Moderadamente grave'},{hi:INF,l:'alerta',t:'Grave'}]},
+     {k:'i9',n:'Item 9 (pensamentos de morte ou autolesão)',min:0,max:3,dir:'down',b:[{hi:0,l:'ok',t:'Não relatado'},{hi:INF,l:'risco',t:'Relatado: avaliar risco no mesmo dia'}]}]},
+ asq:{n:'asQ',full:'Ask Suicide-Screening Questions (NIMH)',idade:[96,215],inf:'Perguntado pela profissional',area:'Saúde mental',
+  how:'Pergunte sem os pais na sala. Se alguma das 4 perguntas for “sim”, faça a pergunta de urgência. Só use com o protocolo de manejo da Casa combinado.',
+  ref:'Negativo: rastreio completo. Positivo não agudo: avaliação breve de segurança antes de sair. Positivo agudo: avaliação imediata.',
+  m:[{k:'res',n:'Resultado',min:-.5,max:2.5,dir:'down',sel:[{v:0,t:'Negativo'},{v:1,t:'Positivo não agudo'},{v:2,t:'Positivo agudo'}],
+     b:[{hi:0,l:'ok',t:'Negativo'},{hi:1,l:'risco',t:'Positivo não agudo: avaliação breve de segurança'},{hi:INF,l:'risco',t:'Positivo agudo: avaliação imediata'}]}]},
+ pedsql:{n:'PedsQL 4.0',full:'Pediatric Quality of Life Inventory 4.0 – módulo genérico',idade:[24,215],inf:'Pais ou criança',area:'Qualidade de vida',infSel:true,
+  how:'Use a versão da idade. Referência: último mês. Registre total e dimensões (0 a 100) e indique quem respondeu.',
+  ref:'Ponto de risco no total: 65,4 (pais) e 69,7 (autorrelato).',
+  m:[{k:'tot',n:'Total',min:0,max:100,dir:'up',b:a=>{const c=a.inf==='crianca'?69.7:65.4;return[{hi:c-.01,l:'alerta',t:'Abaixo do ponto de risco ('+fmt(c)+')'},{hi:INF,l:'ok',t:'Acima do ponto de risco'}]}},
+     {k:'fis',n:'Físico',r:'Físico',min:0,max:100,dir:'up'},{k:'emo',n:'Emocional',r:'Emocional',min:0,max:100,dir:'up'},{k:'soc',n:'Social',r:'Social',min:0,max:100,dir:'up'},{k:'esc',n:'Escolar',r:'Escolar',min:0,max:100,dir:'up'}]},
+ app:{n:'Tarefas no app',full:'Tarefas padronizadas da Casa Oliveira',idade:[36,215],inf:'Tarefas feitas pela criança',area:'Medidas do app',
+  how:'Registradas pela aba Tarefas.',ref:'Sem norma: compare a criança com ela mesma.',
+  m:[{k:'apd',n:'Apoio unipodal direito (s)',r:'Apoio D',min:0,max:30,dir:'up',unit:'s'},{k:'ape',n:'Apoio unipodal esquerdo (s)',r:'Apoio E',min:0,max:30,dir:'up',unit:'s'},
+     {k:'des',n:'Traçado: desvio médio (mm)',r:'Traçado',min:0,max:15,dir:'down',unit:'mm'},{k:'rea',n:'Tempo de reação (ms)',r:'Reação',min:200,max:1500,dir:'down',unit:'ms'}]}
+};
+const IORDER=Object.keys(I);
+const CAT={dev:['idadi','esdm'],sens:['ps2'],motor:['mabc2','dcdq','pedicat'],comp:['sdq','mchat','snap','scared','phq','asq','pedsql']};
+const CONS=[['avaliar','Avaliação e uso dos instrumentos'],['dados','Guardar os resultados neste app'],['escola','Contato com a escola e participação dela na Roda'],['imagem','Fotos e vídeos para registro clínico'],['pesquisa','Uso anônimo dos dados em pesquisa']];
+const TABS=[['proto','Protocolo'],['dev','Desenvolvimento'],['sens','Sensorial'],['motor','Motor e função'],['comp','Comportamento'],['tarefas','Tarefas'],['roda','Roda de Cuidado'],['rel','Relatório'],['painel','Painel']];
+const rng=(a,b)=>Array.from({length:b-a+1},(_,i)=>a+i);
+const SC={pan:[1,6,9,12,15,18,19,22,24,27,30,34,38],gad:[5,7,14,21,23,28,33,35,37],sep:[4,8,13,16,20,25,29,31],soc:[3,10,26,32,39,40,41],esc:[2,11,17,36]};
+const ITEMS={
+ snap:{n:26,opts:[[0,'Nem um pouco'],[1,'Só um pouco'],[2,'Bastante'],[3,'Demais']],groups:[['Desatenção',1,9],['Hiperatividade/impulsividade',10,18],['Opositor',19,26]],
+  score:it=>({des:rng(1,9).filter(i=>it[i-1]>=2).length,hip:rng(10,18).filter(i=>it[i-1]>=2).length,op:rng(19,26).filter(i=>it[i-1]>=2).length})},
+ phq:{n:9,opts:[[0,'Nenhuma vez'],[1,'Vários dias'],[2,'Mais da metade dos dias'],[3,'Quase todos os dias']],groups:[['Últimas 2 semanas',1,9]],flag:9,
+  score:it=>({tot:it.reduce((a,b)=>a+b,0),i9:it[8]})},
+ scared:{n:41,opts:[[0,'Não é verdade ou quase nunca'],[1,'Às vezes'],[2,'Verdade ou frequentemente']],groups:[['Últimos 3 meses',1,41]],
+  score:it=>{const s=l=>l.reduce((a,i)=>a+it[i-1],0);return{tot:it.reduce((a,b)=>a+b,0),pan:s(SC.pan),gad:s(SC.gad),sep:s(SC.sep),soc:s(SC.soc),esc:s(SC.esc)}}},
+ asq:{n:5,words:true,labels:['Desejo de estar morto(a)','Família estaria melhor sem você','Pensamentos de se matar','Tentativa anterior','Pensando em se matar agora (só se alguma anterior for sim ou recusa)'],
+  opts:[['s','Sim'],['n','Não'],['r','Recusou']],opts5:[['s','Sim'],['n','Não']]}
+};
+function itScore(k,it){const C=ITEMS[k];if(k==='asq'){const f=it.slice(0,4);if(f.some(x=>x==null))return null;const pos=f.some(x=>x==='s'||x==='r');if(!pos)return{res:0};if(it[4]==null)return null;return{res:it[4]==='s'?2:1}}
+ if(it.some(x=>x==null))return null;return C.score(it)}
+function itMissing(k,it){if(k==='asq'){const f=it.slice(0,4).filter(x=>x==null).length;const pos=it.slice(0,4).some(x=>x==='s'||x==='r');return f+(pos&&it[4]==null?1:0)}return it.filter(x=>x==null).length}
+const LV={ok:{t:'Esperado',ic:'✓',r:0},atencao:{t:'Atenção',ic:'!',r:1},alerta:{t:'Alerta',ic:'▲',r:2},risco:{t:'Urgente',ic:'!',r:3}};
+
+/* ======================= Roda ======================= */
+const AREAS=[
+ {id:'brincar',em:'🧸',adult:'Brincar e lazer',kid:'Brincar',teen:'Lazer e hobbies'},
+ {id:'aprender',em:'📚',adult:'Aprendizagem e escola',kid:'Aprender na escola',teen:'Estudos'},
+ {id:'amizades',em:'🤝',adult:'Amizades e convivência',kid:'Amigos',teen:'Amizades'},
+ {id:'autocuidado',em:'🪥',adult:'Autocuidado (vestir, comer, higiene)',kid:'Me cuidar sozinho',teen:'Rotina e autonomia'},
+ {id:'sono',em:'🌙',adult:'Sono',kid:'Dormir',teen:'Sono'},
+ {id:'emocoes',em:'💛',adult:'Emoções e comportamento',kid:'Sentimentos',teen:'Emoções e humor'},
+ {id:'familia',em:'🏠',adult:'Convivência em casa',kid:'Em casa',teen:'Família'},
+ {id:'comunicacao',em:'💬',adult:'Comunicação',kid:'Falar e ser entendido',teen:'Me expressar'},
+ {id:'sentidos',em:'👂',adult:'Sensorial (barulho, texturas, luz)',kid:'Barulho, cheiros e texturas',teen:'Sensibilidade (barulho, luz, toque)'},
+ {id:'corpo',em:'🤸',adult:'Movimento e coordenação',kid:'Correr, pular, desenhar',teen:'Corpo e esportes'}
+];
+const AREA=Object.fromEntries(AREAS.map(a=>[a.id,a]));
+const ROLE_IDS=['crianca','familia','escola','terapeuta'];
+const ROLES={familia:{nome:'Família',ini:'F'},escola:{nome:'Escola',ini:'E'},terapeuta:{nome:'Terapeuta',ini:'T'},crianca:{nome:'Criança',ini:'C'}};
+const VIEWS=[{id:'familia',role:'familia',label:'Família',mode:'adult'},{id:'escola',role:'escola',label:'Escola',mode:'adult'},{id:'terapeuta',role:'terapeuta',label:'Terapeuta',mode:'adult'},
+ {id:'c46',role:'crianca',label:'Criança 4–6',mode:'faces'},{id:'c711',role:'crianca',label:'Criança 7–11',mode:'kid'},{id:'teen',role:'crianca',label:'Adolescente',mode:'teen'}];
+const MODE={
+ adult:{cols:['Vai bem','Mais ou menos','Preocupa'],short:['Bem','Médio','Preocupa'],max:3,na:true,prio:'Escolha até 3 prioridades: as áreas que mais pesam hoje (estrela no cartão).',ph:'Um exemplo concreto do dia a dia'},
+ kid:{cols:['Tá tranquilo','Às vezes é difícil','É difícil'],short:['Tranquilo','Às vezes','Difícil'],max:3,na:false,prio:'Marque com a estrela até 3 coisas que você quer que melhorem.',ph:'Conta como é. A terapeuta pode escrever pra você.'},
+ teen:{cols:['De boa','Mais ou menos','Tá pesando'],short:['De boa','Médio','Pesa'],max:3,na:false,prio:'Escolha até 3 coisas que você quer mudar.',ph:'Se quiser, conta um pouco'},
+ faces:{cols:['Legal','Mais ou menos','Difícil'],faces:['😀','😐','😟'],max:1,na:false,prio:'Qual você quer que fique mais fácil? Escolha uma.',ph:'O que a criança contou (a terapeuta escreve)'}
+};
+const PROMPTS={familia:n=>`Pensando no dia a dia em casa, como está cada área da vida de ${n}?`,escola:n=>`Pelo que a equipe observa na escola, como está cada área de ${n}? Use “Não observo” quando não der para dizer.`,
+ terapeuta:n=>`Pelo que você observa nas sessões e avaliações, como está cada área de ${n}?`,c46:()=>`Pra cada desenho, toque na carinha: é legal, mais ou menos ou difícil?`,
+ c711:()=>`Como está cada coisa pra você? Não tem resposta certa nem errada.`,teen:()=>`Como você está em cada área? Ninguém vai te dar nota. Sua resposta tem o mesmo peso da dos adultos.`};
+const LVNAME=['Vai bem','Mais ou menos','Preocupa'];
+const TP=[{id:'T0',nome:'Início'},{id:'T1',nome:'Reavaliação'}];
+const GAS_VALS=[-2,-1,0,1,2];
+const CSEC=[{k:'ja',t:'O que eu já faço'},{k:'posso',t:'O que eu posso fazer'},{k:'preciso',t:'O que preciso dos outros'}];
+
+/* ======================= utilidades ======================= */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function fmt(n,d){if(n==null||isNaN(n))return'–';return Number(n).toLocaleString('pt-BR',{maximumFractionDigits:d??1})}
+let tt;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),2600)}
+const today=()=>{const d=new Date();return new Date(d.getTime()-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)};
+function dBR(iso,short){if(!iso)return'–';const[y,m,d]=iso.split('-');return short?`${d}/${m}/${y.slice(2)}`:`${d}/${m}/${y}`}
+function ageM(nasc,date){if(!nasc)return null;const[y,m]=nasc.split('-').map(Number);const[Y,M]=(date||today()).split('-').map(Number);return (Y-y)*12+(M-m)}
+function ageTxt(mo){if(mo==null)return'idade não informada';if(mo<24)return mo+' meses';const y=Math.floor(mo/12),r=mo%12;return y+(y===1?' ano':' anos')+(r?` e ${r} ${r===1?'mês':'meses'}`:'')}
+function ageRange(r){const f=m=>m<24?m+'m':Math.floor(m/12)+'a'+(m%12?(m%12)+'m':'');return f(r[0])+'–'+f(r[1])}
+function addDays(iso,n){const d=new Date(iso+'T12:00:00');d.setDate(d.getDate()+n);return d.toISOString().slice(0,10)}
+function daysBetween(a,b){return Math.round((new Date(b+'T12:00:00')-new Date(a+'T12:00:00'))/864e5)}
+function val(m,a){if(!a||!a.v)return null;if(m.calc)return m.calc(a.v);const x=a.v[m.k];return typeof x==='number'?x:null}
+function bandsOf(m,a,p){if(!m.b)return null;return typeof m.b==='function'?m.b(a,p||{}):m.b}
+function classify(m,v,a,p){const b=bandsOf(m,a,p);if(!b||v==null)return null;for(const x of b)if(v<=x.hi)return x;return null}
+function lvl(c){if(!c)return'';const L=LV[c.l];return`<span class="lvl ${c.l}" title="${esc(c.t)}"><span aria-hidden="true">${L.ic}</span>${esc(L.t)}</span>`}
+function showVal(m,v){if(v==null)return'–';if(m.sel){const o=m.sel.find(o=>o.v===v);return o?o.t:fmt(v)}return fmt(v)+(m.unit?' '+m.unit:'')}
+function trend(m,a,b){if(a==null||b==null)return null;if(a===b)return'eq';if(m.dir==='up')return b>a?'up':'down';if(m.dir==='down')return b<a?'up':'down';if(m.dir==='mid')return Math.abs(b)<Math.abs(a)?'up':Math.abs(b)>Math.abs(a)?'down':'eq';return null}
+const TRTXT={up:'melhorou',down:'piorou',eq:'estável'};
+const trTag=tr=>tr?`<span class="delta ${tr}">${tr==='up'?'▲ melhorou':tr==='down'?'▼ piorou':'= estável'}</span>`:'';
+function canon(o){if(Array.isArray(o))return'['+o.map(canon).join(',')+']';if(o&&typeof o==='object')return'{'+Object.keys(o).sort().map(k=>JSON.stringify(k)+':'+canon(o[k])).join(',')+'}';return JSON.stringify(o)}
+const clone=o=>JSON.parse(JSON.stringify(o));
+const newId=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+function lsGet(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+
+/* ======================= ligação com o sistema ======================= */
+// Mesmo login do sistema (localStorage do mesmo endereço). Os pacientes são os
+// do cadastro; os dados deste app ficam na aba Evolucoes, com origem
+// 'infantil', um registro por documento, e o JSON em 'infantil'. A tela de
+// evolução do prontuário não mostra esses registros.
+const S=(()=>{try{return{token:localStorage.getItem('co_token'),user:JSON.parse(localStorage.getItem('co_user')||'null'),api:localStorage.getItem('co_api_ativa')}}catch(e){return{}}})();
+const logado=!!(S.token&&S.user&&S.api);
+const hojeISO=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+async function api(action,body){
+  let d;
+  try{const r=await fetch(S.api,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({...body,action,token:S.token}),redirect:'follow'});
+    if(!r.ok)throw{code:'unavailable'};d=JSON.parse(await r.text())}
+  catch(e){throw{code:'unavailable'}}
+  if(!d.ok){if(/token inv[aá]lido|expirad/i.test(String(d.erro||'')))throw{code:'sessao'};throw{code:'unavailable',msg:d.erro}}
+  return d;
+}
+const store={};      // pid -> {loaded:Promise, docs:Map(chave -> {rowId,data})}
+const listeners=[];
+let sysPacs=null;    // pacientes do cadastro
+function parseRows(rows){const m=new Map();
+  rows.sort((a,b)=>String(a.criado_em||'').localeCompare(String(b.criado_em||'')));
+  rows.forEach(r=>{try{m.set(r.chave,{rowId:r.id,data:JSON.parse(r.infantil)})}catch(e){}});return m}
+function loadPid(pid){const st=store[pid]=store[pid]||{docs:new Map(),loaded:null};
+  if(!st.loaded)st.loaded=api('listar',{tabela:'evolucoes',filtros:{paciente_id:pid,origem:'infantil'}}).then(r=>{
+    const fresh=parseRows(r.dados||[]);fresh.forEach((v,k)=>{if(!st.docs.has(k))st.docs.set(k,v)})},e=>{st.loaded=null;throw e});
+  return st.loaded}
+function loadSys(){if(!sysPacs)sysPacs=api('listar',{tabela:'pacientes',role:S.user.role,nome_usuario:S.user.nome}).then(async r=>{
+    const list=(r.dados||[]).filter(p=>p.nome);
+    // um pedido só traz o documento de cada paciente (resumo, consentimentos...)
+    const rd=await api('listar',{tabela:'evolucoes',filtros:{origem:'infantil',chave:'doc'}});
+    const byPid={};
+    (rd.dados||[]).sort((a,b)=>String(a.criado_em||'').localeCompare(String(b.criado_em||''))).forEach(x=>{try{byPid[String(x.paciente_id)]={rowId:x.id,data:JSON.parse(x.infantil)}}catch(e){}});
+    list.forEach(p=>{const pid=String(p.id);const st=store[pid]=store[pid]||{docs:new Map(),loaded:null};if(byPid[pid]&&!st.docs.has('doc'))st.docs.set('doc',byPid[pid])});
+    return list},e=>{sysPacs=null;throw e});
+  return sysPacs}
+function baseDoc(p){return{codigo:String(p.nome),nasc:p.data_nascimento?String(p.data_nascimento).slice(0,7):'',resp:'',reavaliar:90,ativo:true,comentario:'',plano:'',rodaCentral:null,resumo:{ultima:null,n:0,datas:[],alertas:[]}}}
+async function pacDoc(pid){const list=await loadSys();const p=list.find(x=>String(x.id)===String(pid));if(!p)return null;
+  const e=(store[pid]||{docs:new Map()}).docs.get('doc');return Object.assign(baseDoc(p),e?e.data:{},{codigo:String(p.nome)})}
+function snapOf(id,data){return{id,exists:data!=null,data:()=>data}}
+function parsePath(path){const a=path.split('/');
+  if(a[0]==='config')return{pid:'_config',chave:a[1],kind:'doc'};
+  if(a.length===1)return{kind:'pacientes'};
+  if(a.length===2)return{pid:a[1],chave:'doc',kind:'doc'};
+  if(a.length===3)return{pid:a[1],sub:a[2],kind:'col'};
+  return{pid:a[1],chave:a[2]+'/'+a[3],kind:'doc'}}
+async function buildSnap(l){const P=parsePath(l.path);
+  if(P.kind==='pacientes'){const list=await loadSys();
+    return{docs:list.map(p=>{const pid=String(p.id);const e=(store[pid]||{docs:new Map()}).docs.get('doc');const data=Object.assign(baseDoc(p),e?e.data:{},{codigo:String(p.nome),_tem:!!e});return{id:pid,data:()=>data}})}}
+  if(P.kind==='doc'){
+    if(P.chave==='doc'){const d=await pacDoc(P.pid);return snapOf(P.pid,d)}
+    await loadPid(P.pid);const e=store[P.pid].docs.get(P.chave);return snapOf(P.chave.split('/').pop(),e?e.data:null)}
+  await loadPid(P.pid);const out=[];store[P.pid].docs.forEach((v,k)=>{if(k.startsWith(P.sub+'/'))out.push({id:k.slice(P.sub.length+1),data:()=>v.data})});
+  if(l.order)out.sort((a,b)=>String(a.data()[l.order]||'').localeCompare(String(b.data()[l.order]||'')));
+  return{docs:out}}
+async function emit(l){try{const sn=await buildSnap(l);if(!l.off)l.cb(sn)}catch(e){if(!l.off&&l.err)l.err(e)}}
+function notify(pid){listeners.forEach(l=>{const P=parsePath(l.path);if(P.kind==='pacientes'||P.pid===pid)emit(l)})}
+function listen(path,cb,err,order){const l={path,cb,err,order,off:false};listeners.push(l);emit(l);return()=>{l.off=true;const i=listeners.indexOf(l);if(i>=0)listeners.splice(i,1)}}
+async function putDoc(path,data,merge){const P=parsePath(path);await loadPid(P.pid);
+  const st=store[P.pid];const cur=st.docs.get(P.chave);
+  const nd=merge?Object.assign({},cur?cur.data:{},data):data;
+  const entry=cur||{rowId:null,data:nd};entry.data=nd;st.docs.set(P.chave,entry);notify(P.pid);
+  const json=JSON.stringify(nd);
+  if(entry.rowId)await api('atualizar',{tabela:'evolucoes',id:entry.rowId,dados:{infantil:json}});
+  else{const r=await api('salvar',{tabela:'evolucoes',dados:{paciente_id:P.pid,data:hojeISO(),texto:'Avaliação infantil (registro interno)',autor_email:S.user.email,autor_nome:S.user.nome,origem:'infantil',chave:P.chave,infantil:json}});entry.rowId=r.id}}
+async function delDoc(path){const P=parsePath(path);await loadPid(P.pid);const st=store[P.pid];const e=st.docs.get(P.chave);if(!e)return;
+  st.docs.delete(P.chave);notify(P.pid);if(e.rowId)await api('deletar',{tabela:'evolucoes',id:e.rowId})}
+const DBX={
+  doc:path=>({set:d=>putDoc(path,d,false),update:d=>putDoc(path,d,true),delete:()=>delDoc(path),onSnapshot:(cb,err)=>listen(path,cb,err)}),
+  collection:path=>{const c={o:null,orderBy(k){c.o=k;return c},onSnapshot:(cb,err)=>listen(path,cb,err,c.o),get:()=>buildSnap({path,order:c.o})};return c}
+};
+// Baixar arquivo no navegador
+const DLX={save:async({filename,data})=>{const type=/\.csv$/i.test(filename)?'text/csv;charset=utf-8':'text/html;charset=utf-8';
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type}));a.download=filename;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500)}};
+
+/* ======================= estado ======================= */
+let DB=null,DL=null,MCP=null,OFFLINE=false,RO=false;
+let PACS=[];
+let CUR=null;
+let P=null; // {id,doc,avs,roda,metas,loaded}
+let subs=[];
+const UI={tab:lsGet('ai-tab','proto'),sel:{},forms:{},pdata:false,pnew:false,delPac:false,armed:null,
+  rsub:'resp',rview:'familia',rhover:null,tp:'T1',marker:'familia',rsel:{},hand:null,thanks:false,
+  task:'apoio',lado:'D',trShape:'onda',filtro:'todos'};
+const q={};
+function chain(path,fn){q[path]=(q[path]||Promise.resolve()).then(fn).catch(onErr);return q[path]}
+function onErr(e){if(e&&e.code==='sessao'){RO=true;toast('Sua sessão expirou. Entre no sistema de novo.');renderAll()}else if(e&&e.code==='invalid_argument'){RO=true;toast('Sem permissão para salvar. Peça acesso de editora.');renderAll()}else if(e&&e.code==='quota_exceeded')toast('Limite de armazenamento atingido.');else toast('Não foi possível salvar. Tente de novo.')}
+const W=(path,data)=>{if(OFFLINE||RO)return;chain(path,()=>DB.doc(path).set(clone(data)))};
+const Wdel=path=>{if(OFFLINE||RO)return;chain(path,()=>DB.doc(path).delete())};
+function patchPac(patch){if(!P)return;Object.assign(P.doc,patch);if(OFFLINE||RO)return;const p='pacientes/'+P.id;chain(p,()=>DB.doc(p).update(Object.assign({atualizado:new Date().toISOString()},clone(patch))))}
+
+function resumo(avs,pac){
+ const latest={};avs.forEach(a=>{if(!latest[a.instr]||a.data>latest[a.instr].data)latest[a.instr]=a});
+ const alertas=[];Object.values(latest).forEach(a=>{const ins=I[a.instr];if(!ins)return;ins.m.forEach(m=>{const c=classify(m,val(m,a),a,pac);if(c&&c.l!=='ok')alertas.push({i:a.instr,k:m.k,l:c.l})})});
+ const datas=avs.map(a=>a.data).sort().reverse();return{ultima:datas[0]||null,n:avs.length,datas:datas.slice(0,60),alertas};
+}
+function syncResumo(){if(!P||!P.doc)return;const r=resumo(P.avs,P.doc);if(canon(r)===canon(P.doc.resumo||null))return;if(OFFLINE){P.doc.resumo=r;return}if(RO)return;patchPac({resumo:r})}
+
+function unsub(){subs.forEach(u=>{try{u()}catch(e){}});subs=[]}
+function openPac(id){
+ unsub();CUR=id;UI.forms={};UI.delPac=false;UI.armed=null;UI.rsel={};UI.rhover=null;
+ if(!id){P=null;renderAll();return}
+ if(OFFLINE){const d=PACS.find(p=>p.id===id);if(!d){P=null;renderAll();return}P={id,doc:d,avs:d._avs,roda:d._roda,metas:d._metas,loaded:{doc:1,avs:1,roda:1,metas:1}};renderAll();return}
+ P={id,doc:null,avs:[],roda:{resp:{},comm:{}},metas:[],loaded:{}};
+ const er=e=>{if(e&&e.code!=='revoked')toast('Não foi possível carregar o paciente.')};
+ subs.push(DB.doc('pacientes/'+id).onSnapshot(s=>{if(!P||P.id!==id)return;P.doc=s.exists?Object.assign({},clone(s.data())):null;P.loaded.doc=1;if(P.loaded.avs)syncResumo();renderAll()},er));
+ subs.push(DB.collection(`pacientes/${id}/avaliacoes`).onSnapshot(s=>{if(!P||P.id!==id)return;P.avs=s.docs.map(d=>Object.assign({id:d.id},clone(d.data())));P.loaded.avs=1;if(P.loaded.doc)syncResumo();renderAll()},er));
+ subs.push(DB.collection(`pacientes/${id}/roda`).onSnapshot(s=>{if(!P||P.id!==id)return;const r={resp:{},comm:{}};
+   s.docs.forEach(d=>{const x=clone(d.data());const[kind,role]=d.id.split('-');if(kind==='resp')r.resp[role]=x;if(kind==='comm')r.comm[role]=x});
+   for(const role of ROLE_IDS){if(rt['nota-'+role]&&P.roda.resp[role])r.resp[role]=Object.assign(r.resp[role]||{},{notas:P.roda.resp[role].notas})}
+   P.roda=r;P.loaded.roda=1;renderAll()},er));
+ subs.push(DB.collection(`pacientes/${id}/metas`).orderBy('criado').onSnapshot(s=>{if(!P||P.id!==id)return;P.metas=s.docs.map(d=>Object.assign({id:d.id},clone(d.data())));P.loaded.metas=1;renderAll()},er));
+ renderAll();
+}
+const ready=()=>P&&P.doc&&P.loaded.doc&&P.loaded.avs;
+
+/* ======================= render raiz ======================= */
+function renderAll(){
+ const a=document.activeElement,fid=a&&a.id;let s0=null,s1=null;try{s0=a.selectionStart;s1=a.selectionEnd}catch(e){}
+ renderPatient();renderTabs();renderMain();
+ if(UI.hand)renderHand();
+ if(!$('#ptView').hidden)renderPt();
+ if(!$('#tcView').hidden)renderTc();
+ $('#foot').textContent=OFFLINE?'Modo demonstração: nesta visualização não há armazenamento, nada é salvo.':RO?'Você pode consultar, mas não salvar. Peça acesso de editora.':'Os dados ficam salvos no prontuário do paciente e valem para a equipe toda.';
+ if(fid){const n=document.getElementById(fid);if(n&&n!==document.activeElement){n.focus({preventScroll:true});try{if(s0!=null)n.setSelectionRange(s0,s1)}catch(e){}}}
+}
+function status(p){const r=p.resumo||{};const dias=p.reavaliar||90;const prox=r.ultima?addDays(r.ultima,dias):null;const vencida=!r.ultima||prox<today();
+ const al=r.alertas||[];return{prox,vencida,risco:al.some(x=>x.l==='risco'),alerta:al.some(x=>x.l==='alerta'),r}}
+function renderPatient(){
+ const ids=PACS.slice().sort((a,b)=>String(a.codigo).localeCompare(String(b.codigo),'pt-BR'));
+ const opts=ids.length?'<option value="">Escolha o paciente</option>'+ids.map(p=>`<option value="${esc(p.id)}" ${p.id===CUR?'selected':''}>${esc(p.codigo)}</option>`).join(''):'<option value="">Nenhum paciente seu cadastrado</option>';
+ let facts='';
+ if(ready()){const d=P.doc,s=status(d);facts=`<b>${esc(ageTxt(ageM(d.nasc)))}</b> · ${esc(d.resp||'sem responsável')} · última avaliação ${s.r.ultima?dBR(s.r.ultima):'–'} · ${s.vencida?'<b style="color:var(--danger)">reavaliação '+(s.r.ultima?'vencida':'pendente')+'</b>':'próxima '+dBR(s.prox)}`}
+ const d=ready()?P.doc:null;
+ $('#pBox').innerHTML=`<div><label for="pSel">Paciente</label><div class="row"><select id="pSel" ${ids.length?'':'disabled'}>${opts}</select></div></div>
+ ${facts?`<p class="pfacts">${facts}</p>`:''}
+ ${d?`<button class="linkbtn" data-a="pdata" type="button">${UI.pdata?'Fechar dados do paciente':'Dados do paciente (nascimento, responsável, reavaliação)'}</button>`:''}
+ ${d&&UI.pdata?`<div class="stack"><div class="row"><div style="flex:0 0 150px"><label for="pdNasc">Nascimento</label><input type="month" id="pdNasc" value="${esc(d.nasc||'')}"></div></div>
+  <div class="row"><div><label for="pdResp">Responsável</label><input type="text" id="pdResp" maxlength="60" value="${esc(d.resp||'')}"></div><div style="flex:0 0 150px"><label for="pdReav">Reavaliar a cada</label><select id="pdReav">${[[60,'2 meses'],[90,'3 meses'],[180,'6 meses']].map(([v,t])=>`<option value="${v}" ${(d.reavaliar||90)===v?'selected':''}>${t}</option>`).join('')}</select></div></div>
+  <div><label>Consentimentos dos responsáveis</label><div class="stack" style="gap:2px">${CONS.map(([k,t])=>{const c=(d.consent||{})[k];return`<label class="chk"><input type="checkbox" data-cons="${k}" ${c?'checked':''}> <span>${t}${c?` <span class="hint">· registrado em ${dBR(c)}</span>`:''}</span></label>`}).join('')}</div><p class="hint">Marque quando o termo assinado estiver no prontuário. A data fica registrada.</p></div>
+  </div>`:''}
+ <p class="hint">Os pacientes são os do cadastro do sistema. Os dados ficam no prontuário, na aba de evolução não aparecem.</p>`;
+}
+function renderTabs(){$('#tabs').innerHTML=TABS.map(([k,t])=>`<button role="tab" aria-selected="${UI.tab===k}" data-a="tab" data-v="${k}">${t}</button>`).join('')}
+function renderMain(){
+ const m=$('#main');
+ if(UI.tab==='painel'){m.innerHTML=viewPainel();return}
+ if(!CUR||!PACS.length&&!P){m.innerHTML=`<div class="card"><h3>Comece cadastrando um paciente</h3><p class="hint">Toque em Novo, informe o código e o mês de nascimento. O app mostra a bateria indicada para a idade.</p></div>`;return}
+ if(!ready()){m.innerHTML=P&&P.loaded.doc&&!P.doc?`<p class="hint">Este paciente foi excluído. Escolha outro na lista.</p>`:`<p class="hint">Carregando…</p>`;return}
+ const t=UI.tab;
+ m.innerHTML=t==='proto'?viewProto():CAT[t]?viewInstr(t):t==='tarefas'?viewTarefas():t==='roda'?viewRoda():t==='rel'?viewRel():'';
+ if(t==='tarefas')afterTask();
+}
+
+/* ======================= Protocolo ======================= */
+function byInstr(){const g={};P.avs.slice().sort((a,b)=>a.data<b.data?-1:a.data>b.data?1:0).forEach(a=>{(g[a.instr]=g[a.instr]||[]).push(a)});return g}
+const catOf=k=>Object.keys(CAT).find(c=>CAT[c].includes(k))||(k==='app'?'tarefas':null);
+function viewProto(){
+ const d=P.doc,idade=ageM(d.nasc),g=byInstr(),ciclo=d.reavaliar||90,t=today();
+ const ind=IORDER.filter(k=>idade!=null&&I[k].idade[0]<=idade&&idade<=I[k].idade[1]);
+ const rows=ind.map(k=>{const arr=g[k]||[];const last=arr[arr.length-1];const ok=last&&daysBetween(last.data,t)<=ciclo;
+  return`<div class="it"><div class="l"><b>${esc(I[k].n)}</b><span>${esc(I[k].area)} · ${esc(I[k].inf)}</span></div><div class="acts">${ok?`<span class="done">✓ ${dBR(last.data,true)}</span>`:last?`<span class="todo">último ${dBR(last.data,true)}</span>`:''}<button class="mini go" data-a="fazer" data-i="${k}">${ok?'Refazer':'Fazer'}</button></div></div>`}).join('');
+ const s=status(d);
+ return`<p class="how">Bateria indicada para <b>${esc(ageTxt(idade))}</b>. O ✓ mostra o que foi registrado nos últimos ${ciclo/30|0} meses. Escolha pela queixa: não é preciso aplicar tudo.</p>
+ ${(()=>{const c=d.consent||{};const f=CONS.filter(([k])=>k==='avaliar'||k==='dados').filter(([k])=>!c[k]);return f.length?`<p class="warnbox">Falta registrar o consentimento: ${f.map(x=>x[1].toLowerCase()).join(' e ')}. Marque em <button type="button" class="linkbtn" data-a="pdata" style="min-height:0;padding:0">Dados do paciente</button>.</p>`:''})()}
+ ${s.risco?`<p class="err"><b>Atenção:</b> há rastreio de risco positivo no último registro. Siga o protocolo de risco da Casa no mesmo dia.</p>`:''}
+ ${idade==null?`<p class="warnbox">Informe o mês de nascimento em Dados do paciente para ver a bateria indicada.</p>`:`<div class="list">${rows||'<div class="it">Nenhum instrumento cadastrado para esta idade.</div>'}</div>`}
+ ${MCP?(()=>{const ag=d.agendado;const def=s.prox&&s.prox>=today()?s.prox:addDays(today(),7);return`<div class="card"><h3>Reavaliação na agenda</h3>${ag?`<p class="done">✓ Agendada para ${dBR(ag.data)}</p>`:''}
+  <div class="row"><div><label for="agData">Data da reavaliação</label><input type="date" id="agData" value="${esc(def)}" min="${today()}"></div><button class="btn" data-a="agendar" type="button" ${UI.agBusy?'disabled':''} style="align-self:flex-end">${UI.agBusy?'Agendando…':'Agendar'}</button></div>
+  <p class="hint">Cria um lembrete de dia inteiro no seu Google Agenda, só com o código do paciente.</p></div>`})():''}
+ <p class="hint">Fazer abre o instrumento já selecionado. Os itens dos testes ficam nos manuais oficiais; aqui entram só os resultados.</p>
+ <details class="evo"><summary>Faixas do IDADI e do PEDI-CAT</summary><div class="stack" style="margin-top:10px">
+  <p class="hint">Ajuste conforme as normas do manual de cada instrumento. Vale para toda a equipe e reclassifica os registros.</p>
+  <div class="row"><div><label for="cfIa">IDADI: muito abaixo se menor que</label><input type="number" id="cfIa" value="${CFG.idadi.a}"></div><div><label for="cfIb">abaixo se menor que</label><input type="number" id="cfIb" value="${CFG.idadi.b}"></div></div>
+  <div class="row"><div><label for="cfPa">PEDI-CAT (T): abaixo se menor que</label><input type="number" id="cfPa" value="${CFG.pedicat.a}"></div><div><label for="cfPb">limítrofe se menor que</label><input type="number" id="cfPb" value="${CFG.pedicat.b}"></div></div>
+  <button class="btn" data-a="cfgSave" type="button">Salvar faixas</button></div></details>
+ <details class="evo"><summary>Todos os instrumentos e pontos de corte</summary><div class="list" style="margin-top:10px">${IORDER.filter(k=>k!=='app').map(k=>`<div class="it"><div class="l"><b>${esc(I[k].n)} · ${esc(ageRange(I[k].idade))}</b><span>${esc(I[k].ref)}</span></div><div class="acts"><button class="mini" data-a="fazer" data-i="${k}">Abrir</button></div></div>`).join('')}</div></details>`;
+}
+
+/* ======================= Instrumentos ======================= */
+function formFor(k){if(!UI.forms[k])UI.forms[k]={data:today(),v:{},inf:'pais',obs:'',id:null,it:ITEMS[k]?Array(ITEMS[k].n).fill(null):null,mode:ITEMS[k]?'itens':'totais'};return UI.forms[k]}
+function applyItems(k){const F=formFor(k);const sc=itScore(k,F.it);I[k].m.forEach(m=>{if(!m.calc)delete F.v[m.k]});if(sc)Object.assign(F.v,sc)}
+function itemsHTML(k){const C=ITEMS[k],F=formFor(k);const miss=itMissing(k,F.it);
+ const btns=(i,opts)=>`<div class="iopts ${C.words?'words':''}" role="group" aria-label="Item ${i}">${opts.map(([v,t])=>`<button type="button" data-a="itv" data-i="${k}" data-n="${i}" data-v="${v}" aria-pressed="${F.it[i-1]===v}" title="${esc(t)}">${C.words?esc(t):v}</button>`).join('')}</div>`;
+ let h='';
+ if(k==='asq'){const pos=F.it.slice(0,4).some(x=>x==='s'||x==='r');
+  h=C.labels.map((l,i)=>i===4&&!pos?'':`<div class="itrow ${i===4?'flag':''}"><span class="n">${i+1}</span>${btns(i+1,i===4?C.opts5:C.opts)}<span class="lab">${esc(l)}</span></div>`).join('')}
+ else h=C.groups.map(([g,a,b])=>`<div class="itgrp">${esc(g)}</div>${rng(a,b).map(i=>`<div class="itrow ${C.flag===i?'flag':''}"><span class="n">${i}</span>${btns(i,C.opts)}${C.flag===i?'<span class="lab">Item 9: qualquer ponto pede avaliação de risco no mesmo dia</span>':''}</div>`).join('')}`).join('');
+ return`<p class="itlegend">${C.words?'Leia as perguntas do formulário oficial e marque a resposta.':'Leia cada item no formulário oficial e marque a resposta. '+C.opts.map(([v,t])=>`<b>${v}</b> = ${esc(t)}`).join(' · ')}</p>
+ ${h}<div class="row"><p class="hint" style="flex:1">${miss?`Faltam ${miss} ${miss===1?'item':'itens'}`:'Todos os itens respondidos'}</p>${!C.words&&miss?`<button type="button" class="btn quiet sm" data-a="itzero" data-i="${k}" style="flex:0 0 auto">Restantes = 0</button>`:''}</div>`}
+function viewInstr(cat){
+ const ks=CAT[cat];let k=UI.sel[cat];if(!ks.includes(k)){const idade=ageM(P.doc.nasc);k=ks.find(x=>idade!=null&&I[x].idade[0]<=idade&&idade<=I[x].idade[1])||ks[0];UI.sel[cat]=k}
+ const ins=I[k],F=formFor(k),idade=ageM(P.doc.nasc,F.data);
+ const fora=idade!=null&&(idade<ins.idade[0]||idade>ins.idade[1]);
+ const opts=ks.map(x=>{const r=I[x].idade;const ok=idade!=null&&r[0]<=idade&&idade<=r[1];return`<option value="${x}" ${x===k?'selected':''}>${esc(I[x].n)}${ok?' · indicado':''}</option>`}).join('');
+ const useIt=ITEMS[k]&&F.mode==='itens';
+ const fields=useIt?itemsHTML(k):ins.m.map(m=>{
+  if(m.calc)return'';
+  if(m.sel)return`<div class="field"><label>${esc(m.n)}</label><div class="qopts ${m.sel.length>3?'col':''}" role="group" aria-label="${esc(m.n)}">${m.sel.map(o=>`<button type="button" data-a="selv" data-i="${k}" data-m="${m.k}" data-v="${o.v}" aria-pressed="${F.v[m.k]===o.v}">${esc(o.t)}</button>`).join('')}</div></div>`;
+  return`<div class="field"><label for="fv-${k}-${m.k}">${esc(m.n)} <span class="lim">(${fmt(Math.max(m.min,0))}–${fmt(m.max)})</span></label><input type="number" inputmode="decimal" step="any" id="fv-${k}-${m.k}" data-fv="${m.k}" data-i="${k}" value="${F.v[m.k]??''}"></div>`}).join('');
+ return`${ks.length>1?`<div><label for="iSel">Instrumento</label><select id="iSel" data-cat="${cat}">${opts}</select></div>`:`<h2>${esc(ins.n)}</h2>`}
+ <p class="how"><b>${esc(ins.full)}</b> · ${esc(ageRange(ins.idade))} · ${esc(ins.inf)}<br>${esc(ins.how)}</p>
+ ${fora?`<p class="warnbox">Pela data de nascimento, a idade na aplicação (${esc(ageTxt(idade))}) está fora da faixa do instrumento. As faixas de classificação podem não valer.</p>`:''}
+ ${F.id?`<p class="warnbox">Editando o registro de ${dBR(F.data)}. <button class="linkbtn" data-a="cancelEdit" data-i="${k}" type="button">Cancelar edição</button></p>`:''}
+ <div class="row"><div><label for="fd-${k}">Data da aplicação</label><input type="date" id="fd-${k}" data-fd="${k}" value="${esc(F.data)}" max="${today()}"></div>
+ ${ins.infSel?`<div><label for="fi-${k}">Quem respondeu</label><select id="fi-${k}" data-fi="${k}"><option value="pais" ${F.inf!=='crianca'?'selected':''}>Pais</option><option value="crianca" ${F.inf==='crianca'?'selected':''}>Criança/adolescente</option></select></div>`:''}</div>
+ ${ITEMS[k]?`<div class="seg" role="group" aria-label="Forma de registro"><button type="button" data-a="imode" data-i="${k}" data-v="itens" aria-pressed="${F.mode==='itens'}">Item a item</button><button type="button" data-a="imode" data-i="${k}" data-v="totais" aria-pressed="${F.mode!=='itens'}">Só os totais</button></div>`:''}
+ <div class="stack" style="gap:${useIt?'0':'14px'}">${fields}</div>
+ <div class="qres" id="qres-${k}" aria-live="polite">${resultHTML(k)}</div>
+ <div><label for="fo-${k}">Observação (opcional)</label><input type="text" id="fo-${k}" data-fo="${k}" maxlength="600" value="${esc(F.obs)}" autocomplete="off"></div>
+ <button class="btn full" data-a="salvar" data-i="${k}" type="button">${F.id?'Salvar alterações':'Salvar'}</button>
+ <p class="hint">${esc(ins.ref)}</p>`;
+}
+function resultHTML(k){
+ const ins=I[k],F=formFor(k),a={data:F.data,v:F.v,inf:F.inf};
+ const rows=ins.m.map(m=>{const v=val(m,a);if(v==null)return null;return{m,v,c:classify(m,v,a,P.doc)}}).filter(Boolean);
+ if(!rows.length)return'';
+ if(ins.idx){const age=ageM(P.doc.nasc,F.data);return rows.map(r=>`<div class="mr"><span>${esc(r.m.n)}</span><span class="v">${esc(showVal(r.m,r.v))}${age>0?` · índice ${Math.round(r.v/age*100)}`:''}</span></div>`).join('')}
+ if(ins.m.length===1||(rows.length===1&&ins.m.length<=2)){const r=rows[0];return`<div class="qs"><b>${esc(r.m.sel?showVal(r.m,r.v):fmt(r.v))}</b>${lvl(r.c)}</div><p class="small">${r.c?esc(r.c.t):''}</p>${rows.slice(1).map(r=>`<div class="mr"><span>${esc(r.m.n)}</span><span class="v">${esc(showVal(r.m,r.v))}</span>${lvl(r.c)}</div>`).join('')}`}
+ return rows.map(r=>`<div class="mr"><span>${esc(r.m.n)}</span><span class="v">${esc(showVal(r.m,r.v))}</span>${lvl(r.c)}</div>`).join('');
+}
+function salvar(k){
+ if(RO){toast('Acesso só de leitura');return}
+ const ins=I[k],F=formFor(k);if(!F.data){toast('Informe a data');return}
+ if(ITEMS[k]&&F.mode==='itens'){const miss=itMissing(k,F.it);if(miss){toast(`Faltam ${miss} ${miss===1?'item':'itens'} para calcular`);return}applyItems(k)}
+ const v={};let bad=null;
+ ins.m.forEach(m=>{if(m.calc)return;const x=F.v[m.k];if(x==null||isNaN(x))return;const lo=m.sel?m.min:Math.max(m.min,0);if(x<lo-1e-9||x>m.max+1e-9)bad=m;v[m.k]=x});
+ if(bad){toast(`${bad.n}: valor fora do intervalo`);const el=document.getElementById(`fv-${k}-${bad.k}`);if(el)el.focus();return}
+ if(!Object.keys(v).length){toast('Preencha ao menos um resultado');return}
+ const body={instr:k,data:F.data,v,prof:P.doc.resp||'',obs:(F.obs||'').trim(),criado:new Date().toISOString()};
+ if(ins.infSel)body.inf=F.inf==='crianca'?'crianca':'pais';
+ if(ITEMS[k]&&F.mode==='itens')body.it=F.it.slice();
+ putAv(F.id||newId('a'),body);delete UI.forms[k];renderAll();toast(F.id?'Alterações salvas':'Salvo. Veja a evolução no Relatório.');
+}
+function putAv(id,body){const i=P.avs.findIndex(x=>x.id===id);if(i>=0)P.avs[i]=Object.assign({id},body);else P.avs.push(Object.assign({id},body));
+ if(OFFLINE){syncResumo();return}W(`pacientes/${P.id}/avaliacoes/${id}`,body);q[`pacientes/${P.id}/avaliacoes/${id}`].then(syncResumo)}
+
+/* ======================= Tarefas ======================= */
+const TK={apoio:{n:'Apoio unipodal'},traco:{n:'Traçado'},reacao:{n:'Tempo de reação'}};
+const T={run:false,t0:0,el:0,raf:0,tries:{D:[],E:[]},pts:[],strokes:[],trT0:0,trDone:false,rx:null};
+function viewTarefas(){
+ const seg=Object.entries(TK).map(([k,x])=>`<button type="button" data-a="task" data-v="${k}" aria-pressed="${UI.task===k}">${x.n}</button>`).join('');
+ let body='';
+ if(UI.task==='apoio'){const tr=T.tries[UI.lado];const best=tr.length?Math.max(...tr):null;
+  body=`<p class="how">Criança descalça, mãos na cintura, olhando para um ponto na parede. Toque em <b>Iniciar</b> quando ela tirar o pé do chão e em <b>Parou</b> quando apoiar o pé, tirar a mão da cintura ou pular. Faça 3 tentativas de cada lado; vale a melhor. Limite de 30 s.</p>
+  <div class="seg" role="group" aria-label="Lado"><button type="button" data-a="lado" data-v="D" aria-pressed="${UI.lado==='D'}">Pé direito</button><button type="button" data-a="lado" data-v="E" aria-pressed="${UI.lado==='E'}">Pé esquerdo</button></div>
+  <div class="stage"><div class="bignum" id="tBig">${fmt(T.el,1)} s</div><p class="status">${T.run?'Contando…':'Tentativas '+(UI.lado==='D'?'direita':'esquerda')+': '+(tr.length?tr.map(x=>fmt(x,1)+' s').join(' · '):'nenhuma')}</p></div>
+  <button class="btn full ktap" data-a="apoioTap" type="button">${T.run?'Parou':'Iniciar'}</button>
+  <div class="metrics"><div><div class="v">${T.tries.D.length?fmt(Math.max(...T.tries.D),1)+' s':'–'}</div><div class="k">melhor direito</div></div><div><div class="v">${T.tries.E.length?fmt(Math.max(...T.tries.E),1)+' s':'–'}</div><div class="k">melhor esquerdo</div></div></div>
+  <div class="btns two"><button class="btn quiet" data-a="apoioClear" type="button">Limpar tentativas</button><button class="btn" data-a="apoioSave" type="button" ${T.tries.D.length||T.tries.E.length?'':'disabled'}>Salvar</button></div>`}
+ if(UI.task==='traco'){
+  body=`<p class="how">Use o tablet na horizontal. A criança passa o dedo (ou caneta) por cima da linha tracejada, do ponto verde até o fim, sem levantar se possível. O app mede o quanto o traço se afasta da linha.</p>
+  <div class="seg" role="group" aria-label="Figura">${[['onda','Onda'],['zigue','Zigue-zague'],['circulo','Círculo']].map(([k,t])=>`<button type="button" data-a="shape" data-v="${k}" aria-pressed="${UI.trShape===k}">${t}</button>`).join('')}</div>
+  <div class="stage"><canvas class="trace" id="trCv" width="900" height="600" aria-label="Área de traçado"></canvas></div>
+  <div class="metrics" id="trRes"><div><div class="v" id="trDev">–</div><div class="k">desvio médio (mm, aprox.)</div></div><div><div class="v" id="trCov">–</div><div class="k">figura percorrida</div></div><div><div class="v" id="trTime">–</div><div class="k">tempo</div></div></div>
+  <div class="btns two"><button class="btn quiet" data-a="trClear" type="button">Apagar e refazer</button><button class="btn" data-a="trSave" type="button">Salvar</button></div>
+  <p class="hint">O milímetro é aproximado e depende da tela. Use sempre o mesmo aparelho nas reavaliações.</p>`}
+ if(UI.task==='reacao'){const r=T.rx;
+  body=`<p class="how">12 rodadas. Quando aparecer o <b>círculo verde</b>, a criança toca o mais rápido que puder. Quando aparecer o <b>quadrado vermelho</b>, não toca. Faça uma rodada de treino antes, explicando.</p>
+  <div class="stage react" id="rxStage" data-a="rxTap" role="button" tabindex="0" aria-label="Área de toque"><div class="msg" id="rxMsg">${r&&r.done?'Pronto!':'Toque em Começar'}</div></div>
+  ${r&&r.done?`<div class="metrics"><div><div class="v">${r.mean?fmt(r.mean,0)+' ms':'–'}</div><div class="k">tempo médio de reação</div></div><div><div class="v">${r.omis}</div><div class="k">verdes sem toque</div></div><div><div class="v">${r.comis}</div><div class="k">toques no vermelho</div></div><div><div class="v">${r.ant}</div><div class="k">toques antecipados</div></div></div>`:''}
+  <div class="btns two"><button class="btn quiet" data-a="rxStart" type="button">${r&&!r.done?'Recomeçar':'Começar'}</button><button class="btn" data-a="rxSave" type="button" ${r&&r.done&&r.mean?'':'disabled'}>Salvar</button></div>`}
+ const g=byInstr().app;const last=g&&g[g.length-1];
+ return`<div class="seg" role="group" aria-label="Tarefa">${seg}</div>${body}
+ ${last?`<div class="card"><h3>Último registro das tarefas · ${dBR(last.data)}</h3>${I.app.m.map(m=>{const v=val(m,last);return v==null?'':`<div class="mrow"><span>${esc(m.n)}</span><span class="v">${esc(showVal(m,v))}</span><span></span></div>`}).join('')}</div>`:''}`;
+}
+function saveApp(patch,obs){
+ if(RO){toast('Acesso só de leitura');return}
+ const t=today();const ex=P.avs.find(a=>a.instr==='app'&&a.data===t);
+ const body=ex?{instr:'app',data:t,v:Object.assign({},ex.v,patch),prof:ex.prof||P.doc.resp||'',obs:[ex.obs,obs].filter(Boolean).join(' · '),criado:ex.criado||new Date().toISOString()}
+  :{instr:'app',data:t,v:patch,prof:P.doc.resp||'',obs:obs||'',criado:new Date().toISOString()};
+ putAv(ex?ex.id:newId('a'),body);toast('Salvo nas tarefas de hoje');
+}
+function apoioTick(){if(!T.run)return;T.el=Math.min(30,(performance.now()-T.t0)/1000);const b=$('#tBig');if(b)b.textContent=fmt(T.el,1)+' s';if(T.el>=30){apoioStop();return}T.raf=requestAnimationFrame(apoioTick)}
+function apoioStop(){T.run=false;cancelAnimationFrame(T.raf);T.tries[UI.lado].push(Math.round(T.el*10)/10);if(T.tries[UI.lado].length>3)T.tries[UI.lado].shift();renderMain()}
+/* traçado */
+function shapePts(){const p=[];const S=UI.trShape;
+ if(S==='onda'){for(let i=0;i<=400;i++){const x=90+i*(720/400);p.push([x,300+120*Math.sin(i/400*Math.PI*4)])}}
+ else if(S==='zigue'){const xs=[90,210,330,450,570,690,810];xs.forEach((x,i)=>{if(i){const[x0,y0]=p[p.length-1];const y1=i%2?160:440;for(let j=1;j<=60;j++)p.push([x0+(x-x0)*j/60,y0+(y1-y0)*j/60])}else p.push([x,440])})}
+ else{for(let i=0;i<=400;i++){const a=-Math.PI/2+i/400*Math.PI*2;p.push([450+200*Math.cos(a),300+200*Math.sin(a)])}}
+ return p}
+function trDraw(){const cv=$('#trCv');if(!cv)return;const c=cv.getContext('2d');const cs=getComputedStyle(document.documentElement);
+ c.clearRect(0,0,900,600);const tp=shapePts();
+ c.lineWidth=14;c.lineCap='round';c.lineJoin='round';c.strokeStyle=cs.getPropertyValue('--soft').trim()||'#DDE9E3';c.setLineDash([]);
+ c.beginPath();tp.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));c.stroke();
+ c.lineWidth=3;c.strokeStyle=cs.getPropertyValue('--muted').trim()||'#55645E';c.setLineDash([10,10]);c.beginPath();tp.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));c.stroke();c.setLineDash([]);
+ c.fillStyle='#2E7D5B';c.beginPath();c.arc(tp[0][0],tp[0][1],12,0,Math.PI*2);c.fill();
+ c.strokeStyle=cs.getPropertyValue('--live').trim()||'#C9831F';c.lineWidth=5;
+ T.strokes.forEach(s=>{c.beginPath();s.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));c.stroke()});
+}
+function trMetrics(){const tp=shapePts();const all=T.strokes.flat();if(all.length<5)return null;const cv=$('#trCv');const scale=cv.getBoundingClientRect().width/900;
+ let sum=0;all.forEach(([x,y])=>{let m=1e9;for(const[a,b]of tp){const d=(a-x)**2+(b-y)**2;if(d<m)m=d}sum+=Math.sqrt(m)});
+ const mean=sum/all.length;const mm=mean*scale*0.2646;
+ let cov=0;tp.forEach(([a,b])=>{if(all.some(([x,y])=>(a-x)**2+(b-y)**2<40*40))cov++});
+ return{mm:Math.round(mm*10)/10,cov:Math.round(cov/tp.length*100),t:T.trT1&&T.trT0?(T.trT1-T.trT0)/1000:null}}
+function trShow(){const r=trMetrics();if(!$('#trDev'))return;$('#trDev').textContent=r?fmt(r.mm,1):'–';$('#trCov').textContent=r?r.cov+'%':'–';$('#trTime').textContent=r&&r.t?fmt(r.t,1)+' s':'–'}
+function afterTask(){if(UI.task==='traco'){trDraw();trShow();const cv=$('#trCv');let cur=null;
+ const pos=e=>{const r=cv.getBoundingClientRect();return[(e.clientX-r.left)/r.width*900,(e.clientY-r.top)/r.height*600]};
+ cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);cur=[pos(e)];T.strokes.push(cur);if(!T.trT0)T.trT0=performance.now();trDraw()});
+ cv.addEventListener('pointermove',e=>{if(!cur)return;cur.push(pos(e));T.trT1=performance.now();trDraw()});
+ const up=()=>{if(cur){cur=null;trShow()}};cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up)}}
+/* reação */
+function rxStart(){clearTimeout(T.rxTo);const seq=[1,1,1,1,1,1,1,1,1,0,0,0].sort(()=>Math.random()-.5);T.rx={seq,i:0,rts:[],omis:0,comis:0,ant:0,state:'wait',done:false};renderMain();rxNext()}
+function rxMsg(h){const m=$('#rxMsg');if(m)m.outerHTML=h}
+function rxNext(){const r=T.rx;if(!r)return;if(r.i>=r.seq.length){r.done=true;r.mean=r.rts.length?r.rts.reduce((a,b)=>a+b,0)/r.rts.length:null;renderMain();return}
+ r.state='wait';rxMsg('<div class="msg" id="rxMsg">Aguarde…</div>');
+ T.rxTo=setTimeout(()=>{r.state=r.seq[r.i]?'go':'nogo';r.ts=performance.now();rxMsg(r.seq[r.i]?'<div class="stim go" id="rxMsg">Toque!</div>':'<div class="stim nogo" id="rxMsg">Não toque</div>');
+  T.rxTo=setTimeout(()=>{if(r.state==='go')r.omis++;r.i++;r.state='gap';rxMsg('<div class="msg" id="rxMsg">·</div>');T.rxTo=setTimeout(rxNext,500)},1500)},900+Math.random()*1600)}
+function rxTap(){const r=T.rx;if(!r||r.done)return;
+ if(r.state==='wait'){r.ant++;rxMsg('<div class="msg" id="rxMsg">Calma, espere aparecer!</div>');return}
+ if(r.state==='go'){clearTimeout(T.rxTo);r.rts.push(performance.now()-r.ts);r.i++;r.state='gap';rxMsg('<div class="msg" id="rxMsg">Boa!</div>');T.rxTo=setTimeout(rxNext,600);return}
+ if(r.state==='nogo'){clearTimeout(T.rxTo);r.comis++;r.i++;r.state='gap';rxMsg('<div class="msg" id="rxMsg">Esse era para não tocar</div>');T.rxTo=setTimeout(rxNext,800)}}
+
+/* ======================= Roda de Cuidado ======================= */
+const RR=r=>{const x=P.roda.resp[r]||(P.roda.resp[r]={areas:{},prio:[],notas:{}});x.areas=x.areas||{};x.prio=x.prio||[];x.notas=x.notas||{};return x};
+const CM=r=>{const x=P.roda.comm[r]||(P.roda.comm[r]={ja:[],posso:[],preciso:[]});x.ja=x.ja||[];x.posso=x.posso||[];x.preciso=x.preciso||[];return x};
+const cod=()=>(P&&P.doc&&P.doc.codigo)||'';
+const roleName=r=>r==='crianca'?(cod()||'Criança'):ROLES[r].nome;
+const saveResp=r=>W(`pacientes/${P.id}/roda/resp-${r}`,RR(r));
+const saveComm=r=>W(`pacientes/${P.id}/roda/comm-${r}`,CM(r));
+const rt={};function rdeb(k,fn,ms){clearTimeout(rt[k]);rt[k]=setTimeout(()=>{delete rt[k];fn()},ms)}
+function scoreArea(id){let s=0,pre=0,med=0;for(const r of ROLE_IDS){const X=RR(r);const lv=X.areas[id];if(lv===2){s+=2;pre++}else if(lv===1){s+=1;med++}const pi=X.prio.indexOf(id);if(pi>=0)s+=3-pi}return{id,s,pre,med}}
+function ranking(){return AREAS.map(a=>scoreArea(a.id)).sort((a,b)=>b.s-a.s||b.pre-a.pre)}
+function autoCentral(){const r=ranking();return r[0]&&r[0].s>0?r[0].id:null}
+const centralId=()=>P.doc.rodaCentral||autoCentral();
+const answered=r=>AREAS.filter(a=>RR(r).areas[a.id]!==undefined).length;
+const areaLabel=(a,mode)=>mode==='adult'?a.adult:mode==='teen'?a.teen:a.kid;
+function viewRoda(){
+ const subs_=[['resp','Respostas'],['mapa','Mapa'],['comp','Compromissos'],['metas','Metas']];
+ const seg=`<div class="seg" role="group" aria-label="Momento">${subs_.map(([k,t])=>`<button type="button" data-a="rsub" data-v="${k}" aria-pressed="${UI.rsub===k}">${t}</button>`).join('')}</div>`;
+ return seg+(UI.rsub==='resp'?rResp():UI.rsub==='mapa'?rMapa():UI.rsub==='comp'?rComp():rMetas());
+}
+function rResp(){
+ const V=VIEWS.find(v=>v.id===UI.rview);
+ const chips=VIEWS.map(v=>`<button type="button" class="role c-${v.role}" aria-pressed="${UI.rview===v.id}" data-a="rview" data-v="${v.id}"><span class="dot b-${v.role}"></span><span class="lbl">${v.label}</span><span class="prog">${answered(v.role)}/10</span></button>`).join('');
+ return`<p class="how">Cada pessoa da rede separa os mesmos 10 cartões em “vai bem”, “mais ou menos” e “preocupa” e escolhe até 3 prioridades. As três versões da criança alimentam a mesma voz.</p>
+ <div class="roles" role="group" aria-label="Quem responde">${chips}</div>
+ ${V.role==='escola'&&!(P.doc.consent||{}).escola?`<p class="warnbox">Os responsáveis ainda não autorizaram o contato com a escola. Registre em Dados do paciente antes de ouvir a escola.</p>`:''}
+ <button class="btn full" data-a="handoff" data-v="${V.id}" type="button">Entregar para ${esc(V.label)} responder</button>
+ ${respBody(V)}`;
+}
+function respBody(V){
+ const M=MODE[V.mode],X=RR(V.role);
+ const prios=X.prio.map((id,i)=>{const a=AREA[id];if(!a)return'';return`<div class="prio"><div class="rank">${i+1}</div><div><b>${a.em} ${esc(areaLabel(a,V.mode))}</b></div><textarea id="nota-${V.role}-${id}" data-nota="${V.role}" data-id="${id}" placeholder="${esc(M.ph)}" aria-label="Comentário">${esc(X.notas[id]||'')}</textarea></div>`}).join('');
+ return`<p class="how" style="background:transparent;border:1.5px solid var(--line)"><span class="c-${V.role}" style="font-weight:700">${esc(V.label)}</span><br>${esc(PROMPTS[V.id](cod()||'a criança'))}</p>
+ ${V.mode==='faces'?facesBoard(V,M,X):board(V,M,X)}
+ <h3>Prioridades</h3><p class="hint">${esc(M.prio)}</p><div class="stack">${prios||'<p class="hint">Nenhuma prioridade marcada.</p>'}</div>`;
+}
+function acard(V,M,X,a){const lv=X.areas[a.id],pi=X.prio.indexOf(a.id),full=X.prio.length>=M.max&&pi<0,can=lv===1||lv===2;
+ const b=[0,1,2].map(l=>`<button type="button" data-a="rlv" data-r="${V.role}" data-id="${a.id}" data-lv="${l}" aria-pressed="${lv===l}">${esc(M.short[l])}</button>`).join('')+(M.na?`<button type="button" data-a="rlv" data-r="${V.role}" data-id="${a.id}" data-lv="na" aria-pressed="${lv==='na'}">Não observo</button>`:'');
+ return`<div class="acard"><div class="acard-h"><span class="em" aria-hidden="true">${a.em}</span><span class="nm">${esc(areaLabel(a,V.mode))}</span><button type="button" class="star" data-a="rstar" data-r="${V.role}" data-id="${a.id}" aria-pressed="${pi>=0}" ${(!can||full)&&pi<0?'disabled':''} aria-label="Prioridade">${pi>=0?'★ '+(pi+1):'☆'}</button></div><div class="lvseg" role="group">${b}</div></div>`}
+function board(V,M,X){const tray=AREAS.filter(a=>X.areas[a.id]===undefined),nas=AREAS.filter(a=>X.areas[a.id]==='na');
+ return`${tray.length?`<h3>Cartões para separar (${tray.length})</h3><div class="rcards">${tray.map(a=>acard(V,M,X,a)).join('')}</div>`:''}
+ ${[0,1,2].map(l=>{const list=AREAS.filter(a=>X.areas[a.id]===l);return`<section class="rcol"><div class="rcol-h"><span class="sw" style="background:var(--lv${l})"></span>${esc(M.cols[l])}<span class="ct">${list.length}</span></div>${list.map(a=>acard(V,M,X,a)).join('')||'<p class="hint">Nenhum cartão aqui.</p>'}</section>`}).join('')}
+ ${nas.length?`<p class="hint">Não observo: ${nas.map(a=>`<button type="button" class="linkbtn" data-a="rlv" data-r="${V.role}" data-id="${a.id}" data-lv="undo">${esc(a.adult)} ↺</button>`).join(' ')}</p>`:''}`}
+function facesBoard(V,M,X){return`<div class="faces">${AREAS.map(a=>{const lv=X.areas[a.id],pi=X.prio.indexOf(a.id);
+ return`<div class="fcard ${typeof lv==='number'?'lv'+lv:''}"><span class="big" aria-hidden="true">${a.em}</span><span class="nm">${esc(a.kid)}</span><div class="fbtns">${[0,1,2].map(l=>`<button type="button" data-a="rlv" data-r="${V.role}" data-id="${a.id}" data-lv="${l}" aria-pressed="${lv===l}" aria-label="${M.cols[l]}">${M.faces[l]}</button>`).join('')}</div>
+ <div class="frow"><button type="button" data-a="falar" data-t="${esc(a.kid)}" aria-label="Ouvir">🔊</button><button type="button" data-a="rstar" data-r="${V.role}" data-id="${a.id}" aria-pressed="${pi>=0}" ${lv===1||lv===2||pi>=0?'':'disabled'}>${pi>=0?'★':'☆'} Quero que melhore</button></div></div>`}).join('')}</div>`}
+function falar(t){try{const u=new SpeechSynthesisUtterance(t);u.lang='pt-BR';speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){}}
+/* mapa */
+function pt(cx,cy,r,a){const t=a*Math.PI/180;return[cx+r*Math.sin(t),cy-r*Math.cos(t)]}
+function wedge(cx,cy,r0,r1,a0,a1){const L=a1-a0>180?1:0;const p1=pt(cx,cy,r1,a0),p2=pt(cx,cy,r1,a1),p3=pt(cx,cy,r0,a1),p4=pt(cx,cy,r0,a0);const f=n=>n.toFixed(1);
+ return`M${f(p1[0])} ${f(p1[1])}A${r1} ${r1} 0 ${L} 1 ${f(p2[0])} ${f(p2[1])}L${f(p3[0])} ${f(p3[1])}A${r0} ${r0} 0 ${L} 0 ${f(p4[0])} ${f(p4[1])}Z`}
+function rodaSVG(){const W=440,cx=220,cy=220,R0=48,st=34,n=AREAS.length,span=360/n,gap=1.2,cid=centralId();let s='',mk='',lb='';
+ AREAS.forEach((a,i)=>{const a0=i*span+gap,a1=(i+1)*span-gap;
+  ROLE_IDS.forEach((r,k)=>{const X=RR(r);const lv=X.areas[a.id];const cls=lv===undefined?'lvx':lv==='na'?'lvna':'lv'+lv;const r0=R0+k*st;
+   s+=`<path class="seg-path ${cls}" d="${wedge(cx,cy,r0,r0+st,a0,a1)}" data-a="rarea" data-id="${a.id}"><title>${esc(roleName(r))} · ${esc(a.adult)}: ${lv===undefined?'sem resposta':lv==='na'?'não observa':LVNAME[lv]}</title></path>`;
+   const pi=X.prio.indexOf(a.id);if(pi>=0){const p=pt(cx,cy,r0+st/2,(a0+a1)/2);mk+=`<circle class="pr" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="7"/><text class="prt" x="${p[0].toFixed(1)}" y="${p[1].toFixed(1)}">${pi+1}</text>`}});
+  const lp=pt(cx,cy,R0+4*st+18,(i+.5)*span);lb+=`<text x="${lp[0].toFixed(1)}" y="${lp[1].toFixed(1)}" font-size="20" text-anchor="middle" dominant-baseline="central" data-a="rarea" data-id="${a.id}" style="cursor:pointer">${a.em}<title>${esc(a.adult)}</title></text>`});
+ const out=R0+4*st;let hl='';
+ if(cid){const i=AREAS.findIndex(a=>a.id===cid);hl+=`<path class="hl" d="${wedge(cx,cy,R0,out,i*span+.4,(i+1)*span-.4)}"/>`}
+ if(UI.rhover&&UI.rhover!==cid){const i=AREAS.findIndex(a=>a.id===UI.rhover);hl+=`<path class="hov" d="${wedge(cx,cy,R0,out,i*span+.4,(i+1)*span-.4)}"/>`}
+ const h=UI.rhover?AREA[UI.rhover]:null;
+ const c=h?`<text x="${cx}" y="${cy-6}" font-size="22" text-anchor="middle" dominant-baseline="central">${h.em}</text><text x="${cx}" y="${cy+16}" font-size="10" font-weight="700" text-anchor="middle">${esc(h.kid.slice(0,15))}</text>`
+  :`<text x="${cx}" y="${cy}" font-size="14" font-weight="700" text-anchor="middle" dominant-baseline="central">${esc(cod().slice(0,10))}</text>`;
+ return`<svg class="rodasvg" viewBox="0 0 ${W} ${W}" role="img" aria-label="Roda com as respostas de cada pessoa por área" style="width:100%;height:auto"><circle cx="${cx}" cy="${cy}" r="${R0-3}" fill="var(--soft)"/>${s}${hl}${mk}${lb}${c}</svg>`}
+function whoDots(id){return`<span class="whodots">${ROLE_IDS.map(r=>{const lv=RR(r).areas[id];return`<span class="d ${lv===2?'f2':lv===1?'f1':'f0'} c-${r}" title="${esc(roleName(r))}"></span>`}).join('')}</span>`}
+function rMapa(){
+ const rk=ranking(),chosen=P.doc.rodaCentral||null,cid=centralId(),max=Math.max(1,...rk.map(r=>r.s));
+ const C=cid?scoreArea(cid):null;
+ const central=cid?`<div class="central"><span class="eb">${chosen?'Questão central confirmada pela equipe':'Sugestão: maior convergência'}</span><h2>${AREA[cid].em} ${esc(AREA[cid].adult)}</h2><p>${C.pre} de 4 marcaram como preocupação${C.med?`, ${C.med} como “mais ou menos”`:''}.</p>
+  <div class="who">${ROLE_IDS.filter(r=>{const l=RR(r).areas[cid];return l===1||l===2}).map(r=>`<span>${esc(roleName(r))}</span>`).join('')}</div>
+  <label for="rcSel" style="margin:0">${chosen?'Trocar a questão central':'Escolher outra área'}</label><select id="rcSel">${AREAS.map(a=>`<option value="${a.id}" ${a.id===cid?'selected':''}>${a.em} ${esc(a.adult)}</option>`).join('')}</select>
+  ${chosen?`<button class="btn sm" data-a="runconfirm" type="button">Voltar para a sugestão automática</button>`:`<button class="btn sm" data-a="rconfirm" data-id="${cid}" type="button">Confirmar como questão central</button>`}</div>`
+  :`<div class="card"><h3>Ainda não há questão central</h3><p class="hint">Assim que a rede marcar áreas como “mais ou menos” ou “preocupa”, a área com mais convergência aparece aqui.</p></div>`;
+ const divs=AREAS.map(a=>{const v=ROLE_IDS.map(r=>[r,RR(r).areas[a.id]]).filter(x=>typeof x[1]==='number');const hi=v.filter(x=>x[1]===2),lo=v.filter(x=>x[1]===0);return hi.length&&lo.length?{a,hi,lo}:null}).filter(Boolean);
+ const focus=UI.rhover||cid;
+ return`<div class="card">${rodaSVG()}<div class="legend"><span><i style="background:var(--lv0)"></i>Vai bem</span><span><i style="background:var(--lv1)"></i>Mais ou menos</span><span><i style="background:var(--lv2)"></i>Preocupa</span><span><i style="background:var(--na)"></i>Não observa</span><span><i style="background:var(--empty);border:1px solid var(--line)"></i>Sem resposta</span></div>
+ <p class="hint" style="text-align:center">De dentro para fora: ${esc(roleName('crianca'))}, Família, Escola, Terapeuta. Números = prioridades.</p></div>
+ ${central}
+ <div class="card"><h3>Onde há mais convergência</h3>${rk.slice(0,5).map(r=>{const a=AREA[r.id];return`<button type="button" class="rrow ${r.id===cid?'is-central':''}" data-a="rarea" data-id="${r.id}"><span class="em" aria-hidden="true">${a.em}</span><span><span style="font-weight:600;font-size:15px">${esc(a.adult)}</span><span class="bar"><i style="width:${Math.round(r.s/max*100)}%"></i></span></span>${whoDots(r.id)}</button>`}).join('')}</div>
+ ${focus?`<h3>${AREA[focus].em} ${esc(AREA[focus].adult)}: o que cada um escreveu</h3><div class="stack">${ROLE_IDS.map(r=>{const X=RR(r);const lv=X.areas[focus];const cls=lv===undefined?'lx':lv==='na'?'lna':'l'+lv;const t=X.notas[focus];
+  return`<div class="note"><div class="h"><span class="dot b-${r}"></span>${esc(roleName(r))}<span class="lvtag ${cls}">${lv===undefined?'Sem resposta':lv==='na'?'Não observa':LVNAME[lv]}</span></div><p class="${t?'':'hint'}">${t?'“'+esc(t)+'”':'Sem comentário.'}</p></div>`}).join('')}</div>`:''}
+ <div class="card"><h3>Vale conversar na reunião</h3>${divs.length?divs.map(d=>`<div class="divit"><b>${d.a.em} ${esc(d.a.adult)}:</b> ${d.hi.map(x=>esc(roleName(x[0]))).join(', ')} ${d.hi.length>1?'veem':'vê'} como preocupação; ${d.lo.map(x=>esc(roleName(x[0]))).join(', ')} ${d.lo.length>1?'acham':'acha'} que vai bem.</div>`).join(''):'<p class="hint">Nenhuma divergência forte por enquanto.</p>'}</div>`;
+}
+function commCard(r,hand){const X=CM(r);
+ const secs=CSEC.map(sec=>`<div class="clist"><h4>${sec.t}</h4>${X[sec.k].map((it,i)=>sec.k==='preciso'
+   ?`<div class="citem"><span class="t">${esc(it.t)}</span><span class="para b-${esc(it.para)}">${esc(ROLES[it.para]?roleName(it.para):'')}</span><button type="button" class="x" data-a="crm" data-r="${r}" data-k="${sec.k}" data-i="${i}" aria-label="Remover">×</button></div>`
+   :`<div class="citem"><span class="t">${esc(it)}</span><button type="button" class="x" data-a="crm" data-r="${r}" data-k="${sec.k}" data-i="${i}" aria-label="Remover">×</button></div>`).join('')}
+  <div class="addrow"><input type="text" id="add-${r}-${sec.k}" data-enter="cadd" data-r="${r}" data-k="${sec.k}" placeholder="Escrever…" aria-label="${sec.t}">${sec.k==='preciso'?`<select id="para-${r}" aria-label="De quem">${ROLE_IDS.filter(x=>x!==r).map(x=>`<option value="${x}">${esc(roleName(x))}</option>`).join('')}</select>`:''}<button type="button" class="btn sm" data-a="cadd" data-r="${r}" data-k="${sec.k}">Adicionar</button></div></div>`).join('');
+ return`<article class="ccard"><div class="ccard-h"><span class="av b-${r}">${ROLES[r].ini}</span><div style="flex:1"><h3>${esc(roleName(r))}</h3></div>${hand?`<button type="button" class="btn sm ghost" data-a="handcomm" data-v="${r}">Entregar</button>`:''}</div><div class="ccard-b">${secs}</div></article>`}
+function rComp(){const cid=centralId();
+ if(!cid)return`<div class="card"><p>Primeiro defina a questão central no Mapa.</p><button class="btn" data-a="rsub" data-v="mapa" type="button">Ir para o mapa</button></div>`;
+ const asks=[];ROLE_IDS.forEach(r=>CM(r).preciso.forEach(it=>{if(ROLES[it.para])asks.push({from:r,to:it.para,t:it.t})}));
+ return`<div class="how"><b>Questão central:</b> ${AREA[cid].em} ${esc(AREA[cid].adult)}${P.doc.rodaCentral?'':' (sugestão; confirme no Mapa)'}.<br>Cada pessoa diz o que já faz, o que pode fazer e o que precisa dos outros.</div>
+ <div class="stack">${ROLE_IDS.map(r=>commCard(r,true)).join('')}</div>
+ <div class="card"><h3>Mapa de compromissos</h3><p class="hint">Cada seta é um pedido; quanto mais grossa, mais pedidos.</p>${netSVG(asks)}${asks.map(x=>`<div class="ask"><span class="tg b-${x.from}">${esc(roleName(x.from))}</span>→<span class="tg b-${x.to}">${esc(roleName(x.to))}</span><span>${esc(x.t)}</span></div>`).join('')||'<p class="hint">Nenhum pedido ainda.</p>'}</div>`}
+function netSVG(asks){const Pp={crianca:[260,160],familia:[80,60],escola:[440,60],terapeuta:[260,295]};const cnt={};asks.forEach(x=>{const k=x.from+'>'+x.to;cnt[k]=(cnt[k]||0)+1});let e='',b='';
+ Object.entries(cnt).forEach(([k,n])=>{const[f,t]=k.split('>');const[x1,y1]=Pp[f],[x2,y2]=Pp[t];const dx=x2-x1,dy=y2-y1,l=Math.hypot(dx,dy),ux=dx/l,uy=dy/l;const sx=x1+ux*38,sy=y1+uy*38,ex=x2-ux*44,ey=y2-uy*44,mx=(sx+ex)/2-uy*22,my=(sy+ey)/2+ux*22;
+  e+=`<path class="edge" d="M${sx.toFixed(1)} ${sy.toFixed(1)}Q${mx.toFixed(1)} ${my.toFixed(1)} ${ex.toFixed(1)} ${ey.toFixed(1)}" stroke="var(--r-${f})" stroke-width="${1.5+n*1.5}" marker-end="url(#ah-${f})"/>`;
+  const bx=(sx+2*mx+ex)/4,by=(sy+2*my+ey)/4;b+=`<circle class="cntbg" cx="${bx.toFixed(1)}" cy="${by.toFixed(1)}" r="9"/><text class="cnt" x="${bx.toFixed(1)}" y="${by.toFixed(1)}">${n}</text>`});
+ const defs=ROLE_IDS.map(r=>`<marker id="ah-${r}" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--r-${r})"/></marker>`).join('');
+ const nodes=ROLE_IDS.map(r=>{const[x,y]=Pp[r];const nm=roleName(r);return`<circle cx="${x}" cy="${y}" r="${r==='crianca'?36:30}" fill="var(--r-${r})"/><text x="${x}" y="${y}" style="fill:#fff" font-size="12" font-weight="700" text-anchor="middle" dominant-baseline="central">${esc(nm.length>11?nm.slice(0,10)+'…':nm)}</text>`}).join('');
+ return`<svg class="netsvg" viewBox="0 0 520 340" role="img" aria-label="Pedidos entre as pessoas da rede" style="width:100%;height:auto"><defs>${defs}</defs>${e}${nodes}${b}</svg>`}
+function mean(o){const v=Object.values(o||{}).filter(x=>typeof x==='number');return v.length?v.reduce((a,b)=>a+b,0)/v.length:null}
+const fsg=n=>n==null?'–':(n>0?'+':'')+fmt(n,2);
+function rMetas(){
+ const mk=ROLE_IDS.map(r=>`<button type="button" class="role c-${r}" aria-pressed="${UI.marker===r}" data-a="marker" data-v="${r}"><span class="dot b-${r}"></span><span class="lbl">${esc(roleName(r))}</span></button>`).join('');
+ const goals=P.metas.map(g=>{const M_=g.marcas||{},cur=M_[UI.tp]||{},base=M_.T0||{},m0=mean(M_.T0),m1=mean(M_.T1);
+  return`<article class="card"><div class="icard-h"><h3>${esc(g.titulo)}</h3><button type="button" class="x" data-a="rmgoal" data-g="${esc(g.id)}" aria-label="Remover meta">×</button></div>
+  <p class="hint">Média da rede: ${fsg(m0)} no início → ${fsg(m1)} na reavaliação${m0!=null&&m1!=null?` <b class="delta ${m1>m0?'up':m1<m0?'down':'eq'}">(${fsg(m1-m0)})</b>`:''}</p>
+  <div class="gas">${GAS_VALS.slice().reverse().map(v=>{const i=v+2;const here=ROLE_IDS.filter(r=>cur[r]===v);const gh=UI.tp==='T1'?ROLE_IDS.filter(r=>base[r]===v&&cur[r]!==v):[];
+   return`<button type="button" class="glvl ${v===0?'mid':''}" data-a="gmark" data-g="${esc(g.id)}" data-v="${v}"><span class="v">${v>0?'+'+v:v}</span><span class="d">${esc((g.niveis||[])[i]||'')}</span><span class="dots">${here.map(r=>`<span class="dt b-${r}" title="${esc(roleName(r))}"></span>`).join('')}${gh.map(r=>`<span class="gh c-${r}" title="${esc(roleName(r))} no início"></span>`).join('')}</span></button>`}).join('')}</div></article>`}).join('');
+ return`<p class="how">Cada meta tem 5 níveis; 0 é o resultado esperado em 3 meses. Escolha o momento e quem está marcando e toque no nível. Os círculos tracejados mostram de onde cada um partiu.</p>
+ <div class="seg" role="group" aria-label="Momento">${TP.map(t=>`<button type="button" data-a="tp" data-v="${t.id}" aria-pressed="${UI.tp===t.id}">${t.nome}</button>`).join('')}</div>
+ <div class="roles" role="group" aria-label="Marcando como">${mk}</div>
+ ${goals||'<p class="hint">Nenhuma meta ainda.</p>'}
+ <form class="card" id="goalF"><h3>Nova meta</h3><div><label for="gT">Meta</label><input type="text" id="gT" placeholder="Ex.: Pedir pausa quando o barulho incomoda"></div>
+ ${GAS_VALS.slice().reverse().map(v=>`<div><label for="gN${v+2}">${v>0?'+'+v:v} · ${['muito abaixo','abaixo','esperado em 3 meses','acima','muito acima'][v+2]}</label><input type="text" id="gN${v+2}"></div>`).join('')}
+ <button class="btn full" type="submit">Adicionar meta</button></form>`;
+}
+/* handoff */
+function renderHand(){const h=$('#handView');const H=UI.hand;if(!H){h.hidden=true;h.innerHTML='';return}h.hidden=false;
+ if(UI.thanks){h.innerHTML=`<div class="wrap"><div class="thanks"><span class="big" aria-hidden="true">💚</span><h2>Obrigada! Suas respostas foram salvas.</h2><p class="hint">Pode devolver o aparelho para a terapeuta.</p><button class="btn quiet sm" data-a="handclose" type="button" style="margin-top:40px">Voltar (terapeuta)</button></div></div>`;return}
+ let inner='';if(H.kind==='resp'){inner=respBody(VIEWS.find(v=>v.id===H.v))}else{const cid=centralId();inner=`<div class="how"><b>O que vamos cuidar juntos:</b> ${cid?AREA[cid].em+' '+esc(H.v==='crianca'?AREA[cid].kid:AREA[cid].adult):'–'}</div>${commCard(H.v,false)}`}
+ h.innerHTML=`<div class="wrap"><p class="brand">Casa Oliveira · Roda de Cuidado</p>${inner}<button class="btn full" data-a="terminei" type="button" style="margin-top:12px">Terminei</button></div>`}
+
+/* ======================= gráficos ======================= */
+function chart(m,pts,bands){const W=300,H=140,L=38,R=40,T=10,B=24,iw=W-L-R,ih=H-T-B,min=m.min,max=m.max;const y=v=>T+ih*(1-(Math.max(min,Math.min(max,v))-min)/(max-min));
+ const t0=pts.length?new Date(pts[0].d).getTime():0,t1=pts.length?new Date(pts[pts.length-1].d).getTime():0;const x=d=>pts.length<2||t1===t0?L+iw/2:L+iw*((new Date(d).getTime()-t0)/(t1-t0));let s='';
+ if(bands){let lo=min;bands.forEach(b=>{const hi=Math.min(b.hi,max);if(hi>lo)s+=`<rect class="bd-${b.l}" x="${L}" width="${iw}" y="${y(hi).toFixed(1)}" height="${(y(lo)-y(hi)).toFixed(1)}"/>`;lo=Math.max(lo,hi)})}
+ let ticks=m.sel?m.sel.map(o=>o.v):[min,max];if(!m.sel&&bands)bands.forEach(b=>{if(isFinite(b.hi)&&b.hi>min&&b.hi<max)ticks.push(Math.round(b.hi))});
+ const pl=[];ticks.sort((a,b)=>a-b).forEach(v=>{const yy=y(v);if(pl.every(p=>Math.abs(p-yy)>=11)){pl.push(yy);s+=`<line class="ch-grid" x1="${L}" x2="${L+iw}" y1="${yy.toFixed(1)}" y2="${yy.toFixed(1)}"/><text class="ch-tick" x="${L-6}" y="${yy.toFixed(1)}" text-anchor="end" dominant-baseline="central">${m.sel?(v>0?'+'+v:v):fmt(v)}</text>`}});
+ if(pts.length>1)s+=`<path class="ch-line" d="${pts.map((p,i)=>(i?'L':'M')+x(p.d).toFixed(1)+' '+y(p.v).toFixed(1)).join('')}"/>`;
+ pts.forEach(p=>{const cx=x(p.d).toFixed(1),cy=y(p.v).toFixed(1);s+=`<circle class="ch-hit" cx="${cx}" cy="${cy}" r="12" data-tip="${esc(p.tip)}"/><circle class="ch-pt" cx="${cx}" cy="${cy}" r="4.5" tabindex="0" data-tip="${esc(p.tip)}" aria-label="${esc(p.tip)}"/>`});
+ if(pts.length){const lp=pts[pts.length-1];s+=`<text class="ch-lbl" x="${(x(lp.d)+8).toFixed(1)}" y="${y(lp.v).toFixed(1)}" dominant-baseline="central">${esc(m.sel?(lp.v>0?'+'+lp.v:String(lp.v)):fmt(lp.v))}</text><text class="ch-tick" x="${pts.length>1?L:L+iw/2}" y="${H-6}" text-anchor="${pts.length>1?'start':'middle'}">${dBR(pts[0].d,true)}</text>`;if(pts.length>1)s+=`<text class="ch-tick" x="${L+iw}" y="${H-6}" text-anchor="end">${dBR(lp.d,true)}</text>`}
+ return`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(m.n)}: evolução">${s}</svg>`}
+function seriesFor(k,m){return(byInstr()[k]||[]).map(a=>{const v=val(m,a);if(v==null)return null;const c=classify(m,v,a,P.doc);return{d:a.data,v,tip:`${dBR(a.data)} · ${showVal(m,v)}${c?' · '+LV[c.l].t:''}`}}).filter(Boolean)}
+const radarMs=k=>I[k].m.filter(m=>m.r);const radarOK=k=>radarMs(k).length>=3;
+function idxOf(v,a){const age=ageM(P.doc.nasc,a.data);return age>0&&v!=null?Math.round(v/age*100):null}
+function completos(k){const ms=radarMs(k);return(byInstr()[k]||[]).filter(a=>ms.every(m=>val(m,a)!=null))}
+function norm(k,m,v,a){if(v==null)return null;let r;if(I[k].idx){const ix=idxOf(v,a);r=ix==null?null:ix/150}else if(m.dir==='mid')r=1-Math.abs(v)/2;else if(m.dir==='down')r=(m.max-v)/(m.max-m.min);else r=(v-m.min)/(m.max-m.min);return r==null?null:Math.max(0,Math.min(1,r))}
+function refNorm(k,m,a){if(I[k].idx)return 100/150;const b=bandsOf(m,a,P.doc);if(!b)return null;if(m.dir==='mid')return .75;const i=b.findIndex(x=>x.l==='ok');if(i<0)return null;if(m.dir==='down')return norm(k,m,b[i].hi,a);const lo=i>0?b[i-1].hi:m.min;return norm(k,m,Math.round(lo),a)}
+function selDates(k){const all=completos(k);if(!all.length)return[];const ids=UI.rsel[k]||all.slice(-4).map(a=>a.id);const s=all.filter(a=>ids.includes(a.id));return s.length?s:all.slice(-1)}
+const rampIdx=n=>n===1?[4]:n===2?[2,4]:[1,2,3,4].slice(4-n);
+function radarSVG(k,sel){const ins=I[k],ms=radarMs(k),N=ms.length,W=460,H=350,cx=230,cy=175,R=118;const ang=i=>-Math.PI/2+i*2*Math.PI/N;const p=(i,r)=>[cx+R*r*Math.cos(ang(i)),cy+R*r*Math.sin(ang(i))];
+ const poly=rs=>rs.map((r,i)=>p(i,r).map(n=>n.toFixed(1)).join(' ')).join(' ');let s='';
+ [.25,.5,.75,1].forEach(r=>{s+=`<polygon class="rd-grid" points="${poly(ms.map(()=>r))}"/>`});ms.forEach((m,i)=>{const[x,y]=p(i,1);s+=`<line class="rd-spoke" x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}"/>`});
+ if(ins.idx)[50,100,150].forEach(v=>{const[x,y]=p(0,v/150);s+=`<text class="rd-tk" x="${(x+4).toFixed(1)}" y="${(y+3).toFixed(1)}">${v}</text>`});
+ const last=sel[sel.length-1],refs=ms.map(m=>refNorm(k,m,last));
+ if(refs.every(r=>r!=null)){if(ins.idx)s+=`<polygon class="rd-refin" points="${poly(refs)}"/>`;else{const tp=rs=>'M'+rs.map((r,i)=>p(i,r).map(n=>n.toFixed(1)).join(' ')).join('L')+'Z';s+=`<path class="rd-refring" d="${tp(ms.map(()=>1))}${tp(refs)}"/><polygon class="rd-refline" points="${poly(refs)}"/>`}}
+ const ri=rampIdx(sel.length);sel.forEach((a,j)=>{s+=`<polygon class="rd-s rd-c${ri[j]} ${j===sel.length-1?'last':''}" points="${poly(ms.map(m=>norm(k,m,val(m,a),a)))}"/>`});
+ sel.forEach((a,j)=>ms.forEach((m,i)=>{const v=val(m,a);const[x,y]=p(i,norm(k,m,v,a));const tip=`${dBR(a.data)} · ${m.n}: ${showVal(m,v)}${ins.idx?` · índice ${idxOf(v,a)}`:''}`;
+  if(j===sel.length-1)s+=`<circle class="rd-dot rd-c${ri[j]}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="4" tabindex="0" data-tip="${esc(tip)}" aria-label="${esc(tip)}"/>`;s+=`<circle class="rd-hit" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="9" data-tip="${esc(tip)}"/>`}));
+ ms.forEach((m,i)=>{const[x,y]=p(i,1.13);const c=Math.cos(ang(i));s+=`<text class="rd-lab" x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="${Math.abs(c)<.2?'middle':c>0?'start':'end'}" dominant-baseline="central">${esc(m.r)}<title>${esc(m.n)}</title></text>`});
+ return`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Radar de ${esc(ins.n)}">${s}</svg>`}
+function radarLegend(k,sel){const ri=rampIdx(sel.length);return`<div class="rlegend">${sel.map((a,j)=>{const l=j===sel.length-1;return`<span><i class="${l?'fill':''}" style="border-color:var(--rd${ri[j]});${l?'background:color-mix(in srgb,var(--rd'+ri[j]+') 20%,transparent)':''}"></i>${dBR(a.data)}${l?' (mais recente)':''}</span>`}).join('')}<span><i class="ref"></i>${I[k].idx?'Idade real (índice 100)':'Limite do esperado'}</span></div>`}
+function esdmTable(k){const arr=completos(k);if(!arr.length)return'';const a=arr[arr.length-1],prev=arr.length>1?arr[arr.length-2]:null;const A=ageM(P.doc.nasc,a.data),Pv=prev?ageM(P.doc.nasc,prev.data):null;const ms=radarMs(k);
+ const row=(n,v,pv,cls)=>{const ix=A?Math.round(v/A*100):null;const rit=prev&&pv!=null&&A>Pv?Math.round((v-pv)/(A-Pv)*100):ix;return`<tr class="${cls||''}"><td>${esc(n)}</td><td>${ix??'–'}</td><td>${fmt(v)} m</td><td>${A} m</td><td>${fmt(Math.max(0,A-v))} m</td><td>${rit==null?'–':rit+'%'}</td></tr>`};
+ const mn=f=>ms.reduce((s,m)=>s+val(m,f),0)/ms.length;
+ return`<div class="scrollx"><table class="dq"><thead><tr><th>Esfera</th><th>Índice</th><th>Idade calc.</th><th>Idade real</th><th>Atraso</th><th>${prev?'Ritmo no período':'Ritmo'}</th></tr></thead><tbody>${row('Média geral',Math.round(mn(a)*10)/10,prev?mn(prev):null,'mg')}${ms.map(m=>row(m.n,val(m,a),prev?val(m,prev):null)).join('')}</tbody></table></div>
+ <p class="hint">${prev?`Ritmo = meses ganhos ÷ meses entre ${dBR(prev.data)} e ${dBR(a.data)}. 100% é o ritmo do desenvolvimento típico.`:'Ritmo = idade calculada ÷ idade real. Com a próxima aplicação, mostra o ritmo do período.'}</p>`}
+
+/* ======================= Relatório ======================= */
+function viewRel(){
+ const g=byInstr(),keys=IORDER.filter(k=>g[k]);
+ if(!keys.length)return`<div class="card"><h3>Nenhuma avaliação registrada</h3><p class="hint">Registre os instrumentos nas outras abas. Aqui aparecem o perfil atual, a evolução em gráficos, o histórico e o relatório para a família.</p></div>`;
+ const sev=k=>{const a=g[k][g[k].length-1];return Math.max(0,...I[k].m.map(m=>{const c=classify(m,val(m,a),a,P.doc);return c?LV[c.l].r:0}))};
+ const order=keys.slice().sort((a,b)=>sev(b)-sev(a)||IORDER.indexOf(a)-IORDER.indexOf(b));
+ const cards=order.map(k=>{const ins=I[k],arr=g[k],a=arr[arr.length-1],prev=arr.length>1?arr[arr.length-2]:null;
+  const rows=ins.m.map(m=>{const v=val(m,a);if(v==null)return'';const c=classify(m,v,a,P.doc);const tr=prev?trend(m,val(m,prev),v):null;
+   return`<div class="mrow"><span>${esc(m.n)}</span><span class="v">${esc(showVal(m,v))}${ins.idx&&idxOf(v,a)!=null?` <span class="hint">· ${idxOf(v,a)}</span>`:''}</span><span>${c?lvl(c):trTag(tr)}</span></div>${c&&tr?`<div style="text-align:right;margin-top:-4px">${trTag(tr)}</div>`:''}`}).join('');
+  const charts=`${radarOK(k)&&completos(k).length?`<div class="radar">${radarSVG(k,selDates(k))}${radarLegend(k,selDates(k))}${completos(k).length>1?`<div class="dchips" role="group" aria-label="Datas no radar">${completos(k).map(x=>`<button type="button" data-a="rdsel" data-i="${k}" data-id="${esc(x.id)}" aria-pressed="${selDates(k).some(s=>s.id===x.id)}">${dBR(x.data,true)}</button>`).join('')}</div>`:''}</div>`:''}
+   ${ins.idx?esdmTable(k):''}
+   <div class="minis">${ins.m.map(m=>{const pts=seriesFor(k,m);if(!pts.length)return'';const c=classify(m,pts[pts.length-1].v,a,P.doc);return`<div class="mini"><div class="mini-h"><span>${esc(m.n)}</span>${lvl(c)}</div>${chart(m,pts,bandsOf(m,a,P.doc))}</div>`}).join('')}</div>`;
+  return`<details class="evo" ${UI.open&&UI.open[k]?'open':''} data-open="${k}"><summary><span>${esc(ins.n)} <span class="hint" style="font-family:var(--body);font-weight:400">· ${dBR(a.data)} · ${arr.length} registro${arr.length>1?'s':''}</span></span></summary><div style="margin-top:8px">${rows}</div>${a.obs?`<p class="hint">“${esc(a.obs)}”</p>`:''}${charts}</details>`}).join('');
+ const hist=P.avs.slice().sort((a,b)=>a.data<b.data?1:-1).map(a=>{const ins=I[a.instr];if(!ins)return'';
+  return`<div class="it"><div class="l"><b>${esc(ins.n)} · ${dBR(a.data)}</b><span>${ins.m.map(m=>{const v=val(m,a);return v==null?'':esc(m.r||m.n)+': '+esc(showVal(m,v))}).filter(Boolean).join(' · ')}</span></div><div class="acts">${a.instr!=='app'?`<button class="mini" data-a="edit" data-id="${esc(a.id)}">Editar</button>`:''}<button class="mini ${UI.armed===a.id?'armed':''}" data-a="delAv" data-id="${esc(a.id)}">${UI.armed===a.id?'Confirmar':'Excluir'}</button></div></div>`}).join('');
+ return`<div class="btns two"><button class="btn" data-a="ptOpen" type="button">Relatório para a família</button><button class="btn ghost" data-a="tcOpen" type="button">Relatório técnico</button></div>
+ <p class="hint">Toque em cada instrumento para ver os gráficos. No radar, cada reavaliação se sobrepõe às anteriores: a mais recente fica escura e preenchida.</p>
+ ${cards}
+ <h2 style="margin-top:8px">Histórico</h2><div class="list">${hist}</div>`;
+}
+/* relatório para a família */
+function repModel(){const g=byInstr(),sel=lsGet('ai-repsel',{});const keys=IORDER.filter(k=>g[k]&&sel[k]!==false);
+ const itens=keys.map(k=>{const ins=I[k],arr=g[k],first=arr[0],last=arr[arr.length-1];const rows=ins.m.map(m=>{const v1=val(m,first),v2=val(m,last);if(v2==null)return null;return{m,v1,v2,c:classify(m,v2,last,P.doc),tr:arr.length>1?trend(m,v1,v2):null}}).filter(Boolean);return{k,ins,arr,first,last,rows}});
+ const melhoras=[],aten=[];itens.forEach(it=>it.rows.forEach(r=>{if(r.tr==='up')melhoras.push(`${it.ins.n}: ${r.m.n}`);if(r.c&&r.c.l!=='ok')aten.push({t:`${it.ins.n}: ${r.m.n} (${r.c.t})`,l:r.c.l})}));aten.sort((a,b)=>LV[b.l].r-LV[a.l].r);
+ const ds=P.avs.map(a=>a.data).sort();return{itens,melhoras,aten,de:ds[0],ate:ds[ds.length-1]}}
+function ptHTML(){const M=repModel(),d=P.doc,ev=lsGet('ai-aval',{n:'',r:''});const cid=d.rodaCentral;
+ const cards=M.itens.map(it=>{const one=it.rows.length===1;const r0=it.rows[0];
+  return`<div class="pc ${radarOK(it.k)?'wide':''}" style="${radarOK(it.k)?'grid-column:1/-1':''}"><div class="st">${esc(it.ins.area)} · ${it.arr.length>1?`${dBR(it.first.data)} → ${dBR(it.last.data)}`:dBR(it.last.data)}</div><h3>${esc(it.ins.n)}</h3>
+  ${one?`<div class="bigv">${esc(r0.m.sel?showVal(r0.m,r0.v2):fmt(r0.v2))}</div>${r0.c?`<span class="tagp ${r0.c.l}">${esc(LV[r0.c.l].t)}</span><div class="st">${esc(r0.c.t)}</div>`:''}${r0.tr?`<div class="st">Desde a primeira avaliação: <b>${TRTXT[r0.tr]}</b></div>`:''}`
+   :`${radarOK(it.k)&&completos(it.k).length?`<div style="max-width:440px;margin:0 auto;width:100%">${radarSVG(it.k,selDates(it.k))}${radarLegend(it.k,selDates(it.k))}</div>`:''}${it.ins.idx?esdmTable(it.k):''}
+   <table><thead><tr><th>Medida</th>${it.arr.length>1?'<th>Antes</th>':''}<th>Agora</th><th>Leitura</th></tr></thead><tbody>${it.rows.map(r=>`<tr><td>${esc(r.m.n)}</td>${it.arr.length>1?`<td>${esc(showVal(r.m,r.v1))}</td>`:''}<td><b>${esc(showVal(r.m,r.v2))}</b></td><td>${r.c?`<span class="tagp ${r.c.l}">${esc(LV[r.c.l].t)}</span>`:''} ${r.tr?TRTXT[r.tr]:''}</td></tr>`).join('')}</tbody></table>`}</div>`}).join('');
+ const metas=P.metas.length?P.metas.map(g=>{const m0=mean((g.marcas||{}).T0),m1=mean((g.marcas||{}).T1);return`<li><b>${esc(g.titulo)}</b>: ${fsg(m0)} no início${m1!=null?` → ${fsg(m1)} na reavaliação`:''} <span class="st">(0 = resultado esperado)</span></li>`}).join(''):'';
+ return`<div class="hd"><div><div class="kick">Casa Oliveira Saúde · Não é clínica, é Casa</div><h1>Relatório de acompanhamento</h1></div><div class="who"><b>${esc(d.codigo)}</b><br>${esc(ageTxt(ageM(d.nasc)))}<br>${dBR(M.de)} a ${dBR(M.ate)}</div></div>
+ ${d.comentario?`<div class="sec"><h2>Mensagem da equipe</h2><div class="box"><p style="white-space:pre-wrap">${esc(d.comentario)}</p></div></div>`:''}
+ <div class="sec"><h2>Resumo</h2>${M.melhoras.length?`<p><b>O que evoluiu</b></p><ul>${M.melhoras.map(x=>`<li>${esc(x)}</li>`).join('')}</ul>`:''}
+ ${M.aten.length?`<p><b>O que pede cuidado agora</b></p><ul>${M.aten.map(x=>`<li><span class="tagp ${x.l}">${esc(LV[x.l].t)}</span> ${esc(x.t)}</li>`).join('')}</ul>`:'<p>Todas as medidas com referência estão dentro do esperado no último registro.</p>'}</div>
+ ${cid||metas?`<div class="sec"><h2>Roda de Cuidado</h2><div class="sd">O que a família, a escola, a terapeuta e a criança combinaram cuidar juntos.</div><div class="box">${cid?`<p><b>Questão central:</b> ${AREA[cid].em} ${esc(AREA[cid].adult)}</p>`:''}${metas?`<p><b>Metas</b></p><ul>${metas}</ul>`:''}</div></div>`:''}
+ <div class="sec"><h2>Resultados</h2><div class="sd">Nos gráficos de radar, cada contorno é uma avaliação; o mais escuro e preenchido é o mais recente. Mais perto da borda = melhor.</div><div class="grid">${cards}</div></div>
+ ${d.plano?`<div class="sec"><h2>Plano de cuidado</h2><div class="box"><p style="white-space:pre-wrap">${esc(d.plano)}</p></div></div>`:''}
+ <div class="sign"><div class="foot2">Cuidar junto é o nosso jeito.</div><div class="ln">${esc(ev.n||'Profissional responsável')}${ev.r?'<br>'+esc(ev.r):''}</div></div>
+ <p class="legal">Este relatório descreve resultados de instrumentos padronizados e medidas de acompanhamento. As faixas servem de apoio e não substituem a interpretação clínica nem fecham diagnóstico. Emitido em ${dBR(today())}.</p>`}
+function renderPt(){const v=$('#ptView');if(!ready()){v.hidden=true;return}const d=P.doc,ev=lsGet('ai-aval',{n:'',r:''}),g=byInstr(),sel=lsGet('ai-repsel',{});
+ const keep=$('#ptPaper');if(keep&&v.dataset.built==='1'){keep.innerHTML=ptHTML();return}
+ v.dataset.built='1';
+ v.innerHTML=`<div class="wrap wide"><div class="row" style="align-items:flex-end"><h2 style="margin:0">Relatório para a família</h2><button class="btn quiet sm" data-a="ptClose" type="button" style="flex:0 0 auto">Fechar</button></div>
+ <div class="stack"><div class="row"><div><label for="ptN">Avaliadora</label><input type="text" id="ptN" value="${esc(ev.n)}" autocomplete="off"></div><div><label for="ptR">Registro profissional</label><input type="text" id="ptR" value="${esc(ev.r)}" placeholder="Crefito-TO" autocomplete="off"></div></div>
+ <div><label for="ptMsg">Mensagem da equipe para a família</label><textarea id="ptMsg" placeholder="O que os resultados mostram e o que vamos fazer juntos">${esc(d.comentario||'')}</textarea></div>
+ <div><label for="ptPlano">Plano de cuidado</label><textarea id="ptPlano" placeholder="Ex.: TO 2x/semana com foco em regulação sensorial; reavaliação em 3 meses">${esc(d.plano||'')}</textarea></div>
+ <div><label>Instrumentos no relatório</label><div class="qopts">${IORDER.filter(k=>g[k]).map(k=>`<button type="button" data-a="repsel" data-i="${k}" aria-pressed="${sel[k]!==false}">${esc(I[k].n)}</button>`).join('')}</div></div>
+ <div class="btns two">${DL?`<button class="btn" data-a="ptDown" type="button">Baixar relatório</button>`:''}<button class="btn ghost" data-a="ptCopy" type="button">Copiar em texto</button></div>
+ <p class="hint">O arquivo abre no navegador; de lá dá para salvar em PDF ou enviar à família. Revise antes de entregar.</p></div>
+ <div class="ptpaper" id="ptPaper">${ptHTML()}</div></div>`}
+function ptText(){const M=repModel(),d=P.doc;let t=`Casa Oliveira Saúde · Relatório de acompanhamento\n${d.codigo} · ${ageTxt(ageM(d.nasc))} · ${dBR(M.de)} a ${dBR(M.ate)}\n\n`;
+ if(d.comentario)t+=d.comentario+'\n\n';if(M.melhoras.length)t+='O que evoluiu:\n'+M.melhoras.map(x=>'- '+x).join('\n')+'\n\n';
+ t+=M.aten.length?'O que pede cuidado agora:\n'+M.aten.map(x=>`- [${LV[x.l].t}] ${x.t}`).join('\n')+'\n\n':'Todas as medidas com referência estão dentro do esperado.\n\n';
+ M.itens.forEach(it=>{t+=`${it.ins.n} (${dBR(it.last.data)}):\n`+it.rows.map(r=>`- ${r.m.n}: ${showVal(r.m,r.v2)}${r.c?' · '+r.c.t:''}${r.tr?' · '+TRTXT[r.tr]:''}`).join('\n')+'\n\n'});
+ if(d.plano)t+='Plano de cuidado:\n'+d.plano+'\n\n';return t+'Resultados de instrumentos padronizados; não constituem diagnóstico.'}
+async function ptDown(){if(!DL)return;const css=[...document.querySelectorAll('style')].map(s=>s.textContent).join('\n');
+ const html=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Relatório ${esc(P.doc.codigo)} · Casa Oliveira</title><link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,500&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"><style>${css}body{background:#F5EEE3;padding:20px}.ptpaper{max-width:880px;margin:0 auto}</style></head><body><div class="ptpaper">${ptHTML()}</div></body></html>`;
+ try{await DL.save({filename:`relatorio-${String(P.doc.codigo).replace(/[^\w-]+/g,'_')}-${today()}.html`,data:html});toast('Relatório salvo')}catch(e){if(e&&e.code==='declined')return;if(e&&e.code==='rate_limited'){toast('Aguarde a janela anterior');return}toast('Não foi possível baixar aqui. Use Copiar em texto.')}}
+
+/* ======================= Agenda ======================= */
+async function agendar(){if(!MCP||UI.agBusy)return;const date=$('#agData').value;if(!date){toast('Escolha a data');return}
+ UI.agBusy=true;renderMain();
+ try{await MCP.callTool('Google Calendar','create_event',{summary:`Reavaliação ${P.doc.codigo} · Casa Oliveira`,description:`Reavaliação da bateria infantojuvenil${P.doc.resp?' ('+P.doc.resp+')':''}. Registrar os resultados no app Avaliação Infantil Casa Oliveira.`,allDay:true,startTime:`${date}T00:00:00-03:00`,endTime:`${addDays(date,1)}T00:00:00-03:00`,timeZone:'America/Sao_Paulo'});
+  patchPac({agendado:{data:date,em:new Date().toISOString()}});toast('Reavaliação agendada no Google Agenda')}
+ catch(e){const m={server_not_connected:'Conecte o Google Agenda em claude.ai: Configurações → Conectores.',needs_reauth:'Reconecte o Google Agenda em claude.ai: Configurações → Conectores.',not_in_manifest:'O Google Agenda não foi liberado para este app. Libere nas permissões do artefato e tente de novo.',selection_required:'Escolha a conta do Google Agenda no aviso do Claude e tente de novo.',blocked_by_policy:'A organização bloqueou o Google Agenda aqui.',approval_required:'O Google Agenda precisa de aprovação da organização.',tool_error:'O Google Agenda recusou: '+((e&&e.message)||''),cancelled:'Agendamento cancelado.',server_unavailable:'O Google Agenda não respondeu. Confira na agenda antes de tentar de novo.',upstream_error:'O Google Agenda não respondeu. Confira na agenda antes de tentar de novo.'}[e&&e.code];
+  toast(m||'Não foi possível agendar agora.')}
+ finally{UI.agBusy=false;renderMain()}}
+
+/* ======================= Exportar para pesquisa ======================= */
+const csvCell=v=>{if(v==null)return'';let s=typeof v==='number'?String(v).replace('.',','):String(v);return/[;"\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s};
+async function exportCSV(){if(!DL){toast('Download indisponível nesta visualização');return}
+ const pts=PACS.filter(p=>p.consent&&p.consent.pesquisa&&!p.exemplo).sort((a,b)=>String(a.criado||'').localeCompare(String(b.criado||'')));
+ if(!pts.length){toast('Nenhum paciente com consentimento de pesquisa registrado');return}
+ toast('Preparando arquivo…');
+ const rows=[['participante','tipo','data','idade_meses','instrumento','medida','valor','classificacao','informante_ou_papel','detalhe']];
+ for(let i=0;i<pts.length;i++){const p=pts[i],pid='P'+String(i+1).padStart(3,'0');
+  let avs,roda={resp:{}},metas;
+  if(OFFLINE){avs=p._avs;roda=p._roda;metas=p._metas}
+  else{const [a,r,m]=await Promise.all([DB.collection(`pacientes/${p.id}/avaliacoes`).get(),DB.collection(`pacientes/${p.id}/roda`).get(),DB.collection(`pacientes/${p.id}/metas`).get()]);
+   avs=a.docs.map(d=>d.data());r.docs.forEach(d=>{const[k,role]=d.id.split('-');if(k==='resp')roda.resp[role]=d.data()});metas=m.docs.map(d=>d.data())}
+  avs.slice().sort((x,y)=>x.data<y.data?-1:1).forEach(a=>{const ins=I[a.instr];if(!ins)return;ins.m.forEach(m=>{const v=val(m,a);if(v==null)return;const c=classify(m,v,a,p);
+   rows.push([pid,'avaliacao',a.data,ageM(p.nasc,a.data),a.instr,m.k,v,c?c.l:'',a.inf||'',ins.idx&&ageM(p.nasc,a.data)>0?'indice='+Math.round(v/ageM(p.nasc,a.data)*100):''])})});
+  ROLE_IDS.forEach(role=>{const X=roda.resp[role];if(!X)return;AREAS.forEach(ar=>{const lv=(X.areas||{})[ar.id];if(lv===undefined)return;const pi=(X.prio||[]).indexOf(ar.id);rows.push([pid,'roda','','','roda',ar.id,lv,'',role,pi>=0?'prioridade='+(pi+1):''])})});
+  if(p.rodaCentral)rows.push([pid,'roda_central','','','roda','questao_central',p.rodaCentral,'','equipe','']);
+  (metas||[]).forEach((g,j)=>['T0','T1'].forEach(t=>Object.entries((g.marcas||{})[t]||{}).forEach(([role,v])=>rows.push([pid,'meta_gas','','','gas','M'+(j+1),v,'',role,'momento='+t]))));
+ }
+ const csv='\ufeff'+rows.map(r=>r.map(csvCell).join(';')).join('\r\n');
+ try{await DL.save({filename:`pesquisa-avaliacao-infantil-${today()}.csv`,data:csv});toast(`Arquivo com ${pts.length} participante(s) salvo`)}catch(e){if(e&&e.code==='declined')return;toast('Não foi possível baixar aqui.')}}
+
+/* ======================= Relatório técnico ======================= */
+const DEST={medico:'Médico(a)',escola:'Escola',prof:'Outro profissional',conv:'Convênio'};
+function tcHTML(){const d=P.doc,g=byInstr(),ev=lsGet('ai-aval',{n:'',r:''}),keys=IORDER.filter(k=>g[k]);const ds=P.avs.map(a=>a.data).sort();
+ const rows=keys.map(k=>{const ins=I[k],arr=g[k],a=arr[arr.length-1],f=arr[0];
+  const ms=ins.m.map(m=>{const v=val(m,a);if(v==null)return'';const c=classify(m,v,a,d);const v0=arr.length>1?val(m,f):null;const tr=arr.length>1?trend(m,v0,v):null;
+   return`<tr><td>${esc(m.n)}</td><td>${arr.length>1?esc(showVal(m,v0)):'–'}</td><td><b>${esc(showVal(m,v))}</b>${ins.idx&&idxOf(v,a)!=null?` (índice ${idxOf(v,a)})`:''}</td><td>${c?`<span class="lvt ${c.l}">${esc(c.t)}</span>`:'Sem norma'}</td><td>${tr?TRTXT[tr]:'–'}</td></tr>`}).join('');
+  return`<h2>${esc(ins.full)}</h2><p style="margin:0 0 6px;font-size:12px;color:#55645E">${esc(ins.inf)} · ${arr.length} aplicação(ões): ${arr.map(x=>dBR(x.data)).join(', ')}${a.inf?` · última respondida por ${a.inf==='crianca'?'criança/adolescente':'pais'}`:''}. Referência: ${esc(ins.ref)}</p>
+  <div class="scrollx"><table><thead><tr><th>Medida</th><th>Primeira</th><th>Última</th><th>Classificação</th><th>Evolução</th></tr></thead><tbody>${ms}</tbody></table></div>${a.obs?`<p style="font-size:12px;color:#55645E;margin:4px 0 0">Observação: ${esc(a.obs)}</p>`:''}`}).join('');
+ const cid=d.rodaCentral;const metas=P.metas.map(m=>`<tr><td>${esc(m.titulo)}</td><td>${fsg(mean((m.marcas||{}).T0))}</td><td>${fsg(mean((m.marcas||{}).T1))}</td></tr>`).join('');
+ const risco=(d.resumo&&d.resumo.alertas||[]).filter(x=>x.l==='risco');
+ return`<div class="ph"><div class="pbrand">Casa Oliveira Saúde</div><div>Emitido em ${dBR(today())}</div></div>
+ <h1>Relatório técnico de avaliação</h1>
+ <table class="pinfo"><tbody><tr><th>Paciente (código)</th><td>${esc(d.codigo)}</td></tr><tr><th>Idade</th><td>${esc(ageTxt(ageM(d.nasc)))}</td></tr><tr><th>Período avaliado</th><td>${dBR(ds[0])} a ${dBR(ds[ds.length-1])}</td></tr>
+ <tr><th>Destinatário</th><td>${esc(DEST[d.tecDest]||'')}${d.tecNome?' · '+esc(d.tecNome):''}</td></tr><tr><th>Profissional responsável</th><td>${esc(ev.n||d.resp||'')}${ev.r?' · '+esc(ev.r):''}</td></tr></tbody></table>
+ ${d.tecMotivo?`<h2>Motivo da avaliação</h2><p style="white-space:pre-wrap;margin:0">${esc(d.tecMotivo)}</p>`:''}
+ ${risco.length?`<h2>Rastreio de risco</h2><p class="lvt risco" style="margin:0">Rastreio de risco positivo no último registro (${risco.map(x=>esc(I[x.i].n)).join(', ')}). Conduta de segurança conforme protocolo da equipe.</p>`:''}
+ <h2 style="font-size:17px;margin-top:22px">Instrumentos aplicados</h2>${rows}
+ ${cid||metas?`<h2>Projeto terapêutico (Roda de Cuidado)</h2>${cid?`<p style="margin:0 0 6px">Questão central pactuada com família, escola, terapeuta e criança: <b>${esc(AREA[cid].adult)}</b>.</p>`:''}${metas?`<table><thead><tr><th>Meta (escala GAS, −2 a +2; 0 = esperado)</th><th>Início (média)</th><th>Reavaliação (média)</th></tr></thead><tbody>${metas}</tbody></table>`:''}`:''}
+ ${d.tecConduta?`<h2>Conduta e encaminhamentos</h2><p style="white-space:pre-wrap;margin:0">${esc(d.tecConduta)}</p>`:''}
+ <div class="psign">${esc(ev.n||'Profissional responsável')}${ev.r?'<br>'+esc(ev.r):''}</div>
+ <p class="pnote">Resultados de instrumentos padronizados e medidas de acompanhamento, com faixas de referência da literatura ou do manual de cada instrumento. Não constituem diagnóstico isoladamente. Documento compartilhado com autorização dos responsáveis.</p>`}
+function renderTc(){const v=$('#tcView');if(!ready()){v.hidden=true;return}const d=P.doc,ev=lsGet('ai-aval',{n:'',r:''});
+ if(v.dataset.built==='1'){$('#tcPaper').innerHTML=tcHTML();return}v.dataset.built='1';
+ v.innerHTML=`<div class="wrap wide"><div class="row" style="align-items:flex-end"><h2 style="margin:0">Relatório técnico</h2><button class="btn quiet sm" data-a="tcClose" type="button" style="flex:0 0 auto">Fechar</button></div>
+ <div class="stack"><div class="row"><div><label for="tcDest">Destinatário</label><select id="tcDest"><option value="">–</option>${Object.entries(DEST).map(([k,t])=>`<option value="${k}" ${d.tecDest===k?'selected':''}>${t}</option>`).join('')}</select></div><div><label for="tcNome">Nome do destinatário</label><input type="text" id="tcNome" value="${esc(d.tecNome||'')}" autocomplete="off"></div></div>
+ <div class="row"><div><label for="ptN">Profissional</label><input type="text" id="ptN" value="${esc(ev.n)}" autocomplete="off"></div><div><label for="ptR">Registro</label><input type="text" id="ptR" value="${esc(ev.r)}" placeholder="Crefito-TO" autocomplete="off"></div></div>
+ <div><label for="tcMot">Motivo da avaliação</label><textarea id="tcMot" placeholder="Queixa, quem encaminhou e por quê">${esc(d.tecMotivo||'')}</textarea></div>
+ <div><label for="tcCon">Conduta e encaminhamentos</label><textarea id="tcCon" placeholder="Frequência, objetivos, encaminhamentos sugeridos">${esc(d.tecConduta||'')}</textarea></div>
+ <div class="btns two">${DL?`<button class="btn" data-a="tcDown" type="button">Baixar relatório</button>`:''}<button class="btn ghost" data-a="tcCopy" type="button">Copiar em texto</button></div>
+ <p class="hint">Envie ao médico ou à escola só com a autorização dos responsáveis${(d.consent||{}).escola?'':' (o contato com a escola ainda não foi autorizado)'}.</p></div>
+ <div class="tpaper" id="tcPaper">${tcHTML()}</div></div>`}
+function tcText(){const d=P.doc,g=byInstr(),ev=lsGet('ai-aval',{n:'',r:''});let t=`Casa Oliveira Saúde · Relatório técnico de avaliação\nPaciente: ${d.codigo} · ${ageTxt(ageM(d.nasc))}\n`;
+ if(d.tecMotivo)t+=`\nMotivo: ${d.tecMotivo}\n`;
+ IORDER.filter(k=>g[k]).forEach(k=>{const arr=g[k],a=arr[arr.length-1];t+=`\n${I[k].n} (${arr.map(x=>dBR(x.data)).join(', ')}):\n`+I[k].m.map(m=>{const v=val(m,a);if(v==null)return'';const c=classify(m,v,a,d);return`- ${m.n}: ${showVal(m,v)}${c?' · '+c.t:''}`}).filter(Boolean).join('\n')+'\n'});
+ if(d.rodaCentral)t+=`\nQuestão central (Roda de Cuidado): ${AREA[d.rodaCentral].adult}\n`;
+ if(d.tecConduta)t+=`\nConduta: ${d.tecConduta}\n`;return t+`\n${ev.n||''} ${ev.r||''}`.trim()}
+async function tcDown(){if(!DL)return;const css=[...document.querySelectorAll('style')].map(s=>s.textContent).join('\n');
+ const html=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Relatório técnico ${esc(P.doc.codigo)}</title><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet"><style>${css}body{background:#EEF2EE;padding:20px}.tpaper{max-width:820px;margin:0 auto}</style></head><body><div class="tpaper">${tcHTML()}</div></body></html>`;
+ try{await DL.save({filename:`relatorio-tecnico-${String(P.doc.codigo).replace(/[^\w-]+/g,'_')}-${today()}.html`,data:html});toast('Relatório salvo')}catch(e){if(e&&e.code==='declined')return;toast(e&&e.code==='rate_limited'?'Aguarde a janela anterior':'Não foi possível baixar aqui. Use Copiar em texto.')}}
+function copyText(t){const fb=()=>{const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('Copiado')}catch(e){toast('Não foi possível copiar')}ta.remove()};try{navigator.clipboard.writeText(t).then(()=>toast('Copiado'),fb)}catch(e){fb()}}
+
+/* ======================= Painel ======================= */
+function viewPainel(){const t=today(),at=PACS.filter(p=>p.ativo!==false&&p._tem),st=at.map(p=>({p,s:status(p)}));
+ const n30=at.reduce((a,p)=>a+((p.resumo&&p.resumo.datas)||[]).filter(d=>d<=t&&daysBetween(d,t)<=30).length,0);
+ const venc=st.filter(x=>x.s.vencida).length,al=st.filter(x=>x.s.alerta||x.s.risco).length,ri=st.filter(x=>x.s.risco).length;
+ let list=st;if(UI.filtro==='pend')list=list.filter(x=>x.s.vencida||x.s.alerta||x.s.risco);
+ list.sort((a,b)=>(b.s.risco-a.s.risco)||(b.s.alerta-a.s.alerta)||(b.s.vencida-a.s.vencida)||String(a.p.codigo).localeCompare(String(b.p.codigo)));
+ const rows=list.map(({p,s})=>{const by={};(s.r.alertas||[]).forEach(x=>{if(!by[x.i]||LV[x.l].r>LV[by[x.i]].r)by[x.i]=x.l});
+  const tags=Object.entries(by).sort((a,b)=>LV[b[1]].r-LV[a[1]].r).map(([i,l])=>`<span class="lvl ${l}" style="font-size:12px">${LV[l].ic} ${esc(I[i]?I[i].n:i)}</span>`).join(' ');
+  return`<div class="it"><div class="l"><b>${esc(p.codigo)}${p.exemplo?' <span class="hint">(exemplo)</span>':''}</b><span>${esc(ageTxt(ageM(p.nasc)))} · ${s.r.ultima?'última '+dBR(s.r.ultima,true):'sem avaliação'} · ${s.vencida?'<b style="color:var(--danger)">reavaliação '+(s.r.ultima?'vencida':'pendente')+'</b>':'próxima '+dBR(s.prox,true)}</span><div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">${tags}</div></div><div class="acts"><button class="mini go" data-a="goPac" data-id="${esc(p.id)}">Abrir</button></div></div>`}).join('');
+ return`<div class="metrics"><div><div class="v">${at.length}</div><div class="k">pacientes em acompanhamento</div></div><div><div class="v">${n30}</div><div class="k">instrumentos nos últimos 30 dias</div></div><div class="${venc?'hot':''}"><div class="v">${venc}</div><div class="k">reavaliações vencidas ou pendentes</div></div><div class="${al?'hot':''}"><div class="v">${al}</div><div class="k">com alerta${ri?` · ${ri} urgente${ri>1?'s':''}`:''}</div></div></div>
+ <div class="seg" role="group" aria-label="Filtro"><button type="button" data-a="filtro" data-v="todos" aria-pressed="${UI.filtro==='todos'}">Todos</button><button type="button" data-a="filtro" data-v="pend" aria-pressed="${UI.filtro==='pend'}">Com pendência</button></div>
+ <div class="list">${rows||'<div class="it">Nenhum paciente com esse filtro.</div>'}</div>
+ <div class="card"><h3>Exportar para pesquisa</h3><p class="hint">Gera uma planilha (CSV) só com os pacientes que têm consentimento de pesquisa registrado, sem exemplos. Os pacientes viram P001, P002…; não entram código, data de nascimento nem textos livres. Para o projeto no PPGTO, confirme também a aprovação do comitê de ética.</p>
+ <button class="btn ghost" data-a="exportCSV" type="button" ${DL?'':'disabled'}>Exportar CSV (${PACS.filter(p=>p.consent&&p.consent.pesquisa&&!p.exemplo).length} paciente(s) com consentimento)</button></div>`}
+
+/* ======================= eventos ======================= */
+const WR=new Set(['cfgSave','agendar','salvar','delAv','delPac','rlv','rstar','cadd','crm','gmark','rmgoal','rconfirm','runconfirm','apoioSave','trSave','rxSave']);
+document.addEventListener('click',e=>{
+ const b=e.target.closest('[data-a]');if(!b)return;const A=b.dataset.a,d=b.dataset;
+ if(RO&&WR.has(A)){toast('Acesso só de leitura');return}
+ if(A==='tab'){stopTasks();UI.tab=d.v;lsSet('ai-tab',d.v);UI.armed=null;renderAll();return}
+  if(A==='pdata'){UI.pdata=!UI.pdata;UI.delPac=false;renderPatient();return}
+  if(A==='fazer'){const c=catOf(d.i);if(!c)return;UI.tab=c;if(CAT[c])UI.sel[c]=d.i;lsSet('ai-tab',c);renderAll();window.scrollTo({top:0,behavior:'smooth'});return}
+ if(A==='selv'){const F=formFor(d.i);const v=Number(d.v);F.v[d.m]=F.v[d.m]===v?undefined:v;if(F.v[d.m]===undefined)delete F.v[d.m];renderMain();return}
+ if(A==='salvar'){salvar(d.i);return}
+ if(A==='cfgSave'){const n=id=>Number($(id).value);const ia=n('#cfIa'),ib=n('#cfIb'),pa=n('#cfPa'),pb=n('#cfPb');if(!(ia>0&&ib>ia&&pa>0&&pb>pa)){toast('Confira as faixas: o segundo valor precisa ser maior que o primeiro');return}
+  CFG={idadi:{a:ia,b:ib},pedicat:{a:pa,b:pb}};W('config/faixas',CFG);syncResumo();renderAll();toast('Faixas salvas para a equipe');return}
+ if(A==='imode'){const F=formFor(d.i);F.mode=d.v;if(d.v==='itens')applyItems(d.i);renderMain();return}
+ if(A==='itv'){const F=formFor(d.i);const n=+d.n-1;const v=d.i==='asq'?d.v:Number(d.v);F.it[n]=F.it[n]===v?null:v;if(d.i==='asq'&&n<4&&!F.it.slice(0,4).some(x=>x==='s'||x==='r'))F.it[4]=null;applyItems(d.i);renderMain();return}
+ if(A==='itzero'){const F=formFor(d.i);F.it=F.it.map(x=>x==null?0:x);applyItems(d.i);renderMain();return}
+ if(A==='cancelEdit'){delete UI.forms[d.i];renderMain();return}
+ if(A==='edit'){const a=P.avs.find(x=>x.id===d.id);if(!a)return;const c=catOf(a.instr);UI.forms[a.instr]={data:a.data,v:Object.assign({},a.v),inf:a.inf||'pais',obs:a.obs||'',id:a.id,it:a.it?a.it.slice():(ITEMS[a.instr]?Array(ITEMS[a.instr].n).fill(null):null),mode:a.it?'itens':'totais'};UI.tab=c;UI.sel[c]=a.instr;renderAll();window.scrollTo({top:0,behavior:'smooth'});return}
+ if(A==='delAv'){if(UI.armed!==d.id){UI.armed=d.id;renderMain();return}UI.armed=null;P.avs=P.avs.filter(x=>x.id!==d.id);renderMain();if(OFFLINE)syncResumo();else{Wdel(`pacientes/${P.id}/avaliacoes/${d.id}`);q[`pacientes/${P.id}/avaliacoes/${d.id}`].then(syncResumo)}toast('Registro excluído');return}
+ if(A==='rdsel'){const cur=selDates(d.i).map(a=>a.id);const i=cur.indexOf(d.id);if(i>=0){if(cur.length===1){toast('Deixe ao menos uma data');return}cur.splice(i,1)}else{if(cur.length>=4){toast('Compare até 4 datas');return}cur.push(d.id)}UI.rsel[d.i]=cur;renderMain();return}
+ /* tarefas */
+ if(A==='task'){stopTasks();UI.task=d.v;renderMain();return}
+ if(A==='lado'){if(T.run)return;UI.lado=d.v;T.el=0;renderMain();return}
+ if(A==='apoioTap'){if(T.run){apoioStop()}else{T.run=true;T.t0=performance.now();T.el=0;renderMain();T.raf=requestAnimationFrame(apoioTick)}return}
+ if(A==='apoioClear'){T.tries={D:[],E:[]};T.el=0;renderMain();return}
+ if(A==='apoioSave'){const p={};if(T.tries.D.length)p.apd=Math.max(...T.tries.D);if(T.tries.E.length)p.ape=Math.max(...T.tries.E);saveApp(p,'');T.tries={D:[],E:[]};T.el=0;return}
+ if(A==='shape'){UI.trShape=d.v;T.strokes=[];T.trT0=0;T.trT1=0;renderMain();return}
+ if(A==='trClear'){T.strokes=[];T.trT0=0;T.trT1=0;trDraw();trShow();return}
+ if(A==='trSave'){const r=trMetrics();if(!r){toast('Faça o traçado primeiro');return}if(r.cov<70){toast('Percorra pelo menos 70% da figura antes de salvar');return}saveApp({des:r.mm},`traçado ${UI.trShape}, ${r.cov}% percorrido${r.t?', '+fmt(r.t,1)+' s':''}`);T.strokes=[];T.trT0=0;T.trT1=0;return}
+ if(A==='rxStart'){rxStart();return}
+ if(A==='rxTap'){rxTap();return}
+ if(A==='rxSave'){const r=T.rx;if(!r||!r.mean)return;saveApp({rea:Math.round(r.mean)},`reação: ${r.omis} omissões, ${r.comis} toques no vermelho, ${r.ant} antecipados`);T.rx=null;renderMain();return}
+ /* roda */
+ if(A==='rsub'){UI.rsub=d.v;renderMain();return}
+ if(A==='rview'){UI.rview=d.v;renderMain();return}
+ if(A==='falar'){falar(d.t);return}
+ if(A==='rlv'){const X=RR(d.r);let lv=d.lv==='na'?'na':d.lv==='undo'?undefined:+d.lv;if(X.areas[d.id]===lv)lv=undefined;if(lv===undefined)delete X.areas[d.id];else X.areas[d.id]=lv;if(!(lv===1||lv===2))X.prio=X.prio.filter(x=>x!==d.id);
+  const vid=UI.hand&&UI.hand.kind==='resp'?UI.hand.v:UI.rview;if(VIEWS.find(v=>v.id===vid).mode==='faces'&&typeof lv==='number')falar(MODE.faces.cols[lv]);saveResp(d.r);renderAll();return}
+ if(A==='rstar'){const X=RR(d.r);const vid=UI.hand&&UI.hand.kind==='resp'?UI.hand.v:UI.rview;const M=MODE[VIEWS.find(v=>v.id===vid).mode];const i=X.prio.indexOf(d.id);
+  if(i>=0)X.prio.splice(i,1);else if(X.prio.length>=M.max){if(M.max===1)X.prio=[d.id];else{toast('Limite de '+M.max+' prioridades');return}}else X.prio.push(d.id);saveResp(d.r);renderAll();return}
+ if(A==='rarea'){UI.rhover=UI.rhover===d.id?null:d.id;renderMain();return}
+ if(A==='rconfirm'){patchPac({rodaCentral:d.id});renderMain();toast('Questão central confirmada');return}
+ if(A==='runconfirm'){patchPac({rodaCentral:null});renderMain();return}
+ if(A==='handoff'){UI.hand={kind:'resp',v:d.v};UI.thanks=false;renderHand();$('#handView').scrollTop=0;return}
+ if(A==='handcomm'){UI.hand={kind:'comm',v:d.v};UI.thanks=false;renderHand();$('#handView').scrollTop=0;return}
+ if(A==='terminei'){for(const k of Object.keys(rt)){if(k.startsWith('nota-')){clearTimeout(rt[k]);delete rt[k];saveResp(k.slice(5))}}UI.thanks=true;renderHand();return}
+ if(A==='handclose'){UI.hand=null;UI.thanks=false;renderHand();renderMain();return}
+ if(A==='cadd'){cadd(d.r,d.k);return}
+ if(A==='crm'){CM(d.r)[d.k].splice(+d.i,1);saveComm(d.r);renderAll();return}
+ if(A==='tp'){UI.tp=d.v;renderMain();return}
+ if(A==='marker'){UI.marker=d.v;renderMain();return}
+ if(A==='gmark'){const g=P.metas.find(x=>x.id===d.g);if(!g)return;g.marcas=g.marcas||{};g.marcas[UI.tp]=g.marcas[UI.tp]||{};const v=+d.v;if(g.marcas[UI.tp][UI.marker]===v)delete g.marcas[UI.tp][UI.marker];else g.marcas[UI.tp][UI.marker]=v;
+  const b2=clone(g);delete b2.id;W(`pacientes/${P.id}/metas/${g.id}`,b2);renderMain();return}
+ if(A==='rmgoal'){P.metas=P.metas.filter(x=>x.id!==d.g);Wdel(`pacientes/${P.id}/metas/${d.g}`);renderMain();return}
+ /* relatório */
+ if(A==='ptOpen'){const v=$('#ptView');v.hidden=false;v.dataset.built='';renderPt();v.scrollTop=0;return}
+ if(A==='ptClose'){$('#ptView').hidden=true;$('#ptView').innerHTML='';return}
+ if(A==='repsel'){const s=lsGet('ai-repsel',{});s[d.i]=s[d.i]===false;lsSet('ai-repsel',s);b.setAttribute('aria-pressed',String(s[d.i]!==false));$('#ptPaper').innerHTML=ptHTML();return}
+ if(A==='ptDown'){ptDown();return}
+ if(A==='tcOpen'){const v=$('#tcView');v.hidden=false;v.dataset.built='';renderTc();v.scrollTop=0;return}
+ if(A==='tcClose'){$('#tcView').hidden=true;$('#tcView').innerHTML='';return}
+ if(A==='tcDown'){tcDown();return}
+ if(A==='tcCopy'){copyText(tcText());return}
+ if(A==='ptCopy'){const t=ptText();const fb=()=>{const ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('Copiado')}catch(e){toast('Não foi possível copiar')}ta.remove()};
+  try{navigator.clipboard.writeText(t).then(()=>toast('Copiado'),fb)}catch(e){fb()}return}
+ /* painel */
+ if(A==='filtro'){UI.filtro=d.v;renderMain();return}
+ if(A==='exportCSV'){exportCSV();return}
+ if(A==='agendar'){agendar();return}
+ if(A==='goPac'){openPac(d.id);UI.tab='proto';lsSet('ai-tab','proto');renderAll();window.scrollTo({top:0,behavior:'smooth'});return}
+});
+document.addEventListener('toggle',e=>{const t=e.target;if(t.matches&&t.matches('details[data-open]')){UI.open=UI.open||{};UI.open[t.dataset.open]=t.open}},true);
+function cadd(r,k){if(RO){toast('Acesso só de leitura');return}const inp=document.getElementById(`add-${r}-${k}`);const t=inp.value.trim();if(!t){inp.focus();return}
+ const X=CM(r);if(k==='preciso')X.preciso.push({para:document.getElementById(`para-${r}`).value,t});else X[k].push(t);saveComm(r);renderAll();const a=document.getElementById(`add-${r}-${k}`);if(a)a.focus()}
+document.addEventListener('keydown',e=>{const t=e.target;if(e.key==='Enter'&&t.dataset&&t.dataset.enter==='cadd'){e.preventDefault();cadd(t.dataset.r,t.dataset.k)}
+ if((e.key==='Enter'||e.key===' ')&&t.id==='rxStage'){e.preventDefault();rxTap()}});
+document.addEventListener('input',e=>{const t=e.target,d=t.dataset;
+ if(d.fv){const F=formFor(d.i);const raw=t.value;if(raw==='')delete F.v[d.fv];else F.v[d.fv]=Number(raw.replace(',','.'));const r=$('#qres-'+d.i);if(r)r.innerHTML=resultHTML(d.i);return}
+ if(d.fo){formFor(d.fo).obs=t.value;return}
+ if(d.nota){if(RO)return;RR(d.nota).notas[d.id]=t.value;rdeb('nota-'+d.nota,()=>saveResp(d.nota),800);return}
+ if(t.id==='ptMsg'||t.id==='ptPlano'){if(RO)return;const k=t.id==='ptMsg'?'comentario':'plano';P.doc[k]=t.value;rdeb('pt-'+k,()=>patchPac({[k]:P.doc[k]}),900);$('#ptPaper').innerHTML=ptHTML();return}
+ if(t.id==='ptN'||t.id==='ptR'){lsSet('ai-aval',{n:$('#ptN').value,r:$('#ptR').value});if($('#ptPaper'))$('#ptPaper').innerHTML=ptHTML();if($('#tcPaper'))$('#tcPaper').innerHTML=tcHTML();return}
+ if(t.id==='tcMot'||t.id==='tcCon'||t.id==='tcNome'){if(RO)return;const k={tcMot:'tecMotivo',tcCon:'tecConduta',tcNome:'tecNome'}[t.id];P.doc[k]=t.value;rdeb('tc-'+k,()=>patchPac({[k]:P.doc[k]}),900);$('#tcPaper').innerHTML=tcHTML();return}
+});
+document.addEventListener('change',e=>{const t=e.target,d=t.dataset;
+ if(t.id==='pSel'){stopTasks();openPac(t.value);return}
+ if(t.id==='iSel'){UI.sel[d.cat]=t.value;renderMain();return}
+ if(d.fd){formFor(d.fd).data=t.value;renderMain();return}
+ if(d.fi){formFor(d.fi).inf=t.value;const r=$('#qres-'+d.fi);if(r)r.innerHTML=resultHTML(d.fi);return}
+ if(t.id==='tcDest'){if(RO)return;patchPac({tecDest:t.value});$('#tcPaper').innerHTML=tcHTML();return}
+ if(t.id==='rcSel'){UI.rhover=t.value;renderMain();return}
+ if(d.cons){if(RO){t.checked=!t.checked;toast('Acesso só de leitura');return}const c=Object.assign({},P.doc.consent||{});c[d.cons]=t.checked?today():null;patchPac({consent:c});renderAll();return}
+ if(['pdNasc','pdResp','pdReav'].includes(t.id)){if(RO)return;const k={pdNasc:'nasc',pdResp:'resp',pdReav:'reavaliar'}[t.id];let v=t.value.trim();if(k==='reavaliar')v=Number(v);if(k==='codigo'&&!v){toast('O código não pode ficar vazio');return}patchPac({[k]:v});if(OFFLINE)syncResumo();renderAll();return}
+});
+document.addEventListener('submit',e=>{e.preventDefault();const f=e.target;
+ if(f.id==='pNewF'){novoPac();return}
+ if(f.id==='goalF'){if(RO){toast('Acesso só de leitura');return}const t=$('#gT').value.trim();if(!t){$('#gT').focus();toast('Escreva a meta');return}
+  const niveis=GAS_VALS.map((v,i)=>$('#gN'+i).value.trim()||['Muito abaixo do esperado','Abaixo do esperado','Resultado esperado','Acima do esperado','Muito acima do esperado'][i]);
+  const g={id:newId('m'),titulo:t,niveis,marcas:{T0:{},T1:{}},criado:new Date().toISOString()};P.metas.push(g);const b2=clone(g);delete b2.id;W(`pacientes/${P.id}/metas/${g.id}`,b2);UI.tp='T0';renderMain();toast('Meta adicionada')}
+});
+function stopTasks(){if(T.run){T.run=false;cancelAnimationFrame(T.raf)}clearTimeout(T.rxTo);if(T.rx&&!T.rx.done)T.rx=null}
+
+/* tooltip */
+const tip=$('#tip');function showTip(el,x,y){tip.textContent=el.dataset.tip;tip.classList.add('on');const r=tip.getBoundingClientRect();let L=x+12,Tp=y-r.height-10;if(L+r.width>innerWidth-8)L=x-r.width-12;if(Tp<8)Tp=y+14;tip.style.left=L+'px';tip.style.top=Tp+'px'}
+document.addEventListener('pointerover',e=>{const el=e.target.closest&&e.target.closest('[data-tip]');if(el)showTip(el,e.clientX,e.clientY)});
+document.addEventListener('pointerout',e=>{if(e.target.closest&&e.target.closest('[data-tip]'))tip.classList.remove('on')});
+document.addEventListener('focusin',e=>{const el=e.target.closest&&e.target.closest('[data-tip]');if(el){const r=el.getBoundingClientRect();showTip(el,r.left+r.width/2,r.top)}});
+document.addEventListener('focusout',()=>tip.classList.remove('on'));
+
+/* ======================= início ======================= */
+renderAll();
+(async()=>{
+ DL=DLX;
+ if(!logado){OFFLINE=true;RO=true;PACS=[];$('#pBox').innerHTML='<p class="err">Para usar a avaliação infantil, entre no sistema primeiro. <a href="../" style="color:inherit;font-weight:600">Entrar no sistema</a></p>';$('#tabs').innerHTML='';$('#main').innerHTML='';$('#foot').textContent='';return}
+ DB=DBX;
+ DB.doc('config/faixas').onSnapshot(s=>{if(s.exists){const x=s.data();if(x&&x.idadi&&x.pedicat){CFG=clone(x);if(P&&P.doc)syncResumo();renderMain()}}},()=>{});
+ DB.collection('pacientes').onSnapshot(s=>{PACS=s.docs.map(d=>Object.assign({id:d.id},clone(d.data())));
+  renderPatient();if(UI.tab==='painel')renderMain()},e=>{onErr(e);if(!e||e.code!=='sessao')toast('Não foi possível carregar os pacientes.')});
+})();
+})();
+</script>
+</body>
+</html>

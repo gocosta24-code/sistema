@@ -1510,7 +1510,7 @@ function startApp() {
   document.getElementById('app').classList.add('aberto');
   document.getElementById('avatarBtn').textContent = currentUser.nome.charAt(0).toUpperCase();
   document.getElementById('roleLabel').textContent = {admin:'Gestora',coordenador:'Coordenadora',profissional:'Profissional'}[currentRole]||currentRole;
-  // A Avaliação por sensor (avaliacao/) entra com esta mesma sessão e
+  // A Avaliação física (avaliacao/) e a infantil (avaliacao-infantil/) entram com esta mesma sessão e
   // precisa saber qual implantação do Apps Script está em uso
   if(!demoMode) localStorage.setItem('co_api_ativa', API_URL);
   buildNav(); buildSidebar();
@@ -1536,7 +1536,8 @@ function extrasDoMenu() {
   return [
     {icon:'🧩', label:'Etapas e Programas', acao:`loadPage('programas')`, so:'admin'},
     {icon:'🏃', label:'Exercícios',         acao:`loadPage('biblioteca')`, so:'equipe'},
-    {icon:'📐', label:'Avaliação por sensor', acao:`location.href='avaliacao/'`, so:'todos'},
+    {icon:'📐', label:'Avaliação física', acao:`location.href='avaliacao/'`, so:'todos'},
+    {icon:'🧒', label:'Avaliação infantil', acao:`location.href='avaliacao-infantil/'`, so:'todos'},
     {icon:'🏥', label:'Dados da clínica',   acao:`abrirConfigClinica()`,   so:'admin'},
     {icon:'📥', label:'Importar pacientes', acao:`abrirImportacao()`,      so:'admin'},
   ].filter(x=> x.so==='todos' || (x.so==='admin' ? currentRole==='admin' : currentRole!=='profissional'));
@@ -5496,7 +5497,8 @@ let _evoPacienteId = null;
 async function carregarEvolucoes(pacienteId) {
   _evoPacienteId = pacienteId;
   const res = await api('listar',{tabela:'evolucoes', filtros:{paciente_id:pacienteId}});
-  _evolucoes = res.ok ? (res.dados||[]) : [];
+  // Os registros 'infantil' são dados internos da Avaliação infantil, não evolução
+  _evolucoes = res.ok ? (res.dados||[]).filter(e=>e.origem!=='infantil') : [];
   // Mais recente primeiro
   _evolucoes.sort((a,b)=>String(b.data||'').localeCompare(String(a.data||'')));
   renderEvolucoes();
