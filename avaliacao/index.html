@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Avaliação por sensor — Casa Oliveira</title>
+<title>Avaliação física — Casa Oliveira</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Source+Sans+3:wght@400;600&family=Lora:ital,wght@0,500;0,600;1,500&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#EEF2EE; --surface:#FAFCFA; --ink:#1C2B27; --muted:#55645E; --line:#D3DDD8;
@@ -37,7 +37,6 @@ input[type=number]{width:100%;min-height:48px;font:inherit;font-size:22px;color:
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.5;-webkit-font-smoothing:antialiased}
 .wrap{max-width:560px;margin:0 auto;padding:20px 18px 56px}
 header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:18px}
-.back{font-size:15px;font-weight:600;color:var(--accent);text-decoration:none;padding:12px 0;white-space:nowrap}
 .brand{font-family:var(--display);font-weight:600;font-size:15px;color:var(--accent);margin:0}
 h1{font-family:var(--display);font-weight:800;font-size:30px;line-height:1.05;margin:2px 0 0;letter-spacing:-.01em}
 h2{font-family:var(--display);font-weight:600;font-size:21px;margin:0 0 6px}
@@ -137,15 +136,105 @@ textarea.in{min-height:90px}
 .paper .psign{margin-top:44px;width:260px;text-align:center;font-size:13px}
 .paper .pline{border-top:1px solid #1d2522;margin-bottom:6px}
 .scrollx{overflow-x:auto}
+input[type=date]{width:100%;min-height:48px;font:inherit;color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:8px 12px}
+.pfacts{font-size:14px;color:var(--muted)}
+.pfacts:empty{display:none}
+/* 60+ */
+.qi{background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:12px;display:grid;gap:8px}
+.qi .qt{font-size:15px;line-height:1.4}
+.qi .qt small{display:block;color:var(--muted);font-size:13px;margin-top:2px}
+.qi .qdim{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.qopts{display:flex;flex-wrap:wrap;gap:6px}
+.qopts button{min-height:44px;flex:1 1 auto;border:1.5px solid var(--line);background:transparent;color:var(--ink);border-radius:9px;font:inherit;font-size:15px;font-weight:600;padding:6px 10px;cursor:pointer}
+.qopts button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.qopts.col{flex-direction:column}
+.qopts.col button{text-align:left;font-weight:500}
+.qopts.col button b{font-weight:700}
+.qsub{font-family:var(--display);font-weight:600;font-size:16px;margin-top:6px}
+.qres{background:var(--soft);border-radius:14px;padding:14px;display:grid;gap:8px}
+.qres:empty{display:none}
+.qres .qs{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.qres .qs b{font-family:var(--display);font-weight:800;font-size:44px;line-height:1;font-variant-numeric:tabular-nums}
+.qres .qs span{color:var(--muted);font-size:15px}
+.lvl{display:inline-block;font-size:14px;font-weight:700;padding:3px 12px;border-radius:999px;background:var(--surface);border:1.5px solid currentColor}
+.lvl.l0{color:#2E7D5B}.lvl.l1{color:#9A6B00}.lvl.l2{color:#B4562A}.lvl.l3{color:#A83A3A}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .lvl.l0{color:#7CC3AE}:root:not([data-theme="light"]) .lvl.l1{color:#E8C25A}:root:not([data-theme="light"]) .lvl.l2{color:#F0A070}:root:not([data-theme="light"]) .lvl.l3{color:#E07B7B}}
+:root[data-theme="dark"] .lvl.l0{color:#7CC3AE}:root[data-theme="dark"] .lvl.l1{color:#E8C25A}:root[data-theme="dark"] .lvl.l2{color:#F0A070}:root[data-theme="dark"] .lvl.l3{color:#E07B7B}
+.qnum{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center}
+.docview .wrap.wide{max-width:860px}
+.kpos{display:flex;border:1.5px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface)}
+.kpos button{flex:1;min-height:44px;border:0;background:transparent;font:inherit;font-size:15px;font-weight:600;color:var(--muted);cursor:pointer}
+.kpos button+button{border-left:1.5px solid var(--line)}
+.kpos button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.kstage{padding-bottom:16px}
+.kbar{height:10px;margin:10px 18px 0;background:var(--soft);border-radius:5px;overflow:hidden}
+.kbar div{height:100%;width:0;background:var(--accent);border-radius:5px}
+.ktap{min-height:88px;font-size:24px;background:var(--live);border-color:var(--live);color:#1C1408}
+.chk{display:flex!important;flex-direction:row!important;align-items:center;gap:10px;font-size:15px!important;color:var(--ink)!important}
+.chk input{width:22px;height:22px;accent-color:var(--accent)}
+/*PT-START*/
+.ptpaper{--pc:#F5EEE3;--pk:#FBF7F0;--pb:#E2D5C2;--pi:#3A2A1F;--ps:#6B5A4C;--pt:#A9573D;--pm:#545E3A;
+  background:#fff;color:var(--pi);border:1px solid var(--pb);border-radius:12px;padding:26px 24px;font:15px/1.55 'Instrument Sans',system-ui,sans-serif;
+  -webkit-print-color-adjust:exact;print-color-adjust:exact;overflow-wrap:break-word}
+.ptpaper *{box-sizing:border-box}
+.ptpaper h1,.ptpaper h2,.ptpaper h3{font-family:'Lora',Georgia,serif;color:var(--pi);margin:0;line-height:1.2}
+.ptpaper .hd{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;border-bottom:2px solid var(--pt);padding-bottom:14px}
+.ptpaper .kick{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--pt)}
+.ptpaper h1{font-style:italic;font-weight:500;font-size:30px;margin-top:4px}
+.ptpaper .who{font-size:14px;color:var(--ps);text-align:right}
+.ptpaper .who b{color:var(--pi)}
+.ptpaper .intro{margin:16px 0 4px;color:var(--ps);font-size:14.5px}
+.ptpaper .sec{margin-top:26px;break-inside:auto}
+.ptpaper .sec>h2{font-size:22px;font-weight:600;margin-bottom:4px}
+.ptpaper .sec>.sd{color:var(--ps);font-size:14px;margin-bottom:12px}
+.ptpaper .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.ptpaper .pc{background:var(--pk);border:1px solid var(--pb);border-radius:16px;padding:16px 16px 14px;break-inside:avoid;display:grid;gap:6px;align-content:start}
+.ptpaper .pc .t{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.ptpaper .pc h3{font-size:19px;font-weight:600}
+.ptpaper .pc .st{font-size:13px;color:var(--ps)}
+.ptpaper .pc .big{font-family:'Lora',Georgia,serif;font-weight:600;font-size:46px;line-height:1;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ptpaper .pc .big small{font-family:'Instrument Sans',sans-serif;font-size:15px;font-weight:500;color:var(--ps);margin-left:3px}
+.ptpaper .pc .big.sm{font-size:34px}
+.ptpaper .tag{display:inline-block;font-size:12.5px;font-weight:700;padding:3px 11px;border-radius:999px;color:#fff;white-space:nowrap}
+.ptpaper .mean{font-size:14px;line-height:1.5}
+.ptpaper .mean b{font-weight:700}
+.ptpaper .chg{font-size:13.5px;font-weight:600}
+.ptpaper .ref{font-size:11.5px;color:var(--ps)}
+.ptpaper svg{display:block;width:100%;height:auto;overflow:visible}
+.ptpaper .wide{grid-column:1/-1}
+.ptpaper .legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--ps)}
+.ptpaper .legend i{display:inline-block;width:12px;height:12px;border-radius:50%;vertical-align:-1px;margin-right:5px}
+.ptpaper .box{border:1px solid var(--pb);border-radius:14px;padding:14px 16px;background:var(--pc)}
+.ptpaper .box p{margin:0 0 6px}
+.ptpaper .refs{font-size:11.5px;color:var(--ps);columns:2 260px;column-gap:24px;margin:8px 0 0;padding-left:18px}
+.ptpaper .refs li{margin-bottom:4px;break-inside:avoid}
+.ptpaper .sign{display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-wrap:wrap;margin-top:34px}
+.ptpaper .sign .ln{width:260px;border-top:1px solid var(--pi);padding-top:6px;text-align:center;font-size:13px}
+.ptpaper .foot{font-family:'Lora',serif;font-style:italic;color:var(--ps);font-size:14px}
+.ptpaper .empty{color:var(--ps);font-size:14px}
+.ptpaper .lvls{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.ptpaper .lv{border:1.5px solid var(--pb);border-radius:14px;padding:12px 14px;display:grid;gap:3px;font-size:13px;color:var(--ps);background:var(--pk);opacity:.7}
+.ptpaper .lv b{color:var(--pi);font-size:14.5px}
+.ptpaper .lv .dot{width:14px;height:14px;border-radius:50%;background:var(--lc)}
+.ptpaper .lv.on{opacity:1;border-color:var(--lc);box-shadow:inset 0 0 0 1.5px var(--lc);background:#fff}
+.ptpaper .lv em{font-style:normal;font-weight:700;font-size:12px;color:#fff;background:var(--lc);border-radius:999px;padding:2px 10px;justify-self:start;margin-top:4px}
+@media (max-width:520px){.ptpaper{padding:18px 14px}.ptpaper .who{text-align:left}.ptpaper .grid{grid-template-columns:1fr}.ptpaper .pc .big{font-size:40px}}
+@media print{
+  .ptpaper{border:0;padding:0;font-size:13.5px}
+  .ptpaper .grid{grid-template-columns:1fr 1fr}
+  .ptpaper .sec{break-before:auto}
+}
+/*PT-END*/
 @media print{
   @page{margin:14mm}
   body{background:#fff}
-  body>*:not(#docView){display:none!important}
-  #docView{position:static;overflow:visible;background:#fff;padding:0}
-  #docView .noprint{display:none!important}
-  #docView .wrap{max-width:none;padding:0}
+  body>*:not(.docview){display:none!important}
+  .docview{position:static;overflow:visible;background:#fff;padding:0}
+  .docview .noprint{display:none!important}
+  .docview .wrap{max-width:none;padding:0}
   .paper{border:0;padding:0}
 }
+.back{font-size:15px;font-weight:600;color:var(--accent);text-decoration:none;padding:12px 0;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -153,7 +242,7 @@ textarea.in{min-height:90px}
   <header>
     <div>
       <p class="brand">Casa Oliveira Saúde</p>
-      <h1>Avaliação por sensor</h1>
+      <h1>Avaliação física</h1>
     </div>
     <a class="back" href="../">← Sistema</a>
   </header>
@@ -164,11 +253,27 @@ textarea.in{min-height:90px}
       <select id="pSel" disabled><option value="">Carregando pacientes…</option></select>
     </div>
     <p class="err" id="pErr" hidden></p>
+    <p class="pfacts" id="pFacts"></p>
+    <button class="linkbtn" id="pDataToggle" type="button">Dados do paciente (sexo, nascimento, escolaridade, nível no Pilates)</button>
+    <div class="stack" id="pData" hidden>
+      <div class="row">
+        <div><label for="pSex">Sexo</label><select id="pSex"><option value="">–</option><option value="F">Feminino</option><option value="M">Masculino</option></select></div>
+        <div><label for="pNasc">Nascimento</label><input type="date" id="pNasc"></div>
+      </div>
+      <div class="row">
+        <div><label for="pEsc">Escolaridade (anos)</label><input type="number" inputmode="numeric" id="pEsc" min="0" max="30" placeholder="anos"></div>
+        <div><label for="pAlt">Altura (cm)</label><input type="number" inputmode="decimal" id="pAlt" placeholder="cm"></div>
+      </div>
+      <div><label for="pNivel">Nível no Pilates</label><select id="pNivel"></select></div>
+      <p class="hint">O nascimento vem do cadastro do paciente. Sexo e idade são usados para comparar cada resultado com os valores de referência publicados. A escolaridade ajusta o MEEM e o MoCA.</p>
+    </div>
     <p class="hint">Cada medida salva entra no prontuário do paciente, como evolução.</p>
   </div>
 
   <nav class="tabs" role="tablist">
     <button role="tab" aria-selected="true" data-tab="proto">Protocolo</button>
+    <button role="tab" aria-selected="false" data-tab="ger">60+</button>
+    <button role="tab" aria-selected="false" data-tab="pil">Pilates</button>
     <button role="tab" aria-selected="false" data-tab="gonio">Goniometria</button>
     <button role="tab" aria-selected="false" data-tab="equi">Equilíbrio</button>
     <button role="tab" aria-selected="false" data-tab="func">Funcional</button>
@@ -189,6 +294,39 @@ textarea.in{min-height:90px}
     <p class="how" id="prHow"></p>
     <div class="list" id="prList"></div>
     <p class="hint">O sinal ✓ mostra o que já foi registrado hoje para este paciente. Fazer abre o teste já configurado.</p>
+  </section>
+
+  <!-- 60+ -->
+  <section class="panel" id="tab-ger" hidden>
+    <div><label for="qSel">Instrumento</label><select id="qSel"></select></div>
+    <p class="how" id="qHow"></p>
+    <div class="stack" id="qForm"></div>
+    <div class="qres" id="qRes" aria-live="polite"></div>
+    <div><label for="qObs">Observação (opcional)</label><input type="text" id="qObs" autocomplete="off"></div>
+    <button class="btn full" id="qSave" type="button">Salvar</button>
+    <p class="hint" id="qRef"></p>
+  </section>
+
+  <!-- PILATES -->
+  <section class="panel" id="tab-pil" hidden>
+    <div><label for="kSel">Teste</label><select id="kSel"></select></div>
+    <div class="row" id="kSideRow">
+      <div id="kLadoW"><label for="kLado" id="kLadoLbl">Lado</label><select id="kLado"><option value="D">Direito</option><option value="E">Esquerdo</option></select></div>
+      <div id="kOlhosW"><label for="kOlhos">Olhos</label><select id="kOlhos"><option value="A">Abertos</option><option value="F">Fechados</option></select></div>
+    </div>
+    <p class="how" id="kHow"></p>
+    <div class="kpos" id="kPos" role="group" aria-label="Posição"><button type="button" data-p="pj">Pés juntos</button><button type="button" data-p="st">Semi-tandem</button><button type="button" data-p="td">Tandem</button></div>
+    <div class="stage kstage">
+      <div class="bignum" id="kBig">0,0 s</div>
+      <p class="status" id="kStatus"></p>
+      <div class="kbar" aria-hidden="true"><div id="kFill"></div></div>
+    </div>
+    <button class="btn full ktap" id="kTap" type="button" hidden>+1 repetição</button>
+    <button class="btn full" id="kGo" type="button">Iniciar</button>
+    <div class="stack" id="kFields"></div>
+    <div><label for="kObs">Observação (opcional)</label><input type="text" id="kObs" autocomplete="off"></div>
+    <button class="btn full" id="kSave" type="button">Salvar</button>
+    <p class="hint" id="kRef"></p>
   </section>
 
   <section class="panel" id="tab-gonio" hidden>
@@ -310,6 +448,16 @@ textarea.in{min-height:90px}
         <button class="btn" id="fSave" type="button">Salvar resultado</button>
       </div>
     </div>
+    <div>
+      <button class="linkbtn" id="fManToggle" type="button">Registrar com cronômetro (sem sensor)</button>
+      <div class="stack" id="fManBox" hidden>
+        <div class="row">
+          <div id="fManDistW" hidden><label for="fManDist">Percurso (m)</label><input type="number" inputmode="decimal" id="fManDist" value="4"></div>
+          <div><label for="fManV" id="fManLbl">Tempo (s)</label><input type="number" inputmode="decimal" id="fManV" placeholder="valor"></div>
+        </div>
+        <button class="btn" id="fManSave" type="button">Salvar</button>
+      </div>
+    </div>
   </section>
 
   <!-- ESCALAS -->
@@ -362,7 +510,7 @@ textarea.in{min-height:90px}
         <button class="btn ghost" id="tSave" type="button" disabled>Salvar série</button>
       </div>
     </div>
-    <p class="hint">Numa próxima etapa, o mesmo treino poderá ser enviado para o paciente fazer em casa pela Área do Paciente.</p>
+    <p class="hint">Quando o app estiver dentro do sistema de gestão, o mesmo treino poderá ser enviado para o paciente fazer em casa pela Área do Paciente.</p>
   </section>
 
   <!-- CÂMERA -->
@@ -413,6 +561,19 @@ textarea.in{min-height:90px}
     <div class="paper" id="docPaper"></div>
   </div>
 </div>
+<div class="docview" id="ptView" hidden>
+  <div class="wrap wide">
+    <div class="noprint row" style="align-items:flex-end"><h2 style="margin:0">Relatório para o paciente</h2><button class="btn quiet" id="ptClose" type="button">Fechar</button></div>
+    <div class="noprint stack">
+      <div class="row"><div><label for="ptAval">Avaliadora</label><input type="text" id="ptAval" autocomplete="off"></div><div><label for="ptReg">Registro profissional</label><input type="text" id="ptReg" autocomplete="off" placeholder="Crefito / Crefito-TO"></div></div>
+      <div><label for="ptMsg">Mensagem para o paciente e a família</label><textarea class="in" id="ptMsg" placeholder="O que os resultados mostram e o que vamos fazer juntos"></textarea></div>
+      <div><label for="ptPlano">Plano de cuidado proposto</label><textarea class="in" id="ptPlano" placeholder="Ex.: fisioterapia 2x/semana com treino de força e equilíbrio; reavaliação em 3 meses"></textarea></div>
+      <button class="btn full" id="ptPrint" type="button">Baixar relatório</button>
+      <p class="hint" id="ptHint">Baixa o relatório como página. Abra no navegador e use Imprimir, Salvar como PDF, ou envie o arquivo para a família. As comparações usam o sexo e a idade cadastrados em Dados do paciente.</p>
+    </div>
+    <div class="ptpaper" id="ptPaper"></div>
+  </div>
+</div>
 <div class="toast" id="toast" role="status"></div>
 
 <script>
@@ -457,7 +618,7 @@ async function carregarPacientes(){
   if(!logado){semSessao();return}
   const r=await api('listar',{tabela:'pacientes',role:S.user.role,nome_usuario:S.user.nome});
   if(!r.ok){if(!$('#pErr').innerHTML)showErr('#pErr','Não consegui carregar os pacientes: '+(r.erro||''));return}
-  pacientes=(r.dados||[]).filter(p=>p.nome).map(p=>({id:p.id,name:String(p.nome),records:[],loaded:false}))
+  pacientes=(r.dados||[]).filter(p=>p.nome).map(p=>({id:p.id,name:String(p.nome),nasc:p.data_nascimento?String(p.data_nascimento).slice(0,10):null,records:[],loaded:false}))
     .sort((a,b)=>a.name.localeCompare(b.name,'pt-BR'));
   const s=$('#pSel');
   if(!pacientes.length){s.innerHTML='<option value="">Nenhum paciente seu cadastrado</option>';return}
@@ -470,14 +631,19 @@ function doSensor(e){try{return{...JSON.parse(e.sensor),id:e.id,autor_email:e.au
 async function carregarRegistros(p){
   const res=await api('listar',{tabela:'evolucoes',filtros:{paciente_id:p.id}});
   if(!res.ok)return false;
-  p.records=(res.dados||[]).filter(e=>e.origem==='sensor').map(doSensor).filter(Boolean);
+  const todos=(res.dados||[]).filter(e=>e.origem==='sensor').map(doSensor).filter(Boolean);
+  // 'perfil' guarda sexo, escolaridade, altura e nível; vale o mais recente
+  const pf=todos.filter(r=>r.type==='perfil').sort((a,b)=>String(a.date).localeCompare(String(b.date))).pop();
+  if(pf){p.sexo=pf.sexo||null;p.esc=pf.esc!=null?pf.esc:null;p.altura=pf.altura||null;p.nivel=pf.nivel||null;if(pf.nasc)p.nasc=pf.nasc}
+  p.records=todos.filter(r=>r.type!=='perfil');
   p.loaded=true;return true;
 }
 function podeApagar(r){return S.user.role==='admin'||String(r.autor_email||'').toLowerCase()===String(S.user.email||'').toLowerCase()}
 $('#pSel').addEventListener('change',async e=>{
-  atual=e.target.value||null;renderProto();
+  atual=e.target.value||null;renderPData();renderProto();
   if(!$('#tab-rel').hidden)renderReport();
-  const p=cur();if(p&&!p.loaded){await carregarRegistros(p);if(cur()===p)renderProto()}
+  const p=cur();if(p&&!p.loaded){await carregarRegistros(p);if(cur()===p){renderPData();renderProto();renderReport();if(!$('#tab-ger').hidden){qPrefill();qRender()}}}
+  if(!$('#tab-ger').hidden){qPrefill();qRender()}
 });
 // Texto que aparece no prontuário; o campo "sensor" guarda os números para
 // o relatório e o painel refazerem os gráficos
@@ -489,9 +655,17 @@ function textoDoRegistro(r){
   if(r.type==='sl30'&&r.classe)t+=` (${r.classe} da faixa esperada para ${r.sexo==='F'?'mulheres':'homens'} de ${r.faixa} anos)`;
   if(r.type==='escala'&&r.tentativas&&r.tentativas.length>1)t+=`, média das tentativas de ${r.tentativas.map(v=>nf1.format(v)).join(' / ')} kgf`;
   if(r.type==='escala'&&r.baixa)t+=', abaixo do ponto de corte de força reduzida';
+  if(r.type==='perfil')return'Avaliação por sensor — dados do paciente atualizados'+[r.sexo?(r.sexo==='F'?'feminino':'masculino'):null,r.esc!=null?r.esc+' anos de estudo':null,r.altura?r.altura+' cm':null,r.nivel?'Pilates nível '+r.nivel:null].filter(Boolean).map((x,i)=>(i?', ':': ')+x).join('')+'.';
   if(r.type==='treino')t+=`, melhor ângulo ${r.best}°`;
   if(r.type==='escala'&&r.obs)t+=`. Obs.: ${r.obs}`;
   return'Avaliação por sensor — '+t+'.';
+}
+// Guarda sexo, escolaridade, altura e nível do Pilates no prontuário
+async function savePerfil(p){
+  const r={type:'perfil',sexo:p.sexo||null,esc:p.esc!=null?p.esc:null,altura:p.altura||null,nivel:p.nivel||null,nasc:p.nasc||null};
+  r.date=new Date().toISOString();
+  const res=await api('salvar',{tabela:'evolucoes',dados:{paciente_id:p.id,data:hojeISO(),texto:textoDoRegistro(r),autor_email:S.user.email,autor_nome:S.user.nome,origem:'sensor',sensor:JSON.stringify(r)}});
+  if(!res.ok)toast('Não salvou os dados do paciente: '+(res.erro||'tente de novo'));
 }
 async function addRecord(r){
   const p=cur();if(!p){toast('Escolha o paciente antes de salvar.');$('#pSel').focus();return false}
@@ -511,6 +685,8 @@ document.querySelectorAll('.tabs button').forEach(b=>b.addEventListener('click',
   document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b?'true':'false'));
   document.querySelectorAll('section.panel').forEach(sec=>sec.hidden=(sec.id!=='tab-'+b.dataset.tab));
   if(b.dataset.tab==='proto')renderProto();
+  if(b.dataset.tab==='ger'){qPrefill(true);qRender()}
+  if(b.dataset.tab==='pil')kRender();
   if(b.dataset.tab==='painel')renderPainel();
   if(b.dataset.tab==='rel')renderReport();
   if(b.dataset.tab==='equi')sizeCanvas();
@@ -544,7 +720,7 @@ async function startMotion(cb,demoGen){
   if(count===0){stop();throw new Error(window.self!==window.top?IFRAME_MSG:NO_SENSOR)}
   return stop;
 }
-function stopAll(){if(g.stop){g.stop();g.stop=null}g.on=false;g.ref=null;g.lp=null;g.bias=null;g.lt=0;g.peak=0;g.angle=0;gRender();if(b.state!=='idle')bCancel();if(typeof f!=='undefined'&&f.state!=='idle')fCancel();trStop();camStop()}
+function stopAll(){if(g.stop){g.stop();g.stop=null}g.on=false;g.ref=null;g.lp=null;g.bias=null;g.lt=0;g.peak=0;g.angle=0;gRender();if(b.state!=='idle')bCancel();if(typeof f!=='undefined'&&f.state!=='idle')fCancel();trStop();camStop();if(typeof kCancel==='function')kCancel()}
 
 /* ---------- goniometria ---------- */
 const SEGS=[
@@ -674,8 +850,7 @@ $('#gOn').addEventListener('click',async()=>{
 $('#gZero').addEventListener('click',()=>{if(!g.lp)return;g.ref=g.lp.slice();g.int=[0,0,0];g.peak=0;g.angle=0;beep(660,.12);gRender()});
 $('#gSave').addEventListener('click',async()=>{
   const m=mv();const r={type:'gonio',joint:m.k,side:$('#gSide').value,finger:m.finger?$('#gFinger').value:null,value:Math.round(g.peak),unit:'°',method:m.mode};
-  if(await salvando($('#gSave'),()=>addRecord(r))){toast('Salvo no prontuário: '+recLabel(r)+', '+r.value+'°');g.ref=null;g.peak=0;g.angle=0}
-  gRender();
+  if(await salvando($('#gSave'),()=>addRecord(r))){toast('Salvo no prontuário: '+recLabel(r)+', '+r.value+'°');g.ref=null;g.peak=0;g.angle=0;gRender()}
 });
 fillMoves();
 
@@ -1055,35 +1230,43 @@ $('#cSave').addEventListener('click',async()=>{
 });
 
 /* ---------- protocolos ---------- */
-const G=(j,s)=>({k:'gonio',j,s}),EQ=p=>({k:'equi',p}),FU=t=>({k:'func',t}),SC=id=>({k:'escala',id});
+const G=(j,s)=>({k:'gonio',j,s}),EQ=p=>({k:'equi',p}),FU=t=>({k:'func',t}),SC=(id,s)=>({k:'escala',id,s}),QI=i=>({k:'geri',i}),PI=(t,s,o)=>({k:'pil',t,s,o}),GR=[SC('preensao','D'),SC('preensao','E')],DOR={k:'escala',id:'dor',note:'se houver queixa'};
 const PRS={
- lca:{label:'Joelho: pós-operatório de LCA',how:'Bateria para reavaliar joelho após reconstrução do ligamento cruzado anterior. Use o lado operado.',items:[SC('dor'),G('joelho_flex'),G('joelho_ext'),EQ('u'),FU('marcha'),SC('koos')]},
- ombro:{label:'Ombro: rigidez ou manguito',how:'Bateria para ombro doloroso, capsulite ou lesão do manguito rotador.',items:[SC('dor'),G('ombro_flex'),G('ombro_abd'),G('ombro_re'),G('ombro_ri'),SC('dash')]},
- lombar:{label:'Coluna lombar: lombalgia',how:'Bateria para lombalgia. A inclinação e a rotação são medidas para os dois lados.',items:[SC('dor'),G('tl_flex'),G('tl_ext'),G('tl_incl','D'),G('tl_incl','E'),G('tl_rot','D'),G('tl_rot','E'),SC('odi')]},
- cervical:{label:'Coluna cervical: cervicalgia',how:'Bateria para cervicalgia. A inclinação e a rotação são medidas para os dois lados.',items:[SC('dor'),G('cerv_flex'),G('cerv_ext'),G('cerv_incl','D'),G('cerv_incl','E'),G('cerv_rot','D'),G('cerv_rot','E')]},
- idoso:{label:'Idoso: risco de queda',how:'Bateria para rastrear e acompanhar risco de queda e fragilidade.',items:[FU('tug'),FU('sl30'),FU('marcha'),EQ('oa'),EQ('of'),SC('preensao'),SC('berg'),SC('fesi')]},
- tornozelo:{label:'Tornozelo: entorse',how:'Bateria para entorse e instabilidade de tornozelo. Use o lado lesionado.',items:[SC('dor'),G('tornozelo_df'),G('tornozelo_pf'),G('pe_inv'),G('pe_ev'),EQ('u'),FU('marcha'),SC('lefs')]},
- mao:{label:'Punho e mão (TO de mão)',how:'Bateria para punho e mão. Dedos entram pelo registro manual na goniometria.',items:[SC('dor'),G('punho_flex'),G('punho_ext'),G('punho_dr'),G('punho_du'),G('ant_pron'),G('ant_sup'),SC('preensao'),SC('dash')]}
+ longevidade:{label:'Longevidade 60+ (protocolo Casa Oliveira)',how:'Avaliação em camadas para pessoas idosas: triagem multidimensional (IVCF-20), fragilidade física (Fried) e desempenho (SPPB, TUG, força), instrumentos por domínio e síntese clínica (CFS). Faça na ordem e gere o Relatório para o paciente na aba Relatório. Reavalie nos mesmos dias de protocolo: entrada, 3 e 6 meses.',items:[QI('antro'),QI('ivcf'),SC('preensao','D'),SC('preensao','E'),FU('tug'),FU('marcha'),FU('sl30'),QI('sppb'),QI('fried'),QI('katz'),QI('lawton'),QI('meem'),QI('moca'),QI('gds'),QI('man'),SC('berg'),SC('fesi'),QI('cfs')]},
+ pil1:{label:'Pilates · Nível 1 · Funcional Essencial',nivel:1,how:'Para idosos frágeis, alunos com baixa capacidade funcional ou que estão começando. Objetivo: segurança, mobilidade básica, equilíbrio e independência.',items:[...GR,FU('tug'),PI('sts5'),PI('eqest'),DOR]},
+ pil2:{label:'Pilates · Nível 2 · Funcional Ativo',nivel:2,how:'Para quem já treina, tem boa consciência corporal e executa os exercícios, mas apresenta alguma limitação. Apoio unipodal com teto de 30 s de olhos abertos: quem completar 30 s repete de olhos fechados (o app troca sozinho).',items:[...GR,FU('sl30'),PI('unip','D','A'),PI('unip','E','A'),DOR]},
+ pil3:{label:'Pilates · Nível 3 · Performance e Movimento',nivel:3,how:'Para jovens, adultos jovens e alunos sem queixas. Prancha com teto de 90 s, sem levar à falha. Apoio unipodal de olhos fechados; se for muito difícil para o aluno, use olhos abertos (troque em Olhos, na aba Pilates).',items:[...GR,PI('prancha'),PI('agach'),PI('unip','D','F'),PI('unip','E','F'),PI('plat','D'),PI('plat','E')]},
+ lca:{label:'Joelho: pós-operatório de LCA',how:'Bateria para reavaliar joelho após reconstrução do ligamento cruzado anterior. Use o lado operado.',items:[SC('dor'),...GR,G('joelho_flex'),G('joelho_ext'),EQ('u'),FU('marcha'),SC('koos')]},
+ ombro:{label:'Ombro: rigidez ou manguito',how:'Bateria para ombro doloroso, capsulite ou lesão do manguito rotador.',items:[SC('dor'),...GR,G('ombro_flex'),G('ombro_abd'),G('ombro_re'),G('ombro_ri'),SC('dash')]},
+ lombar:{label:'Coluna lombar: lombalgia',how:'Bateria para lombalgia. A inclinação e a rotação são medidas para os dois lados.',items:[SC('dor'),...GR,G('tl_flex'),G('tl_ext'),G('tl_incl','D'),G('tl_incl','E'),G('tl_rot','D'),G('tl_rot','E'),SC('odi')]},
+ cervical:{label:'Coluna cervical: cervicalgia',how:'Bateria para cervicalgia. A inclinação e a rotação são medidas para os dois lados.',items:[SC('dor'),...GR,G('cerv_flex'),G('cerv_ext'),G('cerv_incl','D'),G('cerv_incl','E'),G('cerv_rot','D'),G('cerv_rot','E')]},
+ idoso:{label:'Idoso: risco de queda',how:'Bateria para rastrear e acompanhar risco de queda e fragilidade.',items:[FU('tug'),FU('sl30'),FU('marcha'),EQ('oa'),EQ('of'),...GR,SC('berg'),SC('fesi')]},
+ tornozelo:{label:'Tornozelo: entorse',how:'Bateria para entorse e instabilidade de tornozelo. Use o lado lesionado.',items:[SC('dor'),...GR,G('tornozelo_df'),G('tornozelo_pf'),G('pe_inv'),G('pe_ev'),EQ('u'),FU('marcha'),SC('lefs')]},
+ mao:{label:'Punho e mão (TO de mão)',how:'Bateria para punho e mão. Dedos entram pelo registro manual na goniometria.',items:[SC('dor'),G('punho_flex'),G('punho_ext'),G('punho_dr'),G('punho_du'),G('ant_pron'),G('ant_sup'),...GR,SC('dash')]}
 };
 $('#prSel').innerHTML=Object.entries(PRS).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join('');
 const itSide=(it,side)=>it.s||(it.k==='gonio'&&MOVES[it.j].side==='none'?'U':side);
 const eqP=(it,side)=>it.p==='u'?(side==='D'?'ud':'ue'):it.p;
-function itDesc(it,side){if(it.k==='gonio')return recLabel({joint:it.j,side:itSide(it,side)});if(it.k==='equi')return 'Equilíbrio, '+PROTOS[eqP(it,side)].label.toLowerCase();if(it.k==='func')return FT[it.t].label;return ESC[it.id].label}
-function itMatch(it,side,r){if(it.k==='gonio')return r.type==='gonio'&&r.joint===it.j&&r.side===itSide(it,side);if(it.k==='equi')return r.type==='equilibrio'&&r.protocol===eqP(it,side);if(it.k==='func')return r.type===it.t;return r.type==='escala'&&r.escala===it.id}
+function itDesc(it,side){if(it.k==='pil')return pilLabel({t:it.t,lado:it.s,olhos:it.o});if(it.note)return ESC[it.id].label+' ('+it.note+')';if(it.k==='geri')return QS[it.i].label+' · '+QS[it.i].full;if(it.k==='escala'&&it.s)return ESC[it.id].label+(it.s==='D'?', mão direita':', mão esquerda');if(it.k==='gonio')return recLabel({joint:it.j,side:itSide(it,side)});if(it.k==='equi')return 'Equilíbrio, '+PROTOS[eqP(it,side)].label.toLowerCase();if(it.k==='func')return FT[it.t].label;return ESC[it.id].label}
+function itMatch(it,side,r){if(it.k==='pil')return r.type==='pil'&&r.t===it.t&&(!it.s||r.lado===it.s)&&(!it.o||r.olhos===it.o);if(it.k==='gonio')return r.type==='gonio'&&r.joint===it.j&&r.side===itSide(it,side);if(it.k==='equi')return r.type==='equilibrio'&&r.protocol===eqP(it,side);if(it.k==='func')return r.type===it.t;if(it.k==='geri')return r.type==='geri'&&r.inst===it.i;return r.type==='escala'&&r.escala===it.id&&(!it.s||r.lado===it.s)}
 function goTab(n){const b=document.querySelector(`.tabs [data-tab="${n}"]`);b.click();try{b.scrollIntoView({block:'nearest',inline:'center'})}catch(e){}}
 function protoGo(it,side){
   if(it.k==='gonio'){goTab('gonio');$('#gSeg').value=MOVES[it.j].seg.id;fillMoves();$('#gJoint').value=it.j;onMove();$('#gSide').value=itSide(it,side)}
   else if(it.k==='equi'){goTab('equi');$('#bProto').value=eqP(it,side)}
   else if(it.k==='func'){goTab('func');$('#fTest').value=it.t;fOnTest()}
-  else{goTab('esc');$('#eSel').value=it.id;eOnSel();if(it.id==='preensao')$('#eGSide').value=side}
+  else if(it.k==='pil'){goTab('pil');$('#kSel').value=it.t;kOnSel();if(it.s)$('#kLado').value=it.s;if(it.o)$('#kOlhos').value=it.o}
+  else if(it.k==='geri'){goTab('ger');$('#qSel').value=it.i;qPrefill();$('#qObs').value='';qRender()}
+  else{goTab('esc');$('#eSel').value=it.id;eOnSel();if(it.id==='preensao'){$('#eGSide').value=it.s||side;const pp=cur();if(pp&&pp.sexo)$('#eGSex').value=pp.sexo}}
 }
 function renderProto(){
   const P=PRS[$('#prSel').value],side=$('#prSide').value,p=cur();$('#prHow').textContent=P.how;
   const today=new Date().toDateString();const recs=p?p.records.filter(r=>new Date(r.date).toDateString()===today):[];
   let n=0;
   $('#prList').innerHTML=P.items.map((it,i)=>{const done=recs.some(r=>itMatch(it,side,r));if(done)n++;return `<div class="it"><span class="${done?'done':''}">${done?'✓ ':''}${esc(itDesc(it,side))}</span><button type="button" data-i="${i}">${done?'Refazer':'Fazer'}</button></div>`}).join('')
-   +`<div class="it"><span class="hint">${n} de ${P.items.length} itens feitos hoje${p?'':'. Escolha um paciente'}</span></div>`;
-  $('#prList').querySelectorAll('button').forEach(bt=>bt.onclick=()=>protoGo(P.items[+bt.dataset.i],side));
+   +`<div class="it"><span class="hint">${n} de ${P.items.length} itens feitos hoje${p?'':'. Escolha um paciente'}</span></div>`
+   +(P.nivel&&p?`<div class="it"><span${p.nivel===P.nivel?' class="done"':''}>${p.nivel===P.nivel?'✓ Aluno no '+LEVELS[P.nivel].n:p.nivel?'Aluno hoje no '+LEVELS[p.nivel].n:'Aluno ainda sem nível'}</span>${p.nivel===P.nivel?'':`<button type="button" data-nv="${P.nivel}">Mudar para Nível ${P.nivel}</button>`}</div>`:'');
+  $('#prList').querySelectorAll('button[data-i]').forEach(bt=>bt.onclick=()=>protoGo(P.items[+bt.dataset.i],side));
+  $('#prList').querySelectorAll('button[data-nv]').forEach(bt=>bt.onclick=()=>setNivel(bt.dataset.nv));
 }
 $('#prSel').addEventListener('change',renderProto);$('#prSide').addEventListener('change',renderProto);
 
@@ -1098,14 +1281,16 @@ function chart(pts,fmt){
   return s+'</svg>';
 }
 function groups(p){
-  const gon={},eq={},fun={},sc={},trn={};
+  const gon={},eq={},fun={},sc={},trn={},ger={},pil={};
   [...p.records].sort((a,c)=>a.date.localeCompare(c.date)).forEach(r=>{
     if(r.type==='gonio'){const k=r.joint+'|'+r.side+'|'+(r.finger||'');(gon[k]=gon[k]||[]).push({d:r.date,v:r.value,u:r.unit||'°',r})}
     else if(r.type==='equilibrio'){(eq[r.protocol]=eq[r.protocol]||[]).push({d:r.date,v:r.area,r})}
     else if(FT[r.type]){(fun[r.type]=fun[r.type]||[]).push({d:r.date,v:r.type==='tug'?r.total:r.type==='marcha'?r.velocidade:r.count,r})}
     else if(r.type==='escala'){const k=r.escala+'|'+(r.lado||'')+'|'+(r.situacao||'');(sc[k]=sc[k]||[]).push({d:r.date,v:r.value,r})}
-    else if(r.type==='treino'){const k=r.joint+'|'+r.side;(trn[k]=trn[k]||[]).push({d:r.date,v:r.best,r})}});
-  return{gon,eq,fun,sc,trn};
+    else if(r.type==='treino'){const k=r.joint+'|'+r.side;(trn[k]=trn[k]||[]).push({d:r.date,v:r.best,r})}
+    else if(r.type==='geri'&&QS[r.inst]){(ger[r.inst]=ger[r.inst]||[]).push({d:r.date,v:r.score,r})}
+    else if(r.type==='pil'&&PT[r.t]){const k=r.t+'|'+(r.lado||'')+'|'+(r.olhos||'');(pil[k]=pil[k]||[]).push({d:r.date,v:r.v,r})}});
+  return{gon,eq,fun,sc,trn,ger,pil};
 }
 async function renderReport(){
   const el=$('#rBody');const p=cur();
@@ -1117,7 +1302,12 @@ async function renderReport(){
     if(!ok){el.innerHTML=`<div class="empty"><p>Não consegui buscar as medidas.</p><button class="btn ghost" id="rRetry" type="button">Tentar de novo</button></div>`;$('#rRetry').onclick=renderReport;return}
   }
   if(!p.records.length){el.innerHTML=`<div class="empty"><p>${esc(p.name)} ainda não tem medidas. Faça uma medida em qualquer aba e salve.</p></div>`;return}
-  const {gon,eq,fun,sc,trn}=groups(p);let h=`<div style="display:grid;gap:12px"><h2>${esc(p.name)}</h2>`;
+  const {gon,eq,fun,sc,trn,ger,pil}=groups(p);let h=`<div style="display:grid;gap:12px"><h2>${esc(p.name)}</h2>${p.nivel?`<p class="hint">Pilates: <b style="color:var(--ink)">${LEVELS[p.nivel].n}</b></p>`:''}<button class="btn full" id="rPt" type="button">Relatório para o paciente (visual, com comparações)</button>`;
+  const qk=Object.keys(QS).filter(k=>ger[k]);
+  if(qk.length){h+=`<h3>Avaliação 60+</h3>`;qk.forEach(k=>{const a=ger[k];const lr=a[a.length-1].r;const fm=v=>qFmt(k,v);const b=qLevel(k,lr.score,p);h+=cardH(esc(QS[k].label+' · '+QS[k].full),fm(lr.score)+(QS[k].unit?' '+QS[k].unit:' / '+QS[k].max),b?`<span class="lvl ${LV[b.l]}">${b.t}</span>`+(lr.obs?' '+esc(lr.obs):''):'',a.length>1?chgTxt(a,fm):'',chart(a,fm))})}
+  const pk=Object.keys(pil);
+  if(pk.length){h+=`<h3>Pilates</h3>`;pk.forEach(k=>{const a=pil[k];const lr=a[a.length-1].r;const fm=v=>pilFmt(lr.t,v);const P=PT[lr.t];
+    h+=cardH(esc(pilLabel(lr)),lr.t==='eqest'?'Tandem '+fm(lr.td):fm(lr.v),[pilSub(lr),P.better==='low'?'Menor é melhor.':'Maior é melhor.',lr.obs?esc(lr.obs):''].filter(Boolean).join(' '),a.length>1?chgTxt(a,fm):'',chart(a,fm))})}
   const gk=Object.keys(gon);
   if(gk.length){h+=`<h3>Amplitude de movimento</h3>`;gk.forEach(k=>{const a=gon[k];const u=a[0].u;const last=a[a.length-1].v,first=a[0].v,dif=last-first;
     h+=`<div class="card"><p class="hint">${esc(recLabel(a[0].r))}</p><p class="big">${fmtU(last,u)}</p>${a.length>1?`<p class="hint">${dif>=0?'+':'−'}${fmtU(Math.abs(dif),u)} desde a primeira medida (${dShort(a[0].d)})</p>`:''}${chart(a,v=>fmtU(v,u))}</div>`})}
@@ -1130,7 +1320,7 @@ async function renderReport(){
   if(fk.length){h+=`<h3 style="margin-top:6px">Testes funcionais</h3>`;fk.forEach(k=>{const a=fun[k];const lr=a[a.length-1].r;const last=a[a.length-1].v,first=a[0].v;
     let big,sub,chg='',fmt;
     if(k==='tug'){big=nf1.format(last)+' s';fmt=v=>nf1.format(v);sub='Tempo total. Menor é melhor.';if(a.length>1){const d=last-first;chg=`${d<=0?'−':'+'}${nf1.format(Math.abs(d))} s desde a primeira medida`}}
-    else if(k==='marcha'){big=nf2.format(last)+' m/s';fmt=v=>nf2.format(v);sub=`Cadência ${lr.cadencia} passos/min, passo médio ${nf2.format(lr.passo_m)} m.`;if(a.length>1){const pc=Math.round((last-first)/first*100);chg=`${pc>=0?'+':''}${pc}% na velocidade desde a primeira medida`}}
+    else if(k==='marcha'){big=nf2.format(last)+' m/s';fmt=v=>nf2.format(v);sub=lr.cadencia!=null?`Cadência ${lr.cadencia} passos/min, passo médio ${nf2.format(lr.passo_m)} m.`:`Medida com cronômetro em ${nf1.format(lr.dist)} m.`;if(a.length>1){const pc=Math.round((last-first)/first*100);chg=`${pc>=0?'+':''}${pc}% na velocidade desde a primeira medida`}}
     else{big=String(last);fmt=v=>String(v);sub=lr.classe?`${lr.classe.charAt(0).toUpperCase()+lr.classe.slice(1)} da faixa esperada para ${lr.sexo==='F'?'mulheres':'homens'} de ${lr.faixa} anos.`:'Levantadas em 30 segundos.';if(a.length>1){const d=last-first;chg=`${d>=0?'+':'−'}${Math.abs(d)} desde a primeira medida`}}
     h+=`<div class="card"><p class="hint">${FT[k].label}</p><p class="big">${big}</p><p class="hint">${sub}</p>${chg?`<p class="hint">${chg}</p>`:''}${chart(a,fmt)}</div>`})}
 const sk=Object.keys(sc);
@@ -1141,8 +1331,9 @@ const sk=Object.keys(sc);
   if(tk.length){h+=`<h3 style="margin-top:6px">Treinos com biofeedback</h3>`;tk.forEach(k=>{const a=trn[k];const lr=a[a.length-1].r;
     h+=cardH(esc(recLabel(lr)),`${lr.reps} de ${lr.alvo}`,`Repetições na meta de ${lr.meta}° na última série. Melhor ângulo: ${lr.best}°. ${a.length} séries registradas.`,'',chart(a,v=>v+'°'))})}
   h+=`<div class="btns" style="margin-top:4px"><button class="btn ghost full" id="rDoc" type="button">Relatório para o médico (PDF)</button></div>`;
+  h+=``;
   h+=`<div class="btns two" style="margin-top:4px"><button class="btn" id="rCopy" type="button">Copiar resumo</button><button class="btn quiet" id="rShowAll" type="button">Ver todas as medidas</button></div><div id="rOut"></div><div id="rAll" hidden></div></div>`;
-  el.innerHTML=h;$('#rCopy').onclick=copySummary;$('#rDoc').onclick=openDoc;$('#rShowAll').onclick=()=>{const a=$('#rAll');a.hidden=!a.hidden;if(!a.hidden)renderAll()};
+  el.innerHTML=h;$('#rPt').onclick=openPt;$('#rCopy').onclick=copySummary;$('#rDoc').onclick=openDoc;$('#rShowAll').onclick=()=>{const a=$('#rAll');a.hidden=!a.hidden;if(!a.hidden)renderAll()};
 }
 function cardH(label,big,sub,chg,ch){return `<div class="card"><p class="hint">${label}</p><p class="big">${big}</p>${sub?`<p class="hint">${sub}</p>`:''}${chg?`<p class="hint">${chg}</p>`:''}${ch}</div>`}
 function chgTxt(a,fm){const d=a[a.length-1].v-a[0].v;return `${d>=0?'+':'−'}${fm(Math.abs(d))} desde a primeira medida`}
@@ -1152,8 +1343,11 @@ function recText(r){
   if(r.type==='treino')return `Treino, ${esc(recLabel(r))}: <b>${r.reps}/${r.alvo}</b> na meta de ${r.meta}°`;
   if(r.type==='equilibrio')return `${PROTOS[r.protocol]?PROTOS[r.protocol].label:r.protocol}: <b>${nf1.format(r.area)}</b>`;
   if(r.type==='tug')return `TUG: <b>${nf1.format(r.total)} s</b>`;
-  if(r.type==='marcha')return `Marcha: <b>${nf2.format(r.velocidade)} m/s</b>, ${r.cadencia} passos/min`;
+  if(r.type==='marcha')return `Marcha: <b>${nf2.format(r.velocidade)} m/s</b>`+(r.cadencia!=null?`, ${r.cadencia} passos/min`:' (cronômetro)');
+  if(r.type==='geri'&&QS[r.inst])return `${QS[r.inst].label}: <b>${qFmt(r.inst,r.score)}</b>${r.cls?' ('+esc(r.cls.toLowerCase())+')':''}`;
   if(r.type==='sl30')return `Sentar e levantar 30 s: <b>${r.count}</b>`;
+  if(r.type==='pil'&&PT[r.t])return `${esc(pilLabel(r))}: <b>${r.t==='eqest'?'tandem '+pilFmt(r.t,r.td):pilFmt(r.t,r.v)}</b>${r.bracos?' (usou os braços)':''}`;
+  if(r.type==='nivel')return `Pilates: <b>${LEVELS[r.nivel]?LEVELS[r.nivel].n:'Nível '+r.nivel}</b>`;
   return esc(r.type);
 }
 function renderAll(){
@@ -1167,27 +1361,31 @@ function renderAll(){
     p.records=p.records.filter(r=>String(r.id)!==bt.dataset.id);await renderReport();$('#rAll').hidden=false;renderAll();toast('Medida excluída do prontuário')});
 }
 function summaryText(){
-  const p=cur();const {gon,eq,fun,sc,trn}=groups(p);const L=[`Avaliação por sensor — ${p.name}`,`Gerado em ${new Date().toLocaleDateString('pt-BR')}`,''];
+  const p=cur();const {gon,eq,fun,sc,trn,ger,pil}=groups(p);const L=[`Avaliação física — ${p.name}`,`Gerado em ${new Date().toLocaleDateString('pt-BR')}`,''];
+  if(p.nivel)L.splice(2,0,`Pilates: ${LEVELS[p.nivel].n}`);
+  const pk=Object.keys(pil);if(pk.length){L.push('Pilates');pk.forEach(k=>{const a=pil[k];L.push(`- ${pilLabel(a[0].r)}: `+a.map(q=>`${dShort(q.d)} ${q.r.t==='eqest'?pilSub(q.r):pilFmt(q.r.t,q.v)}`).join(', '))});L.push('')}
+  const qk=Object.keys(QS).filter(k=>ger[k]);if(qk.length){L.push('Avaliação 60+');qk.forEach(k=>L.push(`- ${QS[k].label}: `+ger[k].map(q=>`${dShort(q.d)} ${qFmt(k,q.v)}${q.r.cls?' ('+q.r.cls.toLowerCase()+')':''}`).join(', ')));L.push('')}
   const gk=Object.keys(gon);if(gk.length){L.push('Amplitude de movimento');gk.forEach(k=>{L.push(`- ${recLabel(gon[k][0].r)}: `+gon[k].map(q=>`${dShort(q.d)} ${fmtU(q.v,q.u)}`).join(', '))});L.push('')}
   const ek=Object.keys(eq);if(ek.length){L.push('Equilíbrio, área de oscilação em cm²/s⁴ (menor é mais estável)');ek.forEach(k=>L.push(`- ${PROTOS[k]?PROTOS[k].label:k}: `+eq[k].map(q=>`${dShort(q.d)} ${nf1.format(q.v)}`).join(', ')));
     if(eq.oa&&eq.of)L.push(`- Quociente de Romberg: ${nf1.format(eq.of[eq.of.length-1].v/eq.oa[eq.oa.length-1].v)}`);L.push('')}
   const fk=Object.keys(fun);if(fk.length){L.push('Testes funcionais');
     if(fun.tug)L.push('- TUG, tempo total: '+fun.tug.map(q=>`${dShort(q.d)} ${nf1.format(q.v)} s`).join(', '));
-    if(fun.marcha)L.push('- Marcha: '+fun.marcha.map(q=>`${dShort(q.d)} ${nf2.format(q.v)} m/s (${q.r.cadencia} passos/min)`).join(', '));
+    if(fun.marcha)L.push('- Marcha: '+fun.marcha.map(q=>`${dShort(q.d)} ${nf2.format(q.v)} m/s`+(q.r.cadencia!=null?` (${q.r.cadencia} passos/min)`:'')).join(', '));
     if(fun.sl30)L.push('- Sentar e levantar 30 s: '+fun.sl30.map(q=>`${dShort(q.d)} ${q.v}${q.r.classe?' ('+q.r.classe+' da faixa)':''}`).join(', '));L.push('')}
 const sk=Object.keys(sc);if(sk.length){L.push('Dor e escalas');sk.forEach(k=>{const a=sc[k],r0=a[0].r;L.push(`- ${escLabel(r0)}: `+a.map(q=>`${dShort(q.d)} ${escFmt({...r0,value:q.v})}`).join(', '))});L.push('')}
   const tk=Object.keys(trn);if(tk.length){L.push('Treinos com biofeedback');tk.forEach(k=>{const a=trn[k];L.push(`- ${recLabel(a[0].r)}: `+a.map(q=>`${dShort(q.d)} ${q.r.reps}/${q.r.alvo} na meta de ${q.r.meta}°`).join(', '))});L.push('')}
-  L.push('Medidas obtidas com sensor inercial do celular, para acompanhamento da evolução do mesmo paciente com o mesmo protocolo.');
+  L.push('Medidas com sensor inercial do celular ou cronômetro, e instrumentos aplicados conforme as versões validadas, com o mesmo protocolo em cada avaliação.');
   return L.join('\n');
 }
 async function copySummary(){
   const t=summaryText();
-  try{await navigator.clipboard.writeText(t);toast('Resumo copiado.')}
+  try{await navigator.clipboard.writeText(t);toast('Resumo copiado. Cole no prontuário.')}
   catch(e){$('#rOut').innerHTML=`<p class="hint" style="margin:10px 0 6px">Selecione e copie o texto abaixo:</p><textarea readonly>${esc(t)}</textarea>`;const ta=$('#rOut textarea');ta.focus();ta.select()}
 }
-
 function seriesAll(p){
-  const {gon,eq,fun,sc,trn}=groups(p);const out=[];
+  const {gon,eq,fun,sc,trn,ger,pil}=groups(p);const out=[];
+  Object.values(pil).forEach(a=>{const r0=a[0].r;out.push({kind:'pil',label:pilLabel(r0)+(r0.t==='eqest'?' (tandem)':''),better:PT[r0.t].better,pts:a,fmt:v=>pilFmt(r0.t,v)})});
+  Object.entries(ger).forEach(([k,a])=>out.push({kind:'geri',label:QS[k].label,better:QS[k].better==='mid'?'high':QS[k].better,pts:a,fmt:v=>qFmt(k,v)}));
   Object.values(gon).forEach(a=>out.push({kind:'gonio',unit:a[0].u,label:recLabel(a[0].r),better:'high',pts:a,fmt:v=>fmtU(v,a[0].u)}));
   Object.entries(eq).forEach(([k,a])=>out.push({kind:'equi',label:'Equilíbrio, '+(PROTOS[k]?PROTOS[k].label.toLowerCase():k)+' (área de oscilação)',better:'low',pts:a,fmt:v=>nf1.format(v)+' cm²/s⁴'}));
   Object.entries(fun).forEach(([k,a])=>out.push({kind:'func',label:FT[k].label,better:k==='tug'?'low':'high',pts:a,fmt:k==='tug'?v=>nf1.format(v)+' s':k==='marcha'?v=>nf2.format(v)+' m/s':v=>v+' levantadas'}));
@@ -1201,20 +1399,17 @@ function openDoc(){
   const st=docCfg();$('#dFisio').value=st.fisio||S.user.nome||'';$('#dReg').value=st.reg||'';$('#dMed').value=p.medico||'';$('#dQueixa').value=p.queixa||'';$('#dConduta').value=p.conduta||'';
   $('#docView').hidden=false;$('#docView').scrollTop=0;docRender();
 }
-// Nome e Crefito de quem assina ficam guardados no aparelho, por pessoa. Médico,
-// queixa e conduta são do paciente: ficam só enquanto a página está aberta,
-// para não sobrar dado clínico guardado no celular
 const DOC_KEY='co-avalia-doc';
 function docCfg(){try{return(JSON.parse(localStorage.getItem(DOC_KEY)||'{}')||{})[S.user.email]||{}}catch(e){return{}}}
 function docSave(){const p=cur();if(!p)return;p.medico=$('#dMed').value.trim();p.queixa=$('#dQueixa').value.trim();p.conduta=$('#dConduta').value.trim();
-  try{const all=JSON.parse(localStorage.getItem(DOC_KEY)||'{}')||{};all[S.user.email]={fisio:$('#dFisio').value.trim(),reg:$('#dReg').value.trim()};localStorage.setItem(DOC_KEY,JSON.stringify(all))}catch(e){}}
+  try{const all=JSON.parse(localStorage.getItem(DOC_KEY)||'{}')||{};all[S.user.email]={...(all[S.user.email]||{}),fisio:$('#dFisio').value.trim(),reg:$('#dReg').value.trim()};localStorage.setItem(DOC_KEY,JSON.stringify(all))}catch(e){}}
 ['#dFisio','#dReg','#dMed','#dQueixa','#dConduta'].forEach(x=>$(x).addEventListener('input',()=>{docSave();docRender()}));
 $('#docClose').addEventListener('click',()=>{$('#docView').hidden=true});
 $('#docPrint').addEventListener('click',()=>{docSave();try{window.print()}catch(e){toast('A impressão não abriu aqui. Use o link próprio da Casa.')}});
 function docRender(){
-  const p=cur();if(!p)return;const SR=seriesAll(p).filter(x=>x.kind!=='treino');
+  const p=cur();if(!p)return;const S=seriesAll(p).filter(x=>x.kind!=='treino');
   const ds=p.records.map(r=>r.date).sort();const g=x=>esc($(x).value.trim());const br=t=>t.replace(/\n/g,'<br>');
-  const rows=SR.map(x=>{const a=x.pts[0],b=x.pts[x.pts.length-1],n=x.pts.length;let v='–',cls='';
+  const rows=S.map(x=>{const a=x.pts[0],b=x.pts[x.pts.length-1],n=x.pts.length;let v='–',cls='';
     if(n>1){const d=b.v-a.v;const good=x.better==='high'?d>0:d<0;v=(d>=0?'+':'−')+x.fmt(Math.abs(d));cls=d===0?'':good?'good':'bad'}
     return `<tr><td>${esc(x.label)}</td><td>${x.fmt(a.v)}<br><small>${dLong(a.d)}</small></td><td>${n>1?x.fmt(b.v)+'<br><small>'+dLong(b.d)+'</small>':'–'}</td><td class="${cls}">${v}</td></tr>`}).join('');
   const tre=seriesAll(p).filter(x=>x.kind==='treino');
@@ -1227,8 +1422,6 @@ function docRender(){
   <p class="pnote">Amplitude de movimento, equilíbrio e testes funcionais medidos com sensor inercial do celular, com o mesmo protocolo em cada avaliação. Escalas aplicadas conforme os instrumentos oficiais.</p>
   <div class="psign"><div class="pline"></div>${g('#dFisio')||'Fisioterapeuta'}${g('#dReg')?'<br>Crefito '+g('#dReg'):''}</div>`;
 }
-// O painel junta as medidas de todos os pacientes que a pessoa enxerga no
-// sistema: a gestão vê a clínica toda, a profissional vê os dela
 async function renderPainel(){
   const el=$('#pnBody');const now=Date.now();
   if(!pacientes.length){el.innerHTML=`<div class="empty"><p>O painel aparece quando houver pacientes com medidas.</p></div>`;return}
@@ -1236,8 +1429,8 @@ async function renderPainel(){
   const res=await api('listar',{tabela:'evolucoes',filtros:{origem:'sensor'}});
   if($('#tab-painel').hidden)return;
   if(!res.ok){el.innerHTML=`<div class="empty"><p>Não consegui buscar as medidas.</p><button class="btn ghost" id="pnRetry" type="button">Tentar de novo</button></div>`;$('#pnRetry').onclick=renderPainel;return}
-  const por={};(res.dados||[]).forEach(e=>{const r=doSensor(e);if(r)(por[e.paciente_id]=por[e.paciente_id]||[]).push(r)});
-  pacientes.forEach(p=>{p.records=por[p.id]||[];p.loaded=true});
+  const por={};(res.dados||[]).forEach(e=>{const r=doSensor(e);if(r&&r.type!=='perfil')(por[e.paciente_id]=por[e.paciente_id]||[]).push(r)});
+  pacientes.forEach(p=>{if(!p.loaded)return;p.records=por[p.id]||[]});
   const ps=pacientes;
   let nPac=0,n30=0;const gains=[],weeks=[],tug=[],alerts=[];
   ps.forEach(p=>{if(!p.records.length)return;nPac++;n30+=p.records.filter(r=>now-new Date(r.date)<30*864e5).length;
@@ -1256,7 +1449,630 @@ async function renderPainel(){
   el.innerHTML=h;
 }
 
-carregarPacientes();gRender();bUI();renderProto();tRender();
+/* =====================================================================
+   60+ : dados do paciente, instrumentos geriátricos, normas e relatório
+   ===================================================================== */
+const fN=(v,d)=>v==null||!isFinite(v)?'–':new Intl.NumberFormat('pt-BR',{minimumFractionDigits:d||0,maximumFractionDigits:d||0}).format(v);
+const dayKey=iso=>{const d=new Date(iso);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+
+/* ---------- dados do paciente ---------- */
+function ageAt(p,iso){if(!p||!p.nasc)return null;const b=new Date(p.nasc+'T12:00:00'),d=iso?new Date(iso):new Date();let a=d.getFullYear()-b.getFullYear();const m=d.getMonth()-b.getMonth();if(m<0||(m===0&&d.getDate()<b.getDate()))a--;return a>=0&&a<120?a:null}
+function renderPData(){
+  const p=cur();['#pSex','#pNasc','#pEsc','#pAlt','#pNivel'].forEach(x=>$(x).disabled=!p);
+  if(!p){$('#pFacts').textContent='';return}
+  $('#pSex').value=p.sexo||'';$('#pNasc').value=p.nasc||'';$('#pEsc').value=p.esc!=null?p.esc:'';$('#pAlt').value=p.altura||'';$('#pNivel').value=p.nivel||'';
+  const a=ageAt(p),b=[];if(a!=null)b.push(a+' anos');if(p.sexo)b.push(p.sexo==='F'?'feminino':'masculino');if(p.esc!=null)b.push(p.esc+' anos de estudo');if(p.altura)b.push(fN(p.altura)+' cm');if(p.nivel)b.push('Pilates Nível '+p.nivel);
+  $('#pFacts').textContent=b.length?b.join(' · '):'Cadastre sexo e nascimento para comparar os resultados com as referências.';
+}
+$('#pDataToggle').addEventListener('click',()=>{const d=$('#pData');d.hidden=!d.hidden});
+function pDataSave(){const p=cur();if(!p)return;p.sexo=$('#pSex').value||null;p.nasc=$('#pNasc').value||null;const e=num($('#pEsc').value);p.esc=e!=null&&e>=0?Math.round(e):null;const h=num($('#pAlt').value);p.altura=h&&h>50&&h<250?h:null;savePerfil(p);renderPData();if(!$('#tab-ger').hidden){qPrefill(true);qRender()}}
+['#pSex','#pNasc','#pEsc','#pAlt'].forEach(x=>$(x).addEventListener('change',pDataSave));
+function lastRec(p,f){if(!p)return null;const a=p.records.filter(f).sort((x,y)=>x.date.localeCompare(y.date));return a.length?a[a.length-1]:null}
+function lastGrip(p){const d=lastRec(p,r=>r.type==='escala'&&r.escala==='preensao'&&r.lado==='D'),e=lastRec(p,r=>r.type==='escala'&&r.escala==='preensao'&&r.lado==='E');const v=[d,e].filter(Boolean).map(r=>r.value);return v.length?Math.max(...v):null}
+function lastSpeed(p){const r=lastRec(p,r=>r.type==='marcha'||(r.type==='geri'&&r.inst==='sppb'&&r.detail&&r.detail.vel));return r?(r.type==='marcha'?r.velocidade:r.detail.vel):null}
+function lastAntro(p){return lastRec(p,r=>r.type==='geri'&&r.inst==='antro')}
+
+/* ---------- instrumentos ---------- */
+const YN=[['S','Sim'],['N','Não']];
+const FREQ=[[0,'Nunca ou raramente (menos de 1 dia)'],[1,'Poucas vezes (1 a 2 dias)'],[2,'Algumas vezes (3 a 4 dias)'],[3,'A maior parte do tempo']];
+const BRUCKI=[[0,0,20,'analfabetos'],[1,4,25,'1 a 4 anos de estudo'],[5,8,26.5,'5 a 8 anos de estudo'],[9,11,28,'9 a 11 anos de estudo'],[12,99,29,'12 anos ou mais de estudo']];
+const brucki=e=>e==null?null:BRUCKI.find(b=>e>=b[0]&&e<=b[1]);
+const LV=['l0','l1','l2','l3'];
+function band(bands,v){return bands.find(b=>v>=b.lo&&v<=b.hi)||null}
+const QS={
+ ivcf:{label:'IVCF-20',full:'Índice de Vulnerabilidade Clínico-Funcional-20',better:'low',min:0,max:40,
+  how:'Pode ser respondido pelo idoso ou por um familiar. Responda pensando na situação atual. Cada resposta “Sim” soma os pontos da sua dimensão.',
+  ref:'Moraes EN et al. Rev Saúde Pública, 2016. Pontos de corte: 0–6 baixo risco, 7–14 risco moderado, 15 ou mais alto risco.',
+  bands:[{lo:0,hi:6,l:0,t:'Baixo risco'},{lo:7,hi:14,l:1,t:'Risco moderado'},{lo:15,hi:40,l:3,t:'Alto risco'}],
+  items:[
+   {k:'h',t:'Idade e autopercepção'},
+   {k:'opt',id:'idade',t:'Idade',o:[[0,'60 a 74 anos'],[1,'75 a 84 anos'],[3,'85 anos ou mais']]},
+   {k:'opt',id:'saude',t:'Comparando com outras pessoas da sua idade, como você diria que é a sua saúde?',o:[[0,'Excelente, muito boa ou boa'],[1,'Regular ou ruim']]},
+   {k:'h',t:'Atividades de vida diária'},
+   {k:'yn',id:'avdi1',t:'Por causa da saúde ou da condição física, deixou de fazer compras?'},
+   {k:'yn',id:'avdi2',t:'Deixou de controlar o próprio dinheiro, os gastos ou de pagar as contas?'},
+   {k:'yn',id:'avdi3',t:'Deixou de fazer pequenos trabalhos domésticos, como lavar a louça, arrumar a casa ou fazer limpeza leve?'},
+   {k:'yn',id:'avdb',t:'Deixou de tomar banho sozinho?'},
+   {k:'h',t:'Cognição'},
+   {k:'yn',id:'cog1',t:'Algum familiar ou amigo comentou que você está ficando esquecido?'},
+   {k:'yn',id:'cog2',t:'Esse esquecimento está piorando nos últimos meses?'},
+   {k:'yn',id:'cog3',t:'Esse esquecimento impede alguma atividade do dia a dia?'},
+   {k:'h',t:'Humor'},
+   {k:'yn',id:'hum1',t:'No último mês, sentiu desânimo, tristeza ou desesperança?'},
+   {k:'yn',id:'hum2',t:'No último mês, perdeu o interesse ou o prazer em atividades que antes eram prazerosas?'},
+   {k:'h',t:'Mobilidade'},
+   {k:'yn',id:'mob1',t:'É incapaz de elevar os braços acima da altura do ombro?'},
+   {k:'yn',id:'mob2',t:'É incapaz de manusear ou segurar pequenos objetos?'},
+   {k:'yn',id:'mob3',t:'Tem alguma destas condições?',s:'Perda de peso sem querer (4,5 kg ou 5% do peso no último ano, 6 kg em 6 meses ou 3 kg no último mês); IMC abaixo de 22; panturrilha com menos de 31 cm; ou mais de 5 segundos para caminhar 4 metros.',hint:'mob3'},
+   {k:'yn',id:'mob4',t:'Tem dificuldade para caminhar que impede alguma atividade do dia a dia?'},
+   {k:'yn',id:'mob5',t:'Teve duas ou mais quedas no último ano?'},
+   {k:'yn',id:'mob6',t:'Perde urina ou fezes sem querer, em algum momento?'},
+   {k:'h',t:'Comunicação'},
+   {k:'yn',id:'com1',t:'Tem problema de visão que impede alguma atividade do dia a dia?',s:'Vale usar óculos ou lentes de contato.'},
+   {k:'yn',id:'com2',t:'Tem problema de audição que impede alguma atividade do dia a dia?',s:'Vale usar aparelho auditivo.'},
+   {k:'h',t:'Comorbidades múltiplas'},
+   {k:'yn',id:'com3',t:'Tem cinco ou mais doenças crônicas, usa cinco ou mais medicamentos diferentes por dia, ou foi internado nos últimos 6 meses?'}],
+  score(a){const req=['idade','saude','avdi1','avdi2','avdi3','avdb','cog1','cog2','cog3','hum1','hum2','mob1','mob2','mob3','mob4','mob5','mob6','com1','com2','com3'];
+   const miss=req.filter(k=>a[k]==null);if(miss.length)return{miss:miss.length};const y=k=>a[k]==='S'?1:0;
+   const dims={'Idade':+a.idade,'Autopercepção da saúde':+a.saude,'AVD instrumental':(y('avdi1')||y('avdi2')||y('avdi3'))?4:0,'AVD básica':6*y('avdb'),
+    'Cognição':y('cog1')+y('cog2')+2*y('cog3'),'Humor':2*y('hum1')+2*y('hum2'),'Mobilidade':y('mob1')+y('mob2')+2*y('mob3')+2*y('mob4')+2*y('mob5')+2*y('mob6'),
+    'Comunicação':2*y('com1')+2*y('com2'),'Comorbidades múltiplas':4*y('com3')};
+   const s=Object.values(dims).reduce((x,c)=>x+c,0);const pts=Object.entries(dims).filter(([k,v])=>v>0&&k!=='Idade').map(([k,v])=>k+' ('+v+')');
+   return{score:s,detail:{dims:pts},lines:[pts.length?'Pontos em: '+pts.join(', ')+'.':'Nenhuma dimensão pontuou além da idade.']}}},
+ fried:{label:'Fenótipo de Fried',full:'Fenótipo de fragilidade (Fried et al., 2001)',better:'low',min:0,max:5,
+  how:'Cinco critérios. Força e marcha vêm preenchidas com as últimas medidas salvas, quando houver; confira antes de salvar. O IMC e a altura definem os pontos de corte de força e de marcha.',
+  ref:'Fried LP et al. J Gerontol A Biol Sci Med Sci, 2001 (Cardiovascular Health Study). 0 robusto, 1–2 pré-frágil, 3 ou mais frágil.',
+  bands:[{lo:0,hi:0,l:0,t:'Robusto'},{lo:1,hi:2,l:1,t:'Pré-frágil'},{lo:3,hi:5,l:3,t:'Frágil'}],
+  items:[
+   {k:'h',t:'1. Perda de peso'},
+   {k:'yn',id:'peso',t:'Perdeu peso sem querer no último ano (4,5 kg ou mais, ou 5% do peso)?'},
+   {k:'h',t:'2. Exaustão (dois itens da CES-D)'},
+   {k:'opt',id:'exa1',col:1,t:'Na última semana, com que frequência sentiu que precisou fazer muito esforço para dar conta das tarefas habituais?',o:FREQ},
+   {k:'opt',id:'exa2',col:1,t:'Na última semana, com que frequência sentiu que não conseguiria levar adiante as suas coisas?',o:FREQ},
+   {k:'h',t:'3. Força de preensão'},
+   {k:'num',id:'fpp',t:'Melhor média entre as duas mãos',u:'kgf'},
+   {k:'num',id:'imc',t:'IMC',u:'kg/m²'},
+   {k:'h',t:'4. Lentidão da marcha'},
+   {k:'num',id:'t46',t:'Tempo para caminhar 4,6 m em velocidade habitual',u:'s'},
+   {k:'num',id:'alt',t:'Altura',u:'cm'},
+   {k:'h',t:'5. Baixo nível de atividade física'},
+   {k:'yn',id:'ativ',t:'Gasto semanal com atividade física abaixo de 383 kcal (homens) ou 270 kcal (mulheres)?',s:'Pelo Minnesota Leisure Time Activity Questionnaire ou equivalente. Na prática: quase nenhuma caminhada, exercício ou trabalho físico ao longo da semana.'}],
+  score(a,p){const sx=p&&p.sexo;if(!sx)return{msg:'Cadastre o sexo em Dados do paciente para aplicar os pontos de corte.'};
+   const miss=['peso','exa1','exa2','fpp','imc','t46','alt','ativ'].filter(k=>a[k]==null||a[k]==='');if(miss.length)return{miss:miss.length};
+   const imc=+a.imc,fpp=+a.fpp,t=+a.t46,h=+a.alt;
+   const gc=sx==='M'?(imc<=24?29:imc<=28?30:32):(imc<=23?17:imc<=26?17.3:imc<=29?18:21);
+   const tc=sx==='M'?(h<=173?7:6):(h<=159?7:6);
+   const c={peso:a.peso==='S',exaustao:+a.exa1>=2||+a.exa2>=2,fraqueza:fpp<=gc,lentidao:t>=tc,atividade:a.ativ==='S'};
+   const nm={peso:'perda de peso',exaustao:'exaustão',fraqueza:'fraqueza (força ≤ '+fN(gc,1)+' kgf)',lentidao:'lentidão (≥ '+tc+' s em 4,6 m)',atividade:'baixa atividade física'};
+   const pos=Object.keys(c).filter(k=>c[k]);
+   return{score:pos.length,detail:{crit:pos.map(k=>nm[k])},lines:[pos.length?'Critérios presentes: '+pos.map(k=>nm[k]).join(', ')+'.':'Nenhum critério presente.',`Pontos de corte usados: força ≤ ${fN(gc,1)} kgf, marcha ≥ ${tc} s.`]}}},
+ sppb:{label:'SPPB',full:'Short Physical Performance Battery',better:'high',min:0,max:12,
+  how:'Três tarefas: equilíbrio em três posições, caminhada de 4 m (melhor de duas tentativas) e levantar da cadeira 5 vezes sem usar os braços, o mais rápido possível.',
+  ref:'Guralnik JM et al. J Gerontol, 1994; adaptação brasileira de Nakano, 2007. 0–3 muito baixo, 4–6 baixo, 7–9 moderado, 10–12 bom.',
+  bands:[{lo:0,hi:3,l:3,t:'Desempenho muito baixo'},{lo:4,hi:6,l:2,t:'Desempenho baixo'},{lo:7,hi:9,l:1,t:'Desempenho moderado'},{lo:10,hi:12,l:0,t:'Bom desempenho'}],
+  items:[
+   {k:'h',t:'Equilíbrio'},
+   {k:'opt',id:'eq1',t:'Pés juntos, lado a lado',o:[[1,'Manteve 10 s'],[0,'Menos de 10 s']]},
+   {k:'opt',id:'eq2',t:'Semi-tandem (calcanhar ao lado do dedão do outro pé)',o:[[1,'Manteve 10 s'],[0,'Menos de 10 s']]},
+   {k:'opt',id:'eq3',t:'Tandem (um pé exatamente à frente do outro)',o:[[2,'Manteve 10 s'],[1,'3 a 9,9 s'],[0,'Menos de 3 s']]},
+   {k:'h',t:'Velocidade de marcha em 4 m'},
+   {k:'num',id:'m4',t:'Melhor tempo de duas tentativas',u:'s'},
+   {k:'yn1',id:'m4x',t:'Não conseguiu caminhar'},
+   {k:'h',t:'Levantar da cadeira 5 vezes'},
+   {k:'num',id:'s5',t:'Tempo total',u:'s'},
+   {k:'yn1',id:'s5x',t:'Não conseguiu, ou levou mais de 60 s'}],
+  score(a){if(a.eq1==null)return{miss:1};
+   let eq=+a.eq1;if(+a.eq1===1){if(a.eq2==null)return{miss:1};eq+=+a.eq2;if(+a.eq2===1){if(a.eq3==null)return{miss:1};eq+=+a.eq3}}
+   let g,vel=null;if(a.m4x==='S')g=0;else{const t=num(a.m4);if(t==null||t<=0)return{miss:1};vel=+(4/t).toFixed(2);g=t>8.7?1:t>6.2?2:t>4.82?3:4}
+   let c;if(a.s5x==='S')c=0;else{const t=num(a.s5);if(t==null||t<=0)return{miss:1};c=t>60?0:t>=16.7?1:t>=13.7?2:t>=11.2?3:4}
+   return{score:eq+g+c,detail:{eq,marcha:g,cadeira:c,vel},lines:[`Equilíbrio ${eq}/4 · marcha ${g}/4 · cadeira ${c}/4.`+(vel?` Velocidade de marcha: ${fN(vel,2)} m/s.`:'')]}}},
+ cfs:{label:'Escala Clínica de Fragilidade',full:'Clinical Frailty Scale (Rockwood), versão 2.0',better:'low',min:1,max:9,
+  how:'Julgamento clínico feito ao final da avaliação, considerando como a pessoa estava nas últimas duas semanas.',
+  ref:'Rockwood K et al. CMAJ, 2005; versão 2.0 de 2020. 1–3 não frágil, 4 fragilidade muito leve, 5–6 leve a moderada, 7–9 grave.',
+  bands:[{lo:1,hi:3,l:0,t:'Não frágil'},{lo:4,hi:4,l:1,t:'Fragilidade muito leve'},{lo:5,hi:6,l:2,t:'Fragilidade leve a moderada'},{lo:7,hi:9,l:3,t:'Fragilidade grave'}],
+  items:[{k:'opt',id:'cfs',col:1,t:'Escolha a descrição que melhor representa a pessoa',o:[
+   [1,'<b>1 · Muito em forma.</b> Robusto, ativo, enérgico e motivado; faz exercício com regularidade.'],
+   [2,'<b>2 · Em forma.</b> Sem doença ativa, mas menos em forma que o nível 1; exercício ocasional.'],
+   [3,'<b>3 · Lidando bem.</b> Problemas de saúde bem controlados; ativo além da caminhada habitual.'],
+   [4,'<b>4 · Fragilidade muito leve.</b> Independente, mas lento ou cansado ao longo do dia.'],
+   [5,'<b>5 · Fragilidade leve.</b> Precisa de ajuda em atividades instrumentais: finanças, transporte, tarefas pesadas.'],
+   [6,'<b>6 · Fragilidade moderada.</b> Precisa de ajuda em todas as atividades fora de casa, na casa, em escadas e no banho.'],
+   [7,'<b>7 · Fragilidade grave.</b> Totalmente dependente para o cuidado pessoal, mas estável.'],
+   [8,'<b>8 · Fragilidade muito grave.</b> Totalmente dependente e se aproximando do fim da vida.'],
+   [9,'<b>9 · Doente terminal.</b> Expectativa de vida menor que 6 meses.']]}],
+  score(a){return a.cfs==null?{miss:1}:{score:+a.cfs,lines:[]}}},
+ katz:{label:'Índice de Katz',full:'Atividades básicas de vida diária (Katz)',better:'high',min:0,max:6,
+  how:'Para cada atividade, marque se a pessoa faz sem ajuda de outra pessoa. Supervisão ou ajuda direta contam como dependência.',
+  ref:'Katz S et al. JAMA, 1963; adaptação brasileira de Lino et al., 2008. 6 independente, 4–5 dependência parcial, 0–3 dependência importante.',
+  bands:[{lo:0,hi:3,l:3,t:'Dependência importante'},{lo:4,hi:5,l:1,t:'Dependência parcial'},{lo:6,hi:6,l:0,t:'Independente'}],
+  items:[['banho','Tomar banho'],['vestir','Vestir-se'],['banheiro','Usar o banheiro (higiene)'],['transf','Transferir-se (cama e cadeira)'],['contin','Continência (urina e fezes)'],['alim','Alimentar-se']].map(([id,t])=>({k:'opt',id,t,o:[[1,'Sem ajuda'],[0,'Precisa de ajuda']]})),
+  score(a){const ks=['banho','vestir','banheiro','transf','contin','alim'];const m=ks.filter(k=>a[k]==null);if(m.length)return{miss:m.length};const s=ks.reduce((x,k)=>x+ +a[k],0);return{score:s,lines:[]}}},
+ lawton:{label:'Escala de Lawton',full:'Atividades instrumentais de vida diária (Lawton e Brody)',better:'high',min:7,max:21,
+  how:'Pergunte como a pessoa faz hoje cada atividade.',
+  ref:'Lawton MP, Brody EM. Gerontologist, 1969; versão brasileira de Santos e Virtuoso, 2008. 21 independente, 8–20 dependência parcial, 7 dependência total.',
+  bands:[{lo:7,hi:7,l:3,t:'Dependência total'},{lo:8,hi:20,l:1,t:'Dependência parcial'},{lo:21,hi:21,l:0,t:'Independente'}],
+  items:[['tel','Usar o telefone'],['transp','Ir a lugares distantes (ônibus, táxi, carro)'],['compras','Fazer compras'],['refeic','Preparar as refeições'],['casa','Fazer o trabalho doméstico'],['remed','Tomar os remédios'],['dinheiro','Cuidar do dinheiro']].map(([id,t])=>({k:'opt',id,t,o:[[3,'Sem ajuda'],[2,'Com ajuda parcial'],[1,'Não consegue']]})),
+  score(a){const ks=['tel','transp','compras','refeic','casa','remed','dinheiro'];const m=ks.filter(k=>a[k]==null);if(m.length)return{miss:m.length};return{score:ks.reduce((x,k)=>x+ +a[k],0),lines:[]}}},
+ gds:{label:'GDS-15',full:'Escala de Depressão Geriátrica, 15 itens',better:'low',min:0,max:15,
+  how:'Pergunte sobre a última semana. Leia cada pergunta como está e marque a resposta da pessoa.',
+  ref:'Yesavage JA, Sheikh JI, 1986; validação brasileira de Almeida e Almeida, 1999. 0–5 sem sintomas relevantes, 6–10 leves a moderados, 11–15 graves.',
+  bands:[{lo:0,hi:5,l:0,t:'Sem sintomas depressivos relevantes'},{lo:6,hi:10,l:1,t:'Sintomas depressivos leves a moderados'},{lo:11,hi:15,l:3,t:'Sintomas depressivos graves'}],
+  items:[['g1','Está satisfeito com a sua vida?','N'],['g2','Deixou de lado muitos dos seus interesses e atividades?','S'],['g3','Sente que a sua vida está vazia?','S'],['g4','Fica aborrecido com frequência?','S'],['g5','Fica de bom humor na maior parte do tempo?','N'],['g6','Tem medo de que algo ruim vá acontecer com você?','S'],['g7','Sente-se feliz na maior parte do tempo?','N'],['g8','Sente-se desamparado com frequência?','S'],['g9','Prefere ficar em casa a sair e fazer coisas novas?','S'],['g10','Acha que tem mais problemas de memória que a maioria das pessoas?','S'],['g11','Acha que é maravilhoso estar vivo?','N'],['g12','Sente-se inútil do jeito que está agora?','S'],['g13','Sente-se cheio de energia?','N'],['g14','Acha que a sua situação não tem saída?','S'],['g15','Acha que a maioria das pessoas está melhor que você?','S']].map(([id,t,key])=>({k:'yn',id,t,key})),
+  score(a){const its=this.items;const m=its.filter(i=>a[i.id]==null);if(m.length)return{miss:m.length};const s=its.filter(i=>a[i.id]===i.key).length;return{score:s,lines:s>=6?['Pontuação de 6 ou mais pede avaliação clínica do humor.']:[]}}},
+ meem:{label:'MEEM',full:'Mini-Exame do Estado Mental',better:'high',min:0,max:30,
+  how:'Aplique o instrumento oficial e registre o escore total. A comparação usa a escolaridade cadastrada em Dados do paciente.',
+  ref:'Folstein MF et al., 1975; normas brasileiras por escolaridade de Brucki SMD et al. Arq Neuropsiquiatr, 2003 (medianas: analfabetos 20; 1–4 anos 25; 5–8 anos 26,5; 9–11 anos 28; 12 ou mais 29).',
+  items:[{k:'num',id:'v',t:'Escore total',u:'de 30'}],
+  dyn:p=>{const b=brucki(p&&p.esc);if(!b)return null;const m=b[2];return[{lo:0,hi:m-2.5,l:2,t:'Abaixo do esperado para a escolaridade'},{lo:m-2,hi:m-.5,l:1,t:'Pouco abaixo da mediana'},{lo:m,hi:30,l:0,t:'Na mediana ou acima'}]},
+  score(a,p){const v=num(a.v);if(v==null||v<0||v>30)return{miss:1};const b=brucki(p&&p.esc);return{score:v,lines:[b?`Mediana esperada para ${b[3]}: ${fN(b[2],1)}.`:'Cadastre a escolaridade para comparar com a mediana esperada.']}}},
+ moca:{label:'MoCA',full:'Montreal Cognitive Assessment',better:'high',min:0,max:30,
+  how:'Aplique o instrumento oficial e registre o escore total já com o ponto de escolaridade (mais 1 ponto para quem tem até 12 anos de estudo).',
+  ref:'Nasreddine ZS et al. J Am Geriatr Soc, 2005. Corte original: 26. Em pessoas com baixa escolaridade, o corte de 26 tende a superestimar alterações; interprete junto com a escolaridade.',
+  bands:[{lo:0,hi:17,l:2,t:'Abaixo do esperado'},{lo:18,hi:25,l:1,t:'Abaixo do corte original'},{lo:26,hi:30,l:0,t:'Dentro do esperado'}],
+  items:[{k:'num',id:'v',t:'Escore total',u:'de 30'}],
+  score(a){const v=num(a.v);if(v==null||v<0||v>30)return{miss:1};return{score:v,lines:[]}}},
+ man:{label:'MAN-SR',full:'Mini Avaliação Nutricional, versão reduzida',better:'high',min:0,max:14,
+  how:'Aplique a versão reduzida oficial e registre o escore total.',
+  ref:'Rubenstein LZ et al. J Gerontol, 2001; Kaiser MJ et al., 2009. 12–14 normal, 8–11 risco de desnutrição, 0–7 desnutrição.',
+  bands:[{lo:0,hi:7,l:3,t:'Desnutrição'},{lo:8,hi:11,l:1,t:'Risco de desnutrição'},{lo:12,hi:14,l:0,t:'Estado nutricional normal'}],
+  items:[{k:'num',id:'v',t:'Escore total',u:'de 14'}],
+  score(a){const v=num(a.v);if(v==null||v<0||v>14)return{miss:1};return{score:v,lines:[]}}},
+ antro:{label:'Antropometria',full:'Peso, altura, IMC e panturrilha',better:'mid',min:15,max:40,unit:'kg/m²',dec:1,
+  how:'Panturrilha: maior circunferência, com a pessoa sentada, joelho a 90° e pés apoiados. A altura também fica salva nos dados do paciente.',
+  ref:'IMC para idosos: Lipschitz DA, 1994 (menor que 22 baixo peso; 22 a 27 adequado; maior que 27 sobrepeso). Panturrilha: menor que 31 cm no IVCF-20; até 33 cm (mulheres) e 34 cm (homens) indica massa muscular baixa (Barbosa-Silva et al., 2016).',
+  bands:[{lo:0,hi:21.99,l:2,t:'Baixo peso'},{lo:22,hi:27,l:0,t:'Peso adequado'},{lo:27.01,hi:99,l:1,t:'Sobrepeso'}],
+  items:[{k:'num',id:'peso',t:'Peso',u:'kg'},{k:'num',id:'alt',t:'Altura',u:'cm'},{k:'num',id:'pant',t:'Circunferência da panturrilha',u:'cm'}],
+  score(a,p){const w=num(a.peso),h=num(a.alt);if(!w||!h)return{miss:1};const imc=+(w/((h/100)**2)).toFixed(1);const pc=num(a.pant);const L=[];
+   if(pc){const c=p&&p.sexo==='M'?34:33;L.push(pc<31?`Panturrilha ${fN(pc,1)} cm: abaixo de 31 cm (critério do IVCF-20).`:pc<=c?`Panturrilha ${fN(pc,1)} cm: indica massa muscular baixa (até ${c} cm).`:`Panturrilha ${fN(pc,1)} cm: adequada.`)}
+   return{score:imc,detail:{peso:w,alt:h,pant:pc},lines:L}}}
+};
+QS.meem.bands=null;
+function qBands(k,p){const q=QS[k];return q.dyn?q.dyn(p):q.bands}
+function qLevel(k,v,p){const bs=qBands(k,p);if(!bs)return null;let b=band(bs,v);if(!b){b=v<bs[0].lo?bs[0]:bs[bs.length-1]}return b}
+function qFmt(k,v){const q=QS[k];return q.dec?fN(v,q.dec):fN(v,Number.isInteger(v)?0:1)}
+
+/* ---------- formulário ---------- */
+let qAns={};
+$('#qSel').innerHTML=Object.entries(QS).map(([k,v])=>`<option value="${k}">${v.label} · ${v.full}</option>`).join('');
+function qPrefill(keep){
+  const k=$('#qSel').value,p=cur();if(!keep)qAns={};if(!p)return;const set=(id,v)=>{if(v!=null&&(qAns[id]==null||qAns[id]===''))qAns[id]=v};
+  const age=ageAt(p);
+  if(k==='ivcf'&&age!=null&&age>=60)set('idade',age>=85?3:age>=75?1:0);
+  if(k==='fried'){const g=lastGrip(p);if(g)set('fpp',+g.toFixed(1));const s=lastSpeed(p);if(s)set('t46',+(4.57/s).toFixed(1));const an=lastAntro(p);if(an)set('imc',+an.score.toFixed(1));if(p.altura)set('alt',String(p.altura))}
+  if(k==='antro'&&p.altura)set('alt',String(p.altura));
+}
+function mob3Hint(){const p=cur();if(!p)return'';const an=lastAntro(p),s=lastSpeed(p);const h=[];
+  if(an&&an.score<22)h.push('IMC '+fN(an.score,1));if(an&&an.detail&&an.detail.pant&&an.detail.pant<31)h.push('panturrilha '+fN(an.detail.pant,1)+' cm');if(s&&4/s>5)h.push('marcha de 4 m em '+fN(4/s,1)+' s');
+  return h.length?`<small style="color:var(--accent);font-weight:600">Já registrado: ${h.join(', ')}. Isso conta como “Sim”.</small>`:''}
+function qRender(){
+  const k=$('#qSel').value,q=QS[k];$('#qHow').textContent=q.how;$('#qRef').textContent='Referência: '+q.ref;
+  let dim=0;
+  $('#qForm').innerHTML=q.items.map(it=>{
+    if(it.k==='h')return `<p class="qsub">${it.t}</p>`;
+    const sub=(it.s?`<small>${it.s}</small>`:'')+(it.hint==='mob3'?mob3Hint():'');
+    if(it.k==='num')return `<div class="qi"><label class="qt" for="qn_${it.id}" style="margin:0">${it.t}${sub}</label><div class="qnum"><input type="number" inputmode="decimal" id="qn_${it.id}" data-id="${it.id}" value="${esc(qAns[it.id]!=null?String(qAns[it.id]).replace(',','.'):'')}"><span class="unit">${it.u||''}</span></div></div>`;
+    const opts=it.k==='yn'?YN:it.k==='yn1'?[['S','Sim']]:it.o;
+    return `<div class="qi"><div class="qt">${it.t}${sub}</div><div class="qopts${it.col?' col':''}">${opts.map(([v,t])=>`<button type="button" data-id="${it.id}" data-v="${v}" aria-pressed="${String(qAns[it.id])===String(v)}">${t}</button>`).join('')}</div></div>`;
+  }).join('');
+  $('#qForm').querySelectorAll('.qopts button').forEach(bt=>bt.onclick=()=>{const id=bt.dataset.id;const it=q.items.find(i=>i.id===id);
+    if(it&&it.k==='yn1'&&qAns[id]==='S')delete qAns[id];else qAns[id]=bt.dataset.v;
+    bt.parentNode.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(qAns[id])===x.dataset.v?'true':'false'));qCalc()});
+  $('#qForm').querySelectorAll('input[type=number]').forEach(inp=>inp.oninput=()=>{qAns[inp.dataset.id]=inp.value;qCalc()});
+  qCalc();
+}
+function qCalc(){
+  const k=$('#qSel').value,q=QS[k],p=cur();const r=q.score(qAns,p);const el=$('#qRes');
+  if(r.msg){el.innerHTML=`<p>${r.msg}</p>`;return r}
+  if(r.score==null){el.innerHTML=`<p class="hint">${r.miss>1?'Faltam '+r.miss+' respostas':'Falta completar'} para calcular.</p>`;return r}
+  const b=qLevel(k,r.score,p);
+  el.innerHTML=`<div class="qs"><b>${qFmt(k,r.score)}</b><span>${q.unit?q.unit:'de '+q.max}</span>${b?`<span class="lvl ${LV[b.l]}">${b.t}</span>`:''}</div>${(r.lines||[]).map(l=>`<p class="hint" style="color:var(--ink)">${l}</p>`).join('')}`;
+  return r;
+}
+$('#qSel').addEventListener('change',()=>{qPrefill();$('#qObs').value='';qRender()});
+$('#qSave').addEventListener('click',async()=>{
+  const k=$('#qSel').value,p=cur();if(!p){toast('Escolha o paciente antes de salvar.');return}
+  const r=qCalc();if(r.msg){toast(r.msg);return}if(r.score==null){toast('Complete as respostas antes de salvar.');return}
+  const b=qLevel(k,r.score,p);
+  const rec={type:'geri',inst:k,score:r.score,lvl:b?b.l:null,cls:b?b.t:'',ans:{...qAns},detail:r.detail||null,obs:$('#qObs').value.trim()||null};
+  if(k==='antro'&&r.detail&&p.altura!==r.detail.alt){p.altura=r.detail.alt;renderPData();savePerfil(p)}
+  if(await salvando($('#qSave'),()=>addRecord(rec))){toast(`Salvo no prontuário: ${QS[k].label}, ${qFmt(k,r.score)}${b?' ('+b.t.toLowerCase()+')':''}`);qPrefill();$('#qObs').value='';qRender()}
+});
+
+/* ---------- registro manual no Funcional ---------- */
+$('#fManToggle').addEventListener('click',()=>{const b=$('#fManBox');b.hidden=!b.hidden;fManSync();if(!b.hidden)$('#fManV').focus()});
+function fManSync(){const k=$('#fTest').value;$('#fManDistW').hidden=k!=='marcha';$('#fManLbl').textContent=k==='sl30'?'Levantadas em 30 s':'Tempo (s)';$('#fManV').value=''}
+$('#fTest').addEventListener('change',fManSync);
+function rjBand(age){if(age==null||age<60)return null;const bs=['60-64','65-69','70-74','75-79','80-84','85-89','90-94'];return bs[Math.min(6,Math.floor((age-60)/5))]}
+$('#fManSave').addEventListener('click',async()=>{
+  const k=$('#fTest').value,v=num($('#fManV').value),p=cur();if(v==null||v<=0){$('#fManV').focus();toast('Digite o valor.');return}
+  let r;
+  if(k==='tug')r={type:'tug',total:+v.toFixed(2),giros:null,giro1:null,pico_giro:null,method:'manual'};
+  else if(k==='marcha'){const d=num($('#fManDist').value)||4;r={type:'marcha',dist:d,tempo:+v.toFixed(2),passos:null,cadencia:null,velocidade:+(d/v).toFixed(2),passo_m:null,cv:null,simetria:null,method:'manual'}}
+  else{const c=Math.round(v);const fx=rjBand(ageAt(p)),sx=p&&p.sexo;const rg=fx&&sx?RJ[sx][fx]:null;r={type:'sl30',count:c,faixa:rg?fx:null,sexo:rg?sx:null,classe:rg?(c<rg[0]?'abaixo':c>rg[1]?'acima':'dentro'):null,method:'manual'}}
+  if(await salvando($('#fManSave'),()=>addRecord(r))){toast('Salvo no prontuário: '+FT[k].label+(k==='marcha'?', '+fN(r.velocidade,2)+' m/s':''));$('#fManV').value=''}
+});
+
+/* =====================================================================
+   NORMAS (média e desvio-padrão por idade e sexo)
+   ===================================================================== */
+const SRC={
+ massy:'Massy-Westropp NM et al. Hand grip strength: age and gender stratified normative data in a population-based study. BMC Res Notes, 2011;4:127 (n = 2.678; dinamômetro Jamar, média de 3 tentativas).',
+ steffen:'Steffen TM, Hacker TA, Mollinger L. Age- and gender-related test performance in community-dwelling elderly people. Phys Ther, 2002;82(2):128-37.',
+ bohannon:'Bohannon RW. Population representative gait speed and its determinants. J Geriatr Phys Ther, 2008;31(2):49-52.',
+ rikli:'Rikli RE, Jones CJ. Functional fitness normative scores for community-residing older adults, ages 60-94. J Aging Phys Act, 1999;7:162-81 (faixa normal = percentis 25 a 75).',
+ ewgsop:'Cruz-Jentoft AJ et al. Sarcopenia: revised European consensus (EWGSOP2). Age Ageing, 2019;48(1):16-31.',
+ steadi:'CDC STEADI: TUG de 12 s ou mais indica maior risco de queda.',
+ studenski:'Studenski S et al. Gait speed and survival in older adults. JAMA, 2011;305(1):50-8.'
+};
+const SHORT={massy:'Massy-Westropp et al., 2011',steffen:'Steffen et al., 2002',bohannon:'Bohannon, 2008',rikli:'Rikli e Jones, 1999',ewgsop:'EWGSOP2, 2019',steadi:'CDC STEADI',studenski:'Studenski et al., 2011'};
+const NORM={
+ grip:{label:'Força de preensão palmar',unit:'kgf',dec:1,better:'high',src:['massy','ewgsop'],
+  get(sx,age,side){if(age==null||age<20)return null;const T={M:{D:[[29,47,9.5],[39,47,9.7],[49,47,9.5],[59,45,8.4],[69,40,8.3],[200,33,7.8]],E:[[29,45,8.8],[39,47,9.8],[49,45,9.3],[59,43,8.3],[69,38,8],[200,32,7.5]]},F:{D:[[29,30,7],[39,31,6.4],[49,29,5.7],[59,28,6.3],[69,24,5.3],[200,20,5.8]],E:[[29,28,6.1],[39,29,6],[49,28,5.7],[59,26,5.7],[69,23,5],[200,19,5.5]]}};
+   const r=T[sx][side||'D'].find(x=>age<=x[0]);const lo=[20,30,40,50,60,70][T[sx][side||'D'].indexOf(r)];return{m:r[1],sd:r[2],grp:lo>=70?'70 anos ou mais':lo+' a '+(lo+9)+' anos',cut:sx==='M'?27:16,cutT:'Abaixo de '+(sx==='M'?27:16)+' kgf: força reduzida (EWGSOP2)'}}},
+ tug:{label:'Timed Up and Go (TUG)',unit:'s',dec:1,better:'low',src:['steffen','steadi'],
+  get(sx,age){if(age==null||age<60)return null;const T={M:[[69,8,2],[79,9,3],[200,10,1]],F:[[69,8,2],[79,9,2],[200,11,3]]};const i=age<=69?0:age<=79?1:2;const r=T[sx][i];return{m:r[1],sd:r[2],grp:['60 a 69 anos','70 a 79 anos','80 anos ou mais'][i],cut:12,cutT:'12 s ou mais: maior risco de queda'}}},
+ gait:{label:'Velocidade de marcha',unit:'m/s',dec:2,better:'high',src:['bohannon','ewgsop','studenski'],
+  get(sx,age){if(age==null||age<50)return null;const T={F:[[59,1.1,.24],[69,.99,.24],[79,.917,.24],[200,.762,.216]],M:[[59,1.115,.235],[69,1.03,.23],[79,.954,.244],[200,.844,.24]]};const i=age<=59?0:age<=69?1:age<=79?2:3;const r=T[sx][i];return{m:r[1],sd:r[2],grp:['50 a 59 anos','60 a 69 anos','70 a 79 anos','80 anos ou mais'][i],cut:.8,cutT:'Abaixo de 0,8 m/s: desempenho físico baixo'}}},
+ sl30:{label:'Sentar e levantar em 30 s',unit:'vezes',dec:0,better:'high',src:['rikli'],
+  get(sx,age){const fx=rjBand(age);if(!fx)return null;const rg=RJ[sx][fx];return{m:(rg[0]+rg[1])/2,sd:(rg[1]-rg[0])/1.349,grp:fx.replace('-',' a ')+' anos',cut:rg[0],cutT:'Abaixo de '+rg[0]+': abaixo da faixa normal para a idade'}}}
+};
+const Phi=z=>{const t=1/(1+.2316419*Math.abs(z)),d=.3989423*Math.exp(-z*z/2);const p=d*t*(.3193815+t*(-.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));return z>0?1-p:p};
+
+/* ---------- cores do relatório ---------- */
+const ZC=['#C4553E','#E39B4A','#B9C25E','#7DAE59','#4FAE96','#4F86C6']; /* muito baixo → muito acima (desempenho) */
+const LC=['#6E9A55','#D9A23A','#D27A45','#B5473A']; /* níveis 0 a 3 */
+const ZT=['Muito abaixo do esperado','Abaixo do esperado','Dentro do esperado','Dentro do esperado','Acima do esperado','Muito acima do esperado'];
+function zoneOf(zp){return zp<-2?0:zp<-1?1:zp<0?2:zp<=1?3:zp<=2?4:5}
+
+/* ---------- curva normal (estilo My Score) ---------- */
+function bellSVG(n,pts,fmt,better,gi){
+  const W=340,H=212,L=12,R=328,base=150,top=36;const lo=n.m-3.2*n.sd,hi=n.m+3.2*n.sd;
+  const X=v=>L+(v-lo)/(hi-lo)*(R-L);const Y=v=>{const z=(v-n.m)/n.sd;return base-(base-top)*Math.exp(-z*z/2)};
+  const seg=(a,b)=>{a=Math.max(lo,a);b=Math.min(hi,b);if(b<=a)return'';let d=`M${X(a).toFixed(1)},${base} `;for(let i=0;i<=24;i++){const v=a+(b-a)*i/24;d+=`L${X(v).toFixed(1)},${Y(v).toFixed(1)} `}return d+`L${X(b).toFixed(1)},${base}Z`};
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Curva de distribuição esperada para a idade e o sexo, com o resultado marcado">`;
+  const cuts=[-Infinity,-2,-1,0,1,2,Infinity];
+  for(let i=0;i<6;i++){const za=cuts[i],zb=cuts[i+1];const va=n.m+za*n.sd,vb=n.m+zb*n.sd;const perf=better==='high'?i:5-i;s+=`<path d="${seg(isFinite(va)?va:lo,isFinite(vb)?vb:hi)}" fill="${ZC[perf]}" opacity=".9"/>`}
+  for(let k=-2;k<=2;k++){const x=X(n.m+k*n.sd).toFixed(1);s+=`<line x1="${x}" x2="${x}" y1="${top-10}" y2="${base}" stroke="#3A2A1F" stroke-opacity=".18" stroke-dasharray="2 3"/>`;
+    s+=`<text x="${x}" y="${base+16}" text-anchor="middle" font-size="11" fill="#6B5A4C" font-family="Instrument Sans,sans-serif">${fmt(n.m+k*n.sd)}</text>`}
+  const lab=better==='high'?['pior','','esperado','','melhor']:['melhor','','esperado','','pior'];
+  s+=`<text x="${X(n.m-2.6*n.sd)}" y="${top-14}" text-anchor="middle" font-size="10.5" fill="#6B5A4C">${lab[0]}</text><text x="${X(n.m)}" y="${top-14}" text-anchor="middle" font-size="10.5" fill="#6B5A4C">${lab[2]}</text><text x="${X(n.m+2.6*n.sd)}" y="${top-14}" text-anchor="middle" font-size="10.5" fill="#6B5A4C">${lab[4]}</text>`;
+  s+=`<line x1="${L}" x2="${R}" y1="${base}" y2="${base}" stroke="#3A2A1F" stroke-opacity=".35"/>`;
+  const clamp=v=>Math.max(lo+.02*(hi-lo),Math.min(hi-.02*(hi-lo),v));const off=[];
+  pts.forEach((q,i)=>{if(i<pts.length-1&&(q.v<lo||q.v>hi)){off.push(gi(q.d)+'ª: '+fmt(q.v));return}const last=i===pts.length-1;const cv=clamp(q.v);const x=X(cv),y=Y(cv);const out=q.v<lo||q.v>hi;
+    if(last){const zp=(better==='high'?1:-1)*(q.v-n.m)/n.sd;const c=ZC[zoneOf(zp)];
+      s+=`<line x1="${x.toFixed(1)}" x2="${x.toFixed(1)}" y1="${base}" y2="${(y-2).toFixed(1)}" stroke="#fff" stroke-width="3.5"/><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="9" fill="${c}" stroke="#fff" stroke-width="3"/>`;
+      if(out)s+=`<text x="${(q.v>hi?x-4:x+4).toFixed(1)}" y="${(y-16).toFixed(1)}" text-anchor="${q.v>hi?'end':'start'}" font-size="10.5" font-weight="700" fill="#3A2A1F">${q.v>hi?'além da curva →':'← além da curva'}</text>`;
+      s+=`<text x="${x.toFixed(1)}" y="${base+34}" text-anchor="middle" font-size="12.5" font-weight="700" fill="#3A2A1F">${fmt(q.v)}</text>`;
+    }else{s+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="7.5" fill="#fff" stroke="#3A2A1F" stroke-width="1.6"/><text x="${x.toFixed(1)}" y="${(y+3.6).toFixed(1)}" text-anchor="middle" font-size="9.5" font-weight="700" fill="#3A2A1F">${gi(q.d)}</text>`}
+  });
+  if(off.length)s+=`<text x="${W/2}" y="${H-4}" text-anchor="middle" font-size="10.5" fill="#6B5A4C">Avaliações anteriores além da curva · ${off.join(' · ')}</text>`;
+  return s+'</svg>';
+}
+/* ---------- barra segmentada (instrumentos com pontos de corte) ---------- */
+function gaugeSVG(bs,min,max,pts,fmt,gi){
+  const W=340,H=58,L=10,R=330,y=22,h=12;const X=v=>L+(Math.max(min,Math.min(max,v))-min)/(max-min||1)*(R-L);
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Barra de classificação com o resultado marcado">`;
+  bs.forEach((b,i)=>{const a=Math.max(min,b.lo),z=Math.min(max,b.hi);const x1=i===0?L:X(a-(a-(bs[i-1].hi))/2),x2=i===bs.length-1?R:X(z+(bs[i+1].lo-z)/2);
+    s+=`<rect x="${(x1+(i?1.5:0)).toFixed(1)}" y="${y}" width="${Math.max(2,x2-x1-(i?1.5:0)-(i<bs.length-1?1.5:0)).toFixed(1)}" height="${h}" rx="${i===0||i===bs.length-1?6:2}" fill="${LC[b.l]}"/>`;
+    });
+  const lab=[[L,fmt(min),'start']];bs.slice(1).forEach((b,i)=>{const a=Math.max(min,b.lo);lab.push([X(a-(a-bs[i].hi)/2),fmt(a),'middle'])});
+  let lx=-99;lab.forEach(([x,t,an])=>{if(x-lx<20)return;if(an==='middle'&&R-x<22)return;s+=`<text x="${x.toFixed(1)}" y="${y+h+15}" text-anchor="${an}" font-size="10" fill="#6B5A4C">${t}</text>`;lx=x});
+  if(R-lx>=20)s+=`<text x="${R}" y="${y+h+15}" text-anchor="end" font-size="10" fill="#6B5A4C">${fmt(max)}</text>`;
+  pts.forEach((q,i)=>{const x=X(q.v).toFixed(1);if(i===pts.length-1){const b=band(bs,q.v)||(q.v<bs[0].lo?bs[0]:bs[bs.length-1]);s+=`<line x1="${x}" x2="${x}" y1="${y-5}" y2="${y+h+5}" stroke="#fff" stroke-width="4"/><circle cx="${x}" cy="${y+h/2}" r="9" fill="${LC[b.l]}" stroke="#fff" stroke-width="3"/>`}
+    else s+=`<path d="M${x},${y-3} l-6,-9 h12 z" fill="#fff" stroke="#3A2A1F" stroke-width="1.3"/><text x="${x}" y="${y-13}" text-anchor="middle" font-size="9" font-weight="700" fill="#3A2A1F">${gi(q.d)}</text>`});
+  return s+'</svg>';
+}
+/* ---------- evolução com faixa saudável ---------- */
+function evoSVG(pts,fmt,bandLo,bandHi,cut,cutT,better,gi){
+  if(pts.length<2)return'';const W=340,H=150,L=34,R=326,T=14,B=118;
+  const vs=pts.map(q=>q.v).concat([bandLo,bandHi,cut].filter(v=>v!=null));let lo=Math.min(...vs),hi=Math.max(...vs);const pd=(hi-lo)*.12||1;lo-=pd;hi+=pd;if(lo<0&&Math.min(...pts.map(q=>q.v))>=0)lo=Math.max(0,lo);
+  const X=i=>L+i*(R-L)/(pts.length-1),Y=v=>B-(v-lo)/(hi-lo)*(B-T);
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Evolução entre as avaliações, com a faixa esperada para a idade">`;
+  if(bandLo!=null){s+=`<rect x="${L}" y="${Y(bandHi).toFixed(1)}" width="${R-L}" height="${(Y(bandLo)-Y(bandHi)).toFixed(1)}" fill="#7DAE59" opacity=".2"/>`}
+  if(cut!=null){s+=`<line x1="${L}" x2="${R}" y1="${Y(cut).toFixed(1)}" y2="${Y(cut).toFixed(1)}" stroke="#C4553E" stroke-width="1.3" stroke-dasharray="5 4"/>`}
+  [lo,(lo+hi)/2,hi].forEach(v=>s+=`<text x="${L-5}" y="${(Y(v)+3).toFixed(1)}" text-anchor="end" font-size="9.5" fill="#6B5A4C">${fmt(v)}</text>`);
+  s+=`<polyline points="${pts.map((q,i)=>X(i).toFixed(1)+','+Y(q.v).toFixed(1)).join(' ')}" fill="none" stroke="#A9573D" stroke-width="2.5" stroke-linejoin="round"/>`;
+  pts.forEach((q,i)=>{const last=i===pts.length-1;s+=`<circle cx="${X(i).toFixed(1)}" cy="${Y(q.v).toFixed(1)}" r="${last?6:4.5}" fill="${last?'#A9573D':'#fff'}" stroke="#A9573D" stroke-width="2"/><text x="${X(i).toFixed(1)}" y="${(Y(q.v)-10).toFixed(1)}" text-anchor="${i===0?'start':last?'end':'middle'}" font-size="11.5" font-weight="700" fill="#3A2A1F">${fmt(q.v)}</text><text x="${X(i).toFixed(1)}" y="${H-12}" text-anchor="${i===0?'start':last?'end':'middle'}" font-size="10" fill="#6B5A4C">${last?'atual':gi(q.d)+'ª'} · ${dShort(q.d)}</text>`});
+  s+='</svg>';
+  return s+`<div class="legend">${bandLo!=null?'<span><i style="background:#7DAE59;opacity:.45;border-radius:3px"></i>faixa esperada para a idade</span>':''}${cut!=null?`<span><i style="background:none;border-top:2px dashed #C4553E;border-radius:0;height:0;width:16px;vertical-align:3px"></i>${esc(cutT)}</span>`:''}</div>`;
+}
+
+/* ---------- séries por dia (última medida de cada dia) ---------- */
+function byDay(a){const m={};a.forEach(q=>{m[dayKey(q.d)]=q});return Object.keys(m).sort().map(k=>m[k])}
+function ptSeries(p){
+  const rs=[...p.records].sort((a,b)=>a.date.localeCompare(b.date));const S={};const push=(k,d,v,r)=>{(S[k]=S[k]||[]).push({d,v,r})};
+  rs.forEach(r=>{
+    if(r.type==='escala'&&r.escala==='preensao')push('grip'+(r.lado||'D'),r.date,r.value,r);
+    else if(r.type==='tug')push('tug',r.date,r.total,r);
+    else if(r.type==='marcha')push('gait',r.date,r.velocidade,r);
+    else if(r.type==='geri'&&r.inst==='sppb'&&r.detail&&r.detail.vel&&!rs.some(x=>x.type==='marcha'&&dayKey(x.date)===dayKey(r.date)))push('gait',r.date,r.detail.vel,r);
+    else if(r.type==='sl30')push('sl30',r.date,r.count,r);
+    else if(r.type==='geri')push('q_'+r.inst,r.date,r.score,r);
+    else if(r.type==='escala'&&(r.escala==='berg'||r.escala==='fesi'||r.escala==='dor'))push('e_'+r.escala,r.date,r.value,r);
+    else if(r.type==='pil')push('p_'+r.t+'|'+(r.lado||'')+'|'+(r.olhos||''),r.date,r.v,r);
+  });
+  Object.keys(S).forEach(k=>S[k]=byDay(S[k]));return S;
+}
+const EXTRA={
+ e_berg:{label:'Escala de Equilíbrio de Berg',st:'Equilíbrio funcional',min:0,max:56,better:'high',bands:[{lo:0,hi:44,l:2,t:'Maior risco de queda'},{lo:45,hi:56,l:0,t:'Menor risco de queda'}],ref:'Berg KO et al., 1992; Miyamoto ST et al., 2004 (versão brasileira). Abaixo de 45: maior risco de queda.'},
+ e_fesi:{label:'FES-I',st:'Medo de cair',min:16,max:64,better:'low',bands:[{lo:16,hi:22,l:0,t:'Baixa preocupação'},{lo:23,hi:27,l:1,t:'Preocupação moderada'},{lo:28,hi:64,l:3,t:'Alta preocupação'}],ref:'Yardley L et al., 2005; Camargos FFO et al., 2010 (versão brasileira); faixas de Delbaere K et al., 2010.'}
+};
+const EXPL={
+ ivcf:'Mostra o grau de vulnerabilidade da saúde como um todo. Quanto menor, melhor.',
+ fried:'Conta quantos sinais de fragilidade física estão presentes, entre cinco. Quanto menor, melhor.',
+ sppb:'Soma equilíbrio, velocidade de caminhada e força das pernas. Quanto maior, melhor.',
+ cfs:'Retrato clínico do nível de independência e energia, de 1 a 9. Quanto menor, melhor.',
+ katz:'Independência nas atividades básicas: banho, vestir, banheiro, transferência, continência e alimentação.',
+ lawton:'Independência nas atividades que mantêm a vida em casa e na comunidade: telefone, transporte, compras, refeições, casa, remédios e dinheiro.',
+ gds:'Rastreia sintomas de depressão na última semana. Quanto menor, melhor.',
+ meem:'Rastreio cognitivo, interpretado de acordo com a escolaridade.',
+ moca:'Rastreio cognitivo mais sensível a alterações leves.',
+ man:'Rastreia o risco de desnutrição. Quanto maior, melhor.',
+ antro:'Índice de massa corporal com a faixa recomendada para pessoas idosas.'
+};
+
+/* ---------- relatório do paciente ---------- */
+function openPt(){const p=cur();if(!p||!p.records.length){toast('Este paciente ainda não tem medidas.');return}
+  const st=docCfg();$('#ptAval').value=st.aval||st.fisio||S.user.nome||'';$('#ptReg').value=st.reg2||st.reg||'';$('#ptMsg').value=p.msg||'';$('#ptPlano').value=p.plano||'';
+  $('#ptView').hidden=false;$('#ptView').scrollTop=0;ptRender()}
+function ptSave(){const p=cur();if(!p)return;p.msg=$('#ptMsg').value.trim();p.plano=$('#ptPlano').value.trim();
+  try{const all=JSON.parse(localStorage.getItem(DOC_KEY)||'{}')||{};const o=all[S.user.email]||{};o.aval=$('#ptAval').value.trim();o.reg2=$('#ptReg').value.trim();all[S.user.email]=o;localStorage.setItem(DOC_KEY,JSON.stringify(all))}catch(e){}}
+['#ptAval','#ptReg','#ptMsg','#ptPlano'].forEach(x=>$(x).addEventListener('input',()=>{ptSave();ptRender()}));
+$('#ptClose').addEventListener('click',()=>{$('#ptView').hidden=true});
+function ptCss(){let t='';document.querySelectorAll('style').forEach(st=>{const x=st.textContent;const a=x.indexOf('/*PT-START*/'),b=x.indexOf('/*PT-END*/');if(a>=0&&b>a)t=x.slice(a,b)});return t}
+$('#ptPrint').addEventListener('click',async()=>{ptSave();const p=cur();if(!p)return;ptRender();
+  const nm=(p.name||'paciente').replace(/[^\wÀ-ú-]+/g,'_');const day=new Date().toISOString().slice(0,10);
+  const html=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Retrato de saúde · ${esc(p.name)}</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,500&family=Instrument+Sans:wght@400;500;600;700&display=swap"><style>body{margin:0;background:#EFE8DC;padding:24px 16px}.ptpaper{max-width:860px;margin:0 auto}.tip{max-width:860px;margin:0 auto 12px;font:14px system-ui,sans-serif;color:#6B5A4C}@media print{body{background:#fff;padding:0}.tip{display:none}@page{margin:12mm}}${ptCss()}</style></head><body><p class="tip">Para gerar o PDF: Imprimir (Ctrl+P ou Compartilhar › Imprimir no celular) e escolha Salvar como PDF.</p><div class="ptpaper">${$('#ptPaper').innerHTML}</div></body></html>`;
+  let dl=null;try{dl=window.claude&&window.claude.use?await window.claude.use('downloads'):null}catch(e){dl=null}
+  if(dl){try{await dl.save({filename:`retrato-de-saude_${nm}_${day}.html`,data:html});toast('Relatório baixado. Abra e salve como PDF.')}catch(e){if(e&&e.code==='declined')return;toast(e&&e.code==='rate_limited'?'Já existe um download aguardando confirmação.':'Não foi possível baixar aqui.')}return}
+  try{window.print()}catch(e){toast('O download não está disponível nesta visualização.')}
+});
+function chgLine(a,fmt,better,unit){if(a.length<2)return'';const d=a[a.length-1].v-a[0].v;if(Math.abs(d)<1e-9)return `<p class="chg" style="color:#6B5A4C">Igual à primeira avaliação (${dShort(a[0].d)}).</p>`;
+  const good=better==='high'?d>0:better==='low'?d<0:null;const c=good==null?'#6B5A4C':good?'#4D7A3A':'#A8432F';
+  return `<p class="chg" style="color:${c}">${d>0?'+':'−'}${fmt(Math.abs(d))}${unit?' '+unit:''} desde a 1ª avaliação (${dShort(a[0].d)})${good==null?'':good?' · melhorou':' · piorou'}</p>`}
+function ptRender(){
+  const p=cur();if(!p)return;const S=ptSeries(p);const sx=p.sexo;const days=[...new Set(p.records.map(r=>dayKey(r.date)))].sort();const gi=iso=>days.indexOf(dayKey(iso))+1;
+  const lastD=p.records.map(r=>r.date).sort().pop();const age=ageAt(p,lastD);const used=new Set();const g=x=>esc($(x).value.trim());const br=t=>t.replace(/\n/g,'<br>');
+  let h=`<div class="hd"><div><div class="kick">Casa Oliveira Saúde</div><h1>Seu retrato de saúde</h1><div style="font-size:14px;color:#6B5A4C;margin-top:4px">Avaliação física e funcional${p.nivel?' · Pilates, '+LEVELS[p.nivel].n:age!=null&&age>=60?' · Protocolo Longevidade 60+':''}</div></div>
+   <div class="who"><b style="font-size:17px">${esc(p.name)}</b><br>${[age!=null?age+' anos':null,sx?(sx==='F'?'feminino':'masculino'):null].filter(Boolean).join(' · ')||'idade e sexo não cadastrados'}<br>Avaliação de ${dLong(lastD)}${g('#ptAval')?'<br>Avaliadora: '+g('#ptAval'):''}</div></div>`;
+  h+=`<p class="intro">Cada resultado foi comparado com o que é esperado para pessoas da mesma idade e do mesmo sexo, segundo estudos publicados. O ponto colorido é o resultado de hoje.${days.length>1?' Os marcadores numerados são as avaliações anteriores, para você acompanhar a evolução.':' Nas próximas reavaliações, os resultados anteriores aparecem sobrepostos.'}</p>`;
+  if(days.length>1)h+=`<div class="legend" style="margin-top:6px">${days.map((d,i)=>`<span><b>${i===days.length-1?'●':(i+1)+'ª'}</b> ${i===days.length-1?'Atual':'avaliação'} · ${new Date(d+'T12:00:00').toLocaleDateString('pt-BR')}</span>`).join('')}</div>`;
+  const zl=`<div class="legend" style="margin-top:8px">${[[0,'muito abaixo'],[1,'abaixo'],[3,'esperado'],[4,'acima'],[5,'muito acima do esperado']].map(([i,t])=>`<span><i style="background:${ZC[i]}"></i>${t}</span>`).join('')}</div>`;
+  /* cartões de instrumento */
+  const qCard=(k,a)=>{const q=QS[k];const lr=a[a.length-1].r;const bs=qBands(k,p);const b=bs?qLevel(k,a[a.length-1].v,p):null;const fm=v=>qFmt(k,v);used.add('q:'+k);
+    let extra='';if(k==='ivcf'&&lr.detail&&lr.detail.dims&&lr.detail.dims.length)extra=`<p class="mean">Pontos concentrados em: <b>${esc(lr.detail.dims.join(', '))}</b>.</p>`;
+    if(k==='fried'&&lr.detail&&lr.detail.crit)extra=`<p class="mean">${lr.detail.crit.length?'Critérios presentes: <b>'+esc(lr.detail.crit.join(', '))+'</b>.':'Nenhum critério de fragilidade presente.'}</p>`;
+    if(k==='sppb'&&lr.detail)extra=`<p class="mean">Equilíbrio <b>${lr.detail.eq}/4</b> · caminhada <b>${lr.detail.marcha}/4</b> · levantar da cadeira <b>${lr.detail.cadeira}/4</b></p>`;
+    if(k==='meem'){const bb=brucki(p.esc);extra=`<p class="mean">${bb?`Mediana esperada para ${bb[3]}: <b>${fN(bb[2],1)}</b>.`:'Cadastre a escolaridade para comparar.'}</p>`}
+    if(k==='antro'&&lr.detail){extra=`<p class="mean">Peso ${fN(lr.detail.peso,1)} kg · altura ${fN(lr.detail.alt)} cm${lr.detail.pant?` · panturrilha <b>${fN(lr.detail.pant,1)} cm</b>${lr.detail.pant<(sx==='M'?34.01:33.01)?' (abaixo do ideal: sinal de pouca massa muscular)':' (adequada)'}`:''}</p>`}
+    return `<div class="pc"><div class="t"><div><h3>${q.label}</h3><div class="st">${q.full}</div></div>${b?`<span class="tag" style="background:${LC[b.l]}">${b.t}</span>`:''}</div>
+     <div class="big ${k==='antro'?'sm':''}">${fm(a[a.length-1].v)}<small>${q.unit?q.unit:'/'+q.max}</small></div>
+     ${bs?gaugeSVG(bs,q.min,q.max,a,fm,gi):''}<p class="mean">${EXPL[k]||''}</p>${extra}${chgLine(a,fm,q.better)}<p class="ref">${esc(q.ref.split('.').slice(0,2).join('.'))}.</p></div>`};
+  h+=levelSection(p);
+  const top=['ivcf','fried','sppb','cfs'].filter(k=>S['q_'+k]);
+  if(top.length)h+=`<div class="sec"><h2>Classificação geral</h2><p class="sd">Os quatro instrumentos que resumem vulnerabilidade, fragilidade e desempenho físico.</p><div class="grid">${top.map(k=>qCard(k,S['q_'+k])).join('')}</div></div>`;
+  /* normativos */
+  const nCard=(key,nk,a,title)=>{const N=NORM[nk];const fm=v=>fN(v,N.dec);if(!sx||age==null)return `<div class="pc"><div class="t"><h3>${title}</h3></div><div class="big">${fm(a[a.length-1].v)}<small>${N.unit}</small></div><p class="empty">Cadastre sexo e data de nascimento para comparar com a referência.</p>${chgLine(a,fm,N.better,N.unit)}</div>`;
+    const n=N.get(sx,age,key.slice(-1));if(!n)return `<div class="pc"><div class="t"><h3>${title}</h3></div><div class="big">${fm(a[a.length-1].v)}<small>${N.unit}</small></div><p class="empty">Sem referência publicada para esta idade.</p>${chgLine(a,fm,N.better,N.unit)}</div>`;
+    N.src.forEach(x=>used.add(x));const v=a[a.length-1].v;const z=(v-n.m)/n.sd;const zp=N.better==='high'?z:-z;const zn=zoneOf(zp);const pc=Math.round(Phi(zp)*100);
+    const grpT=(sx==='F'?'mulheres':'homens')+' de '+n.grp;
+    let mean=`O esperado para ${grpT} é cerca de <b>${fm(n.m)} ${N.unit}</b> (faixa habitual de ${fm(Math.max(0,n.m-n.sd))} a ${fm(n.m+n.sd)}). `;
+    mean+=pc<1?'Hoje, o desempenho ficou abaixo de praticamente todas as pessoas dessa faixa.':pc>99?'Hoje, o desempenho superou praticamente todas as pessoas dessa faixa.':`Hoje, o desempenho foi melhor que o de cerca de <b>${pc} em cada 100</b> pessoas dessa faixa.`;
+    if(nk==='tug'&&v>n.m+2*n.sd)mean+=` O tempo foi <b>${fN(v/n.m,1)} vezes</b> o esperado.`;
+    const cutHit=N.better==='high'?v<n.cut:v>=n.cut;
+    return `<div class="pc"><div class="t"><div><h3>${title}</h3><div class="st">comparado a ${grpT}</div></div><span class="tag" style="background:${ZC[zn]}">${ZT[zn]}</span></div>
+     <div class="big">${fm(v)}<small>${N.unit}</small></div>${bellSVG(n,a,fm,N.better,gi)}<p class="mean">${mean}</p>${cutHit?`<p class="mean" style="color:#A8432F"><b>Atenção:</b> ${esc(n.cutT.charAt(0).toLowerCase()+n.cutT.slice(1))}.</p>`:''}
+     ${chgLine(a,fm,N.better,N.unit)}${evoSVG(a,fm,Math.max(0,n.m-n.sd),n.m+n.sd,n.cut,n.cutT,N.better,gi)}<p class="ref">Referência: ${N.src.map(x=>SHORT[x]).join('; ')}.</p></div>`};
+  const nc=[];if(S.gripD)nc.push(nCard('gripD','grip',S.gripD,'Força de preensão · mão direita'));if(S.gripE)nc.push(nCard('gripE','grip',S.gripE,'Força de preensão · mão esquerda'));
+  if(S.tug)nc.push(nCard('tug','tug',S.tug,'Levantar, caminhar e voltar (TUG)'));if(S.gait)nc.push(nCard('gait','gait',S.gait,'Velocidade de caminhada'));if(S.sl30)nc.push(nCard('sl30','sl30',S.sl30,'Sentar e levantar em 30 segundos'));
+  ['e_berg','e_fesi'].forEach(k=>{if(!S[k])return;const e=EXTRA[k];const a=S[k];const b=band(e.bands,a[a.length-1].v)||e.bands[0];const fm=v=>fN(v);used.add('x:'+k);
+    nc.push(`<div class="pc"><div class="t"><div><h3>${e.label}</h3><div class="st">${e.st}</div></div><span class="tag" style="background:${LC[b.l]}">${b.t}</span></div><div class="big">${fm(a[a.length-1].v)}<small>/${e.max}</small></div>${gaugeSVG(e.bands,e.min,e.max,a,fm,gi)}${chgLine(a,fm,e.better)}<p class="ref">${esc(e.ref)}</p></div>`)});
+  if(nc.length)h+=`<div class="sec"><h2>Força, equilíbrio e mobilidade</h2><p class="sd">Como cada resultado se compara com pessoas da mesma idade e do mesmo sexo.</p>${zl}<div class="grid" style="margin-top:12px">${nc.join('')}</div></div>`;
+  const pc=pilCards(p,S,age,gi,used);
+  if(pc.length)h+=`<div class="sec"><h2>Pilates: pernas, equilíbrio e tronco</h2><p class="sd">Testes do protocolo do seu nível. Quando existe referência publicada, a cor mostra a faixa; quando não existe, a comparação é com você mesmo.</p><div class="grid">${pc.join('')}</div></div>`;
+  const rest=['katz','lawton','meem','moca','gds','man','antro'].filter(k=>S['q_'+k]);
+  if(rest.length)h+=`<div class="sec"><h2>Autonomia, memória, humor e nutrição</h2><p class="sd">Instrumentos com pontos de corte publicados. A cor mostra a faixa em que o resultado está.</p><div class="grid">${rest.map(k=>qCard(k,S['q_'+k])).join('')}</div></div>`;
+  if(!top.length&&!nc.length&&!rest.length&&!pc.length)h+=`<p class="empty" style="margin-top:20px">Ainda não há testes com comparação para este paciente. Registre os testes do Protocolo Longevidade 60+ ou força, TUG, marcha e sentar e levantar.</p>`;
+  if(g('#ptMsg')||g('#ptPlano'))h+=`<div class="sec"><h2>O que isso significa e o que vamos fazer</h2><div class="box">${g('#ptMsg')?`<p>${br(g('#ptMsg'))}</p>`:''}${g('#ptPlano')?`<p><b>Plano de cuidado:</b> ${br(g('#ptPlano'))}</p>`:''}</div></div>`;
+  const refs=[];used.forEach(u=>{if(SRC[u])refs.push(SRC[u]);else if(u.startsWith('q:'))refs.push(QS[u.slice(2)].label+': '+QS[u.slice(2)].ref);else if(u.startsWith('x:'))refs.push(EXTRA[u.slice(2)].label+': '+EXTRA[u.slice(2)].ref)});
+  h+=`<div class="sec"><h2 style="font-size:17px">Como ler e referências</h2><p class="sd" style="margin-bottom:4px">As curvas mostram como os resultados se distribuem entre pessoas da mesma idade e sexo (média e desvio-padrão publicados). As barras coloridas usam os pontos de corte publicados de cada teste. Os resultados apoiam a conversa clínica e não substituem o diagnóstico.</p><ol class="refs">${refs.map(r=>`<li>${esc(r)}</li>`).join('')}</ol></div>`;
+  h+=`<div class="sign"><div class="foot">Não é clínica, é Casa.<br><span style="font-size:12px;font-style:normal">Rua Dr. Samuel Porto, 396 · Saúde · São Paulo</span></div><div class="ln">${g('#ptAval')||'Profissional responsável'}${g('#ptReg')?'<br>'+g('#ptReg'):''}</div></div>`;
+  $('#ptPaper').innerHTML=h;
+}
+
+/* =====================================================================
+   PILATES: testes, níveis, cronômetro e cartões do relatório
+   ===================================================================== */
+const LEVELS={
+ 1:{n:'Nível 1 · Funcional Essencial',d:'Baixa capacidade funcional, maior necessidade de supervisão',c:'#E2843A'},
+ 2:{n:'Nível 2 · Funcional Ativo',d:'Boa capacidade funcional, aluno ativo',c:'#D9B13B'},
+ 3:{n:'Nível 3 · Performance e Movimento',d:'Boa condição física, busca evolução de desempenho',c:'#6E9A55'}
+};
+const PT={
+ sts5:{label:'Sentar e levantar 5 vezes (5xSTS)',short:'5xSTS',cap:60,mode:'up',better:'low',unit:'s',dec:1,
+  how:'Cadeira sem braços, de cerca de 43 cm, encostada na parede. Braços cruzados no peito. Toque em Iniciar: depois da contagem, o bipe é o “já”. Toque em Parar quando a pessoa sentar pela 5ª vez. Se ela usar as mãos para levantar, marque abaixo.',
+  fields:[['tempo','Tempo','s']],flag:['bracos','Usou os braços para levantar']},
+ eqest:{label:'Equilíbrio em 3 posições',short:'Equilíbrio em 3 posições',cap:10,mode:'up',better:'high',unit:'s',dec:1,pos:true,
+  how:'Na ordem: pés juntos, semi-tandem (calcanhar ao lado do dedão do outro pé) e tandem (um pé exatamente à frente do outro), 10 s em cada. Só avance para a próxima posição se a anterior foi completada. Escolha a posição, toque em Iniciar e pare quando a pessoa sair da posição. O tempo vai para o campo da posição escolhida.',
+  fields:[['pj','Pés juntos','s'],['st','Semi-tandem','s'],['td','Tandem','s']]},
+ unip:{label:'Apoio unipodal',short:'Apoio unipodal',cap:30,mode:'up',better:'high',unit:'s',dec:1,lado:true,olhos:true,
+  how:'Braços cruzados no peito, a outra perna dobrada sem encostar na perna de apoio. Pare quando o pé suspenso tocar o chão, a perna de apoio se deslocar ou os braços se soltarem. Teto de 30 s. Nível 2: comece de olhos abertos; quem completar 30 s repete de olhos fechados. Nível 3: olhos fechados (se for muito difícil, use olhos abertos).',
+  fields:[['tempo','Tempo','s']]},
+ prancha:{label:'Prancha frontal',short:'Prancha frontal',cap:90,mode:'up',better:'high',unit:'s',dec:0,
+  how:'Apoio nos antebraços e nas pontas dos pés, corpo alinhado da cabeça aos calcanhares. Pare quando a execução deixar de ser adequada (quadril cai, sobe ou a lombar arqueia). Teto de 90 s: não precisa levar à falha.',
+  fields:[['tempo','Tempo','s']]},
+ plat:{label:'Prancha lateral',short:'Prancha lateral',cap:90,mode:'up',better:'high',unit:'s',dec:0,lado:true,
+  how:'Apoio no antebraço e na lateral do pé de baixo, quadril elevado e corpo alinhado. Pare quando o quadril cair ou o alinhamento se perder. Registre os dois lados. Teto de 90 s.',
+  fields:[['tempo','Tempo','s']]},
+ agach:{label:'Agachamentos em 30 s',short:'Agachamentos em 30 s',cap:30,mode:'down',better:'high',unit:'repetições',dec:0,count:true,
+  how:'Pés na largura do quadril. Cada repetição vai até cerca de 90° de joelho (ou encostar numa cadeira atrás) e volta à extensão completa. Toque em Iniciar e, a cada repetição completa, toque no botão +1. O tempo para sozinho em 30 s.',
+  fields:[['n','Repetições','']]}
+};
+const ladoTxt=(t,s)=>!s?'':t==='plat'?(s==='D'?'lado direito':'lado esquerdo'):(s==='D'?'perna direita':'perna esquerda');
+const olhosTxt=o=>!o?'':o==='A'?'olhos abertos':'olhos fechados';
+function pilLabel(r){const P=PT[r.t];const b=[ladoTxt(r.t,r.lado),olhosTxt(r.olhos)].filter(Boolean);return P.short+(b.length?' · '+b.join(', '):'')}
+function pilFmt(t,v){const P=PT[t];return v==null?'–':fN(v,P.dec)+(t==='agach'?'':' s')}
+function pilSub(r){if(r.t==='eqest')return `Pés juntos ${pilFmt('eqest',r.pj)} · semi-tandem ${pilFmt('eqest',r.st)} · tandem ${pilFmt('eqest',r.td)}`;if(r.t==='sts5')return r.bracos?'Usou os braços para levantar.':'Sem apoio dos braços.';return ''}
+
+/* ---------- formulário e cronômetro ---------- */
+$('#kSel').innerHTML=Object.entries(PT).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join('');
+const kt={state:'idle',t0:0,iv:0,to:0,n:0,pos:'pj',val:0};
+function kP(){return PT[$('#kSel').value]}
+function kOnSel(){
+  kCancel(true);const t=$('#kSel').value,P=PT[t];
+  $('#kHow').textContent=P.how;$('#kLadoW').hidden=!P.lado;$('#kOlhosW').hidden=!P.olhos;$('#kSideRow').hidden=!P.lado&&!P.olhos;
+  $('#kLadoLbl').textContent=t==='plat'?'Lado':'Perna de apoio';
+  $('#kPos').hidden=!P.pos;$('#kTap').hidden=true;
+  $('#kFields').innerHTML=P.fields.map(([id,lb,u])=>`<div class="qnum"><div><label for="kf_${id}">${lb}${P.pos?'':''}</label><input type="number" inputmode="decimal" id="kf_${id}" data-id="${id}" min="0"></div><span class="unit">${u}</span></div>`).join('')
+    +(P.flag?`<label class="chk"><input type="checkbox" id="kFlag"> ${P.flag[1]}</label>`:'');
+  $('#kObs').value='';kt.n=0;kt.val=0;kRender();
+  $('#kRef').textContent=t==='sts5'?'Referência: média de 11,4 s (60 a 69 anos), 12,6 s (70 a 79) e 14,8 s (80 a 89), Bohannon, 2006. 15 s ou mais: maior risco de queda (Buatois et al., 2008).':
+    t==='unip'?'Referência: médias por idade de Springer et al., 2007. Menos de 5 s com olhos abertos se associa a maior risco de queda (Vellas et al., 1997).':
+    t==='eqest'?'Posições e tempos da SPPB (Guralnik et al., 1994).':t==='plat'?'Compare os dois lados: diferença acima de 5% sugere assimetria de resistência do tronco (McGill et al., 1999).':
+    t==='prancha'?'Sem valor populacional de referência com teto de 90 s: a comparação é com o próprio aluno, a cada reavaliação.':'Sem valor populacional de referência: a comparação é com o próprio aluno, a cada reavaliação.';
+}
+$('#kSel').addEventListener('change',kOnSel);
+$('#kPos').addEventListener('click',e=>{const bt=e.target.closest('button');if(!bt)return;kt.pos=bt.dataset.p;kRender()});
+function kRender(){
+  const P=kP();const run=kt.state!=='idle';
+  $('#kPos').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.p===kt.pos?'true':'false'));
+  let big,st;
+  if(P.count){big=String(kt.n);st=kt.state==='run'?'Restam '+Math.max(0,Math.ceil(P.cap-kt.val))+' s':kt.state==='count'?'Prepare o aluno':'Repetições em 30 s'}
+  else{big=fN(kt.val,1)+' s';st=kt.state==='run'?'Cronometrando · teto de '+P.cap+' s':kt.state==='count'?'Prepare o aluno':'Teto de '+P.cap+' s'}
+  if(kt.state==='count')big=String(kt.cd);
+  $('#kBig').textContent=big;$('#kStatus').textContent=st;
+  $('#kFill').style.width=Math.min(100,kt.val/P.cap*100)+'%';
+  $('#kGo').textContent=kt.state==='idle'?'Iniciar':kt.state==='count'?'Cancelar':P.count?'Parar':'Parar e registrar';
+  $('#kSel').disabled=run;$('#kTap').hidden=!(P.count&&kt.state==='run');
+}
+function kClear(){clearInterval(kt.iv);clearTimeout(kt.to);keepAwake(false)}
+function kCancel(silent){if(kt.state==='idle')return;kClear();kt.state='idle';kt.val=0;kt.n=0;if(!silent)kRender()}
+$('#kGo').addEventListener('click',()=>{
+  const P=kP();
+  if(kt.state==='run'){kFinish();return}
+  if(kt.state==='count'){kCancel();return}
+  unlockAudio();keepAwake(true);kt.n=0;kt.val=0;kt.cd=3;kt.state='count';kRender();
+  kt.iv=setInterval(()=>{kt.cd--;if(kt.cd>0){kRender();return}clearInterval(kt.iv);beep(880,.25);kt.state='run';kt.t0=performance.now();kRender();
+    kt.iv=setInterval(()=>{kt.val=Math.min(P.cap,(performance.now()-kt.t0)/1000);kRender()},100);
+    kt.to=setTimeout(()=>kFinish(true),P.cap*1000)},1000);
+});
+$('#kTap').addEventListener('click',()=>{if(kt.state!=='run')return;kt.n++;beep(1040,.05);kRender()});
+function kFinish(auto){
+  const P=kP();if(kt.state!=='run')return;const t=Math.min(P.cap,(performance.now()-kt.t0)/1000);kClear();kt.state='idle';kt.val=P.count?P.cap:t;
+  beep(880,.15);beep(880,.15,.25);
+  const field=P.count?'n':P.pos?kt.pos:P.fields[0][0];const v=P.count?kt.n:+t.toFixed(1);
+  const inp=$('#kf_'+field);if(inp)inp.value=v;
+  if(P.pos&&field!=='td'&&v>=10){const nx=field==='pj'?'st':'td';kt.pos=nx}
+  kRender();
+  toast(P.count?`${v} repetições registradas no campo. Confira e salve.`:auto?`Atingiu o teto de ${P.cap} s.`:`Tempo registrado: ${fN(v,1)} s. Confira e salve.`);
+}
+$('#kSave').addEventListener('click',async()=>{
+  const t=$('#kSel').value,P=PT[t],p=cur();if(!p){toast('Escolha o paciente antes de salvar.');return}
+  const val=id=>{const x=$('#kf_'+id);const v=x?num(x.value):null;return v==null||v<0?null:v};
+  let r={type:'pil',t,obs:$('#kObs').value.trim()||null};
+  if(P.lado)r.lado=$('#kLado').value;if(P.olhos)r.olhos=$('#kOlhos').value;
+  if(t==='eqest'){r.pj=val('pj');r.st=val('st');r.td=val('td');if(r.pj==null){toast('Registre ao menos o tempo de pés juntos.');return}
+    ['pj','st','td'].forEach(k=>{if(r[k]!=null)r[k]=Math.min(10,r[k])});r.v=r.td!=null?r.td:0}
+  else if(P.count){const n=val('n');if(n==null){toast('Registre o número de repetições.');return}r.v=Math.round(n)}
+  else{const v=val('tempo');if(v==null||(t==='sts5'&&v<=0)){toast('Registre o tempo.');return}r.v=Math.min(P.cap,v);if(P.flag)r.bracos=$('#kFlag').checked}
+  if(!await salvando($('#kSave'),()=>addRecord(r)))return;
+  toast('Salvo no prontuário: '+pilLabel(r)+', '+(t==='eqest'?'tandem '+pilFmt(t,r.td):pilFmt(t,r.v)));
+  if(t==='unip'&&r.olhos==='A'&&r.v>=30){$('#kOlhos').value='F';toast('Completou 30 s de olhos abertos. Repita de olhos fechados.')}
+  else if((t==='unip'||t==='plat')&&r.lado==='D')$('#kLado').value='E';
+  P.fields.forEach(([id])=>{const x=$('#kf_'+id);if(x)x.value=''});if($('#kFlag'))$('#kFlag').checked=false;$('#kObs').value='';kt.val=0;kt.n=0;kt.pos='pj';kRender();
+});
+kOnSel();
+
+/* ---------- nível do aluno ---------- */
+$('#pNivel').innerHTML='<option value="">Sem nível</option>'+Object.entries(LEVELS).map(([k,v])=>`<option value="${k}">${v.n}</option>`).join('');
+async function setNivel(n){const p=cur();if(!p)return;n=n?+n:null;if(n===(p.nivel||null))return;p.nivel=n;renderPData();renderProto();if(n){if(await addRecord({type:'nivel',nivel:n}))toast('Aluno registrado no '+LEVELS[n].n)}await savePerfil(p)}
+$('#pNivel').addEventListener('change',e=>setNivel(e.target.value));
+
+/* ---------- referências do Pilates ---------- */
+Object.assign(SRC,{
+ bohannon5:'Bohannon RW. Reference values for the five-repetition sit-to-stand test: a descriptive meta-analysis of data from elders. Percept Mot Skills, 2006;103(1):215-22.',
+ buatois:'Buatois S et al. Five times sit to stand test is a predictor of recurrent falls in healthy community-living subjects aged 65 and older. J Am Geriatr Soc, 2008;56(8):1575-7.',
+ tiedemann:'Tiedemann A et al. The comparative ability of eight functional mobility tests for predicting falls in community-dwelling older people. Age Ageing, 2008;37(4):430-5.',
+ springer:'Springer BA et al. Normative values for the unipedal stance test with eyes open and closed. J Geriatr Phys Ther, 2007;30(1):8-15 (teto do estudo: 45 s).',
+ vellas:'Vellas BJ et al. One-leg balance is an important predictor of injurious falls in older persons. J Am Geriatr Soc, 1997;45(6):735-8.',
+ guralnik:'Guralnik JM et al. A short physical performance battery assessing lower extremity function. J Gerontol, 1994;49(2):M85-94.',
+ mcgill:'McGill SM, Childs A, Liebenson C. Endurance times for low back stabilization exercises: clinical targets for testing and training from a normal database. Arch Phys Med Rehabil, 1999;80(8):941-4.'
+});
+const STS_REF=age=>age==null||age<60?null:age<70?[11.4,'60 a 69 anos']:age<80?[12.6,'70 a 79 anos']:[14.8,'80 a 89 anos'];
+const UNI_REF={A:[[39,44.7,'18 a 39 anos'],[49,41.9,'40 a 49 anos'],[59,41.2,'50 a 59 anos'],[69,32.1,'60 a 69 anos'],[79,21.5,'70 a 79 anos'],[200,9.4,'80 anos ou mais']],
+  F:[[39,15.2,'18 a 39 anos'],[49,12.7,'40 a 49 anos'],[59,8.3,'50 a 59 anos'],[69,4.4,'60 a 69 anos'],[79,3.1,'70 a 79 anos'],[200,1.9,'80 anos ou mais']]};
+const uniRef=(o,age)=>age==null||age<18?null:UNI_REF[o].find(x=>age<=x[0]);
+
+/* barra de progresso neutra (testes sem norma populacional) */
+function progSVG(max,pts,fmt,gi,cap){
+  const W=340,H=58,L=10,R=330,y=22,h=12;const X=v=>L+Math.max(0,Math.min(max,v))/max*(R-L);const last=pts[pts.length-1];
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Barra com o resultado e as avaliações anteriores"><rect x="${L}" y="${y}" width="${R-L}" height="${h}" rx="6" fill="#E2D5C2"/><rect x="${L}" y="${y}" width="${Math.max(6,X(last.v)-L).toFixed(1)}" height="${h}" rx="6" fill="#A9573D"/>`;
+  s+=`<text x="${L}" y="${y+h+15}" font-size="10" fill="#6B5A4C">0</text><text x="${R}" y="${y+h+15}" text-anchor="end" font-size="10" fill="#6B5A4C">${cap?'teto '+fmt(max):fmt(max)}</text>`;
+  pts.slice(0,-1).forEach(q=>{const x=X(q.v).toFixed(1);s+=`<path d="M${x},${y-3} l-6,-9 h12 z" fill="#fff" stroke="#3A2A1F" stroke-width="1.3"/><text x="${x}" y="${y-13}" text-anchor="middle" font-size="9" font-weight="700" fill="#3A2A1F">${gi(q.d)}</text>`});
+  s+=`<circle cx="${X(last.v).toFixed(1)}" cy="${y+h/2}" r="9" fill="#A9573D" stroke="#fff" stroke-width="3"/>`;
+  return s+'</svg>';
+}
+const fmS=d=>v=>fN(v,d)+' s';
+
+/* cartões do relatório do paciente */
+function pilCards(p,S,age,gi,used){
+  const out=[];const card=(title,st,tag,big,unit,viz,txt,chg,ref)=>`<div class="pc"><div class="t"><div><h3>${title}</h3>${st?`<div class="st">${st}</div>`:''}</div>${tag||''}</div><div class="big">${big}<small>${unit}</small></div>${viz}${txt?`<p class="mean">${txt}</p>`:''}${chg||''}${ref?`<p class="ref">${ref}</p>`:''}</div>`;
+  const tagL=b=>`<span class="tag" style="background:${LC[b.l]}">${b.t}</span>`;
+  /* 5xSTS */
+  if(S['p_sts5||']){const a=S['p_sts5||'];const v=a[a.length-1].v,lr=a[a.length-1].r;const rf=STS_REF(age);const fm=v=>fN(v,1);
+    const bs=rf?[{lo:0,hi:rf[0],l:0,t:'Dentro da média para a idade'},{lo:rf[0],hi:15,l:1,t:'Mais lento que a média'},{lo:15,hi:999,l:3,t:'Maior risco de queda'}]:[{lo:0,hi:12,l:0,t:'Abaixo de 12 s'},{lo:12,hi:15,l:1,t:'Atenção: 12 s ou mais'},{lo:15,hi:999,l:3,t:'Maior risco de queda'}];
+    const b=band(bs,v)||bs[bs.length-1];used.add('bohannon5');used.add('buatois');if(!rf)used.add('tiedemann');
+    out.push(card('Sentar e levantar 5 vezes','força e potência das pernas',tagL(b),fm(v),'s',gaugeSVG(bs,0,Math.max(30,Math.ceil(Math.max(...a.map(q=>q.v))/5)*5),a,fm,gi),
+      (rf?`A média publicada para pessoas de ${rf[1]} é <b>${fN(rf[0],1)} s</b>. `:'Valores de referência publicados existem a partir dos 60 anos; aqui o resultado é comparado aos pontos de corte de risco. ')+'Quanto menor o tempo, melhor.'+(lr.bracos?' <b>Usou os braços</b> para levantar.':''),
+      chgLine(a,fm,'low','s')+evoSVG(a,fm,null,null,15,'15 s ou mais: maior risco de queda','low',gi),'Bohannon, 2006; Buatois et al., 2008'+(rf?'':'; Tiedemann et al., 2008')+'.'))}
+  /* equilíbrio em 3 posições */
+  if(S['p_eqest||']){const a=S['p_eqest||'];const lr=a[a.length-1].r;used.add('guralnik');
+    const row=(k,lb,bs)=>{const pts=a.filter(q=>q.r[k]!=null).map(q=>({d:q.d,v:q.r[k]}));if(!pts.length)return `<p class="mean"><b>${lb}:</b> não realizado</p>`;return `<p class="mean" style="margin-top:4px"><b>${lb}:</b> ${fN(pts[pts.length-1].v,1)} s de 10</p>${gaugeSVG(bs,0,10,pts,v=>fN(v,0),gi)}`};
+    const b10=[{lo:0,hi:9.99,l:1,t:'Menos de 10 s'},{lo:10,hi:10,l:0,t:'Completou 10 s'}];
+    const btd=[{lo:0,hi:2.99,l:3,t:'Menos de 3 s'},{lo:3,hi:9.99,l:1,t:'3 a 9,9 s'},{lo:10,hi:10,l:0,t:'Completou 10 s'}];
+    const tag=lr.td>=10?{l:0,t:'Completa as 3 posições'}:lr.st>=10?{l:1,t:'Completa até o semi-tandem'}:{l:2,t:'Base de apoio reduzida'};
+    const tdpts=a.filter(q=>q.r.td!=null).map(q=>({d:q.d,v:q.r.td}));
+    out.push(card('Equilíbrio em 3 posições','pés juntos, semi-tandem e tandem',tagL(tag),fN(lr.td||0,1),'s no tandem',row('pj','Pés juntos',b10)+row('st','Semi-tandem',b10)+row('td','Tandem',btd),
+      'Cada posição estreita a base de apoio. Completar o tandem (um pé à frente do outro) por 10 s é sinal de bom equilíbrio estático.',tdpts.length>1?chgLine(tdpts,v=>fN(v,1),'high','s no tandem'):'','Posições e tempos da SPPB (Guralnik et al., 1994).'))}
+  /* apoio unipodal */
+  [['D','A'],['E','A'],['D','F'],['E','F']].forEach(([l,o])=>{const a=S[`p_unip|${l}|${o}`];if(!a)return;const v=a[a.length-1].v;const fm=v=>fN(v,1);const rf=uniRef(o,age);used.add('springer');
+    let bs,txt;
+    if(o==='A'){used.add('vellas');const m=rf?Math.min(rf[1],30):30;bs=[{lo:0,hi:4.99,l:3,t:'Menos de 5 s'}];if(m>5)bs.push({lo:5,hi:m-.01,l:1,t:rf&&rf[1]<30?'Abaixo da média para a idade':'Abaixo do teto de 30 s'});bs.push({lo:m,hi:30,l:0,t:rf&&rf[1]<30?'Na média para a idade ou acima':'Atingiu o teto de 30 s'});
+      txt=(rf?`A média publicada para pessoas de ${rf[2]} é <b>${fN(rf[1],1)} s</b>${rf[1]>30?' (o estudo usou teto de 45 s; aqui o teto é 30 s)':''}. `:'')+'Menos de 5 s com olhos abertos se associa a maior risco de queda.'}
+    else{bs=rf?[{lo:0,hi:rf[1]-.01,l:1,t:'Abaixo da média para a idade'},{lo:rf[1],hi:30,l:0,t:'Na média para a idade ou acima'}]:null;
+      txt=(rf?`A média publicada para pessoas de ${rf[2]} é <b>${fN(rf[1],1)} s</b> de olhos fechados. `:'Cadastre a data de nascimento para comparar com a média da idade. ')+'Sem a visão, o equilíbrio depende da propriocepção e do sistema vestibular.'}
+    const b=bs?band(bs,v)||bs[bs.length-1]:null;
+    const other=S[`p_unip|${l==='D'?'E':'D'}|${o}`];if(other&&l==='E'){const vd=other[other.length-1].v;txt+=` Diferença entre as pernas: <b>${fN(Math.abs(vd-v),1)} s</b>.`}
+    out.push(card(`Apoio unipodal · ${l==='D'?'perna direita':'perna esquerda'}`,olhosTxt(o),b?tagL(b):'',fm(v),'s',bs?gaugeSVG(bs,0,30,a,v=>fN(v,0),gi):progSVG(30,a,fmS(0),gi,true),txt,chgLine(a,fm,'high','s'),'Springer et al., 2007'+(o==='A'?'; Vellas et al., 1997':'')+'.'))});
+  /* prancha frontal */
+  if(S['p_prancha||']){const a=S['p_prancha||'];const v=a[a.length-1].v;const fm=v=>fN(v,0);
+    out.push(card('Prancha frontal','resistência do tronco',v>=90?tagL({l:0,t:'Atingiu o teto de 90 s'}):'',fm(v),'s',progSVG(90,a,fmS(0),gi,true),'Tempo máximo com execução adequada, com teto de 90 s. Não existe valor populacional de referência para este protocolo: a comparação é com você mesmo, a cada reavaliação.',chgLine(a,fm,'high','s')+evoSVG(a,fm,null,null,null,'','high',gi),''))}
+  /* prancha lateral */
+  if(S['p_plat|D|']||S['p_plat|E|']){const d=S['p_plat|D|'],e=S['p_plat|E|'];const vd=d?d[d.length-1].v:null,ve=e?e[e.length-1].v:null;const fm=v=>fN(v,0);used.add('mcgill');
+    let tag='',txt='Mede a resistência dos músculos laterais do tronco. ';
+    if(vd!=null&&ve!=null){const df=Math.abs(vd-ve)/Math.max(vd,ve,1)*100;tag=df<=5?tagL({l:0,t:'Lados equilibrados'}):tagL({l:df<=15?1:2,t:`Diferença de ${fN(df,0)}%`});txt+=`Lado direito ${fm(vd)} s, lado esquerdo ${fm(ve)} s. Diferença acima de 5% entre os lados sugere assimetria de resistência.`}
+    else txt+='Registre os dois lados para comparar.';
+    const viz=(d?`<p class="mean" style="margin-top:4px"><b>Lado direito</b></p>`+progSVG(90,d,fmS(0),gi,true):'')+(e?`<p class="mean" style="margin-top:4px"><b>Lado esquerdo</b></p>`+progSVG(90,e,fmS(0),gi,true):'');
+    out.push(card('Prancha lateral','controle do tronco, direita e esquerda',tag,vd!=null&&ve!=null?fm(vd)+' | '+fm(ve):fm(vd!=null?vd:ve),'s',viz,txt,(d?chgLine(d,fm,'high','s no lado direito'):'')+(e?chgLine(e,fm,'high','s no lado esquerdo'):''),'Comparação entre lados: McGill et al., 1999.'))}
+  /* agachamentos */
+  if(S['p_agach||']){const a=S['p_agach||'];const v=a[a.length-1].v;const fm=v=>fN(v,0);const mx=Math.max(30,Math.ceil(Math.max(...a.map(q=>q.v))/5)*5);
+    out.push(card('Agachamentos em 30 s','força e resistência das pernas','',fm(v),'repetições',progSVG(mx,a,v=>fN(v,0),gi,false),'Repetições completas em 30 segundos. A comparação é com você mesmo, a cada reavaliação.',chgLine(a,fm,'high','repetições')+evoSVG(a,fm,null,null,null,'','high',gi),''))}
+  /* dor */
+  if(S.e_dor){const a=S.e_dor;const v=a[a.length-1].v;const bs=[{lo:0,hi:3,l:0,t:'Dor leve ou ausente'},{lo:4,hi:6,l:1,t:'Dor moderada'},{lo:7,hi:10,l:3,t:'Dor intensa'}];const b=band(bs,v)||bs[0];const fm=v=>fN(v,0);
+    out.push(card('Dor','escala visual analógica, de 0 a 10',tagL(b),fm(v),'/10',gaugeSVG(bs,0,10,a,fm,gi),'0 é sem dor e 10 é a pior dor imaginável. Quanto menor, melhor.',chgLine(a,fm,'low',''),''))}
+  return out;
+}
+function levelSection(p){
+  const hist=p.records.filter(r=>r.type==='nivel').sort((a,b)=>a.date.localeCompare(b.date));if(!p.nivel&&!hist.length)return'';
+  const cur=p.nivel;
+  let h=`<div class="sec"><h2>Seu nível no Pilates</h2><p class="sd">O nível orienta os exercícios e a supervisão. A cada reavaliação, o aluno pode mudar de nível.</p><div class="lvls">`;
+  [1,2,3].forEach(n=>{const L=LEVELS[n];const on=n===cur;h+=`<div class="lv${on?' on':''}" style="--lc:${L.c}"><span class="dot"></span><b>${L.n}</b><span>${L.d}</span>${on?'<em>nível atual</em>':''}</div>`});
+  h+='</div>';
+  if(hist.length>1)h+=`<p class="mean" style="margin-top:10px">Trajetória: ${hist.map(r=>`<b>Nível ${r.nivel}</b> em ${dLong(r.date)}`).join(' → ')}</p>`;
+  return h+'</div>';
+}
+
+carregarPacientes();renderPData();gRender();bUI();renderProto();tRender();qPrefill();qRender();fManSync();
 })();
 </script>
 </body>
