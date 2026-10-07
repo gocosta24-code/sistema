@@ -592,12 +592,16 @@ function listen(path,cb,err,order){const l={path,cb,err,order,off:false};listene
 async function putDoc(path,data,merge){const P=parsePath(path);await loadPid(P.pid);
   const st=store[P.pid];const cur=st.docs.get(P.chave);
   const nd=merge?Object.assign({},cur?cur.data:{},data):data;
-  const entry=cur||{rowId:null,data:nd};entry.data=nd;st.docs.set(P.chave,entry);notify(P.pid);
+  const entry=cur||{rowId:null,data:nd};const antes=cur?cur.data:undefined;entry.data=nd;st.docs.set(P.chave,entry);
   const json=JSON.stringify(nd);
-  if(entry.rowId)await api('atualizar',{tabela:'evolucoes',id:entry.rowId,dados:{infantil:json}});
-  else{const r=await api('salvar',{tabela:'evolucoes',dados:{paciente_id:P.pid,data:hojeISO(),texto:'Avaliação infantil (registro interno)',autor_email:S.user.email,autor_nome:S.user.nome,origem:'infantil',chave:P.chave,infantil:json}});entry.rowId=r.id}}
+  try{
+    if(entry.rowId)await api('atualizar',{tabela:'evolucoes',id:entry.rowId,dados:{infantil:json}});
+    else{const r=await api('salvar',{tabela:'evolucoes',dados:{paciente_id:P.pid,data:hojeISO(),texto:'Avaliação infantil (registro interno)',autor_email:S.user.email,autor_nome:S.user.nome,origem:'infantil',chave:P.chave,infantil:json}});entry.rowId=r.id}
+  }catch(e){if(cur)cur.data=antes;else st.docs.delete(P.chave);throw e}
+  notify(P.pid)}
 async function delDoc(path){const P=parsePath(path);await loadPid(P.pid);const st=store[P.pid];const e=st.docs.get(P.chave);if(!e)return;
-  st.docs.delete(P.chave);notify(P.pid);if(e.rowId)await api('deletar',{tabela:'evolucoes',id:e.rowId})}
+  if(e.rowId)await api('deletar',{tabela:'evolucoes',id:e.rowId});
+  st.docs.delete(P.chave);notify(P.pid)}
 const DBX={
   doc:path=>({set:d=>putDoc(path,d,false),update:d=>putDoc(path,d,true),delete:()=>delDoc(path),onSnapshot:(cb,err)=>listen(path,cb,err)}),
   collection:path=>{const c={o:null,orderBy(k){c.o=k;return c},onSnapshot:(cb,err)=>listen(path,cb,err,c.o),get:()=>buildSnap({path,order:c.o})};return c}
@@ -616,6 +620,8 @@ const UI={tab:lsGet('ai-tab','proto'),sel:{},forms:{},pdata:false,pnew:false,del
   rsub:'resp',rview:'familia',rhover:null,tp:'T1',marker:'familia',rsel:{},hand:null,thanks:false,
   task:'apoio',lado:'D',trShape:'onda',filtro:'todos'};
 const q={};
+// Como chain, mas devolve se deu certo, para a tela esperar a planilha
+function chainOk(path,fn){const prev=(q[path]||Promise.resolve()).catch(()=>{});const p=prev.then(fn);q[path]=p.catch(()=>{});return p.then(()=>true,e=>{onErr(e);return false})}
 function chain(path,fn){q[path]=(q[path]||Promise.resolve()).then(fn).catch(onErr);return q[path]}
 function onErr(e){if(e&&e.code==='sessao'){RO=true;toast('Sua sessão expirou. Entre no sistema de novo.');renderAll()}else if(e&&e.code==='invalid_argument'){RO=true;toast('Sem permissão para salvar. Peça acesso de editora.');renderAll()}else if(e&&e.code==='quota_exceeded')toast('Limite de armazenamento atingido.');else toast('Não foi possível salvar. Tente de novo.')}
 const W=(path,data)=>{if(OFFLINE||RO)return;chain(path,()=>DB.doc(path).set(clone(data)))};
@@ -752,7 +758,7 @@ function resultHTML(k){
  if(ins.m.length===1||(rows.length===1&&ins.m.length<=2)){const r=rows[0];return`<div class="qs"><b>${esc(r.m.sel?showVal(r.m,r.v):fmt(r.v))}</b>${lvl(r.c)}</div><p class="small">${r.c?esc(r.c.t):''}</p>${rows.slice(1).map(r=>`<div class="mr"><span>${esc(r.m.n)}</span><span class="v">${esc(showVal(r.m,r.v))}</span>${lvl(r.c)}</div>`).join('')}`}
  return rows.map(r=>`<div class="mr"><span>${esc(r.m.n)}</span><span class="v">${esc(showVal(r.m,r.v))}</span>${lvl(r.c)}</div>`).join('');
 }
-function salvar(k){
+async function salvar(k,btn){
  if(RO){toast('Acesso só de leitura');return}
  const ins=I[k],F=formFor(k);if(!F.data){toast('Informe a data');return}
  if(ITEMS[k]&&F.mode==='itens'){const miss=itMissing(k,F.it);if(miss){toast(`Faltam ${miss} ${miss===1?'item':'itens'} para calcular`);return}applyItems(k)}
@@ -763,10 +769,33 @@ function salvar(k){
  const body={instr:k,data:F.data,v,prof:P.doc.resp||'',obs:(F.obs||'').trim(),criado:new Date().toISOString()};
  if(ins.infSel)body.inf=F.inf==='crianca'?'crianca':'pais';
  if(ITEMS[k]&&F.mode==='itens')body.it=F.it.slice();
- putAv(F.id||newId('a'),body);delete UI.forms[k];renderAll();toast(F.id?'Alterações salvas':'Salvo. Veja a evolução no Relatório.');
+ const ok=await putAv(F.id||newId('a'),body,btn);if(!ok)return;delete UI.forms[k];renderAll();toast(F.id?'Alterações salvas no prontuário':'Salvo no prontuário. Veja a evolução no Relatório.');
 }
-function putAv(id,body){const i=P.avs.findIndex(x=>x.id===id);if(i>=0)P.avs[i]=Object.assign({id},body);else P.avs.push(Object.assign({id},body));
- if(OFFLINE){syncResumo();return}W(`pacientes/${P.id}/avaliacoes/${id}`,body);q[`pacientes/${P.id}/avaliacoes/${id}`].then(syncResumo)}
+const podeApagar=a=>S.user&&(S.user.role==='admin'||String(a.autor_email||'').toLowerCase()===String(S.user.email||'').toLowerCase());
+function textoAv(a,pac){const ins=I[a.instr];if(!ins)return'Avaliação infantil.';
+ const meds=ins.m.map(m=>{const v=val(m,a);if(v==null)return'';const c=classify(m,v,a,pac);const sv=showVal(m,v);return(m.r||m.n)+': '+sv+(c&&c.t&&c.t!==sv?' ('+c.t+')':'')}).filter(Boolean).join('; ');
+ let t='Avaliação infantil — '+ins.n+(ins.infSel?(a.inf==='crianca'?' (autorrelato)':' (relato dos pais)'):'')+': '+meds+'.';
+ if(a.obs)t+=' Obs.: '+a.obs+'.';return t}
+// Cada avaliação vira uma evolução legível no prontuário; evoId liga as duas
+async function evoSync(pid,id,body,texto){
+ if(body.evoId)await api('atualizar',{tabela:'evolucoes',id:body.evoId,dados:{texto,data:body.data}});
+ else{const r=await api('salvar',{tabela:'evolucoes',dados:{paciente_id:pid,data:body.data,texto,autor_email:body.autor_email,autor_nome:body.autor_nome,origem:'infantil_resumo',avaliacao_id:id}});
+  body.evoId=r.id;const path=`pacientes/${pid}/avaliacoes/${id}`;await chainOk(path,()=>DB.doc(path).update({evoId:r.id}))}}
+async function putAv(id,body,btn){
+ const pid=P.id,old=P.avs.find(x=>x.id===id),pac=P.doc;
+ body.autor_email=(old&&old.autor_email)||S.user.email;body.autor_nome=(old&&old.autor_nome)||S.user.nome;
+ if(old&&old.evoId)body.evoId=old.evoId;
+ const t=btn&&btn.textContent;if(btn){btn.disabled=true;btn.textContent='Salvando…'}
+ const path=`pacientes/${pid}/avaliacoes/${id}`;
+ try{
+  const ok=await chainOk(path,()=>DB.doc(path).set(clone(body)));
+  if(!ok){toast('Não salvou. Tente de novo.');return false}
+  if(P&&P.id===pid){const i=P.avs.findIndex(x=>x.id===id);const n=Object.assign({id},body);if(i>=0)P.avs[i]=n;else P.avs.push(n)}
+  try{await evoSync(pid,id,body,textoAv(body,pac))}catch(e){toast('A avaliação foi salva, mas não entrou no prontuário. Salve de novo para tentar outra vez.')}
+  if(P&&P.id===pid)syncResumo();
+  return true;
+ }finally{if(btn){btn.disabled=false;btn.textContent=t}}
+}
 
 /* ======================= Tarefas ======================= */
 const TK={apoio:{n:'Apoio unipodal'},traco:{n:'Traçado'},reacao:{n:'Tempo de reação'}};
@@ -797,12 +826,12 @@ function viewTarefas(){
  return`<div class="seg" role="group" aria-label="Tarefa">${seg}</div>${body}
  ${last?`<div class="card"><h3>Último registro das tarefas · ${dBR(last.data)}</h3>${I.app.m.map(m=>{const v=val(m,last);return v==null?'':`<div class="mrow"><span>${esc(m.n)}</span><span class="v">${esc(showVal(m,v))}</span><span></span></div>`}).join('')}</div>`:''}`;
 }
-function saveApp(patch,obs){
+async function saveApp(patch,obs){
  if(RO){toast('Acesso só de leitura');return}
  const t=today();const ex=P.avs.find(a=>a.instr==='app'&&a.data===t);
  const body=ex?{instr:'app',data:t,v:Object.assign({},ex.v,patch),prof:ex.prof||P.doc.resp||'',obs:[ex.obs,obs].filter(Boolean).join(' · '),criado:ex.criado||new Date().toISOString()}
   :{instr:'app',data:t,v:patch,prof:P.doc.resp||'',obs:obs||'',criado:new Date().toISOString()};
- putAv(ex?ex.id:newId('a'),body);toast('Salvo nas tarefas de hoje');
+ if(await putAv(ex?ex.id:newId('a'),body))toast('Salvo nas tarefas de hoje, no prontuário');
 }
 function apoioTick(){if(!T.run)return;T.el=Math.min(30,(performance.now()-T.t0)/1000);const b=$('#tBig');if(b)b.textContent=fmt(T.el,1)+' s';if(T.el>=30){apoioStop();return}T.raf=requestAnimationFrame(apoioTick)}
 function apoioStop(){T.run=false;cancelAnimationFrame(T.raf);T.tries[UI.lado].push(Math.round(T.el*10)/10);if(T.tries[UI.lado].length>3)T.tries[UI.lado].shift();renderMain()}
@@ -1018,7 +1047,7 @@ function viewRel(){
    <div class="minis">${ins.m.map(m=>{const pts=seriesFor(k,m);if(!pts.length)return'';const c=classify(m,pts[pts.length-1].v,a,P.doc);return`<div class="mini"><div class="mini-h"><span>${esc(m.n)}</span>${lvl(c)}</div>${chart(m,pts,bandsOf(m,a,P.doc))}</div>`}).join('')}</div>`;
   return`<details class="evo" ${UI.open&&UI.open[k]?'open':''} data-open="${k}"><summary><span>${esc(ins.n)} <span class="hint" style="font-family:var(--body);font-weight:400">· ${dBR(a.data)} · ${arr.length} registro${arr.length>1?'s':''}</span></span></summary><div style="margin-top:8px">${rows}</div>${a.obs?`<p class="hint">“${esc(a.obs)}”</p>`:''}${charts}</details>`}).join('');
  const hist=P.avs.slice().sort((a,b)=>a.data<b.data?1:-1).map(a=>{const ins=I[a.instr];if(!ins)return'';
-  return`<div class="it"><div class="l"><b>${esc(ins.n)} · ${dBR(a.data)}</b><span>${ins.m.map(m=>{const v=val(m,a);return v==null?'':esc(m.r||m.n)+': '+esc(showVal(m,v))}).filter(Boolean).join(' · ')}</span></div><div class="acts">${a.instr!=='app'?`<button class="mini" data-a="edit" data-id="${esc(a.id)}">Editar</button>`:''}<button class="mini ${UI.armed===a.id?'armed':''}" data-a="delAv" data-id="${esc(a.id)}">${UI.armed===a.id?'Confirmar':'Excluir'}</button></div></div>`}).join('');
+  return`<div class="it"><div class="l"><b>${esc(ins.n)} · ${dBR(a.data)}</b><span>${ins.m.map(m=>{const v=val(m,a);return v==null?'':esc(m.r||m.n)+': '+esc(showVal(m,v))}).filter(Boolean).join(' · ')}</span></div><div class="acts">${a.instr!=='app'?`<button class="mini" data-a="edit" data-id="${esc(a.id)}">Editar</button>`:''}${podeApagar(a)?`<button class="mini ${UI.armed===a.id?'armed':''}" data-a="delAv" data-id="${esc(a.id)}">${UI.armed===a.id?'Confirmar':'Excluir'}</button>`:''}</div></div>`}).join('');
  return`<div class="btns two"><button class="btn" data-a="ptOpen" type="button">Relatório para a família</button><button class="btn ghost" data-a="tcOpen" type="button">Relatório técnico</button></div>
  <p class="hint">Toque em cada instrumento para ver os gráficos. No radar, cada reavaliação se sobrepõe às anteriores: a mais recente fica escura e preenchida.</p>
  ${cards}
@@ -1160,7 +1189,7 @@ document.addEventListener('click',e=>{
   if(A==='pdata'){UI.pdata=!UI.pdata;UI.delPac=false;renderPatient();return}
   if(A==='fazer'){const c=catOf(d.i);if(!c)return;UI.tab=c;if(CAT[c])UI.sel[c]=d.i;lsSet('ai-tab',c);renderAll();window.scrollTo({top:0,behavior:'smooth'});return}
  if(A==='selv'){const F=formFor(d.i);const v=Number(d.v);F.v[d.m]=F.v[d.m]===v?undefined:v;if(F.v[d.m]===undefined)delete F.v[d.m];renderMain();return}
- if(A==='salvar'){salvar(d.i);return}
+ if(A==='salvar'){salvar(d.i,b);return}
  if(A==='cfgSave'){const n=id=>Number($(id).value);const ia=n('#cfIa'),ib=n('#cfIb'),pa=n('#cfPa'),pb=n('#cfPb');if(!(ia>0&&ib>ia&&pa>0&&pb>pa)){toast('Confira as faixas: o segundo valor precisa ser maior que o primeiro');return}
   CFG={idadi:{a:ia,b:ib},pedicat:{a:pa,b:pb}};W('config/faixas',CFG);syncResumo();renderAll();toast('Faixas salvas para a equipe');return}
  if(A==='imode'){const F=formFor(d.i);F.mode=d.v;if(d.v==='itens')applyItems(d.i);renderMain();return}
@@ -1168,7 +1197,8 @@ document.addEventListener('click',e=>{
  if(A==='itzero'){const F=formFor(d.i);F.it=F.it.map(x=>x==null?0:x);applyItems(d.i);renderMain();return}
  if(A==='cancelEdit'){delete UI.forms[d.i];renderMain();return}
  if(A==='edit'){const a=P.avs.find(x=>x.id===d.id);if(!a)return;const c=catOf(a.instr);UI.forms[a.instr]={data:a.data,v:Object.assign({},a.v),inf:a.inf||'pais',obs:a.obs||'',id:a.id,it:a.it?a.it.slice():(ITEMS[a.instr]?Array(ITEMS[a.instr].n).fill(null):null),mode:a.it?'itens':'totais'};UI.tab=c;UI.sel[c]=a.instr;renderAll();window.scrollTo({top:0,behavior:'smooth'});return}
- if(A==='delAv'){if(UI.armed!==d.id){UI.armed=d.id;renderMain();return}UI.armed=null;P.avs=P.avs.filter(x=>x.id!==d.id);renderMain();if(OFFLINE)syncResumo();else{Wdel(`pacientes/${P.id}/avaliacoes/${d.id}`);q[`pacientes/${P.id}/avaliacoes/${d.id}`].then(syncResumo)}toast('Registro excluído');return}
+ if(A==='delAv'){const a=P.avs.find(x=>x.id===d.id);if(!a)return;if(!podeApagar(a)){toast('Só quem registrou ou a gestora pode excluir');return}
+  if(UI.armed!==d.id){UI.armed=d.id;renderMain();return}UI.armed=null;delAv(a,b);return}
  if(A==='rdsel'){const cur=selDates(d.i).map(a=>a.id);const i=cur.indexOf(d.id);if(i>=0){if(cur.length===1){toast('Deixe ao menos uma data');return}cur.splice(i,1)}else{if(cur.length>=4){toast('Compare até 4 datas');return}cur.push(d.id)}UI.rsel[d.i]=cur;renderMain();return}
  /* tarefas */
  if(A==='task'){stopTasks();UI.task=d.v;renderMain();return}
@@ -1250,6 +1280,15 @@ document.addEventListener('submit',e=>{e.preventDefault();const f=e.target;
   const niveis=GAS_VALS.map((v,i)=>$('#gN'+i).value.trim()||['Muito abaixo do esperado','Abaixo do esperado','Resultado esperado','Acima do esperado','Muito acima do esperado'][i]);
   const g={id:newId('m'),titulo:t,niveis,marcas:{T0:{},T1:{}},criado:new Date().toISOString()};P.metas.push(g);const b2=clone(g);delete b2.id;W(`pacientes/${P.id}/metas/${g.id}`,b2);UI.tp='T0';renderMain();toast('Meta adicionada')}
 });
+async function delAv(a,btn){
+ const pid=P.id,path=`pacientes/${pid}/avaliacoes/${a.id}`;
+ if(btn){btn.disabled=true;btn.textContent='Excluindo…'}
+ const ok=await chainOk(path,()=>DB.doc(path).delete());
+ if(!ok){toast('Não excluiu. Tente de novo.');if(btn){btn.disabled=false;btn.textContent='Excluir'}return}
+ if(a.evoId){try{await api('deletar',{tabela:'evolucoes',id:a.evoId})}catch(e){toast('Excluí a avaliação, mas a evolução no prontuário continua. Apague-a por lá.')}}
+ if(P&&P.id===pid){P.avs=P.avs.filter(x=>x.id!==a.id);renderMain();syncResumo()}
+ toast('Registro excluído do prontuário');
+}
 function stopTasks(){if(T.run){T.run=false;cancelAnimationFrame(T.raf)}clearTimeout(T.rxTo);if(T.rx&&!T.rx.done)T.rx=null}
 
 /* tooltip */
