@@ -144,6 +144,34 @@ function handle(e) {
       }
     }
 
+    // Escrita no prontuario: so em paciente que a pessoa pode ver. Vale para
+    // as abas clinicas e para a propria ficha (atualizar/excluir paciente).
+    if (ACOES_ESCRITA.indexOf(action) !== -1 &&
+        (TABELAS_CLINICAS.indexOf(body.tabela) !== -1 || (body.tabela === 'pacientes' && action !== 'salvar'))) {
+      const perfil = perfilDaEquipe(token);
+      if (!perfil) return resp({ok:false, erro:'Sem permiss\u00e3o'});
+      if (perfil.role !== 'admin') {
+        let pid = '';
+        if (body.tabela === 'pacientes') pid = String(body.id||'');
+        else if (action === 'salvar') pid = String((body.dados||{}).paciente_id||'');
+        else { const reg = linhaPorId(ABAS[body.tabela], body.id); pid = reg ? String(reg.paciente_id||'') : ''; }
+        if (pid && !podeVerPaciente(perfil, mapaPacientes()[pid])) {
+          return resp({ok:false, erro:'Sem permiss\u00e3o para este paciente'});
+        }
+      }
+    }
+
+    // Autoria da evolucao carimbada pelo servidor, a partir do login: assim
+    // ninguem assina com o nome ou o registro profissional de outra pessoa
+    if (action === 'salvar' && body.tabela === 'evolucoes' && body.dados) {
+      const perfil = perfilDaEquipe(token);
+      if (perfil) {
+        body.dados.autor_email = perfil.email;
+        if (perfil.nome) body.dados.autor_nome = perfil.nome;
+        body.dados.autor_registro = perfil.registro || '';
+      }
+    }
+
     // Evolucao e registro clinico: so quem escreveu ou a gestao altera ou
     // apaga - a tela ja escondia o botao, mas a API aceitava de qualquer um.
     // Os registros internos da Avaliacao infantil (origem 'infantil...') sao
@@ -1195,6 +1223,7 @@ function perfilDaEquipe(token) {
     email: info.email,
     nome: campo('nome'),
     funcao: campo('funcao'),
+    registro: campo('registro'),
     role: campo('nivel_acesso') || info.role || 'profissional',
     linhas: campo('linhas').toLowerCase().split(',')
               .map(function(x){ return x.trim(); }).filter(function(x){ return x; })
@@ -1332,6 +1361,11 @@ const ACOES_ESCRITA  = ['salvar','atualizar','deletar'];
 // Tabelas em que nem a leitura e livre - so gestao e coordenacao alcancam,
 // diferente do ABAS_SO_GESTAO acima (que barra so escrita, e so para admin).
 const ABAS_GESTAO_COORD = ['tarefas'];
+// Abas do prontuario ligadas a um paciente pela coluna paciente_id: leitura e
+// escrita so para quem pode ver aquele paciente (ver listar e doPost)
+const TABELAS_CLINICAS = ['pts','avaliacoes','reunioes','monitoramentos','checklists','evolucoes',
+                          'servicos','myscore','atelie','documentos','orcamentos','prescricoes'];
+
 const ABAS_SO_ADMIN_TUDO = ['financeiro_pilates','financeiro_terapias','financeiro_parceiros',
                             'financeiro_servicos','financeiro_jornadas'];
 const ACOES_TABELA = ['listar','salvar','atualizar','deletar'];
@@ -2009,9 +2043,26 @@ function listar(body, token) {
     });
   }
 
-  // Profissional so ve seus pacientes
-  if (body.tabela==='pacientes' && body.role==='profissional' && body.nome_usuario) {
-    rows = rows.filter(r => (r.terapeuta_nome||'').toLowerCase()===(body.nome_usuario||'').toLowerCase());
+  // Quem ve qual paciente e decidido aqui, pelo e-mail do token - nunca pelo
+  // role/nome_usuario que a tela manda, que qualquer um poderia trocar.
+  // Mesma regra das mensagens: gestao tudo, coordenacao as suas linhas,
+  // profissional os pacientes de que e terapeuta de referencia.
+  if (body.tabela==='pacientes' || TABELAS_CLINICAS.indexOf(body.tabela) !== -1) {
+    const perfil = perfilDaEquipe(token || body.token);
+    if (!perfil) return {ok:false, erro:'Sem permiss\u00e3o'};
+    if (perfil.role !== 'admin') {
+      if (body.tabela==='pacientes') {
+        rows = rows.filter(r => podeVerPaciente(perfil, r));
+      } else {
+        const pacs = mapaPacientes(), vis = {};
+        rows = rows.filter(r => {
+          const pid = String(r.paciente_id||'');
+          if (!pid) return true;
+          if (!(pid in vis)) vis[pid] = podeVerPaciente(perfil, pacs[pid]);
+          return vis[pid];
+        });
+      }
+    }
   }
 
   if (body.tabela==='evolucoes') rows = ocultarReservado(rows, token || body.token);
@@ -2038,19 +2089,21 @@ function linhaPorId(aba, id) {
 }
 
 function ocultarReservado(rows, token) {
-  if (!rows.some(function(r){ return String(r.texto_restrito||'').trim(); })) return rows;
+  // historico_restrito guarda as versoes antigas da parte reservada (retificacao)
+  const reservado = function(r){ return String(r.texto_restrito||'').trim() || String(r.historico_restrito||'').trim(); };
+  if (!rows.some(reservado)) return rows;
   const perfil = perfilDaEquipe(token);
   const pacs = mapaPacientes();
   const email = perfil ? String(perfil.email||'').toLowerCase() : '';
   const cache = {};
   return rows.map(function(r) {
-    if (!String(r.texto_restrito||'').trim()) return r;
+    if (!reservado(r)) return r;
     const pid = String(r.paciente_id||'');
     if (!(pid in cache)) cache[pid] = !!perfil && podeVerPaciente(perfil, pacs[pid]);
     const autora = !!email && String(r.autor_email||'').toLowerCase() === email;
     if (cache[pid] || autora) return r;
-    const o = {}; Object.keys(r).forEach(function(k){ if (k !== 'texto_restrito') o[k] = r[k]; });
-    o.tem_restrito = true;
+    const o = {}; Object.keys(r).forEach(function(k){ if (k !== 'texto_restrito' && k !== 'historico_restrito') o[k] = r[k]; });
+    o.tem_restrito = !!String(r.texto_restrito||'').trim();
     return o;
   });
 }

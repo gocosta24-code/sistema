@@ -48,6 +48,29 @@ Alterar ou excluir uma evolução também é checado no servidor: só a autora o
 gestão. Os registros internos da Avaliação infantil (origem `infantil…`) ficam
 fora dessa regra, porque são compartilhados entre quem avalia.
 
+### Prontuário: acesso, retificação e exportação
+
+- **Quem vê qual paciente é decidido no servidor** (`listar` e a checagem de
+  escrita no `handle`), pelo e-mail do token — o `role`/`nome_usuario` que a
+  tela manda é ignorado. Regra única, `podeVerPaciente()`: gestão vê tudo,
+  coordenação vê as linhas da coluna `linhas` (vazia = tudo), profissional vê
+  os pacientes de que é `terapeuta_nome`. Vale para a aba `Pacientes` e para as
+  abas em `TABELAS_CLINICAS` (ligadas por `paciente_id`), na leitura e na escrita.
+- **Evolução não se apaga, se retifica.** A tela troca o "excluir" por
+  *Retificar* (só autora ou gestão), com motivo obrigatório. A versão anterior
+  vai para `historico` (JSON) e a da parte reservada para `historico_restrito`,
+  que o servidor esconde junto com `texto_restrito`.
+- **Autoria carimbada pelo servidor** ao salvar evolução: `autor_email`,
+  `autor_nome` e `autor_registro` (coluna `registro` da aba `Profissionais`)
+  vêm do login, não do navegador.
+- **Abas:** Evoluções aparece primeiro, mas a numeração interna (`tb0`, `tb1`…)
+  não muda — as fichas são gravadas pela posição (`aba` em `Checklists`).
+- **Pendência de evolução:** paciente ativo (fora do Pilates) sem evolução há
+  mais de `DIAS_SEM_EVOLUCAO` (14) dias aparece em Alertas.
+- **🖨 Exportar:** cópia do cadastro e das evoluções para imprimir ou salvar em
+  PDF; a parte reservada só entra se quem exporta escolher.
+- **Modelo SOAP:** botão no formulário da evolução.
+
 ### Mensagens
 
 A aba `Mensagens` guarda a conversa de cada paciente com a clínica e alimenta a
