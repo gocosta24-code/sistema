@@ -52,6 +52,8 @@ const ABAS = {
   financeiro_pilates:   'FinanceiroPilates',
   financeiro_terapias:  'FinanceiroTerapias',
   financeiro_parceiros: 'FinanceiroParceiros',
+  financeiro_servicos:  'FinanceiroServicos',
+  financeiro_jornadas:  'FinanceiroJornadas',
 };
 
 // Onde os anexos ficam guardados no Drive da clinica. A pasta e criada
@@ -1316,7 +1318,8 @@ const ACOES_ESCRITA  = ['salvar','atualizar','deletar'];
 // Tabelas em que nem a leitura e livre - so gestao e coordenacao alcancam,
 // diferente do ABAS_SO_GESTAO acima (que barra so escrita, e so para admin).
 const ABAS_GESTAO_COORD = ['tarefas'];
-const ABAS_SO_ADMIN_TUDO = ['financeiro_pilates','financeiro_terapias','financeiro_parceiros'];
+const ABAS_SO_ADMIN_TUDO = ['financeiro_pilates','financeiro_terapias','financeiro_parceiros',
+                            'financeiro_servicos','financeiro_jornadas'];
 const ACOES_TABELA = ['listar','salvar','atualizar','deletar'];
 
 const CATALOGO_CABECALHO = ['id','nome','linha','descricao','valor','ativo','criado_em'];

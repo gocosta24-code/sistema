@@ -73,6 +73,28 @@ documento para o médico.
   publicada para idade e sexo (força de preensão, TUG, velocidade de marcha,
   sentar e levantar em 30 s). 50 é exatamente o esperado para a idade.
 
+### Financeiro
+
+Só gestão e administrativo acessam (`ABAS_SO_ADMIN_TUDO`). Três abas de uso
+diário, cada lançamento com campo `mes` (AAAA-MM):
+
+| Aba | Planilha | O que é |
+| --- | --- | --- |
+| 🧘 Pilates | `FinanceiroPilates` | Uma linha por aluno por mês. Valor digitado à mão (são vários preços). *Gerar mês com os alunos ativos* traz o mês anterior sem os inativos. Passou do vencimento sem pagar → **Atrasado**, com botão de cobrança no WhatsApp. |
+| 💼 Serviços | `FinanceiroServicos` | Uma linha por venda: paciente, serviço, profissional, sessões, valor. O mês é o da data do atendimento. |
+| 👥 Repasses | `FinanceiroJornadas` (turnos) | Calculado, não digitado — exceto os turnos de 4 h das instrutoras. |
+
+As regras de repasse ficam na constante `REPASSE` do `index.html` (é o único
+lugar para mudar): Fisioterapia R$ 40/h (cada sessão = 1 hora), Fisioterapia
+pélvica R$ 65, TO infantil R$ 80 e TO mão R$ 117 por sessão; instrutora de
+Pilates R$ 140 por turno de 4 h; coordenação do Pilates 10% das mensalidades
+**previstas**; coordenação da Fisioterapia (o que **entrou no caixa** da
+Fisioterapia no mês − R$ 5.000) ÷ 2, nunca negativo; coordenação da TO R$ 40
+por sessão de TO infantil. "Entrou no caixa" usa o mês da data de pagamento.
+
+As abas antigas *Terapias* e *Parceiros* continuam visíveis, marcadas como
+"(antigo)", só para consultar os meses já lançados.
+
 ### Serviços
 
 A tela 🗂️ **Serviços** lista o que a clínica oferece, agrupado por linha de

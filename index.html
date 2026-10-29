@@ -970,7 +970,7 @@ function demoApi(action, body) {
      && body.tabela==='tarefas' && !['admin','coordenador'].includes(currentRole))
     return {ok:false, erro:'Só gestão e coordenação têm acesso às tarefas'};
   if(['listar','salvar','atualizar','deletar'].includes(action)
-     && ['financeiro_pilates','financeiro_terapias','financeiro_parceiros'].includes(body.tabela)
+     && ['financeiro_pilates','financeiro_terapias','financeiro_parceiros','financeiro_servicos','financeiro_jornadas'].includes(body.tabela)
      && currentRole!=='admin' && !ehAdministracao())
     return {ok:false, erro:'Só a gestão e o administrativo têm acesso ao financeiro'};
 
@@ -3054,25 +3054,62 @@ async function excluirTarefa(id) {
 // de cadastro separado de aluno/paciente. Só admin acessa (ver ABAS_SO_ADMIN_TUDO
 // no Code.gs - nem a coordenação entra aqui, dinheiro é mais sensível que Tarefas).
 // ═══════════════════════════════════════════════
+// Serviços com regra de repasse. "Fisioterapia" paga por hora e cada sessão
+// conta como 1 hora; as demais pagam um valor fixo por sessão atendida.
+const FIN_SERVICOS = ['Fisioterapia','Fisioterapia pélvica','TO infantil','TO mão','Avaliação','Parceiro','Outro'];
+
+// Regras de repasse combinadas com a gestão (out/2026). Mudou o combinado,
+// muda aqui - é o único lugar.
+const REPASSE = {
+  porSessao: {'Fisioterapia':40, 'Fisioterapia pélvica':65, 'TO infantil':80, 'TO mão':117},
+  turnoPilates: 140,                 // instrutora: por turno de 4 horas no dia
+  coordPilatesPct: 0.10,             // sobre o previsto das mensalidades do mês
+  coordFisioBase: 5000,              // (recebido da fisioterapia no mês − 5.000) ÷ 2
+  coordFisioServicos: ['Fisioterapia'],
+  coordTOPorSessao: 40,              // por sessão de TO infantil
+  coordTOServicos: ['TO infantil'],
+};
+
 const FIN_CONFIG = {
   pilates: {
     tabela: 'financeiro_pilates', titulo: 'Pilates', emoji: '🧘',
+    sub: 'Mensalidades dos alunos',
     campoValor: 'valor_plano',
+    duplicar: '📋 Gerar mês com os alunos ativos',
     campos: [
-      {k:'nome', label:'Nome', tipo:'texto', obrigatorio:true},
-      {k:'status', label:'Status', tipo:'select', opcoes:['Ativo','Inativo'], padrao:'Ativo'},
-      {k:'servico', label:'Serviço', tipo:'texto', padrao:'Pilates'},
-      {k:'plano', label:'Plano', tipo:'select', opcoes:['Mensal','Trimestral','Semestral']},
+      {k:'nome', label:'Aluno', tipo:'texto', obrigatorio:true},
+      {k:'telefone', label:'Telefone / WhatsApp', tipo:'texto', placeholder:'Para cobrar pelo WhatsApp'},
+      {k:'plano', label:'Plano', tipo:'texto', placeholder:'Ex.: 2x por semana, mensal', lista:true},
+      {k:'valor_plano', label:'Valor da mensalidade (R$)', tipo:'numero'},
       {k:'dia_vencimento', label:'Dia de vencimento', tipo:'numero'},
-      {k:'valor_plano', label:'Valor do plano (R$)', tipo:'numero'},
+      {k:'pago', label:'Pago?', tipo:'select', opcoes:['Não','Sim'], padrao:'Não'},
+      {k:'data_pagamento', label:'Data de pagamento', tipo:'data'},
+      {k:'forma_pagamento', label:'Forma de pagamento', tipo:'select', opcoes:['','Pix','Cartão','Dinheiro','Boleto','Outro']},
+      {k:'status', label:'Situação do aluno', tipo:'select', opcoes:['Ativo','Inativo'], padrao:'Ativo'},
+    ],
+    colunas: ['nome','valor_plano','pago','cobrar','dia_vencimento','plano','data_pagamento'],
+  },
+  servicos: {
+    tabela: 'financeiro_servicos', titulo: 'Serviços', emoji: '💼',
+    sub: 'Sessões, pacotes, avaliações e parceiros - uma linha por venda',
+    campoValor: 'valor',
+    campos: [
+      {k:'data', label:'Data', tipo:'data', padraoHoje:true},
+      {k:'paciente', label:'Paciente', tipo:'texto', obrigatorio:true, lista:true},
+      {k:'servico', label:'Serviço', tipo:'select', opcoes:FIN_SERVICOS},
+      {k:'profissional', label:'Profissional que atendeu', tipo:'texto', lista:true},
+      {k:'sessoes', label:'Sessões atendidas', tipo:'numero', padrao:'1'},
+      {k:'valor', label:'Valor cobrado (R$)', tipo:'numero'},
       {k:'pago', label:'Pago?', tipo:'select', opcoes:['Não','Sim'], padrao:'Não'},
       {k:'data_pagamento', label:'Data de pagamento', tipo:'data'},
       {k:'forma_pagamento', label:'Forma de pagamento', tipo:'select', opcoes:['','Pix','Cartão','Dinheiro','Boleto','Outro']},
     ],
-    colunas: ['nome','plano','valor_plano','pago','data_pagamento','forma_pagamento'],
+    colunas: ['paciente','valor','pago','servico','profissional','sessoes','data'],
   },
+  repasses: {titulo: 'Repasses', emoji: '👥', especial:true},
+  // As abas antigas continuam para consultar os meses já lançados
   terapias: {
-    tabela: 'financeiro_terapias', titulo: 'Terapias', emoji: '🦴',
+    tabela: 'financeiro_terapias', titulo: 'Terapias (antigo)', emoji: '🗄️', antigo:true,
     campoValor: 'faturamento_previsto',
     campos: [
       {k:'nome', label:'Nome', tipo:'texto', obrigatorio:true},
@@ -3093,7 +3130,7 @@ const FIN_CONFIG = {
     colunas: ['nome','servico','terapeuta','sessoes_previstas','faturamento_previsto','sessoes_realizadas','faturamento_real','pago','data_pagamento'],
   },
   parceiros: {
-    tabela: 'financeiro_parceiros', titulo: 'Parceiros', emoji: '🤝',
+    tabela: 'financeiro_parceiros', titulo: 'Parceiros (antigo)', emoji: '🗄️', antigo:true,
     campoValor: 'valor',
     campos: [
       {k:'parceiro', label:'Parceiro', tipo:'texto', obrigatorio:true},
@@ -3105,16 +3142,18 @@ const FIN_CONFIG = {
   },
 };
 const FIN_COLUNA_LABEL = {
-  nome:'Nome', status:'Status', servico:'Serviço', plano:'Plano', dia_vencimento:'Venc.',
-  valor_plano:'Valor', pago:'Pago', data_pagamento:'Pagamento', forma_pagamento:'Forma',
+  nome:'Aluno', status:'Status', servico:'Serviço', plano:'Plano', dia_vencimento:'Venc.',
+  valor_plano:'Valor', pago:'Pagamento', data_pagamento:'Pago em', forma_pagamento:'Forma',
   terapeuta:'Terapeuta', frequencia:'Freq.', sessoes_previstas:'Sessões prev.',
   faturamento_previsto:'Fat. previsto', sessoes_realizadas:'Sessões real.',
-  faturamento_real:'Fat. real', parceiro:'Parceiro', valor:'Valor',
+  faturamento_real:'Fat. real', parceiro:'Parceiro', valor:'Valor', cobrar:'',
+  data:'Data', paciente:'Paciente', profissional:'Profissional', sessoes:'Sessões',
 };
 
 let _finAba = 'pilates';
 let _finMes = mesAtualISO();
 let _finLista = [];
+let _finTodos = [];
 
 function mesAtualISO() {
   const d = new Date();
@@ -3139,10 +3178,24 @@ function fmtMoeda(v) {
   if (v==='' || v==null) return '—';
   return numDe(v).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 }
+const ehPago = r => String(r.pago||'').toLowerCase()==='sim';
+// Mês em que o dinheiro entrou: a data de pagamento manda; sem ela, o mês do lançamento
+const mesDoCaixa = r => String(r.data_pagamento||'').slice(0,7) || String(r.mes||'');
+
+// Mensalidade sem pagamento depois do dia de vencimento do próprio mês
+function mensalidadeAtrasada(r) {
+  if(ehPago(r) || !r.mes) return false;
+  const dia = parseInt(r.dia_vencimento,10);
+  const [y,m] = String(r.mes).split('-').map(Number);
+  if(!y || !m) return false;
+  const ultimo = new Date(y, m, 0).getDate();
+  const venc = new Date(y, m-1, dia>=1 ? Math.min(dia,ultimo) : ultimo, 23, 59);
+  return new Date() > venc;
+}
 
 function renderFinanceiro() {
   return `<div class="ph"><div class="ph-title">Financeiro</div>
-    <div class="ph-sub">Pilates, terapias e parceiros — mensalidade e repasse, mês a mês</div></div>
+    <div class="ph-sub">Mensalidades do Pilates, serviços e repasses da equipe, mês a mês</div></div>
   <div id="finBody">${loadingHTML()}</div>`;
 }
 
@@ -3150,6 +3203,7 @@ async function loadFinanceiro() {
   const el = document.getElementById('finBody');
   if(!el) return;
   const cfg = FIN_CONFIG[_finAba];
+  if(cfg.especial) return loadRepasses();
   // Filtra aqui no navegador em vez de mandar filtros:{mes} pro Apps Script:
   // o filtro no servidor estava voltando vazio mesmo com o mes gravado
   // certinho na planilha, e nao valia a pena caçar a causa exata la.
@@ -3158,41 +3212,87 @@ async function loadFinanceiro() {
     el.innerHTML = `<div class="card" style="color:var(--rose)">Não foi possível carregar: ${esc(res.erro||'')}</div>`;
     return;
   }
-  _finTotal = (res.dados||[]).length;
-  _finLista = (res.dados||[]).filter(r=>String(r.mes||'')===_finMes);
+  _finTodos = res.dados||[];
+  _finLista = _finTodos.filter(r=>String(r.mes||'')===_finMes);
+  if(_finAba==='servicos') _finLista.sort((a,b)=>String(a.data||'').localeCompare(String(b.data||'')));
+  if(_finAba==='pilates') _finLista.sort((a,b)=>String(a.nome||'').localeCompare(String(b.nome||''),'pt-BR'));
   desenharFinanceiro();
 }
-let _finTotal = 0;
 
 function trocarAbaFinanceiro(aba) { _finAba = aba; loadFinanceiro(); }
 function trocarMesFinanceiro(mes) { if(mes){ _finMes = mes; loadFinanceiro(); } }
 
 function resumoFinHTML(cfg) {
+  const item = (t,v,cor)=>`<span>${t} <strong${cor?` style="color:${cor}"`:''}>${v}</strong></span>`;
+  if(_finAba==='pilates') {
+    const ativos = _finLista.filter(r=>String(r.status||'Ativo')!=='Inativo');
+    const previsto = ativos.reduce((s,r)=>s+numDe(r.valor_plano),0);
+    const recebido = ativos.filter(ehPago).reduce((s,r)=>s+numDe(r.valor_plano),0);
+    const atrasado = ativos.filter(mensalidadeAtrasada).reduce((s,r)=>s+numDe(r.valor_plano),0);
+    return `<div class="mc-meta" style="margin-bottom:12px">
+      ${item('Previsto',fmtMoeda(previsto))}${item('Recebido',fmtMoeda(recebido),'var(--teal)')}
+      ${item('Em aberto',fmtMoeda(previsto-recebido))}
+      ${item('Atrasado',fmtMoeda(atrasado)+(previsto?' ('+Math.round(atrasado/previsto*100)+'%)':''),atrasado?'var(--rose)':'')}
+      ${item('Alunos ativos',ativos.length)}${item('Ticket médio',fmtMoeda(ativos.length?previsto/ativos.length:0))}</div>`;
+  }
+  if(_finAba==='servicos') {
+    const faturado = _finLista.reduce((s,r)=>s+numDe(r.valor),0);
+    const recebido = _finTodos.filter(r=>ehPago(r) && mesDoCaixa(r)===_finMes).reduce((s,r)=>s+numDe(r.valor),0);
+    const aberto = _finLista.filter(r=>!ehPago(r)).reduce((s,r)=>s+numDe(r.valor),0);
+    const sessoes = _finLista.reduce((s,r)=>s+numDe(r.sessoes),0);
+    return `<div class="mc-meta" style="margin-bottom:12px">
+      ${item('Faturado',fmtMoeda(faturado))}${item('Entrou no caixa',fmtMoeda(recebido),'var(--teal)')}
+      ${item('A receber',fmtMoeda(aberto),aberto?'var(--amber)':'')}${item('Sessões',sessoes)}</div>`;
+  }
   if(_finAba==='terapias') {
     const previsto = _finLista.reduce((s,r)=>s+numDe(r.faturamento_previsto),0);
     const real = _finLista.reduce((s,r)=>s+numDe(r.faturamento_real),0);
-    const recebido = _finLista.filter(r=>String(r.pago).toLowerCase()==='sim')
+    const recebido = _finLista.filter(ehPago)
       .reduce((s,r)=>s+(numDe(r.faturamento_real)||numDe(r.faturamento_previsto)),0);
     return `<div class="mc-meta" style="margin-bottom:12px">
-      <span>Previsto <strong>${fmtMoeda(previsto)}</strong></span>
-      <span>Realizado <strong>${fmtMoeda(real)}</strong></span>
-      <span>Recebido <strong>${fmtMoeda(recebido)}</strong></span></div>`;
+      ${item('Previsto',fmtMoeda(previsto))}${item('Realizado',fmtMoeda(real))}${item('Recebido',fmtMoeda(recebido))}</div>`;
   }
   const total = _finLista.reduce((s,r)=>s+numDe(r[cfg.campoValor]),0);
-  const recebido = _finLista.filter(r=>String(r.pago).toLowerCase()==='sim')
-    .reduce((s,r)=>s+numDe(r[cfg.campoValor]),0);
+  const recebido = _finLista.filter(ehPago).reduce((s,r)=>s+numDe(r[cfg.campoValor]),0);
   return `<div class="mc-meta" style="margin-bottom:12px">
-    <span>Total <strong>${fmtMoeda(total)}</strong></span>
-    <span>Recebido <strong>${fmtMoeda(recebido)}</strong></span>
-    <span>Em aberto <strong>${fmtMoeda(total-recebido)}</strong></span></div>`;
+    ${item('Total',fmtMoeda(total))}${item('Recebido',fmtMoeda(recebido))}${item('Em aberto',fmtMoeda(total-recebido))}</div>`;
+}
+
+function linkCobranca(r) {
+  const tel = String(r.telefone||'').replace(/\D/g,'');
+  if(!tel || ehPago(r)) return '';
+  const num = tel.length<=11 ? '55'+tel : tel;
+  const [y,m] = String(r.mes||'').split('-');
+  const txt = `Olá, ${String(r.nome||'').split(' ')[0]}! Tudo bem? Passando para lembrar da mensalidade do Pilates`+
+    `${m?' de '+m+'/'+y:''}${r.valor_plano?' ('+fmtMoeda(r.valor_plano)+')':''}. Se já pagou, desconsidere. Obrigada! Casa Oliveira`;
+  return `<a href="https://wa.me/${num}?text=${encodeURIComponent(txt)}" target="_blank" rel="noopener"
+    onclick="event.stopPropagation()" class="chip ch-sage" style="text-decoration:none">💬 cobrar</a>`;
 }
 
 function celulaFin(r, k) {
   const v = r[k];
-  if(k==='pago') return `<span class="chip ${String(v).toLowerCase()==='sim'?'ch-sage':'ch-gray'}">${esc(v||'Não')}</span>`;
+  if(k==='pago') {
+    if(ehPago(r)) return `<span class="chip ch-sage">Pago</span>`;
+    if(_finAba==='pilates' && mensalidadeAtrasada(r)) return `<span class="chip ch-rose">Atrasado</span>`;
+    return `<span class="chip ch-gray">Em aberto</span>`;
+  }
+  if(k==='cobrar') return linkCobranca(r);
   if(['valor_plano','faturamento_previsto','faturamento_real','valor'].includes(k)) return fmtMoeda(v);
-  if(k==='data_pagamento') return v?esc(fmtDataBR(v)):'—';
+  if(k==='data_pagamento' || k==='data') return v?esc(fmtDataBR(String(v).slice(0,10))):'—';
+  if(k==='nome' && String(r.status||'')==='Inativo') return esc(v)+' <span class="chip ch-gray">inativo</span>';
   return v?esc(v):'—';
+}
+
+function abasFinHTML() {
+  return `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">
+    ${Object.entries(FIN_CONFIG).map(([k,c])=>`
+      <button class="chip ${k===_finAba?'ch-teal':'ch-gray'}" style="cursor:pointer;border:none${c.antigo&&k!==_finAba?';opacity:.65':''}"
+        onclick="trocarAbaFinanceiro('${k}')">${c.emoji} ${esc(c.titulo)}</button>`).join('')}
+  </div>`;
+}
+function seletorMesHTML() {
+  return `<div class="fg" style="margin:0"><label class="fl">Mês</label>
+    <input class="fi" type="month" value="${esc(_finMes)}" onchange="trocarMesFinanceiro(this.value)"></div>`;
 }
 
 function desenharFinanceiro() {
@@ -3200,26 +3300,21 @@ function desenharFinanceiro() {
   if(!el) return;
   const cfg = FIN_CONFIG[_finAba];
 
-  el.innerHTML = `
-  <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">
-    ${Object.entries(FIN_CONFIG).map(([k,c])=>`
-      <button class="chip ${k===_finAba?'ch-teal':'ch-gray'}" style="cursor:pointer;border:none"
-        onclick="trocarAbaFinanceiro('${k}')">${c.emoji} ${esc(c.titulo)}</button>`).join('')}
-  </div>
+  el.innerHTML = `${abasFinHTML()}
   <div class="card" style="margin-bottom:12px">
+    ${cfg.sub?`<div class="pt-nota" style="margin:0 0 10px">${esc(cfg.sub)}</div>`:''}
     <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:10px">
-      <div class="fg" style="margin:0"><label class="fl">Mês</label>
-        <input class="fi" type="month" value="${esc(_finMes)}" onchange="trocarMesFinanceiro(this.value)"></div>
+      ${seletorMesHTML()}
       <button class="addbtn" onclick="novoFinLancamento()">+ Novo lançamento</button>
-      <button class="backbtn" onclick="duplicarMesAnteriorFin()">📋 Duplicar mês anterior</button>
+      ${cfg.duplicar||cfg.antigo?`<button class="backbtn" onclick="duplicarMesAnteriorFin()">${cfg.duplicar||'📋 Duplicar mês anterior'}</button>`:''}
     </div>
     ${resumoFinHTML(cfg)}
     ${_finLista.length ? `<div style="overflow-x:auto"><table class="fin-tabela">
-      <thead><tr>${cfg.colunas.map(k=>`<th>${esc(FIN_COLUNA_LABEL[k]||k)}</th>`).join('')}</tr></thead>
+      <thead><tr>${cfg.colunas.map(k=>`<th>${esc(FIN_COLUNA_LABEL[k]??k)}</th>`).join('')}</tr></thead>
       <tbody>${_finLista.map(r=>`<tr onclick="editarFinLancamento('${esc(r.id)}')">
         ${cfg.colunas.map(k=>`<td>${celulaFin(r,k)}</td>`).join('')}
       </tr>`).join('')}</tbody>
-    </table></div>` : `<div class="pt-nota" style="margin:0">Nada lançado neste mês ainda. (Debug: ${_finTotal} lançamento(s) no total nesta aba, sem filtro de mês.)</div>`}
+    </table></div>` : `<div class="pt-nota" style="margin:0">Nada lançado neste mês ainda.${cfg.duplicar?' Use “'+esc(cfg.duplicar.replace(/^\S+\s/,''))+'” para trazer os alunos do mês anterior.':''}</div>`}
   </div>
   <div id="finForm"></div>`;
 }
@@ -3229,19 +3324,23 @@ function novoFinLancamento(existente) {
   const r = existente || {};
   const f = document.getElementById('finForm');
   if(!f) return;
+  // Sugestões dos campos de texto (aluno, plano, paciente, profissional) com
+  // o que já foi lançado, para o nome sair igual e somar certo nos repasses
+  const sugestoes = k => [...new Set(_finTodos.map(x=>String(x[k]||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
   f.innerHTML = `<div class="evo-form">
     <div class="hist-tit" style="margin-bottom:10px">${existente?'✏️ Editar lançamento':'+ Novo lançamento'} — ${esc(cfg.titulo)}</div>
     ${cfg.campos.map(c=>{
-      const v = r[c.k]!==undefined ? r[c.k] : (c.padrao||'');
+      const v = r[c.k]!==undefined ? r[c.k] : (c.padraoHoje ? hojeISO() : (c.padrao||''));
       if(c.tipo==='select') return `<div class="fg"><label class="fl">${esc(c.label)}</label>
         <select class="fs" id="fin_${c.k}">${c.opcoes.map(o=>
           `<option value="${esc(o)}"${String(v)===o?' selected':''}>${o||'—'}</option>`).join('')}</select></div>`;
       if(c.tipo==='numero') return `<div class="fg"><label class="fl">${esc(c.label)}</label>
-        <input class="fi" id="fin_${c.k}" type="number" step="0.01" value="${esc(v)}"></div>`;
+        <input class="fi" id="fin_${c.k}" type="number" step="0.01" inputmode="decimal" value="${esc(v)}"></div>`;
       if(c.tipo==='data') return `<div class="fg"><label class="fl">${esc(c.label)}</label>
         <input class="fi" id="fin_${c.k}" type="date" value="${esc(String(v||'').slice(0,10))}"></div>`;
-      return `<div class="fg"><label class="fl">${esc(c.label)}</label>
-        <input class="fi" id="fin_${c.k}" value="${esc(v)}" placeholder="${esc(c.placeholder||'')}"></div>`;
+      return `<div class="fg"><label class="fl">${esc(c.label)}${c.obrigatorio?' *':''}</label>
+        <input class="fi" id="fin_${c.k}" value="${esc(v)}" placeholder="${esc(c.placeholder||'')}"${c.lista?` list="finLista_${c.k}"`:''}>
+        ${c.lista?`<datalist id="finLista_${c.k}">${sugestoes(c.k).map(s=>`<option value="${esc(s)}">`).join('')}</datalist>`:''}</div>`;
     }).join('')}
     <div id="finErr" class="errbox"></div>
     <div style="display:flex;gap:8px;margin-top:10px">
@@ -3252,6 +3351,9 @@ function novoFinLancamento(existente) {
     ${existente?`<button class="savebtn" style="background:var(--rose);margin-top:8px"
       onclick="excluirFinLancamento('${esc(r.id)}')">🗑 Excluir lançamento</button>`:''}
   </div>`;
+  // Marcou "pago" sem data: a data de pagamento vira hoje, que é o caso comum
+  const pg = document.getElementById('fin_pago'), dp = document.getElementById('fin_data_pagamento');
+  if(pg && dp) pg.addEventListener('change',()=>{ if(pg.value==='Sim' && !dp.value) dp.value = hojeISO(); });
   f.scrollIntoView({behavior:'smooth', block:'nearest'});
 }
 
@@ -3272,7 +3374,9 @@ async function salvarFinLancamento(id) {
     err.textContent = 'Informe '+obrig.label.toLowerCase()+'.'; err.style.display='block'; return;
   }
   err.style.display='none';
-  if(!id) dados.mes = _finMes;
+  // Em Serviços o mês é o da data do atendimento; nas outras, o mês aberto na tela
+  if(_finAba==='servicos' && dados.data) dados.mes = dados.data.slice(0,7);
+  else if(!id) dados.mes = _finMes;
 
   btn.disabled=true; btn.textContent='Salvando...';
   const res = id
@@ -3299,26 +3403,181 @@ async function excluirFinLancamento(id) {
 // Resolve a repetição mensal de nome/valor/plano sem precisar de um cadastro
 // separado de aluno/paciente: copia os lançamentos do mês anterior, zerando
 // só o que muda todo mês (pago, data de pagamento e, em Terapias, o realizado).
+// No Pilates só vêm os alunos ativos - quem saiu não gera mensalidade.
 async function duplicarMesAnteriorFin() {
   const cfg = FIN_CONFIG[_finAba];
   const mesAnt = mesAnteriorISO(_finMes);
   const resTudo = await api('listar',{tabela:cfg.tabela});
-  const dadosAnt = resTudo.ok ? (resTudo.dados||[]).filter(r=>String(r.mes||'')===mesAnt) : [];
-  if(!dadosAnt.length) { showToast('Nada para duplicar de '+mesAnt,'err'); return; }
-  if(_finLista.length && !confirm('Este mês já tem '+_finLista.length+' lançamento(s). Duplicar mesmo assim?')) return;
-  if(!confirm('Duplicar '+dadosAnt.length+' lançamento(s) de '+mesAnt+' para '+_finMes+'?')) return;
+  let dadosAnt = resTudo.ok ? (resTudo.dados||[]).filter(r=>String(r.mes||'')===mesAnt) : [];
+  if(_finAba==='pilates') dadosAnt = dadosAnt.filter(r=>String(r.status||'Ativo')!=='Inativo');
+  if(!dadosAnt.length) { showToast('Nada para trazer de '+mesAnt,'err'); return; }
+  // Quem já está no mês não entra de novo
+  const ja = new Set(_finLista.map(r=>String(r.nome||r.parceiro||'').trim().toLowerCase()));
+  const novos = dadosAnt.filter(r=>!ja.has(String(r.nome||r.parceiro||'').trim().toLowerCase()));
+  if(!novos.length) { showToast('Todos de '+mesAnt+' já estão neste mês','ok'); return; }
+  if(!confirm('Trazer '+novos.length+' lançamento(s) de '+mesAnt+' para '+_finMes+'?')) return;
 
-  for(const r of dadosAnt) {
+  for(const r of novos) {
     const dados = {};
     cfg.campos.forEach(c=>{ dados[c.k] = r[c.k]||''; });
     dados.pago = 'Não';
     dados.data_pagamento = '';
+    if(dados.forma_pagamento!==undefined) dados.forma_pagamento = '';
     if(_finAba==='terapias') dados.sessoes_realizadas = dados.faturamento_real = '';
     dados.mes = _finMes;
     await api('salvar',{tabela:cfg.tabela, dados});
   }
   await loadFinanceiro();
-  showToast('✅ Duplicado','ok');
+  showToast('✅ '+novos.length+' trazido(s) de '+mesAnt,'ok');
+}
+
+// ── REPASSES ──────────────────────────────────────
+// Calculado a partir do que já foi lançado: sessões de Serviços, mensalidades
+// do Pilates e os turnos das instrutoras (aba FinanceiroJornadas). Nada aqui é
+// digitado à mão, exceto os turnos - por isso o valor nunca diverge do lançado.
+let _repDados = null;
+
+async function loadRepasses() {
+  const el = document.getElementById('finBody');
+  const [pil, ser, jor] = await Promise.all([
+    api('listar',{tabela:'financeiro_pilates'}),
+    api('listar',{tabela:'financeiro_servicos'}),
+    api('listar',{tabela:'financeiro_jornadas'}),
+  ]);
+  const falha = [pil,ser,jor].find(r=>!r.ok);
+  if(falha) {
+    el.innerHTML = abasFinHTML()+`<div class="card" style="color:var(--rose)">Não foi possível carregar: ${esc(falha.erro||'')}</div>`;
+    return;
+  }
+  _repDados = {pilates:pil.dados||[], servicos:ser.dados||[], jornadas:jor.dados||[]};
+  desenharRepasses();
+}
+
+function calcularRepasses(D, mes) {
+  const chave = s => String(s||'').trim().toLowerCase();
+  const pessoas = {};   // por profissional: {nome, itens:[{t,v}]}
+  const somar = (nome, t, v) => {
+    const k = chave(nome) || '(sem nome)';
+    const p = pessoas[k] = pessoas[k] || {nome: String(nome||'').trim() || 'Sem profissional informado', itens:[], total:0};
+    p.itens.push({t, v}); p.total += v;
+  };
+  const ser = D.servicos.filter(r=>String(r.mes||'')===mes);
+
+  // Sessões atendidas no mês, por profissional e serviço
+  const porProfServ = {};
+  ser.forEach(r=>{
+    const valor = REPASSE.porSessao[r.servico];
+    if(valor==null) return;
+    const k = chave(r.profissional)+'|'+r.servico;
+    const g = porProfServ[k] = porProfServ[k] || {nome:r.profissional, servico:r.servico, sessoes:0};
+    g.sessoes += numDe(r.sessoes)||1;
+  });
+  Object.values(porProfServ).forEach(g=>{
+    const valor = REPASSE.porSessao[g.servico];
+    const unid = g.servico==='Fisioterapia' ? (g.sessoes===1?'hora':'horas') : (g.sessoes===1?'sessão':'sessões');
+    somar(g.nome, `${g.servico}: ${g.sessoes} ${unid} × ${fmtMoeda(valor)}`, g.sessoes*valor);
+  });
+
+  // Turnos de 4 h das instrutoras de Pilates
+  const jor = D.jornadas.filter(r=>String(r.mes||'')===mes);
+  const turnos = {};
+  jor.forEach(r=>{ const k=chave(r.profissional); const g=turnos[k]=turnos[k]||{nome:r.profissional,n:0}; g.n += numDe(r.quantidade)||1; });
+  Object.values(turnos).forEach(g=>somar(g.nome, `Pilates: ${g.n} ${g.n===1?'turno':'turnos'} de 4 h × ${fmtMoeda(REPASSE.turnoPilates)}`, g.n*REPASSE.turnoPilates));
+
+  // Coordenações
+  const pilPrev = D.pilates.filter(r=>String(r.mes||'')===mes && String(r.status||'Ativo')!=='Inativo')
+    .reduce((s,r)=>s+numDe(r.valor_plano),0);
+  const fisioCaixa = D.servicos.filter(r=>REPASSE.coordFisioServicos.includes(r.servico) && ehPago(r) && mesDoCaixa(r)===mes)
+    .reduce((s,r)=>s+numDe(r.valor),0);
+  const sessoesTO = ser.filter(r=>REPASSE.coordTOServicos.includes(r.servico)).reduce((s,r)=>s+(numDe(r.sessoes)||1),0);
+  const coord = [
+    {nome:'Coordenação do Pilates', t:`${Math.round(REPASSE.coordPilatesPct*100)}% de ${fmtMoeda(pilPrev)} (mensalidades previstas)`, v:pilPrev*REPASSE.coordPilatesPct},
+    {nome:'Coordenação da Fisioterapia', t:`(${fmtMoeda(fisioCaixa)} recebidos − ${fmtMoeda(REPASSE.coordFisioBase)}) ÷ 2${fisioCaixa<=REPASSE.coordFisioBase?' · abaixo da base, sem repasse':''}`, v:Math.max(0,(fisioCaixa-REPASSE.coordFisioBase)/2)},
+    {nome:'Coordenação da TO', t:`${sessoesTO} ${sessoesTO===1?'sessão':'sessões'} de TO infantil × ${fmtMoeda(REPASSE.coordTOPorSessao)}`, v:sessoesTO*REPASSE.coordTOPorSessao},
+  ];
+
+  // Para o resultado do mês: o que entrou no caixa
+  const entrouPil = D.pilates.filter(r=>ehPago(r) && mesDoCaixa(r)===mes).reduce((s,r)=>s+numDe(r.valor_plano),0);
+  const entrouSer = D.servicos.filter(r=>ehPago(r) && mesDoCaixa(r)===mes).reduce((s,r)=>s+numDe(r.valor),0);
+  const lista = Object.values(pessoas).sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
+  const totalRep = lista.reduce((s,p)=>s+p.total,0) + coord.reduce((s,c)=>s+c.v,0);
+  return {lista, coord, jor, totalRep, entrouPil, entrouSer};
+}
+
+// Nome e valor na mesma linha e a conta embaixo: em tabela, no celular,
+// o valor a pagar - que é o que importa - ficava cortado na lateral
+function repLinhaHTML(nome, contas, valor) {
+  return `<div style="padding:10px 0;border-top:1px solid var(--bor)">
+    <div style="display:flex;justify-content:space-between;gap:10px;align-items:baseline">
+      <strong>${esc(nome)}</strong><strong style="white-space:nowrap">${fmtMoeda(valor)}</strong></div>
+    ${contas.map(t=>`<div style="font-size:12.5px;color:var(--ink3);margin-top:2px">${esc(t)}</div>`).join('')}
+  </div>`;
+}
+
+function desenharRepasses() {
+  const el = document.getElementById('finBody');
+  if(!el || !_repDados) return;
+  const R = calcularRepasses(_repDados, _finMes);
+  const entrou = R.entrouPil + R.entrouSer;
+  const sugestoes = [...new Set([..._repDados.jornadas, ..._repDados.servicos].map(x=>String(x.profissional||'').trim()).filter(Boolean))].sort();
+  el.innerHTML = `${abasFinHTML()}
+  <div class="card" style="margin-bottom:12px">
+    <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:10px">${seletorMesHTML()}</div>
+    <div class="mc-meta" style="margin-bottom:12px">
+      <span>Entrou no caixa <strong style="color:var(--teal)">${fmtMoeda(entrou)}</strong></span>
+      <span>Repasses <strong>${fmtMoeda(R.totalRep)}</strong></span>
+      <span>Sobra antes das despesas <strong style="color:${entrou-R.totalRep<0?'var(--rose)':'var(--ink)'}">${fmtMoeda(entrou-R.totalRep)}</strong></span>
+    </div>
+    <div class="pt-nota" style="margin:0 0 12px">Calculado com o que foi lançado em Pilates, Serviços e nos turnos abaixo.
+      Fisioterapia: cada sessão conta como 1 hora.</div>
+
+    <div class="hist-tit" style="margin:4px 0 8px">Equipe</div>
+    ${R.lista.length ? R.lista.map(p=>repLinhaHTML(p.nome, p.itens.map(it=>it.t), p.total)).join('')
+      : `<div class="pt-nota" style="margin:0">Nenhuma sessão ou turno lançado neste mês.</div>`}
+
+    <div class="hist-tit" style="margin:16px 0 8px">Coordenações</div>
+    ${R.coord.map(c=>repLinhaHTML(c.nome, [c.t], c.v)).join('')}
+  </div>
+
+  <div class="card" style="margin-bottom:12px">
+    <div class="hist-tit" style="margin-bottom:6px">🧘 Turnos das instrutoras de Pilates</div>
+    <div class="pt-nota" style="margin:0 0 10px">Cada turno de 4 horas no dia vale ${fmtMoeda(REPASSE.turnoPilates)}.</div>
+    <div class="f2" style="align-items:flex-end">
+      <div class="fg"><label class="fl">Data</label><input class="fi" type="date" id="jorData" value="${esc(_finMes===mesAtualISO()?hojeISO():_finMes+'-01')}"></div>
+      <div class="fg"><label class="fl">Instrutora</label><input class="fi" id="jorProf" list="jorProfs">
+        <datalist id="jorProfs">${sugestoes.map(s=>`<option value="${esc(s)}">`).join('')}</datalist></div>
+      <div class="fg"><label class="fl">Turnos de 4 h</label><input class="fi" type="number" id="jorQtd" value="1" min="1" step="1"></div>
+      <button class="addbtn" id="jorBtn" onclick="salvarJornada()">+ Lançar turno</button>
+    </div>
+    ${R.jor.length ? `<div style="overflow-x:auto;margin-top:10px"><table class="fin-tabela"><thead><tr><th>Data</th><th>Instrutora</th><th>Turnos</th><th></th></tr></thead><tbody>
+      ${R.jor.sort((a,b)=>String(a.data).localeCompare(String(b.data))).map(j=>`<tr style="cursor:default">
+        <td>${esc(fmtDataBR(String(j.data||'').slice(0,10)))}</td><td>${esc(j.profissional||'')}</td><td>${esc(j.quantidade||1)}</td>
+        <td style="text-align:right"><button class="backbtn" style="padding:4px 10px" onclick="excluirJornada('${esc(j.id)}')">🗑</button></td></tr>`).join('')}
+    </tbody></table></div>` : ''}
+  </div>`;
+}
+
+async function salvarJornada() {
+  const data = document.getElementById('jorData').value;
+  const prof = document.getElementById('jorProf').value.trim();
+  const qtd = numDe(document.getElementById('jorQtd').value)||1;
+  if(!data || !prof) { showToast('Informe a data e a instrutora','err'); return; }
+  const btn = document.getElementById('jorBtn');
+  btn.disabled = true;
+  const res = await api('salvar',{tabela:'financeiro_jornadas', dados:{data, profissional:prof, quantidade:qtd, tipo:'Turno Pilates 4h', mes:data.slice(0,7)}});
+  btn.disabled = false;
+  if(!res.ok) { showToast('Erro ao salvar: '+(res.erro||''),'err'); return; }
+  if(data.slice(0,7)!==_finMes) _finMes = data.slice(0,7);
+  await loadRepasses();
+  showToast('✅ Turno lançado','ok');
+}
+
+async function excluirJornada(id) {
+  if(!confirm('Excluir este turno?')) return;
+  const res = await api('deletar',{tabela:'financeiro_jornadas', id});
+  if(!res.ok) { showToast('Erro ao excluir: '+(res.erro||''),'err'); return; }
+  await loadRepasses();
+  showToast('🗑 Excluído','ok');
 }
 
 // ═══════════════════════════════════════════════
