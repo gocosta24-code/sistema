@@ -2025,6 +2025,18 @@ function meusExercicios(token) {
 }
 
 // --- CRUD -----------------------------------------------------
+// O Sheets converte sozinho o texto '2026-10' (mes do Financeiro) em data,
+// e o filtro por mes deixava de achar o lancamento - parecia que nao tinha
+// gravado. Gravamos com apostrofo, que mantem como texto, e na leitura
+// devolvemos 'aaaa-mm' mesmo para as linhas antigas, ja convertidas em data.
+function gravarCelula(v) {
+  return (typeof v === 'string' && /^\d{4}-\d{2}$/.test(v)) ? "'" + v : v;
+}
+function lerCelula(k, v) {
+  if (k === 'mes' && v instanceof Date) return Utilities.formatDate(v, Session.getScriptTimeZone(), 'yyyy-MM');
+  return v;
+}
+
 function listar(body, token) {
   const tabela = ABAS[body.tabela];
   if (!tabela) return {ok:false,erro:'Tabela inv\u00e1lida: '+body.tabela};
@@ -2034,7 +2046,7 @@ function listar(body, token) {
   if (dados.length<2) return {ok:true,dados:[]};
   const h = dados[0];
   let rows = dados.slice(1)
-    .map(row => { const o={}; h.forEach((k,i)=>o[k]=row[i]); return o; })
+    .map(row => { const o={}; h.forEach((k,i)=>o[k]=lerCelula(k,row[i])); return o; })
     .filter(r => r.id && r.id!=='');
 
   if (body.filtros) {
@@ -2133,7 +2145,7 @@ function salvar(body) {
     const v = body.dados[k];
     if (v===undefined||v===null) return '';
     if (Array.isArray(v)) return v.join(', ');
-    return v;
+    return gravarCelula(v);
   });
 
   sheet.appendRow(linha);
@@ -2162,7 +2174,7 @@ function atualizar(body) {
           col = h.length-1;
           sheet.getRange(1,col+1).setValue(k);
         }
-        const val = Array.isArray(v)?v.join(', '):(v===null?'':v);
+        const val = Array.isArray(v)?v.join(', '):(v===null?'':gravarCelula(v));
         sheet.getRange(i+1,col+1).setValue(val);
       });
       return {ok:true, id:body.id};

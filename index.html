@@ -3200,6 +3200,25 @@ function fmtMoeda(v) {
   if (v==='' || v==null) return '—';
   return numDe(v).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 }
+// O Sheets transforma '2026-10' e '2026-10-08' em data, e a leitura volta
+// como '2026-10-01T03:00:00.000Z'. Sem isto o filtro por mês não achava o
+// lançamento e parecia que nada tinha sido gravado. A data é lida no fuso
+// do aparelho, que é o mesmo da planilha.
+function textoDeData(v, tam) {
+  const s = String(v==null?'':v).trim();
+  if(!/^\d{4}-\d{2}-\d{2}T/.test(s)) return s.slice(0, tam);
+  const d = new Date(s);
+  if(isNaN(d)) return s;
+  const t = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  return t.slice(0, tam);
+}
+function normalizarFin(lista) {
+  return (lista||[]).map(r=>({...r,
+    mes: textoDeData(r.mes, 7),
+    data: r.data ? textoDeData(r.data, 10) : r.data,
+    data_pagamento: r.data_pagamento ? textoDeData(r.data_pagamento, 10) : r.data_pagamento,
+  }));
+}
 const ehPago = r => String(r.pago||'').toLowerCase()==='sim';
 // Mês em que o dinheiro entrou: a data de pagamento manda; sem ela, o mês do lançamento
 const mesDoCaixa = r => String(r.data_pagamento||'').slice(0,7) || String(r.mes||'');
@@ -3234,7 +3253,7 @@ async function loadFinanceiro() {
     el.innerHTML = `<div class="card" style="color:var(--rose)">Não foi possível carregar: ${esc(res.erro||'')}</div>`;
     return;
   }
-  _finTodos = res.dados||[];
+  _finTodos = normalizarFin(res.dados);
   _finLista = _finTodos.filter(r=>String(r.mes||'')===_finMes);
   if(_finAba==='servicos') _finLista.sort((a,b)=>String(a.data||'').localeCompare(String(b.data||'')));
   if(_finAba==='pilates') _finLista.sort((a,b)=>String(a.nome||'').localeCompare(String(b.nome||''),'pt-BR'));
@@ -3430,7 +3449,7 @@ async function duplicarMesAnteriorFin() {
   const cfg = FIN_CONFIG[_finAba];
   const mesAnt = mesAnteriorISO(_finMes);
   const resTudo = await api('listar',{tabela:cfg.tabela});
-  let dadosAnt = resTudo.ok ? (resTudo.dados||[]).filter(r=>String(r.mes||'')===mesAnt) : [];
+  let dadosAnt = resTudo.ok ? normalizarFin(resTudo.dados).filter(r=>String(r.mes||'')===mesAnt) : [];
   if(_finAba==='pilates') dadosAnt = dadosAnt.filter(r=>String(r.status||'Ativo')!=='Inativo');
   if(!dadosAnt.length) { showToast('Nada para trazer de '+mesAnt,'err'); return; }
   // Quem já está no mês não entra de novo
@@ -3471,7 +3490,7 @@ async function loadRepasses() {
     el.innerHTML = abasFinHTML()+`<div class="card" style="color:var(--rose)">Não foi possível carregar: ${esc(falha.erro||'')}</div>`;
     return;
   }
-  _repDados = {pilates:pil.dados||[], servicos:ser.dados||[], jornadas:jor.dados||[]};
+  _repDados = {pilates:normalizarFin(pil.dados), servicos:normalizarFin(ser.dados), jornadas:normalizarFin(jor.dados)};
   desenharRepasses();
 }
 
