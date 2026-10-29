@@ -1124,12 +1124,12 @@ function demoApi(action, body) {
         return {ok:true, id:body.id};
       }
       const email = String((body.dados||{}).email||'').trim().toLowerCase();
-      if(!email || email.indexOf('@')===-1) return {ok:false, erro:'Informe um e-mail válido'};
-      if((DEMO_DB.pacientes||[]).some(p=>(p.email||'').toLowerCase()===email))
+      if(!String((body.dados||{}).telefone||'').trim()) return {ok:false, erro:'Informe o telefone'};
+      if(email && (DEMO_DB.pacientes||[]).some(p=>(p.email||'').toLowerCase()===email))
         return {ok:false, erro:'Este e-mail já tem cadastro de paciente'};
       const id='ld_'+Date.now();
-      const pacId='pac_'+Date.now();
-      DEMO_DB.pacientes.push({id:pacId, nome:(body.dados||{}).nome, email,
+      const pacId=email ? 'pac_'+Date.now() : '';
+      if(email) DEMO_DB.pacientes.push({id:pacId, nome:(body.dados||{}).nome, email,
         telefone:(body.dados||{}).telefone||'', data_nascimento:(body.dados||{}).data_nascimento||'',
         linha:(body.dados||{}).linha||'', status:'Lead', acesso:'Liberado',
         criado_em:new Date().toISOString()});
@@ -3579,12 +3579,19 @@ function novoLead(existente) {
     <div class="f2">
       <div class="fg fa"><label class="fl">Nome *</label>
         <input class="fi" id="ndNome" value="${esc(l.nome)}" placeholder="Quem entrou em contato"></div>
-      <div class="fg"><label class="fl">Telefone / WhatsApp</label>
-        <input class="fi" id="ndTel" type="tel" value="${esc(l.telefone)}" placeholder="(11) 99999-9999"></div>
-      <div class="fg"><label class="fl">E-mail${existente?'':' *'}</label>
+      <div class="fg"><label class="fl">Telefone / WhatsApp *</label>
+        <input class="fi" id="ndTel" type="tel" inputmode="tel" value="${esc(l.telefone)}" placeholder="(11) 99999-9999"></div>
+    </div>
+    <!-- Cadastro rápido: nome e telefone bastam. O resto fica recolhido para
+         completar depois - aberto só na edição de quem já tem esses dados -->
+    <details id="ndMais" ${existente&&(l.email||l.origem||l.campanha||l.linha)?'open':''} style="margin-top:6px">
+      <summary style="cursor:pointer;font-weight:600;font-size:13px;color:var(--ink2);padding:8px 0">
+        Mais dados (opcional)</summary>
+    <div class="f2">
+      <div class="fg"><label class="fl">E-mail</label>
         <input class="fi" id="ndEmail" type="email" value="${esc(l.email)}"></div>
-      ${existente?'':`<div class="pt-nota fa" style="margin:-6px 0 0">É o que dá acesso ao portal do
-        paciente — orçamento e mensagens direto com a equipe, mesmo antes de virar cliente.</div>`}
+      ${existente?'':`<div class="pt-nota fa" style="margin:-6px 0 0">Com e-mail, a pessoa já recebe acesso ao portal
+        do paciente (orçamento e mensagens direto com a equipe). Sem e-mail, fica só no funil.</div>`}
       <div class="fg"><label class="fl">Data de nascimento</label>
         <input class="fi" id="ndNasc" type="date" value="${esc(String(l.data_nascimento||'').slice(0,10))}"></div>
       <div class="fg"><label class="fl">Primeiro contato</label>
@@ -3607,6 +3614,7 @@ function novoLead(existente) {
       <div class="fg fa"><label class="fl">Responsável pelo atendimento</label>
         <input class="fi" id="ndResp" value="${esc(l.responsavel||currentUser.nome)}"></div>
     </div>
+    </details>
     <div id="ndErr" class="errbox"></div>
     <div style="display:flex;gap:8px;margin-top:10px">
       <button class="savebtn" id="ndBtn" style="flex:1"
@@ -3632,8 +3640,9 @@ async function salvarLead(id) {
   const btn = document.getElementById('ndBtn');
   const v = k => (document.getElementById(k).value||'').trim();
   if(!v('ndNome')){ err.textContent='Informe o nome.'; err.style.display='block'; return; }
-  if(!id && (!v('ndEmail') || v('ndEmail').indexOf('@')===-1)) {
-    err.textContent='Informe um e-mail válido — é o que dá acesso ao portal.'; err.style.display='block'; return;
+  if(v('ndTel').replace(/\D/g,'').length < 8){ err.textContent='Informe o telefone.'; err.style.display='block'; return; }
+  if(v('ndEmail') && v('ndEmail').indexOf('@')===-1) {
+    err.textContent='Confira o e-mail, ou deixe em branco.'; err.style.display='block'; return;
   }
   err.style.display='none';
 
@@ -3649,7 +3658,7 @@ async function salvarLead(id) {
   btn.disabled=false; btn.textContent = id?'Salvar':'Cadastrar lead';
   if(!res.ok){ err.textContent='Erro: '+(res.erro||''); err.style.display='block'; return; }
   await loadLeads();
-  showToast(!id ? '✅ Lead cadastrado — link de acesso ao portal enviado por e-mail' : '✅ Salvo','ok');
+  showToast(id ? '✅ Salvo' : (res.paciente_id ? '✅ Lead cadastrado — link de acesso ao portal enviado por e-mail' : '✅ Lead cadastrado'),'ok');
 }
 
 // ═══════════════════════════════════════════════

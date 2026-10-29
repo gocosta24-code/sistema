@@ -1505,20 +1505,20 @@ function salvarLead(body, token) {
     return {ok:true, id: body.id};
   }
 
-  // Lead ja nasce com acesso ao portal (orcamento e mensagens direto com a
-  // equipe, sem depender so da recepcao) - por isso precisa de e-mail, que e
-  // o que entrega o acesso, e ja cria o cadastro em Pacientes com status
-  // 'Lead'. Ver criarPacienteLead().
+  // Cadastro rapido: nome e telefone bastam. Com e-mail, o lead ja nasce com
+  // acesso ao portal (orcamento e mensagens direto com a equipe) e ganha o
+  // cadastro em Pacientes com status 'Lead' - ver criarPacienteLead(). Sem
+  // e-mail fica so no funil, e a conversao aponta depois para um paciente.
+  if (!String(d.telefone||'').trim()) return {ok:false, erro:'Informe o telefone'};
   const email = String(d.email||'').trim().toLowerCase();
-  if (!email || email.indexOf('@') === -1) return {ok:false, erro:'Informe um e-mail válido'};
-  const outroPac = acharPacientePorEmail(email);
-  if (outroPac) return {ok:false, erro:'Este e-mail já tem cadastro de paciente'};
+  if (email && email.indexOf('@') === -1) return {ok:false, erro:'Confira o e-mail, ou deixe em branco'};
+  if (email && acharPacientePorEmail(email)) return {ok:false, erro:'Este e-mail já tem cadastro de paciente'};
 
-  const pacId = criarPacienteLead({
+  const pacId = email ? criarPacienteLead({
     nome: nome, email: email, telefone: d.telefone||'',
     data_nascimento: d.data_nascimento||'', linha: d.linha||'',
     criado_por: perfil.nome || perfil.email
-  });
+  }) : '';
 
   const id = 'ld_' + Date.now() + '_' + Math.floor(Math.random()*9999);
   const estagio = ESTAGIOS_LEAD.indexOf(d.estagio) !== -1 ? d.estagio : ESTAGIOS_LEAD[0];
@@ -1533,7 +1533,7 @@ function salvarLead(body, token) {
   sheet.appendRow(h.map(function(k){ return valores[k] === undefined ? '' : valores[k]; }));
   registrarInteracao(id, '', estagio, d.obs || 'Lead cadastrado', perfil.nome || perfil.email);
 
-  const convite = solicitarReset({email: email, tipo: 'paciente'});
+  const convite = email ? solicitarReset({email: email, tipo: 'paciente'}) : null;
   return {ok:true, id:id, paciente_id:pacId, convite_enviado: !!(convite && convite.ok)};
 }
 

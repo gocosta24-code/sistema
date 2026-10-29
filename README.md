@@ -123,6 +123,12 @@ estágios do sistema, e a tela monta as colunas com o que o servidor mandar.
 mexa no outro.) Renomear um estágio não apaga nada, mas os leads ficam no nome
 antigo até serem movidos.
 
+**Cadastro rápido:** só nome e telefone são obrigatórios; o resto (e-mail,
+origem, campanha, linha…) fica recolhido em *Mais dados (opcional)*. Com
+e-mail, o lead já nasce com acesso ao portal e cadastro em `Pacientes` com
+status `Lead`; sem e-mail, fica só no funil e a conversão aponta depois para um
+paciente existente.
+
 Perder um lead exige motivo (`MOTIVOS_PERDA`), senão o funil não ensina nada.
 Converter aponta o lead para um cadastro de paciente **que já existe** — não
 cria paciente, que é justamente o que se quer evitar.
