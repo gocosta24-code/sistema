@@ -52,6 +52,7 @@ const ABAS = {
   financeiro_pilates:   'FinanceiroPilates',
   financeiro_terapias:  'FinanceiroTerapias',
   financeiro_parceiros: 'FinanceiroParceiros',
+  mural:          'Mural',
   financeiro_servicos:  'FinanceiroServicos',
   financeiro_jornadas:  'FinanceiroJornadas',
 };
@@ -161,6 +162,28 @@ function handle(e) {
       }
     }
 
+    // Mural da equipe: autoria carimbada pelo login; boas-vindas e conquistas
+    // sao da gestao e da coordenacao; apagar, so quem escreveu ou a gestao.
+    if (body.tabela === 'mural' && ACOES_ESCRITA.indexOf(action) !== -1) {
+      const perfil = perfilDaEquipe(token);
+      if (!perfil) return resp({ok:false, erro:'Sem permiss\u00e3o'});
+      if (action === 'salvar') {
+        const d = body.dados || {};
+        const tipo = String(d.tipo||'recado');
+        if (MURAL_TIPOS.indexOf(tipo) === -1) return resp({ok:false, erro:'Tipo inv\u00e1lido'});
+        if (MURAL_SO_GESTAO.indexOf(tipo) !== -1 && perfil.role !== 'admin' && perfil.role !== 'coordenador')
+          return resp({ok:false, erro:'S\u00f3 gest\u00e3o e coordena\u00e7\u00e3o publicam esse tipo'});
+        if (!String(d.texto||'').trim()) return resp({ok:false, erro:'Escreva a mensagem'});
+        body.dados = {tipo: tipo, texto: String(d.texto).slice(0, 600), para: String(d.para||''),
+                      autor_email: perfil.email, autor_nome: perfil.nome, apoios: ''};
+      } else {
+        const reg = linhaPorId('Mural', body.id);
+        if (action === 'atualizar') return resp({ok:false, erro:'Publica\u00e7\u00f5es do mural n\u00e3o s\u00e3o editadas'});
+        if (reg && perfil.role !== 'admin' && String(reg.autor_email||'').toLowerCase() !== String(perfil.email).toLowerCase())
+          return resp({ok:false, erro:'S\u00f3 quem publicou ou a gest\u00e3o pode apagar'});
+      }
+    }
+
     // Autoria da evolucao carimbada pelo servidor, a partir do login: assim
     // ninguem assina com o nome ou o registro profissional de outra pessoa
     if (action === 'salvar' && body.tabela === 'evolucoes' && body.dados) {
@@ -228,6 +251,8 @@ function handle(e) {
       case 'status_evento':     return resp(statusEvento(body, token));
       case 'excluir_evento':    return resp(excluirEvento(body, token));
       case 'criar_agendas':     return resp(criarAgendas(token));
+      case 'equipe_hoje':       return resp(equipeHoje(token));
+      case 'apoiar_post':       return resp(apoiarPost(body, token));
       default:              return resp({ok:false, erro:'A\u00e7\u00e3o desconhecida: '+action});
     }
   } catch(err) {
@@ -2552,7 +2577,68 @@ function statusEvento(body, token) {
   const r = eventoComPermissao(body, token);
   if (r.erro) return {ok:false, erro:r.erro};
   r.ev.setTag('status', String(body.status||''));
-  return {ok:true, dados: eventoParaTela(r.ev, r.prof)};
+  let lancamento = '';
+  if (body.status === 'realizado') lancamento = lancarAtendimento(r.ev, r.prof);
+  else lancamento = retirarLancamento(r.ev);
+  return {ok:true, dados: eventoParaTela(r.ev, r.prof), lancamento: lancamento};
+}
+
+// Atendimento realizado vira uma linha em Financeiro > Servicos, que alimenta
+// o faturamento e os repasses: acaba a digitacao dupla. O id da linha fica
+// na tag fin_id do evento, entao marcar "realizado" de novo nao duplica.
+// Pilates fica de fora: e mensalidade, lancada na aba propria.
+function lancarAtendimento(ev, prof) {
+  const servico = String(ev.getTag('servico')||'');
+  if (/pilates/i.test(servico)) return 'pilates';
+  const atual = ev.getTag('fin_id');
+  if (atual && linhaPorId('FinanceiroServicos', atual)) return 'ja_lancado';
+  const pid = String(ev.getTag('paciente_id')||'');
+  const pac = pid ? mapaPacientes()[pid] : null;
+  const tz = Session.getScriptTimeZone();
+  const res = salvar({tabela:'financeiro_servicos', dados:{
+    data: Utilities.formatDate(ev.getStartTime(), tz, 'yyyy-MM-dd'),
+    mes: Utilities.formatDate(ev.getStartTime(), tz, 'yyyy-MM'),
+    paciente: pac ? pac.nome : ev.getTitle().split(' \u00b7 ')[0],
+    paciente_id: pid,
+    servico: servico,
+    profissional: prof.nome,
+    sessoes: 1,
+    valor: precoDoCatalogo(servico),
+    pago: 'N\u00e3o',
+    origem: 'agenda',
+    evento_id: ev.getId()
+  }});
+  if (res.ok) ev.setTag('fin_id', res.id);
+  return res.ok ? 'lancado' : '';
+}
+
+// Desmarcou o "realizado": a linha sai do financeiro, salvo se ja foi paga
+function retirarLancamento(ev) {
+  const id = ev.getTag('fin_id');
+  if (!id) return '';
+  const linha = linhaPorId('FinanceiroServicos', id);
+  if (linha && String(linha.pago||'').toLowerCase() === 'sim') return 'pago_mantido';
+  if (linha) deletar({tabela:'financeiro_servicos', id: id});
+  ev.setTag('fin_id', '');
+  return 'retirado';
+}
+
+// Valor do servico no Catalogo, quando e numero ("180,00"); senao, em branco
+function precoDoCatalogo(servico) {
+  const sheet = getSpreadsheet().getSheetByName('Catalogo');
+  if (!sheet || sheet.getLastRow() < 2 || !servico) return '';
+  const dados = sheet.getDataRange().getValues(), h = dados[0];
+  const iNome = h.indexOf('nome'), iValor = h.indexOf('valor');
+  if (iNome === -1 || iValor === -1) return '';
+  const alvo = String(servico).trim().toLowerCase();
+  for (let i=1;i<dados.length;i++) {
+    if (String(dados[i][iNome]||'').trim().toLowerCase() !== alvo) continue;
+    const v = dados[i][iValor];
+    if (typeof v === 'number') return v;
+    const n = Number(String(v||'').replace(/[^\d,.-]/g,'').replace(/\./g,'').replace(',','.'));
+    return isFinite(n) && n > 0 ? n : '';
+  }
+  return '';
 }
 
 function excluirEvento(body, token) {
@@ -2580,5 +2666,45 @@ function criarAgendas(token) {
     criadas.push(p.nome);
   });
   return {ok:true, criadas:criadas};
+}
+
+// --- NOSSA CASA (mural da equipe) --------------------------------
+const MURAL_TIPOS = ['agradecimento','recado','boas_vindas','conquista'];
+const MURAL_SO_GESTAO = ['boas_vindas','conquista'];
+
+// Apoiar (ou retirar o apoio) de uma publicacao: guarda os e-mails em 'apoios'
+function apoiarPost(body, token) {
+  const perfil = perfilDaEquipe(token);
+  if (!perfil) return {ok:false, erro:'Sem permissão'};
+  const sheet = getSpreadsheet().getSheetByName('Mural');
+  if (!sheet) return {ok:false, erro:'Publicação não encontrada'};
+  const dados = sheet.getDataRange().getValues(), h = dados[0];
+  const iId = h.indexOf('id'), iAp = h.indexOf('apoios');
+  if (iAp === -1) return {ok:false, erro:'Publicação não encontrada'};
+  const eu = String(perfil.email).toLowerCase();
+  for (let i=1;i<dados.length;i++) {
+    if (String(dados[i][iId]) !== String(body.id)) continue;
+    let lista = String(dados[i][iAp]||'').split(',').map(function(x){return x.trim();}).filter(Boolean);
+    lista = lista.indexOf(eu) === -1 ? lista.concat([eu]) : lista.filter(function(x){ return x !== eu; });
+    sheet.getRange(i+1, iAp+1).setValue(lista.join(','));
+    return {ok:true, apoios: lista.join(',')};
+  }
+  return {ok:false, erro:'Publicação não encontrada'};
+}
+
+// Quem atende hoje, para o "Na Casa hoje": so nomes, nunca pacientes ou
+// horarios - por isso qualquer pessoa da equipe pode ver, mesmo sem acesso
+// as agendas das colegas.
+function equipeHoje(token) {
+  const perfil = perfilDaEquipe(token);
+  if (!perfil) return {ok:false, erro:'Sem permissão'};
+  const ini = new Date(); ini.setHours(0,0,0,0);
+  const fim = new Date(ini.getTime() + 86400000);
+  const nomes = [];
+  equipeComAgenda().forEach(function(p) {
+    const cal = agendaDe(p);
+    if (cal && cal.getEvents(ini, fim).some(function(ev){ return !ev.isAllDayEvent(); })) nomes.push(p.nome);
+  });
+  return {ok:true, dados:nomes};
 }
 

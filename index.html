@@ -481,6 +481,35 @@ input,select,textarea{outline:none;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 .toast.ok{background:var(--teal);}
 .toast.err{background:var(--rose);}
+/* Nossa Casa */
+.ico{flex:none;vertical-align:-0.2em}
+.avt{display:inline-flex;align-items:center;justify-content:center;border-radius:50%;font-weight:700;flex:none;letter-spacing:.02em}
+.avt-pilha{display:flex}.avt-pilha .avt{border:2px solid var(--casa-fundo,#446F27);margin-left:-9px}.avt-pilha .avt:first-child{margin-left:0}
+.casa-topo{background:#446F27;color:#fff;border-radius:22px;padding:22px 20px;margin-bottom:14px;position:relative;overflow:hidden;--casa-fundo:#446F27}
+.casa-topo::after{content:"";position:absolute;right:-26px;top:-18px;width:150px;height:200px;background:url('logo-simbolo.png') no-repeat center/contain;opacity:.14;pointer-events:none}
+.casa-k{font-size:13px;color:#E4EDDC}
+.casa-t{font-family:'Fraunces',serif;font-size:28px;font-weight:600;line-height:1.15;margin-top:4px;max-width:85%}
+.casa-lema{font-family:'Fraunces',serif;font-style:italic;color:#F7B865;font-size:16px;margin-top:8px}
+.casa-hoje{display:flex;align-items:center;gap:10px;margin-top:14px;font-size:13px}
+.sec-tit{font-size:15px;font-weight:700;margin:18px 2px 10px}
+.casa-post{margin-bottom:10px}
+.casa-post-ag{background:#EEF3E7;border-color:#DCE6D2}
+.casa-post-ag .avt{background:#fff!important}
+.casa-post-k{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.casa-post-q{font-size:14px;margin-top:2px}
+.casa-post-txt{font-size:14.5px;line-height:1.5;margin-top:4px;white-space:pre-wrap;word-break:break-word}
+.casa-citacao{font-family:'Fraunces',serif;font-style:italic;color:#3B6322;font-size:15.5px}
+.casa-post-rod{display:flex;align-items:center;gap:12px;margin-top:10px;font-size:12.5px;color:var(--ink2)}
+.casa-apoio{display:inline-flex;align-items:center;gap:6px;min-height:34px;padding:0 12px;border-radius:999px;border:1px solid var(--bor);background:var(--sur);color:var(--ink2);font:600 12.5px 'DM Sans',sans-serif;cursor:pointer;transition:transform .15s,background .15s}
+.casa-apoio:active{transform:scale(.95)}
+.casa-apoio.on{background:#FDEFE3;border-color:#F7B865;color:#A64B0B}
+.casa-apoio.on .ico{fill:currentColor}
+.casa-apagar{background:none;border:0;color:var(--ink3);font:500 12px 'DM Sans',sans-serif;cursor:pointer;margin-left:auto;padding:8px 0}
+.casa-grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
+.casa-linha{margin:0}
+.casa-linha-t{font-size:13px;font-weight:700;margin-bottom:8px}
+.casa-pessoa{display:flex;gap:10px;align-items:center;padding:6px 0}
+.casa-sub{font-size:12px;color:var(--ink2)}
 </style>
 </head>
 <body>
@@ -653,6 +682,7 @@ input,select,textarea{outline:none;}
     <div id="pgTarefas"   class="page"></div>
     <div id="pgFinanceiro" class="page"></div>
     <div id="pgAgenda" class="page"></div>
+    <div id="pgCasa" class="page"></div>
     <div id="pgLeads"     class="page"></div>
     <div id="pgEspera"    class="page"></div>
     <div id="pgProgramas" class="page"></div>
@@ -815,7 +845,7 @@ const DEMO_DB = {
   profissionais: [
     {id:'prof_admin',  nome:'Dra. Ana Paula', email:'clinicaoliveira20@gmail.com', funcao:'Gestora/Sócia',      nivel_acesso:'admin',       linhas:'Todos',   status:'Ativo'},
     {id:'prof_2',      nome:'TO Juliana',      email:'juliana@casaoliveira.com',    funcao:'Terapeuta Ocup.',    nivel_acesso:'coordenador', linhas:'infantil,geriatria', status:'Ativo'},
-    {id:'prof_3',      nome:'Dr. Carlos',      email:'carlos@casaoliveira.com',     funcao:'Fisioterapeuta Sênior', nivel_acesso:'profissional', linhas:'mulher,reabilitacao', status:'Ativo'},
+    {id:'prof_3',      nome:'Dr. Carlos',      email:'carlos@casaoliveira.com',     funcao:'Fisioterapeuta Sênior', nivel_acesso:'profissional', linhas:'mulher,reabilitacao', status:'Ativo', data_nascimento:new Date().getFullYear()-38+'-'+String(new Date().getMonth()+1).padStart(2,'0')+'-18'},
     {id:'prof_4',      nome:'Dra. Paula',      email:'paula@casaoliveira.com',      funcao:'Fisioterapeuta',     nivel_acesso:'profissional', linhas:'pilates,reabilitacao', status:'Ativo'},
     {id:'prof_5',      nome:'Dr. Paulo',       email:'paulo@casaoliveira.com',      funcao:'Fisioterapeuta', registro:'CREFITO 32519-F', nivel_acesso:'profissional', linhas:'reabilitacao', status:'Ativo'},
     {id:'prof_6',      nome:'TO Marcia',       email:'marcia@casaoliveira.com',     funcao:'Terapeuta Ocup.',    nivel_acesso:'profissional', linhas:'geriatria', status:'Ativo'},
@@ -824,6 +854,11 @@ const DEMO_DB = {
   ],
   checklists: [],
   evolucoes: [],
+  mural: [
+    {id:'mu1', tipo:'boas_vindas', texto:'A Lívia chega hoje para a TO infantil. Passe na sala 2 para dar um oi!', para:'', autor_email:'clinicaoliveira20@gmail.com', autor_nome:'Dra. Ana Paula', apoios:'juliana@casaoliveira.com,carlos@casaoliveira.com', criado_em:new Date(Date.now()-2*3600e3).toISOString()},
+    {id:'mu2', tipo:'agradecimento', texto:'Obrigada por cobrir minha sessão de ontem com tanto cuidado.', para:'Dr. Carlos', autor_email:'juliana@casaoliveira.com', autor_nome:'TO Juliana', apoios:'clinicaoliveira20@gmail.com', criado_em:new Date(Date.now()-26*3600e3).toISOString()},
+    {id:'mu3', tipo:'conquista', texto:'A linha Infantil fechou o mês com todas as evoluções em dia.', para:'', autor_email:'juliana@casaoliveira.com', autor_nome:'TO Juliana', apoios:'', criado_em:new Date(Date.now()-3*86400e3).toISOString()},
+  ],
   documentos: [
     {id:'d1', paciente_id:'p4', nome:'Orçamento 1-2026 - Antônio Silva.pdf', tipo:'application/pdf',
      categoria:'Orçamento', tamanho:181627, visivel_paciente:'Sim',
@@ -1177,6 +1212,21 @@ function demoApi(action, body) {
       demoLog(body.id, de, 'Virou Paciente', 'Vinculado ao cadastro de '+pac.nome);
       return {ok:true, id:body.id, paciente_id:pac.id, paciente_nome:pac.nome};
     }
+    case 'equipe_hoje': {
+      // Como no Code.gs: todas as agendas, só os nomes (sem pacientes)
+      demoAgenda('listar_agenda',{de:new Date().toISOString(), ate:new Date(Date.now()+1).toISOString()});
+      const hoje = diaISO(new Date());
+      const emails = new Set((DEMO_DB.agenda||[]).filter(e=>diaISO(new Date(e.inicio))===hoje).map(e=>e.agenda_email));
+      return {ok:true, dados:(DEMO_DB.profissionais||[]).filter(p=>emails.has(p.email)).map(p=>p.nome)};
+    }
+    case 'apoiar_post': {
+      const post=(DEMO_DB.mural||[]).find(x=>String(x.id)===String(body.id));
+      if(!post) return {ok:false, erro:'Publicação não encontrada'};
+      const eu=(currentUser.email||'').toLowerCase();
+      let l=String(post.apoios||'').split(',').filter(Boolean);
+      l = l.includes(eu) ? l.filter(x=>x!==eu) : l.concat([eu]);
+      post.apoios=l.join(','); return {ok:true, apoios:post.apoios};
+    }
     case 'listar_agenda': case 'salvar_evento': case 'status_evento':
     case 'excluir_evento': case 'criar_agendas':
       return demoAgenda(action, body);
@@ -1382,7 +1432,26 @@ function demoAgenda(action, body) {
   }
   const e = DEMO_DB.agenda.find(x=>x.id===body.evento_id && x.agenda_email===prof.email);
   if(!e) return {ok:false, erro:'Atendimento não encontrado na agenda'};
-  if(action==='status_evento') { e.status = body.status||''; return {ok:true, dados:comNome(e)}; }
+  if(action==='status_evento') {
+    e.status = body.status||'';
+    // Mesmo comportamento do Code.gs (lancarAtendimento / retirarLancamento)
+    const fin = DEMO_DB.financeiro_servicos = DEMO_DB.financeiro_servicos||[];
+    let lancamento = '';
+    const atual = fin.find(x=>x.id===e.fin_id);
+    if(e.status==='realizado' && !/pilates/i.test(e.servico||'')) {
+      if(!atual) {
+        const pac=(DEMO_DB.pacientes||[]).find(p=>p.id===e.paciente_id)||{};
+        const id='fin_'+Date.now(); const dia=diaISO(new Date(e.inicio));
+        fin.push({id, data:dia, mes:dia.slice(0,7), paciente:pac.nome||e.titulo.split(' · ')[0], paciente_id:e.paciente_id,
+                  servico:e.servico, profissional:prof.nome, sessoes:1, valor:'', pago:'Não', origem:'agenda'});
+        e.fin_id=id; lancamento='lancado';
+      }
+    } else if(atual) {
+      if(String(atual.pago).toLowerCase()==='sim') lancamento='pago_mantido';
+      else { DEMO_DB.financeiro_servicos = fin.filter(x=>x!==atual); e.fin_id=''; lancamento='retirado'; }
+    }
+    return {ok:true, dados:comNome(e), lancamento};
+  }
   DEMO_DB.agenda = DEMO_DB.agenda.filter(x=>x!==e);
   return {ok:true};
 }
@@ -1550,10 +1619,56 @@ const FUNCOES = [
 // `barra:false` fica de fora da barra do celular e vive no menu lateral e no
 // menu do avatar. Com Leads seriam oito ícones espremidos num telefone; no
 // desktop a lateral continua mostrando tudo.
+// ═══════════════════════════════════════════════
+// ÍCONES — traço fino, uma família só (no lugar dos emojis)
+// Desenhados aqui para não depender de internet. Herdam a cor do texto.
+// ═══════════════════════════════════════════════
+const ICONES = {
+  casa:       '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/>',
+  agenda:     '<rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/>',
+  folha:      '<path d="M5 19c0-8 5-14 14-14 0 9-6 14-14 14z"/><path d="M5 19l7-7"/>',
+  mensagem:   '<path d="M4 5h16v11H9l-5 4z"/>',
+  megafone:   '<path d="M3 10v4h3l7 4V6L6 10z"/><path d="M16.5 9a4 4 0 0 1 0 6"/>',
+  grade:      '<rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/>',
+  tarefa:     '<rect x="3.5" y="3.5" width="17" height="17" rx="3"/><path d="M8 12.5l3 3 5.5-6"/>',
+  carteira:   '<rect x="3" y="6" width="18" height="14" rx="2.5"/><path d="M3 10h18M16 15h2"/>',
+  relogio:    '<circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/>',
+  equipe:     '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.4 3.4-5.5 6.5-5.5s5.7 2.1 6.5 5.5"/><path d="M16 4.6a3.3 3.3 0 0 1 0 6.6M18.5 14.8c1.6.8 2.7 2.6 3 5.2"/>',
+  sino:       '<path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/>',
+  coracao:    '<path d="M12 20s-7.5-4.6-7.5-10A4.3 4.3 0 0 1 12 7.3 4.3 4.3 0 0 1 19.5 10c0 5.4-7.5 10-7.5 10z"/>',
+  camadas:    '<path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/>',
+  movimento:  '<circle cx="13" cy="4.5" r="2"/><path d="M8 21l3-6 3 2v4M6 11l3-3h4l3 3 2-1"/><path d="M11 15l-1-5"/>',
+  regua:      '<path d="M3 17L17 3l4 4L7 21z"/><path d="M7 13l2 2M10 10l2 2M13 7l2 2"/>',
+  crianca:    '<circle cx="12" cy="6" r="3"/><path d="M7 21v-6l-2-3 4-2h6l4 2-2 3v6"/>',
+  predio:     '<path d="M4 21V5l8-2v18M12 8h8v13"/><path d="M7 8h2M7 12h2M7 16h2M15 12h2M15 16h2"/>',
+  importar:   '<path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 17v3h16v-3"/>',
+  chave:      '<circle cx="8" cy="15" r="4"/><path d="M11 12l8-8M16 7l2 2M14 9l2 2"/>',
+  sair:       '<path d="M9 4H5v16h4"/><path d="M16 8l4 4-4 4M20 12H9"/>',
+  menu:       '<path d="M4 7h16M4 12h16M4 17h16"/>',
+  mais:       '<path d="M12 5v14M5 12h14"/>',
+  fechar:     '<path d="M6 6l12 12M18 6L6 18"/>',
+  cadeado:    '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+  lapis:      '<path d="M4 20l4-1L19 8l-3-3L5 16z"/>',
+  impressora: '<path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/>',
+  voltar:     '<path d="M15 6l-6 6 6 6"/>',
+  seguir:     '<path d="M9 6l6 6-6 6"/>',
+  check:      '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+  alerta:     '<path d="M12 3l9.5 17h-19z"/><path d="M12 10v4M12 17.5v.5"/>',
+  documento:  '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/>',
+  clipe:      '<path d="M20 11.5l-8 8a5 5 0 0 1-7-7l8.5-8.5a3.3 3.3 0 0 1 4.7 4.7L9.7 17.2a1.7 1.7 0 0 1-2.4-2.4L15 7"/>',
+  alvo:       '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2"/>',
+  lupa:       '<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>',
+  cadeira:    '<path d="M7 3v9h10V3M5 12h14M7 12v9M17 12v9"/>',
+};
+function icone(nome, tam) {
+  const t = tam || 20;
+  return `<svg class="ico" aria-hidden="true" width="${t}" height="${t}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${ICONES[nome]||ICONES.folha}</svg>`;
+}
+
 const NAVS = {
-  admin:        [{id:'home',icon:'🏠',label:'Início'},{id:'agenda',icon:'📅',label:'Agenda'},{id:'linhas',icon:'🩺',label:'Linhas'},{id:'mensagens',icon:'💬',label:'Mensagens',num:true},{id:'leads',icon:'📣',label:'Leads'},{id:'servicos',icon:'🗂️',label:'Serviços',barra:false},{id:'tarefas',icon:'🧰',label:'Tarefas',barra:false},{id:'financeiro',icon:'💰',label:'Financeiro',barra:false},{id:'espera',icon:'🪑',label:'Espera',barra:false},{id:'equipe',icon:'👥',label:'Equipe',barra:false},{id:'alertas',icon:'🔔',label:'Alertas',badge:true}],
-  coordenador:  [{id:'home',icon:'🏠',label:'Início'},{id:'agenda',icon:'📅',label:'Agenda'},{id:'linhas',icon:'🩺',label:'Pacientes'},{id:'mensagens',icon:'💬',label:'Mensagens',num:true},{id:'leads',icon:'📣',label:'Leads'},{id:'servicos',icon:'🗂️',label:'Serviços',barra:false},{id:'tarefas',icon:'🧰',label:'Tarefas',barra:false},{id:'espera',icon:'🪑',label:'Espera',barra:false},{id:'alertas',icon:'🔔',label:'Alertas',badge:true}],
-  profissional: [{id:'home',icon:'🏠',label:'Hoje'},{id:'agenda',icon:'📅',label:'Agenda'},{id:'linhas',icon:'🩺',label:'Meus Pcts'},{id:'mensagens',icon:'💬',label:'Mensagens',num:true},{id:'servicos',icon:'🗂️',label:'Serviços',barra:false},{id:'alertas',icon:'🔔',label:'Pendências',badge:true}],
+  admin:        [{id:'home',icon:'🏠',label:'Início'},{id:'agenda',icon:'📅',label:'Agenda'},{id:'linhas',icon:'🩺',label:'Linhas'},{id:'casa',icon:'💚',label:'Nossa Casa',barra:false},{id:'mensagens',icon:'💬',label:'Mensagens',num:true},{id:'leads',icon:'📣',label:'Leads'},{id:'servicos',icon:'🗂️',label:'Serviços',barra:false},{id:'tarefas',icon:'🧰',label:'Tarefas',barra:false},{id:'financeiro',icon:'💰',label:'Financeiro',barra:false},{id:'espera',icon:'🪑',label:'Espera',barra:false},{id:'equipe',icon:'👥',label:'Cadastro da equipe',barra:false},{id:'alertas',icon:'🔔',label:'Alertas',badge:true}],
+  coordenador:  [{id:'home',icon:'🏠',label:'Início'},{id:'agenda',icon:'📅',label:'Agenda'},{id:'casa',icon:'💚',label:'Nossa Casa',barra:false},{id:'linhas',icon:'🩺',label:'Pacientes'},{id:'mensagens',icon:'💬',label:'Mensagens',num:true},{id:'leads',icon:'📣',label:'Leads'},{id:'servicos',icon:'🗂️',label:'Serviços',barra:false},{id:'tarefas',icon:'🧰',label:'Tarefas',barra:false},{id:'espera',icon:'🪑',label:'Espera',barra:false},{id:'alertas',icon:'🔔',label:'Alertas',badge:true}],
+  profissional: [{id:'home',icon:'🏠',label:'Hoje'},{id:'agenda',icon:'📅',label:'Agenda'},{id:'linhas',icon:'🩺',label:'Meus Pcts'},{id:'casa',icon:'💚',label:'Nossa Casa'},{id:'mensagens',icon:'💬',label:'Mensagens',num:true},{id:'servicos',icon:'🗂️',label:'Serviços',barra:false},{id:'alertas',icon:'🔔',label:'Pendências',badge:true}],
 };
 
 // Recepção é função, não nível de acesso: quem atende o telefone entra como
@@ -1684,11 +1799,11 @@ let _activePage = '';
 function loadPage(id) {
   _activePage = id;
   marcarAtivo(id);
-  const map={agenda:'pgAgenda',home:'pgHome',linhas:'pgLinhas',equipe:'pgEquipe',alertas:'pgAlertas',mensagens:'pgMensagens',servicos:'pgServicos',tarefas:'pgTarefas',financeiro:'pgFinanceiro',leads:'pgLeads',espera:'pgEspera',programas:'pgProgramas',biblioteca:'pgBiblioteca'};
+  const map={casa:'pgCasa',agenda:'pgAgenda',home:'pgHome',linhas:'pgLinhas',equipe:'pgEquipe',alertas:'pgAlertas',mensagens:'pgMensagens',servicos:'pgServicos',tarefas:'pgTarefas',financeiro:'pgFinanceiro',leads:'pgLeads',espera:'pgEspera',programas:'pgProgramas',biblioteca:'pgBiblioteca'};
   document.querySelectorAll('.page').forEach(e=>{e.classList.remove('active');e.innerHTML='';});
   const el = document.getElementById(map[id]);
   if(!el) return;
-  const renders={agenda:renderAgenda,home:renderHome,linhas:renderLinhas,equipe:renderEquipe,alertas:renderAlertas,mensagens:renderMensagensCentral,servicos:renderServicos,tarefas:renderTarefas,financeiro:renderFinanceiro,leads:renderLeads,espera:renderEspera,programas:renderProgramas,biblioteca:renderBiblioteca};
+  const renders={casa:renderCasa,agenda:renderAgenda,home:renderHome,linhas:renderLinhas,equipe:renderEquipe,alertas:renderAlertas,mensagens:renderMensagensCentral,servicos:renderServicos,tarefas:renderTarefas,financeiro:renderFinanceiro,leads:renderLeads,espera:renderEspera,programas:renderProgramas,biblioteca:renderBiblioteca};
   if(renders[id]){el.innerHTML=renders[id]();el.classList.add('active');}
 }
 
@@ -3888,6 +4003,9 @@ async function statusAtendimento(agendaEmail, eventoId, status) {
   const e = _ag.eventos.find(x=>x.id===eventoId && x.agenda_email===agendaEmail);
   if(e) e.status = status;
   desenharAgenda();
+  const aviso = {lancado:'Lançado em Financeiro › Serviços', retirado:'Lançamento retirado do Financeiro',
+                 pago_mantido:'O lançamento já estava pago e continua no Financeiro'}[res.lancamento];
+  if(aviso) showToast(aviso,'ok');
 }
 
 async function cancelarAtendimento(agendaEmail, eventoId) {
@@ -3907,6 +4025,186 @@ async function criarAgendasEquipe() {
   if(!res.ok) { showToast('Erro: '+(res.erro||''),'err'); if(btn){btn.disabled=false;btn.textContent='Criar agendas';} return; }
   await loadAgenda();
   showToast('✅ '+(res.criadas||[]).length+' agenda(s) criada(s). Falta compartilhar cada uma no Google Agenda.','ok');
+}
+
+// ═══════════════════════════════════════════════
+// NOSSA CASA — a equipe vista por ela mesma
+// Mural (agradecimentos, recados, boas-vindas, conquistas), quem atende hoje,
+// aniversariantes e quem é quem por linha. Feito para criar pertencimento:
+// é a única tela em que a protagonista é a equipe, não o paciente.
+// ═══════════════════════════════════════════════
+let _casa = {posts:[], equipe:[], hoje:[]};
+
+const MURAL_TIPO = {
+  agradecimento: {t:'Agradecimento', cor:'var(--teal)'},
+  recado:        {t:'Recado',        cor:'var(--ink2)'},
+  boas_vindas:   {t:'Boas-vindas',   cor:'var(--amber)'},
+  conquista:     {t:'Conquista da Casa', cor:'var(--amber)'},
+};
+
+function iniciais(nome) {
+  const p = String(nome||'').replace(/^(dra?\.|to)\s+/i,'').trim().split(/\s+/).filter(Boolean);
+  return ((p[0]||'?').charAt(0) + (p.length>1 ? p[p.length-1].charAt(0) : (p[0]||'').charAt(1)||'')).toUpperCase();
+}
+// Cor estável por pessoa, sempre dentro da paleta da marca
+function corAvatar(nome) {
+  const cores = [['#EEF3E7','#3B6322'],['#FDEFE3','#A64B0B'],['#FEF5E7','#7A5313'],['#F2EBDF','#2B2A20']];
+  let h = 0; String(nome||'').split('').forEach(c=>{ h = (h*31 + c.charCodeAt(0)) >>> 0; });
+  return cores[h % cores.length];
+}
+function avatarHTML(nome, tam) {
+  const [bg, fg] = corAvatar(nome); const t = tam||36;
+  return `<span class="avt" style="width:${t}px;height:${t}px;background:${bg};color:${fg};font-size:${Math.round(t*0.34)}px" title="${esc(nome)}">${esc(iniciais(nome))}</span>`;
+}
+function quandoFoi(iso) {
+  const d = new Date(iso); if(isNaN(d)) return '';
+  const min = Math.round((Date.now()-d)/60000);
+  if(min < 1) return 'agora';
+  if(min < 60) return 'há '+min+' min';
+  if(min < 1440) return 'há '+Math.round(min/60)+' h';
+  if(min < 2880) return 'ontem';
+  return d.toLocaleDateString('pt-BR',{day:'numeric',month:'short'});
+}
+
+function renderCasa() {
+  return `<div id="casaBody">${loadingHTML()}</div>`;
+}
+
+async function loadCasa() {
+  const el = document.getElementById('casaBody');
+  if(!el) return;
+  const [posts, profs, hoje] = await Promise.all([
+    api('listar',{tabela:'mural'}),
+    api('listar_profs',{}),
+    api('equipe_hoje',{}),
+  ]);
+  _casa = {
+    posts: (posts.ok ? posts.dados||[] : []).sort((a,b)=>String(b.criado_em||'').localeCompare(String(a.criado_em||''))).slice(0,40),
+    equipe: profs.ok ? (profs.dados||[]).filter(p=>p.nome) : [],
+    hoje: hoje.ok ? hoje.dados||[] : [],
+  };
+  if(profs.ok) _profsCache = profs.dados||[];
+  desenharCasa();
+}
+
+function desenharCasa() {
+  const el = document.getElementById('casaBody');
+  if(!el) return;
+  const {posts, equipe, hoje} = _casa;
+  const gestao = currentRole==='admin' || currentRole==='coordenador';
+  const mes = new Date().getMonth();
+  const aniversarios = equipe.filter(p=>{ const d = String(p.data_nascimento||'').slice(0,10); return /^\d{4}-\d{2}-\d{2}$/.test(d) && Number(d.slice(5,7))-1===mes; })
+    .sort((a,b)=>String(a.data_nascimento).slice(8,10).localeCompare(String(b.data_nascimento).slice(8,10)));
+
+  // Quem é quem: cada pessoa entra nas linhas em que atua
+  const porLinha = Object.entries(LINHAS).map(([k,c])=>({k, c, gente: equipe.filter(p=>
+    String(p.linhas||'').toLowerCase().split(',').map(x=>x.trim()).includes(k))})).filter(x=>x.gente.length);
+  const semLinha = equipe.filter(p=>!String(p.linhas||'').trim() || /todos/i.test(String(p.linhas)));
+
+  el.innerHTML = `
+  <div class="casa-topo">
+    <div class="casa-k">Nossa Casa</div>
+    <div class="casa-t">${equipe.length} ${equipe.length===1?'pessoa cuidando':'pessoas cuidando juntas'}</div>
+    <div class="casa-lema">Não é clínica, é Casa.</div>
+    ${hoje.length ? `<div class="casa-hoje">
+      <div class="avt-pilha">${hoje.slice(0,6).map(n=>avatarHTML(n,34)).join('')}</div>
+      <span>${hoje.length===1?esc(hoje[0])+' atende hoje':hoje.length+' na Casa hoje'}</span></div>` : ''}
+  </div>
+
+  <div class="card" style="margin-bottom:12px">
+    <div class="card-title" style="margin-bottom:10px">Publicar no mural</div>
+    <div class="f2">
+      <div class="fg"><label class="fl">Tipo</label>
+        <select class="fs" id="muTipo" onchange="document.getElementById('muParaBox').style.display=this.value==='agradecimento'?'block':'none'">
+          <option value="agradecimento">Agradecer alguém</option>
+          <option value="recado">Recado para a equipe</option>
+          ${gestao?`<option value="boas_vindas">Boas-vindas</option><option value="conquista">Conquista da Casa</option>`:''}
+        </select></div>
+      <div class="fg" id="muParaBox"><label class="fl">Para quem</label>
+        <select class="fs" id="muPara">${equipe.filter(p=>(p.email||'').toLowerCase()!==(currentUser.email||'').toLowerCase())
+          .map(p=>`<option value="${esc(p.nome)}">${esc(p.nome)}</option>`).join('')}</select></div>
+      <div class="fg fa"><label class="fl">Mensagem</label>
+        <textarea class="ft" id="muTexto" maxlength="600" style="min-height:70px" placeholder="Ex.: obrigada por cobrir minha sessão com tanto cuidado"></textarea></div>
+    </div>
+    <div id="muErr" class="errbox"></div>
+    <button class="savebtn" id="muBtn" onclick="publicarMural()">Publicar</button>
+  </div>
+
+  <div class="sec-tit">Mural</div>
+  ${posts.length ? posts.map(postHTML).join('') : `<div class="card" style="color:var(--ink3);text-align:center">Ainda não há publicações. Que tal começar agradecendo alguém?</div>`}
+
+  ${aniversarios.length ? `<div class="sec-tit">Aniversariantes do mês</div>
+  <div class="card">${aniversarios.map(p=>`<div class="casa-pessoa">${avatarHTML(p.nome,36)}
+    <div><strong>${esc(p.nome)}</strong><div class="casa-sub">dia ${esc(String(p.data_nascimento).slice(8,10))}</div></div></div>`).join('')}</div>` : ''}
+
+  <div class="sec-tit">Quem é quem</div>
+  <div class="casa-grade">
+    ${porLinha.map(({c, gente})=>`<div class="card casa-linha">
+      <div class="casa-linha-t">${esc(c.label)}</div>
+      ${gente.map(p=>`<div class="casa-pessoa">${avatarHTML(p.nome,32)}
+        <div style="min-width:0"><strong>${esc(p.nome)}</strong>
+        <div class="casa-sub">${esc(p.funcao||'')}${p.nivel_acesso==='coordenador'?' · coordenação':''}</div></div></div>`).join('')}
+    </div>`).join('')}
+    ${semLinha.length ? `<div class="card casa-linha"><div class="casa-linha-t">Gestão e apoio</div>
+      ${semLinha.map(p=>`<div class="casa-pessoa">${avatarHTML(p.nome,32)}
+        <div style="min-width:0"><strong>${esc(p.nome)}</strong><div class="casa-sub">${esc(p.funcao||'')}</div></div></div>`).join('')}</div>` : ''}
+  </div>`;
+}
+
+function postHTML(p) {
+  const tipo = MURAL_TIPO[p.tipo] || MURAL_TIPO.recado;
+  const apoios = String(p.apoios||'').split(',').filter(Boolean);
+  const apoiei = apoios.includes((currentUser.email||'').toLowerCase());
+  const meu = (p.autor_email||'').toLowerCase()===(currentUser.email||'').toLowerCase();
+  return `<div class="card casa-post${p.tipo==='agradecimento'?' casa-post-ag':''}">
+    <div style="display:flex;gap:12px">
+      ${avatarHTML(p.autor_nome, 38)}
+      <div style="flex:1;min-width:0">
+        <div class="casa-post-k" style="color:${tipo.cor}">${tipo.t}</div>
+        <div class="casa-post-q">${p.tipo==='agradecimento'?`<strong>${esc(p.autor_nome)}</strong> agradeceu <strong>${esc(p.para)}</strong>`:`<strong>${esc(p.autor_nome)}</strong>`}</div>
+        <div class="casa-post-txt${p.tipo==='agradecimento'?' casa-citacao':''}">${esc(p.texto)}</div>
+        <div class="casa-post-rod">
+          <button class="casa-apoio${apoiei?' on':''}" onclick="apoiarPost('${esc(p.id)}')" aria-pressed="${apoiei}">
+            ${icone('coracao',15)} ${apoios.length?apoios.length:''} ${apoiei?'Você apoiou':'Apoiar'}</button>
+          <span>${esc(quandoFoi(p.criado_em))}</span>
+          ${meu||currentRole==='admin'?`<button class="casa-apagar" onclick="apagarPost('${esc(p.id)}')">Apagar</button>`:''}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+async function publicarMural() {
+  const tipo = document.getElementById('muTipo').value;
+  const texto = document.getElementById('muTexto').value.trim();
+  const para = tipo==='agradecimento' ? (document.getElementById('muPara').value||'') : '';
+  const err = document.getElementById('muErr'), btn = document.getElementById('muBtn');
+  if(!texto){ err.textContent='Escreva a mensagem.'; err.style.display='block'; return; }
+  if(tipo==='agradecimento' && !para){ err.textContent='Escolha para quem é o agradecimento.'; err.style.display='block'; return; }
+  err.style.display='none';
+  btn.disabled = true; btn.textContent = 'Publicando...';
+  // Autoria é carimbada de novo pelo servidor; aqui serve ao modo demonstração
+  const res = await api('salvar',{tabela:'mural', dados:{tipo, texto, para, autor_email:currentUser.email, autor_nome:currentUser.nome, apoios:''}});
+  btn.disabled = false; btn.textContent = 'Publicar';
+  if(!res.ok){ err.textContent = res.erro||'Não foi possível publicar.'; err.style.display='block'; return; }
+  await loadCasa();
+  showToast('Publicado no mural','ok');
+}
+
+async function apoiarPost(id) {
+  const res = await api('apoiar_post',{id});
+  if(!res.ok){ showToast('Erro: '+(res.erro||''),'err'); return; }
+  const p = _casa.posts.find(x=>String(x.id)===String(id));
+  if(p) p.apoios = res.apoios;
+  desenharCasa();
+}
+
+async function apagarPost(id) {
+  if(!confirm('Apagar esta publicação do mural?')) return;
+  const res = await api('deletar',{tabela:'mural', id});
+  if(!res.ok){ showToast('Erro: '+(res.erro||''),'err'); return; }
+  _casa.posts = _casa.posts.filter(x=>String(x.id)!==String(id));
+  desenharCasa();
 }
 
 // ═══════════════════════════════════════════════
@@ -7582,6 +7880,7 @@ const _afterRender = {
   tarefas: ()=>setTimeout(loadTarefas,50),
   financeiro: ()=>setTimeout(loadFinanceiro,50),
   agenda: ()=>setTimeout(loadAgenda,50),
+  casa: ()=>setTimeout(loadCasa,50),
   leads: ()=>setTimeout(loadLeads,50),
   espera: ()=>setTimeout(loadEspera,50),
   programas: ()=>setTimeout(loadProgramas,50),

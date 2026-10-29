@@ -96,6 +96,22 @@ oferece abrir o prontuário para registrar a evolução.
 código novo rode uma função qualquer no editor (ex.: `equipeComAgenda`) e
 aceite a permissão de acesso às agendas com a conta da clínica.
 
+### Nossa Casa (mural da equipe)
+
+Tela aberta a toda a equipe, para pertencimento: **mural** (aba `Mural`) com
+agradecimentos entre colegas, recados, boas-vindas e conquistas da Casa;
+**Na Casa hoje** (quem tem atendimento hoje, só nomes — ação `equipe_hoje`);
+aniversariantes do mês (coluna `data_nascimento` em `Profissionais`, se
+existir) e **quem é quem** por linha. A autoria é carimbada pelo servidor;
+boas-vindas e conquistas são da gestão e da coordenação; apagar, só quem
+publicou ou a gestão; publicações não são editadas. *Apoiar* guarda os e-mails
+em `apoios`. A antiga página Equipe virou **Cadastro da equipe**.
+
+Atendimento marcado como **realizado** na Agenda vira uma linha em
+Financeiro › Serviços (`origem: agenda`, valor do Catálogo quando é número), e
+o id fica na tag `fin_id` do evento para não duplicar. Desmarcar retira a linha,
+salvo se já foi paga. Pilates fica de fora (é mensalidade).
+
 ### Mensagens
 
 A aba `Mensagens` guarda a conversa de cada paciente com a clínica e alimenta a
