@@ -95,7 +95,7 @@ function handle(e) {
     // de outra pessoa.
     const ACOES_PACIENTE = ['logout','meu_prontuario','minha_posicao','alterar_senha_paciente',
                             'meus_documentos','baixar_documento','minhas_mensagens','enviar_mensagem',
-                            'meus_exercicios'];
+                            'meus_exercicios','meus_resultados'];
     if (SEM_LOGIN.indexOf(action) === -1) {
       const info = getInfoToken(token);
       const ehPaciente = info && info.role === 'paciente';
@@ -151,6 +151,7 @@ function handle(e) {
       case 'meu_prontuario':  return resp(meuProntuario(token));
       case 'minha_posicao':   return resp(minhaPosicao(token));
       case 'alterar_senha_paciente': return resp(alterarSenhaPaciente(body, token));
+      case 'meus_resultados': return resp(meusResultados(token));
       case 'listar':        return resp(listar(body));
       case 'salvar':        return resp(salvar(body));
       case 'atualizar':     return resp(atualizar(body));
@@ -636,6 +637,65 @@ function meuProntuario(token) {
     plano_atualizado_em: p.plano_atualizado_em || '',
     orientacoes: p.orientacoes_paciente || '',
     proximo_contato: p.proximo_contato || '',
+  }};
+}
+
+// Resultados da avaliacao fisica (avaliacao/) para o painel do paciente.
+// So sai o que a profissional publicou: a publicacao e um registro
+// type 'publicado' nas evolucoes, e vale tudo o que foi medido ate a data
+// dele. Medida feita depois fica de fora ate a proxima publicacao - assim
+// ninguem ve um teste antes de a profissional conferir.
+function meusResultados(token) {
+  const info = getInfoToken(token);
+  if (!info || info.role !== 'paciente' || !info.refId) return {ok:false, erro:'Sess\u00e3o inv\u00e1lida'};
+
+  const achado = acharPacientePorId(info.refId);
+  if (!achado) return {ok:false, erro:'Cadastro n\u00e3o encontrado'};
+
+  const sheet = getSpreadsheet().getSheetByName('Evolucoes');
+  if (!sheet || sheet.getLastRow() < 2) return {ok:true, dados:null};
+  const dados = sheet.getDataRange().getValues();
+  const h = dados[0];
+  const iPac = h.indexOf('paciente_id'), iOrig = h.indexOf('origem'), iSen = h.indexOf('sensor');
+  if (iPac === -1 || iSen === -1) return {ok:true, dados:null};
+
+  const regs = [];
+  for (let i=1;i<dados.length;i++) {
+    if (String(dados[i][iPac]) !== String(info.refId)) continue;
+    if (iOrig >= 0 && String(dados[i][iOrig]) !== 'sensor') continue;
+    try { const r = JSON.parse(dados[i][iSen]); if (r && r.type && r.date) regs.push(r); } catch(e) {}
+  }
+  regs.sort(function(a,b){ return String(a.date).localeCompare(String(b.date)); });
+
+  const pubs = regs.filter(function(r){ return r.type === 'publicado'; });
+  if (!pubs.length) return {ok:true, dados:null};
+  const pub = pubs[pubs.length-1];
+  if (pub.retirado) return {ok:true, dados:null};
+
+  const ate = String(pub.date);
+  const ate_ = regs.filter(function(r){ return String(r.date) <= ate; });
+  const perfis = ate_.filter(function(r){ return r.type === 'perfil'; });
+  // autor_email e obs ficam de fora: o painel nao precisa deles
+  const medidas = ate_.filter(function(r){ return r.type !== 'perfil' && r.type !== 'publicado'; })
+    .map(function(r){ const o = {}; Object.keys(r).forEach(function(k){ if (k !== 'autor_email' && k !== 'obs') o[k] = r[k]; }); return o; });
+
+  const p = achado.obj;
+  // A celula pode vir como Date (planilha) ou como texto 'aaaa-mm-dd'
+  let nasc = null;
+  if (p.data_nascimento) {
+    try { nasc = p.data_nascimento instanceof Date
+      ? Utilities.formatDate(p.data_nascimento, Session.getScriptTimeZone(), 'yyyy-MM-dd')
+      : String(p.data_nascimento).slice(0,10); } catch(e) {}
+  }
+  return {ok:true, dados:{
+    nome: p.nome,
+    nasc: nasc,
+    perfil: perfis.length ? perfis[perfis.length-1] : null,
+    registros: medidas,
+    publicado_em: pub.date,
+    avaliador: pub.aval || '',
+    registro_prof: pub.reg || '',
+    mensagem: pub.msg || ''
   }};
 }
 

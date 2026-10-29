@@ -1083,6 +1083,10 @@ function demoApi(action, body) {
       if(i>=0) DEMO_DB.documentos.splice(i,1);
       return {ok:true};
     }
+    case 'meus_resultados': {
+      // O painel de exemplo (avaliacao/?painel=demo) traz os próprios dados fictícios
+      return {ok:true, dados:{publicado_em:'2026-10-09'}};
+    }
     case 'meus_documentos': {
       const lista=(DEMO_DB.documentos||[]).filter(d=>String(d.paciente_id)===String(_demoPacienteId)
         && !String(d.visivel_paciente||'Sim').toLowerCase().startsWith('n'));
@@ -1990,8 +1994,9 @@ function areaPacienteHTML(p, idxAba) {
         Bom para pessoa idosa ou quem prefere anotar no papel.</div>
 
       <div class="pt-nota" style="margin-top:12px;padding-top:10px;border-top:1px solid var(--bor)">
-        Quem tem acesso vê apenas o plano e as orientações acima — nunca o checklist,
-        o PTS interno ou as evoluções.</div>
+        Quem tem acesso vê apenas o plano e as orientações acima e, quando publicados
+        na Avaliação física, os resultados dos testes — nunca o checklist, o PTS
+        interno ou as evoluções.</div>
     </div>`:''}`;
 }
 
@@ -2278,13 +2283,18 @@ async function abrirPortal() {
     </div>
     <div class="pt-corpo">${loadingHTML()}</div>`;
 
-  const [pront, fila, docs, msgs, exers] = await Promise.all([
+  // A Avaliação física (avaliacao/?painel=paciente) usa esta mesma sessão e
+  // precisa saber qual implantação do Apps Script está em uso
+  if(!demoMode) localStorage.setItem('co_api_ativa', API_URL);
+  const [pront, fila, docs, msgs, exers, resul] = await Promise.all([
     api('meu_prontuario',{}),
     api('minha_posicao',{}),
     api('meus_documentos',{}),
     api('minhas_mensagens',{}),
     api('meus_exercicios',{}),
+    api('meus_resultados',{}),
   ]);
+  const _pacResul = resul && resul.ok ? resul.dados : null;
   _pacDocs = docs.ok ? (docs.dados||[]) : [];
   _pacMsgs = msgs.ok ? (msgs.dados||[]) : [];
   _pacExer = exers.ok ? exers.dados : null;
@@ -2342,6 +2352,14 @@ async function abrirPortal() {
       ${cfg.label?`<div class="pt-linha"><span>Área</span><strong>${esc(cfg.label)}</strong></div>`:''}
       ${d.servicos?`<div class="pt-linha"><span>Serviços</span><strong>${esc(d.servicos)}</strong></div>`:''}
       ${d.proximo_contato?`<div class="pt-linha"><span>Próximo contato</span><strong>${esc(fmtDataBR(d.proximo_contato))}</strong></div>`:''}
+    </div>` : ''}
+
+    ${!ehLead && _pacResul ? `<div class="pt-card">
+      <div class="pt-t">📊 Meus resultados</div>
+      <div class="pt-p">Veja como você foi em cada teste da avaliação física, comparado com pessoas da sua idade e com as suas avaliações anteriores.</div>
+      ${_pacResul.publicado_em?`<div class="pt-nota">Atualizado em ${esc(fmtDataBR(String(_pacResul.publicado_em).slice(0,10)))}</div>`:''}
+      <button class="savebtn" style="margin-top:12px"
+        onclick="location.href='avaliacao/?painel=${demoMode?'demo':'paciente'}'">Abrir meu painel →</button>
     </div>` : ''}
 
     ${!ehLead && d.plano ? `<div class="pt-card">

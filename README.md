@@ -49,6 +49,30 @@ coordenação vê as linhas listadas na coluna `linhas` da aba `Profissionais` �
 **com a coluna vazia (ou `Todos`), a coordenação vê tudo**, como no resto do
 sistema.
 
+### Painel de resultados do paciente
+
+O paciente vê os testes da Avaliação física num painel de celular, um cartão
+por teste: nota, faixa em cores, variação desde a avaliação escolhida e, ao
+tocar, a explicação e a evolução. O relatório em papel continua sendo o
+documento para o médico.
+
+- **Onde mora:** dentro de `avaliacao/index.html`, para usar as mesmas normas
+  por idade e sexo do relatório. `avaliacao/?painel=paciente` abre só o painel,
+  com a sessão do paciente (`co_pac_token`); `avaliacao/?painel=demo` mostra um
+  exemplo com dados fictícios.
+- **Publicar:** na aba Relatório, *Painel do paciente (celular)* abre a prévia.
+  *Publicar para o paciente* grava nas `Evolucoes` um registro `type:'publicado'`
+  (avaliadora, registro, recado). O paciente vê **só as medidas até a data da
+  última publicação**: teste novo fica de fora até publicar de novo, para a
+  profissional conferir antes. *Retirar da área* grava um `publicado` com
+  `retirado:true`.
+- **Backend:** a ação `meus_resultados` (só paciente) devolve essas medidas, sem
+  `autor_email` nem `obs`. Na área do paciente, o cartão 📊 *Meus resultados* só
+  aparece quando há publicação.
+- **Índice físico-funcional:** média dos percentis dos testes com referência
+  publicada para idade e sexo (força de preensão, TUG, velocidade de marcha,
+  sentar e levantar em 30 s). 50 é exatamente o esperado para a idade.
+
 ### Serviços
 
 A tela 🗂️ **Serviços** lista o que a clínica oferece, agrupado por linha de
