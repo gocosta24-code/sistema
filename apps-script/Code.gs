@@ -223,6 +223,11 @@ function handle(e) {
       case 'salvar_config':     return resp(salvarConfigClinica(body, token));
       case 'gerar_orcamento':   return resp(gerarOrcamento(body, token));
       case 'meus_exercicios':   return resp(meusExercicios(token));
+      case 'listar_agenda':     return resp(listarAgenda(body, token));
+      case 'salvar_evento':     return resp(salvarEvento(body, token));
+      case 'status_evento':     return resp(statusEvento(body, token));
+      case 'excluir_evento':    return resp(excluirEvento(body, token));
+      case 'criar_agendas':     return resp(criarAgendas(token));
       default:              return resp({ok:false, erro:'A\u00e7\u00e3o desconhecida: '+action});
     }
   } catch(err) {
@@ -2380,3 +2385,200 @@ function migrarSenhasParaHash() {
   Logger.log('\u2705 ' + n + ' senha(s) convertida(s) para hash.');
   SpreadsheetApp.flush();
 }
+
+// --- AGENDA (Google Agenda) -------------------------------------
+// Uma agenda do Google por profissional, guardada na coluna agenda_id da aba
+// Profissionais. O ideal e a agenda ser da conta da clinica (botao "Criar
+// agendas") e compartilhada com a profissional: se ela sai, a agenda fica.
+// Quem ve o que e decidido aqui, como no prontuario:
+//   gestao e recepcao: todas; coordenacao: as profissionais das linhas dela
+//   (coluna linhas vazia = todas); profissional: so a propria.
+// O evento guarda paciente_id, servico e status em tags do Google Agenda,
+// que nao aparecem para o paciente nem no titulo.
+
+function equipeComAgenda() {
+  const sheet = getOuCria(getSpreadsheet(), 'Profissionais');
+  const dados = sheet.getDataRange().getValues();
+  if (dados.length < 2) return [];
+  const h = dados[0];
+  const col = function(n){ return h.indexOf(n); };
+  const lista = [];
+  for (let i=1;i<dados.length;i++) {
+    const r = dados[i];
+    const email = String(r[col('email')]||'').trim().toLowerCase();
+    if (!email) continue;
+    if (col('status') !== -1 && String(r[col('status')]||'Ativo').toLowerCase() === 'inativo') continue;
+    lista.push({
+      email: email,
+      nome: String(r[col('nome')]||''),
+      funcao: col('funcao') === -1 ? '' : String(r[col('funcao')]||''),
+      linhas: col('linhas') === -1 ? [] : String(r[col('linhas')]||'').toLowerCase().split(',').map(function(x){return x.trim();}).filter(Boolean),
+      agenda_id: col('agenda_id') === -1 ? '' : String(r[col('agenda_id')]||'').trim(),
+      linhaPlanilha: i+1
+    });
+  }
+  // Recepcao e administrativo nao atendem: nao tem agenda de atendimento
+  return lista.filter(function(p){ return !ehRecepcao(p) && !ehAdministracao(p); });
+}
+
+function veTodasAgendas(perfil) {
+  return perfil.role === 'admin' || ehRecepcao(perfil);
+}
+
+function agendasVisiveis(perfil) {
+  const equipe = equipeComAgenda();
+  const eu = String(perfil.email||'').toLowerCase();
+  if (veTodasAgendas(perfil)) return equipe;
+  if (perfil.role === 'coordenador') {
+    if (!perfil.linhas.length || perfil.linhas.indexOf('todos') !== -1) return equipe;
+    return equipe.filter(function(p) {
+      return p.email === eu || p.linhas.some(function(l){ return perfil.linhas.indexOf(l) !== -1; });
+    });
+  }
+  return equipe.filter(function(p){ return p.email === eu; });
+}
+
+function agendaDe(prof) {
+  if (!prof || !prof.agenda_id) return null;
+  try { return CalendarApp.getCalendarById(prof.agenda_id); } catch(e) { return null; }
+}
+
+function eventoParaTela(ev, prof) {
+  return {
+    id: ev.getId(),
+    agenda_email: prof.email,
+    profissional: prof.nome,
+    titulo: ev.getTitle(),
+    inicio: ev.getStartTime().toISOString(),
+    fim: ev.getEndTime().toISOString(),
+    dia_inteiro: ev.isAllDayEvent(),
+    paciente_id: ev.getTag('paciente_id') || '',
+    servico: ev.getTag('servico') || '',
+    status: ev.getTag('status') || '',
+    obs: ev.getDescription() || '',
+    do_sistema: ev.getTag('origem') === 'sistema'
+  };
+}
+
+function listarAgenda(body, token) {
+  const perfil = perfilDaEquipe(token);
+  if (!perfil) return {ok:false, erro:'Sem permissão'};
+  const de = new Date(body.de), ate = new Date(body.ate);
+  if (isNaN(de) || isNaN(ate) || ate <= de) return {ok:false, erro:'Período inválido'};
+  if ((ate - de) > 62*86400000) return {ok:false, erro:'Período longo demais (máximo 2 meses)'};
+  const visiveis = agendasVisiveis(perfil);
+  const eventos = [], semAcesso = [];
+  visiveis.forEach(function(prof) {
+    if (!prof.agenda_id) return;
+    const cal = agendaDe(prof);
+    if (!cal) { semAcesso.push(prof.nome); return; }
+    cal.getEvents(de, ate).forEach(function(ev){ eventos.push(eventoParaTela(ev, prof)); });
+  });
+  eventos.sort(function(a,b){ return a.inicio.localeCompare(b.inicio); });
+  return {ok:true, dados:eventos, sem_acesso:semAcesso,
+    profissionais: visiveis.map(function(p){ return {email:p.email, nome:p.nome, linhas:p.linhas, tem_agenda:!!p.agenda_id}; }),
+    pode_criar_agendas: perfil.role === 'admin'};
+}
+
+// Titulo discreto no Google: primeiro nome e inicial do sobrenome + servico.
+// Diagnostico e dados clinicos ficam no sistema, nao na agenda.
+function tituloEvento(nomePaciente, servico) {
+  const partes = String(nomePaciente||'').trim().split(/\s+/);
+  const nome = partes[0] ? partes[0] + (partes.length > 1 ? ' ' + partes[partes.length-1].charAt(0) + '.' : '') : 'Paciente';
+  return servico ? nome + ' · ' + servico : nome;
+}
+
+function profVisivel(perfil, email) {
+  const alvo = String(email||'').toLowerCase();
+  return agendasVisiveis(perfil).filter(function(p){ return p.email === alvo; })[0] || null;
+}
+
+function salvarEvento(body, token) {
+  const perfil = perfilDaEquipe(token);
+  if (!perfil) return {ok:false, erro:'Sem permissão'};
+  const prof = profVisivel(perfil, body.agenda_email);
+  if (!prof) return {ok:false, erro:'Você não tem acesso à agenda dessa profissional'};
+  const cal = agendaDe(prof);
+  if (!cal) return {ok:false, erro:'A agenda de ' + prof.nome + ' ainda não foi criada ou compartilhada com a clínica'};
+  const inicio = new Date(body.inicio), fim = new Date(body.fim);
+  if (isNaN(inicio) || isNaN(fim) || fim <= inicio) return {ok:false, erro:'Horário inválido'};
+
+  let nomePac = String(body.paciente_nome||'').trim();
+  const pid = String(body.paciente_id||'');
+  if (pid) {
+    const pac = mapaPacientes()[pid];
+    if (!pac) return {ok:false, erro:'Paciente não encontrado'};
+    // Quem marca precisa ver o paciente, salvo gestao e recepcao, que marcam para todos
+    if (!veTodasAgendas(perfil) && !podeVerPaciente(perfil, pac)) return {ok:false, erro:'Sem permissão para este paciente'};
+    nomePac = pac.nome;
+  }
+
+  // Choque de horario na mesma agenda (o proprio evento, ao editar, nao conta)
+  if (!body.forcar) {
+    const choque = cal.getEvents(inicio, fim).filter(function(ev){ return ev.getId() !== body.evento_id && !ev.isAllDayEvent(); });
+    if (choque.length) return {ok:false, conflito:true, erro:'Já existe "' + choque[0].getTitle() + '" nesse horário na agenda de ' + prof.nome};
+  }
+
+  const titulo = tituloEvento(nomePac, body.servico);
+  let ev;
+  if (body.evento_id) {
+    ev = cal.getEventById(body.evento_id);
+    if (!ev) return {ok:false, erro:'Atendimento não encontrado na agenda'};
+    ev.setTime(inicio, fim); ev.setTitle(titulo); ev.setDescription(String(body.obs||''));
+  } else {
+    ev = cal.createEvent(titulo, inicio, fim, {description: String(body.obs||'')});
+    ev.setTag('origem', 'sistema');
+  }
+  ev.setTag('paciente_id', pid);
+  ev.setTag('servico', String(body.servico||''));
+  ev.setTag('marcado_por', perfil.email);
+  return {ok:true, dados: eventoParaTela(ev, prof)};
+}
+
+function eventoComPermissao(body, token) {
+  const perfil = perfilDaEquipe(token);
+  if (!perfil) return {erro:'Sem permissão'};
+  const prof = profVisivel(perfil, body.agenda_email);
+  if (!prof) return {erro:'Você não tem acesso a essa agenda'};
+  const cal = agendaDe(prof);
+  const ev = cal ? cal.getEventById(body.evento_id) : null;
+  if (!ev) return {erro:'Atendimento não encontrado na agenda'};
+  return {ev:ev, prof:prof};
+}
+
+const STATUS_EVENTO = ['', 'confirmado', 'realizado', 'falta'];
+function statusEvento(body, token) {
+  if (STATUS_EVENTO.indexOf(String(body.status||'')) === -1) return {ok:false, erro:'Situação inválida'};
+  const r = eventoComPermissao(body, token);
+  if (r.erro) return {ok:false, erro:r.erro};
+  r.ev.setTag('status', String(body.status||''));
+  return {ok:true, dados: eventoParaTela(r.ev, r.prof)};
+}
+
+function excluirEvento(body, token) {
+  const r = eventoComPermissao(body, token);
+  if (r.erro) return {ok:false, erro:r.erro};
+  r.ev.deleteEvent();
+  return {ok:true};
+}
+
+// Gestao: cria, na conta da clinica, uma agenda para cada profissional ativa
+// que ainda nao tem agenda_id, e grava o id na aba Profissionais. Compartilhar
+// com a profissional e feito no Google Agenda (Configuracoes da agenda).
+function criarAgendas(token) {
+  const perfil = perfilDaEquipe(token);
+  if (!perfil || perfil.role !== 'admin') return {ok:false, erro:'Só a gestão cria agendas'};
+  const sheet = getOuCria(getSpreadsheet(), 'Profissionais');
+  let h = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  let col = h.indexOf('agenda_id');
+  if (col === -1) { col = h.length; sheet.getRange(1, col+1).setValue('agenda_id'); }
+  const criadas = [];
+  equipeComAgenda().forEach(function(p) {
+    if (p.agenda_id) return;
+    const cal = CalendarApp.createCalendar('Casa Oliveira · ' + p.nome, {timeZone: Session.getScriptTimeZone()});
+    sheet.getRange(p.linhaPlanilha, col+1).setValue(cal.getId());
+    criadas.push(p.nome);
+  });
+  return {ok:true, criadas:criadas};
+}
+

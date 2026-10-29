@@ -71,6 +71,31 @@ fora dessa regra, porque são compartilhados entre quem avalia.
   PDF; a parte reservada só entra se quem exporta escolher.
 - **Modelo SOAP:** botão no formulário da evolução.
 
+### Agenda (Google Agenda)
+
+Cada profissional tem uma agenda do Google, cujo ID fica na coluna `agenda_id`
+da aba `Profissionais`. O botão **Criar agendas** (gestão) cria na conta da
+clínica uma agenda para quem ainda não tem e grava o ID; depois é preciso
+compartilhar cada uma com a profissional no Google Agenda (Configurações da
+agenda › Compartilhar com pessoas). Quem já usa agenda própria pode
+compartilhá-la com a conta da clínica e colar o ID dela na coluna.
+
+Quem vê o quê é decidido no servidor (`agendasVisiveis` no `Code.gs`):
+gestão e recepção veem todas; coordenação vê as profissionais cujas `linhas`
+cruzam com as dela (vazia = todas); profissional vê só a própria. Recepção e
+administrativo não têm agenda de atendimento.
+
+Marcar pelo sistema cria o evento no Google com título discreto (`Maria S. ·
+Fisioterapia`) e guarda `paciente_id`, `servico`, `status` e `marcado_por` em
+tags do evento — nada clínico vai para o Google. Há aviso de choque de
+horário. O que for marcado direto no Google também aparece. Situações:
+agendado, confirmado, realizado, faltou; com o atendimento realizado, a tela
+oferece abrir o prontuário para registrar a evolução.
+
+**Autorização:** como o script passa a usar o Google Agenda, depois de colar o
+código novo rode uma função qualquer no editor (ex.: `equipeComAgenda`) e
+aceite a permissão de acesso às agendas com a conta da clínica.
+
 ### Mensagens
 
 A aba `Mensagens` guarda a conversa de cada paciente com a clínica e alimenta a

@@ -652,6 +652,7 @@ input,select,textarea{outline:none;}
     <div id="pgServicos"  class="page"></div>
     <div id="pgTarefas"   class="page"></div>
     <div id="pgFinanceiro" class="page"></div>
+    <div id="pgAgenda" class="page"></div>
     <div id="pgLeads"     class="page"></div>
     <div id="pgEspera"    class="page"></div>
     <div id="pgProgramas" class="page"></div>
@@ -1176,6 +1177,9 @@ function demoApi(action, body) {
       demoLog(body.id, de, 'Virou Paciente', 'Vinculado ao cadastro de '+pac.nome);
       return {ok:true, id:body.id, paciente_id:pac.id, paciente_nome:pac.nome};
     }
+    case 'listar_agenda': case 'salvar_evento': case 'status_evento':
+    case 'excluir_evento': case 'criar_agendas':
+      return demoAgenda(action, body);
     case 'listar_catalogo': {
       const veValor = currentRole==='admin' || currentRole==='coordenador';
       const dados = (DEMO_DB.catalogo||[])
@@ -1323,6 +1327,64 @@ function demoOcultarReservado(rows) {
     const {texto_restrito, historico_restrito, ...resto} = r;
     return {...resto, tem_restrito:!!String(texto_restrito||'').trim()};
   });
+}
+
+// Agenda do modo demonstração: mesma regra de quem vê o quê do Code.gs
+// (agendasVisiveis), com eventos em memória em vez do Google Agenda
+function demoAgenda(action, body) {
+  const equipe = (DEMO_DB.profissionais||[]).filter(p=>p.status!=='Inativo' && !/recep|comercial|administra/i.test(String(p.funcao||'')));
+  if(!DEMO_DB.agenda) {
+    const seg = inicioDaSemana(new Date());
+    const ev = (dia,h,min,dur,email,pid,serv) => { const i=new Date(seg); i.setDate(i.getDate()+dia); i.setHours(h,min,0,0);
+      const pac=(DEMO_DB.pacientes||[]).find(p=>p.id===pid)||{};
+      return {id:'ev'+Math.random().toString(36).slice(2,8), agenda_email:email, paciente_id:pid, servico:serv, status:'', obs:'', do_sistema:true,
+              titulo:(pac.nome||'Paciente').split(' ')[0]+' '+((pac.nome||'').split(' ').pop()||'').charAt(0)+'. · '+serv,
+              inicio:i.toISOString(), fim:new Date(i.getTime()+dur*60000).toISOString()}; };
+    DEMO_DB.agenda = [ev(0,9,0,50,'carlos@casaoliveira.com','p3','Fisio pélvica'), ev(1,10,0,50,'juliana@casaoliveira.com','p1','TO infantil'),
+      ev(2,14,0,50,'paulo@casaoliveira.com','p4','Fisioterapia'), ev(3,11,30,60,'marcia@casaoliveira.com','p6','Casa Segura'),
+      ev(4,9,0,50,'carlos@casaoliveira.com','p3','Fisio pélvica')];
+    equipe.forEach(p=>{ if(!['clinicaoliveira20@gmail.com','recepcao@casaoliveira.com'].includes(p.email)) p.agenda_id = 'demo-'+p.id; });
+  }
+  const eu = (currentUser.email||'').toLowerCase();
+  const linhasDe = p => String(p.linhas||'').toLowerCase().split(',').map(x=>x.trim()).filter(Boolean);
+  const minhas = linhasDe(equipe.find(p=>p.email===eu)||{});
+  const todas = currentRole==='admin' || ehRecepcao();
+  const visiveis = equipe.filter(p=> todas || p.email===eu ||
+    (currentRole==='coordenador' && (!minhas.length || minhas.includes('todos') || linhasDe(p).some(l=>minhas.includes(l)))));
+  const visivel = email => visiveis.find(p=>p.email===String(email||'').toLowerCase());
+  const comNome = e => ({...e, profissional:(equipe.find(p=>p.email===e.agenda_email)||{}).nome||''});
+  if(action==='listar_agenda') {
+    const de=new Date(body.de), ate=new Date(body.ate);
+    return {ok:true, dados:DEMO_DB.agenda.filter(e=>visivel(e.agenda_email) && new Date(e.inicio)<ate && new Date(e.fim)>de)
+              .map(comNome).sort((a,b)=>a.inicio.localeCompare(b.inicio)),
+            profissionais:visiveis.map(p=>({email:p.email, nome:p.nome, linhas:linhasDe(p), tem_agenda:!!p.agenda_id})),
+            sem_acesso:[], pode_criar_agendas: currentRole==='admin'};
+  }
+  if(action==='criar_agendas') {
+    if(currentRole!=='admin') return {ok:false, erro:'Só a gestão cria agendas'};
+    const criadas = equipe.filter(p=>!p.agenda_id).map(p=>{ p.agenda_id='demo-'+p.id; return p.nome; });
+    return {ok:true, criadas};
+  }
+  const prof = visivel(body.agenda_email);
+  if(!prof) return {ok:false, erro:'Você não tem acesso à agenda dessa profissional'};
+  if(action==='salvar_evento') {
+    const ini=new Date(body.inicio), fim=new Date(body.fim);
+    if(!body.forcar) {
+      const choque = DEMO_DB.agenda.find(e=>e.agenda_email===prof.email && e.id!==body.evento_id && new Date(e.inicio)<fim && new Date(e.fim)>ini);
+      if(choque) return {ok:false, conflito:true, erro:'Já existe "'+choque.titulo+'" nesse horário na agenda de '+prof.nome};
+    }
+    const partes = String(body.paciente_nome||'Paciente').trim().split(/\s+/);
+    const titulo = partes[0]+(partes.length>1?' '+partes[partes.length-1].charAt(0)+'.':'')+(body.servico?' · '+body.servico:'');
+    let e = DEMO_DB.agenda.find(x=>x.id===body.evento_id);
+    if(!e) { e = {id:'ev'+Date.now(), agenda_email:prof.email, status:'', do_sistema:true}; DEMO_DB.agenda.push(e); }
+    Object.assign(e, {titulo, inicio:ini.toISOString(), fim:fim.toISOString(), paciente_id:body.paciente_id||'', servico:body.servico||'', obs:body.obs||''});
+    return {ok:true, dados:comNome(e)};
+  }
+  const e = DEMO_DB.agenda.find(x=>x.id===body.evento_id && x.agenda_email===prof.email);
+  if(!e) return {ok:false, erro:'Atendimento não encontrado na agenda'};
+  if(action==='status_evento') { e.status = body.status||''; return {ok:true, dados:comNome(e)}; }
+  DEMO_DB.agenda = DEMO_DB.agenda.filter(x=>x!==e);
+  return {ok:true};
 }
 
 function demoLogin(role) {
@@ -1489,9 +1551,9 @@ const FUNCOES = [
 // menu do avatar. Com Leads seriam oito ícones espremidos num telefone; no
 // desktop a lateral continua mostrando tudo.
 const NAVS = {
-  admin:        [{id:'home',icon:'🏠',label:'Início'},{id:'linhas',icon:'🩺',label:'Linhas'},{id:'mensagens',icon:'💬',label:'Mensagens',num:true},{id:'leads',icon:'📣',label:'Leads'},{id:'servicos',icon:'🗂️',label:'Serviços',barra:false},{id:'tarefas',icon:'🧰',label:'Tarefas',barra:false},{id:'financeiro',icon:'💰',label:'Financeiro',barra:false},{id:'espera',icon:'🪑',label:'Espera',barra:false},{id:'equipe',icon:'👥',label:'Equipe',barra:false},{id:'alertas',icon:'🔔',label:'Alertas',badge:true}],
-  coordenador:  [{id:'home',icon:'🏠',label:'Início'},{id:'linhas',icon:'🩺',label:'Pacientes'},{id:'mensagens',icon:'💬',label:'Mensagens',num:true},{id:'leads',icon:'📣',label:'Leads'},{id:'servicos',icon:'🗂️',label:'Serviços',barra:false},{id:'tarefas',icon:'🧰',label:'Tarefas',barra:false},{id:'espera',icon:'🪑',label:'Espera',barra:false},{id:'alertas',icon:'🔔',label:'Alertas',badge:true}],
-  profissional: [{id:'home',icon:'🏠',label:'Hoje'}, {id:'linhas',icon:'🩺',label:'Meus Pcts'},{id:'mensagens',icon:'💬',label:'Mensagens',num:true},{id:'servicos',icon:'🗂️',label:'Serviços'},{id:'alertas',icon:'🔔',label:'Pendências',badge:true}],
+  admin:        [{id:'home',icon:'🏠',label:'Início'},{id:'agenda',icon:'📅',label:'Agenda'},{id:'linhas',icon:'🩺',label:'Linhas'},{id:'mensagens',icon:'💬',label:'Mensagens',num:true},{id:'leads',icon:'📣',label:'Leads'},{id:'servicos',icon:'🗂️',label:'Serviços',barra:false},{id:'tarefas',icon:'🧰',label:'Tarefas',barra:false},{id:'financeiro',icon:'💰',label:'Financeiro',barra:false},{id:'espera',icon:'🪑',label:'Espera',barra:false},{id:'equipe',icon:'👥',label:'Equipe',barra:false},{id:'alertas',icon:'🔔',label:'Alertas',badge:true}],
+  coordenador:  [{id:'home',icon:'🏠',label:'Início'},{id:'agenda',icon:'📅',label:'Agenda'},{id:'linhas',icon:'🩺',label:'Pacientes'},{id:'mensagens',icon:'💬',label:'Mensagens',num:true},{id:'leads',icon:'📣',label:'Leads'},{id:'servicos',icon:'🗂️',label:'Serviços',barra:false},{id:'tarefas',icon:'🧰',label:'Tarefas',barra:false},{id:'espera',icon:'🪑',label:'Espera',barra:false},{id:'alertas',icon:'🔔',label:'Alertas',badge:true}],
+  profissional: [{id:'home',icon:'🏠',label:'Hoje'},{id:'agenda',icon:'📅',label:'Agenda'},{id:'linhas',icon:'🩺',label:'Meus Pcts'},{id:'mensagens',icon:'💬',label:'Mensagens',num:true},{id:'servicos',icon:'🗂️',label:'Serviços',barra:false},{id:'alertas',icon:'🔔',label:'Pendências',badge:true}],
 };
 
 // Recepção é função, não nível de acesso: quem atende o telefone entra como
@@ -1622,11 +1684,11 @@ let _activePage = '';
 function loadPage(id) {
   _activePage = id;
   marcarAtivo(id);
-  const map={home:'pgHome',linhas:'pgLinhas',equipe:'pgEquipe',alertas:'pgAlertas',mensagens:'pgMensagens',servicos:'pgServicos',tarefas:'pgTarefas',financeiro:'pgFinanceiro',leads:'pgLeads',espera:'pgEspera',programas:'pgProgramas',biblioteca:'pgBiblioteca'};
+  const map={agenda:'pgAgenda',home:'pgHome',linhas:'pgLinhas',equipe:'pgEquipe',alertas:'pgAlertas',mensagens:'pgMensagens',servicos:'pgServicos',tarefas:'pgTarefas',financeiro:'pgFinanceiro',leads:'pgLeads',espera:'pgEspera',programas:'pgProgramas',biblioteca:'pgBiblioteca'};
   document.querySelectorAll('.page').forEach(e=>{e.classList.remove('active');e.innerHTML='';});
   const el = document.getElementById(map[id]);
   if(!el) return;
-  const renders={home:renderHome,linhas:renderLinhas,equipe:renderEquipe,alertas:renderAlertas,mensagens:renderMensagensCentral,servicos:renderServicos,tarefas:renderTarefas,financeiro:renderFinanceiro,leads:renderLeads,espera:renderEspera,programas:renderProgramas,biblioteca:renderBiblioteca};
+  const renders={agenda:renderAgenda,home:renderHome,linhas:renderLinhas,equipe:renderEquipe,alertas:renderAlertas,mensagens:renderMensagensCentral,servicos:renderServicos,tarefas:renderTarefas,financeiro:renderFinanceiro,leads:renderLeads,espera:renderEspera,programas:renderProgramas,biblioteca:renderBiblioteca};
   if(renders[id]){el.innerHTML=renders[id]();el.classList.add('active');}
 }
 
@@ -3619,6 +3681,232 @@ async function excluirJornada(id) {
   if(!res.ok) { showToast('Erro ao excluir: '+(res.erro||''),'err'); return; }
   await loadRepasses();
   showToast('🗑 Excluído','ok');
+}
+
+// ═══════════════════════════════════════════════
+// AGENDA — Google Agenda de cada profissional
+// O servidor (listar_agenda no Code.gs) decide quais agendas cada pessoa vê:
+// gestão e recepção todas, coordenação as da linha, profissional a própria.
+// Aqui só se mostra o que veio e se pede para marcar, confirmar ou cancelar.
+// ═══════════════════════════════════════════════
+let _ag = {eventos:[], profissionais:[], sem_acesso:[], pode_criar_agendas:false};
+let _agSemana = inicioDaSemana(new Date());
+let _agFiltro = '';
+
+const AG_STATUS = {
+  '':          {t:'Agendado',   c:'ch-gray'},
+  confirmado:  {t:'Confirmado', c:'ch-sky'},
+  realizado:   {t:'Realizado',  c:'ch-sage'},
+  falta:       {t:'Faltou',     c:'ch-rose'},
+};
+
+function inicioDaSemana(d) {
+  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const dow = (x.getDay()+6)%7;          // segunda = 0
+  x.setDate(x.getDate()-dow);
+  return x;
+}
+function somaDias(d, n) { const x = new Date(d); x.setDate(x.getDate()+n); return x; }
+function diaISO(d) { return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+const maiuscula = t => t.charAt(0).toUpperCase()+t.slice(1);
+function horaDe(iso) { return new Date(iso).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }
+
+function renderAgenda() {
+  return `<div class="ph"><div class="ph-title">Agenda</div>
+    <div class="ph-sub">Atendimentos da semana, ligados ao Google Agenda</div></div>
+  <div id="agBody">${loadingHTML()}</div>`;
+}
+
+async function loadAgenda() {
+  const el = document.getElementById('agBody');
+  if(!el) return;
+  const res = await api('listar_agenda',{de:_agSemana.toISOString(), ate:somaDias(_agSemana,7).toISOString()});
+  if(!res.ok) {
+    el.innerHTML = `<div class="card" style="color:var(--rose)">Não foi possível carregar a agenda: ${esc(res.erro||'')}</div>`;
+    return;
+  }
+  _ag = {eventos:res.dados||[], profissionais:res.profissionais||[], sem_acesso:res.sem_acesso||[],
+         pode_criar_agendas:!!res.pode_criar_agendas};
+  if(_agFiltro && !_ag.profissionais.some(p=>p.email===_agFiltro)) _agFiltro = '';
+  desenharAgenda();
+}
+
+function trocarSemanaAgenda(n) { _agSemana = n===0 ? inicioDaSemana(new Date()) : somaDias(_agSemana, 7*n); loadAgenda(); }
+function filtrarAgenda(email) { _agFiltro = email; desenharAgenda(); }
+
+function desenharAgenda() {
+  const el = document.getElementById('agBody');
+  if(!el) return;
+  const fim = somaDias(_agSemana, 6);
+  const rotulo = _agSemana.toLocaleDateString('pt-BR',{day:'numeric',month:'short'})+' a '+fim.toLocaleDateString('pt-BR',{day:'numeric',month:'short'});
+  const varias = _ag.profissionais.length > 1;
+  const semAgenda = _ag.profissionais.filter(p=>!p.tem_agenda);
+  const eventos = _ag.eventos.filter(e=>!_agFiltro || e.agenda_email===_agFiltro);
+  const hoje = diaISO(new Date());
+
+  const dias = [];
+  for(let i=0;i<7;i++) {
+    const d = somaDias(_agSemana, i), k = diaISO(d);
+    const doDia = eventos.filter(e=>diaISO(new Date(e.inicio))===k);
+    if(doDia.length || k===hoje) dias.push({d, k, doDia});
+  }
+
+  el.innerHTML = `
+  <div class="card" style="margin-bottom:12px">
+    <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between">
+      <div style="display:flex;gap:6px;align-items:center">
+        <button class="backbtn" onclick="trocarSemanaAgenda(-1)" aria-label="Semana anterior">‹</button>
+        <strong style="min-width:130px;text-align:center">${esc(rotulo)}</strong>
+        <button class="backbtn" onclick="trocarSemanaAgenda(1)" aria-label="Próxima semana">›</button>
+        <button class="backbtn" onclick="trocarSemanaAgenda(0)">Hoje</button>
+      </div>
+      <button class="addbtn" onclick="novoAtendimento()">+ Agendar</button>
+    </div>
+    ${varias?`<select class="fs" style="margin-top:10px" onchange="filtrarAgenda(this.value)">
+      <option value="">Todas as profissionais (${_ag.profissionais.length})</option>
+      ${_ag.profissionais.map(p=>`<option value="${esc(p.email)}"${_agFiltro===p.email?' selected':''}>${esc(p.nome)}${p.tem_agenda?'':' (sem agenda)'}</option>`).join('')}
+    </select>`:''}
+  </div>
+
+  ${_ag.pode_criar_agendas && semAgenda.length ? `<div class="card" style="margin-bottom:12px;border-left:3px solid var(--amber)">
+    <div style="font-weight:600;margin-bottom:4px">${semAgenda.length} ${semAgenda.length===1?'profissional ainda não tem':'profissionais ainda não têm'} agenda no Google</div>
+    <div class="pt-nota" style="margin:0 0 10px">${esc(semAgenda.map(p=>p.nome).join(', '))}. O sistema cria uma agenda para cada uma na conta da clínica.
+      Depois, no Google Agenda, compartilhe cada agenda com a profissional (Configurações da agenda › Compartilhar com pessoas).</div>
+    <button class="savebtn" id="agCriarBtn" onclick="criarAgendasEquipe()">Criar agendas</button>
+  </div>` : ''}
+  ${_ag.sem_acesso.length ? `<div class="card" style="margin-bottom:12px;color:var(--rose)">A clínica não tem acesso à agenda de ${esc(_ag.sem_acesso.join(', '))}. Confira o ID da agenda na aba Profissionais e se ela está compartilhada com a conta da clínica.</div>` : ''}
+
+  <div id="agForm"></div>
+  ${dias.length && eventos.length ? dias.map(({d,k,doDia})=>`
+    <div style="margin:16px 0 8px;font-weight:700;font-size:13px;color:${k===hoje?'var(--teal)':'var(--ink2)'}">
+      ${esc(maiuscula(d.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'short'})))}${k===hoje?' · hoje':''}</div>
+    ${doDia.length ? doDia.map(e=>cartaoAtendimento(e, varias)).join('') : `<div class="pt-nota" style="margin:0">Nada marcado.</div>`}
+  `).join('') : `<div class="card" style="text-align:center;color:var(--ink3);padding:32px 16px">Nenhum atendimento nesta semana.</div>`}`;
+}
+
+function cartaoAtendimento(e, mostrarProf) {
+  const st = AG_STATUS[e.status||''] || AG_STATUS[''];
+  const passou = new Date(e.inicio) <= new Date();
+  const pac = e.paciente_id ? (_todosPacientes||[]).find(p=>String(p.id)===String(e.paciente_id)) : null;
+  const ref = `'${esc(e.agenda_email)}','${esc(e.id)}'`;
+  return `<div class="card" style="margin-bottom:8px;padding:12px 14px">
+    <div style="display:flex;gap:12px;align-items:flex-start">
+      <div style="min-width:52px;font-weight:700">${e.dia_inteiro?'Dia todo':esc(horaDe(e.inicio))}
+        ${e.dia_inteiro?'':`<div style="font-size:11px;font-weight:400;color:var(--ink3)">até ${esc(horaDe(e.fim))}</div>`}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600">${esc(e.titulo||'(sem título)')}</div>
+        <div style="font-size:12.5px;color:var(--ink3)">${mostrarProf?esc(e.profissional):''}${mostrarProf&&e.obs?' · ':''}${e.obs?esc(e.obs):''}</div>
+      </div>
+      <span class="chip ${st.c}">${st.t}</span>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">
+      ${!passou && e.status!=='confirmado' ? `<button class="backbtn" style="padding:5px 10px;font-size:12px" onclick="statusAtendimento(${ref},'confirmado')">Confirmado</button>` : ''}
+      ${passou && e.status!=='realizado' ? `<button class="backbtn" style="padding:5px 10px;font-size:12px" onclick="statusAtendimento(${ref},'realizado')">Realizado</button>` : ''}
+      ${passou && e.status!=='falta' ? `<button class="backbtn" style="padding:5px 10px;font-size:12px" onclick="statusAtendimento(${ref},'falta')">Faltou</button>` : ''}
+      ${pac && e.status==='realizado' ? `<button class="backbtn" style="padding:5px 10px;font-size:12px" onclick="abrirPacienteDaAgenda('${esc(pac.linha)}','${esc(pac.id)}')">Registrar evolução</button>` : ''}
+      ${e.do_sistema ? `<button class="backbtn" style="padding:5px 10px;font-size:12px" onclick="novoAtendimento(${ref})">Remarcar</button>` : ''}
+      <button class="backbtn" style="padding:5px 10px;font-size:12px;color:var(--rose)" onclick="cancelarAtendimento(${ref})">Cancelar</button>
+    </div>
+  </div>`;
+}
+
+async function abrirPacienteDaAgenda(linha, id) {
+  await openLinha(linha);
+  await openPaciente(linha, id);
+}
+
+async function novoAtendimento(agendaEmail, eventoId) {
+  const f = document.getElementById('agForm');
+  if(!f) return;
+  const e = eventoId ? _ag.eventos.find(x=>x.id===eventoId && x.agenda_email===agendaEmail) : null;
+  const pacs = await carregarTodosPacientes();
+  const profs = _ag.profissionais.filter(p=>p.tem_agenda);
+  if(!profs.length) { showToast('Nenhuma agenda disponível ainda','err'); return; }
+  const eu = (currentUser.email||'').toLowerCase();
+  const profPadrao = e ? e.agenda_email : (_agFiltro || (profs.find(p=>p.email===eu)||profs[0]).email);
+  const ini = e ? new Date(e.inicio) : null;
+  const dur = e ? Math.round((new Date(e.fim)-new Date(e.inicio))/60000) : 50;
+  const pacAtual = e && e.paciente_id ? pacs.find(p=>String(p.id)===String(e.paciente_id)) : null;
+  f.innerHTML = `<div class="evo-form" style="margin-bottom:12px">
+    <div class="hist-tit" style="margin-bottom:10px">${e?'Remarcar atendimento':'Novo atendimento'}</div>
+    <div class="f2">
+      <div class="fg fa"><label class="fl">Profissional</label>
+        <select class="fs" id="agProf">${profs.map(p=>`<option value="${esc(p.email)}"${p.email===profPadrao?' selected':''}>${esc(p.nome)}</option>`).join('')}</select></div>
+      <div class="fg fa"><label class="fl">Paciente</label>
+        <input class="fi" id="agPac" list="agPacs" value="${esc(pacAtual?pacAtual.nome:'')}" placeholder="Comece a digitar o nome">
+        <datalist id="agPacs">${pacs.map(p=>`<option value="${esc(p.nome)}">`).join('')}</datalist></div>
+      <div class="fg fa"><label class="fl">Serviço</label>
+        <input class="fi" id="agServ" list="agServs" value="${esc(e?e.servico:'')}" placeholder="Ex.: Fisioterapia">
+        <datalist id="agServs">${FIN_SERVICOS.map(s=>`<option value="${esc(s)}">`).join('')}</datalist></div>
+      <div class="fg"><label class="fl">Data</label><input class="fi" type="date" id="agData" value="${ini?diaISO(ini):diaISO(new Date())}"></div>
+      <div class="fg"><label class="fl">Horário</label><input class="fi" type="time" id="agHora" step="300" value="${ini?ini.toTimeString().slice(0,5):'09:00'}"></div>
+      <div class="fg"><label class="fl">Duração</label>
+        <select class="fs" id="agDur">${[30,40,50,60,90,120].map(m=>`<option value="${m}"${m===dur?' selected':''}>${m} min</option>`).join('')}</select></div>
+      <div class="fg fa"><label class="fl">Observação (aparece no Google Agenda)</label>
+        <input class="fi" id="agObs" value="${esc(e?e.obs:'')}" placeholder="Ex.: trazer exames"></div>
+    </div>
+    <div id="agErr" class="errbox"></div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button class="savebtn" id="agBtn" style="flex:1" onclick="salvarAtendimento(${e?`'${esc(e.id)}'`:''})">${e?'Salvar':'Agendar'}</button>
+      <button class="backbtn" onclick="document.getElementById('agForm').innerHTML=''">Cancelar</button>
+    </div>
+  </div>`;
+  f.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+async function salvarAtendimento(eventoId, forcar) {
+  const v = id => (document.getElementById(id).value||'').trim();
+  const err = document.getElementById('agErr'), btn = document.getElementById('agBtn');
+  const erro = m => { err.textContent = m; err.style.display = 'block'; };
+  const nomePac = v('agPac');
+  const pac = (_todosPacientes||[]).find(p=>normalizar(p.nome)===normalizar(nomePac));
+  if(!nomePac) return erro('Informe o paciente.');
+  if(!v('agData') || !v('agHora')) return erro('Informe data e horário.');
+  err.style.display = 'none';
+  const inicio = new Date(v('agData')+'T'+v('agHora')+':00');
+  const fim = new Date(inicio.getTime() + Number(v('agDur'))*60000);
+  const body = {agenda_email:v('agProf'), paciente_id: pac?pac.id:'', paciente_nome:nomePac,
+                servico:v('agServ'), inicio:inicio.toISOString(), fim:fim.toISOString(), obs:v('agObs'),
+                evento_id: eventoId||'', forcar: !!forcar};
+  btn.disabled = true; btn.textContent = 'Salvando...';
+  const res = await api('salvar_evento', body);
+  btn.disabled = false; btn.textContent = eventoId?'Salvar':'Agendar';
+  if(!res.ok && res.conflito) {
+    if(confirm(res.erro+'.\n\nMarcar assim mesmo?')) return salvarAtendimento(eventoId, true);
+    return;
+  }
+  if(!res.ok) return erro(res.erro||'Não foi possível salvar.');
+  document.getElementById('agForm').innerHTML = '';
+  _agSemana = inicioDaSemana(inicio);
+  await loadAgenda();
+  showToast(eventoId?'✅ Remarcado':'✅ Agendado','ok');
+}
+
+async function statusAtendimento(agendaEmail, eventoId, status) {
+  const res = await api('status_evento',{agenda_email:agendaEmail, evento_id:eventoId, status});
+  if(!res.ok) { showToast('Erro: '+(res.erro||''),'err'); return; }
+  const e = _ag.eventos.find(x=>x.id===eventoId && x.agenda_email===agendaEmail);
+  if(e) e.status = status;
+  desenharAgenda();
+}
+
+async function cancelarAtendimento(agendaEmail, eventoId) {
+  const e = _ag.eventos.find(x=>x.id===eventoId && x.agenda_email===agendaEmail);
+  if(!confirm('Cancelar '+(e?'"'+e.titulo+'" ':'')+'e tirar do Google Agenda?')) return;
+  const res = await api('excluir_evento',{agenda_email:agendaEmail, evento_id:eventoId});
+  if(!res.ok) { showToast('Erro: '+(res.erro||''),'err'); return; }
+  _ag.eventos = _ag.eventos.filter(x=>!(x.id===eventoId && x.agenda_email===agendaEmail));
+  desenharAgenda();
+  showToast('Atendimento cancelado','ok');
+}
+
+async function criarAgendasEquipe() {
+  const btn = document.getElementById('agCriarBtn');
+  if(btn){ btn.disabled = true; btn.textContent = 'Criando...'; }
+  const res = await api('criar_agendas',{});
+  if(!res.ok) { showToast('Erro: '+(res.erro||''),'err'); if(btn){btn.disabled=false;btn.textContent='Criar agendas';} return; }
+  await loadAgenda();
+  showToast('✅ '+(res.criadas||[]).length+' agenda(s) criada(s). Falta compartilhar cada uma no Google Agenda.','ok');
 }
 
 // ═══════════════════════════════════════════════
@@ -7293,6 +7581,7 @@ const _afterRender = {
   servicos: ()=>setTimeout(loadServicos,50),
   tarefas: ()=>setTimeout(loadTarefas,50),
   financeiro: ()=>setTimeout(loadFinanceiro,50),
+  agenda: ()=>setTimeout(loadAgenda,50),
   leads: ()=>setTimeout(loadLeads,50),
   espera: ()=>setTimeout(loadEspera,50),
   programas: ()=>setTimeout(loadProgramas,50),
