@@ -144,6 +144,20 @@ function handle(e) {
       }
     }
 
+    // Evolucao e registro clinico: so quem escreveu ou a gestao altera ou
+    // apaga - a tela ja escondia o botao, mas a API aceitava de qualquer um.
+    // Os registros internos da Avaliacao infantil (origem 'infantil...') sao
+    // compartilhados por quem avalia a crianca e seguem a regra da propria pagina.
+    if ((action === 'atualizar' || action === 'deletar') && body.tabela === 'evolucoes') {
+      const perfil = perfilDaEquipe(token);
+      const reg = linhaPorId('Evolucoes', body.id);
+      if (!perfil) return resp({ok:false, erro:'Sem permiss\u00e3o'});
+      if (reg && String(reg.origem||'').indexOf('infantil') !== 0 && perfil.role !== 'admin'
+          && String(reg.autor_email||'').toLowerCase() !== String(perfil.email||'').toLowerCase()) {
+        return resp({ok:false, erro:'S\u00f3 quem escreveu a evolu\u00e7\u00e3o ou a gest\u00e3o pode alterar ou excluir'});
+      }
+    }
+
     switch(action) {
       case 'login':           return resp(login(body));
       case 'login_paciente':  return resp(loginPaciente(body));
@@ -154,7 +168,7 @@ function handle(e) {
       case 'minha_posicao':   return resp(minhaPosicao(token));
       case 'alterar_senha_paciente': return resp(alterarSenhaPaciente(body, token));
       case 'meus_resultados': return resp(meusResultados(token));
-      case 'listar':        return resp(listar(body));
+      case 'listar':        return resp(listar(body, token));
       case 'salvar':        return resp(salvar(body));
       case 'atualizar':     return resp(atualizar(body));
       case 'deletar':       return resp(deletar(body));
@@ -1977,7 +1991,7 @@ function meusExercicios(token) {
 }
 
 // --- CRUD -----------------------------------------------------
-function listar(body) {
+function listar(body, token) {
   const tabela = ABAS[body.tabela];
   if (!tabela) return {ok:false,erro:'Tabela inv\u00e1lida: '+body.tabela};
   const ss = getSpreadsheet();
@@ -2000,7 +2014,45 @@ function listar(body) {
     rows = rows.filter(r => (r.terapeuta_nome||'').toLowerCase()===(body.nome_usuario||'').toLowerCase());
   }
 
+  if (body.tabela==='evolucoes') rows = ocultarReservado(rows, token || body.token);
+
   return {ok:true, dados:rows};
+}
+
+// Parte reservada da evolucao (coluna texto_restrito): so sai do servidor
+// para a gestao, a coordenacao da linha do paciente, a terapeuta de
+// referencia (terapeuta_nome da ficha) e quem escreveu aquela evolucao. Para
+// os demais a coluna e removida aqui - esconder so na tela nao adiantaria,
+// a resposta da planilha chegaria inteira ao navegador. Quem nao ve recebe
+// tem_restrito:true, para a tela avisar que existe uma parte reservada.
+// Uma linha da aba como objeto, pelo id (ou null)
+function linhaPorId(aba, id) {
+  const sheet = getSpreadsheet().getSheetByName(aba);
+  if (!sheet || sheet.getLastRow() < 2 || !id) return null;
+  const dados = sheet.getDataRange().getValues();
+  const h = dados[0], iId = h.indexOf('id');
+  for (let i=1;i<dados.length;i++) {
+    if (String(dados[i][iId]) === String(id)) { const o = {}; h.forEach(function(k,j){ o[k] = dados[i][j]; }); return o; }
+  }
+  return null;
+}
+
+function ocultarReservado(rows, token) {
+  if (!rows.some(function(r){ return String(r.texto_restrito||'').trim(); })) return rows;
+  const perfil = perfilDaEquipe(token);
+  const pacs = mapaPacientes();
+  const email = perfil ? String(perfil.email||'').toLowerCase() : '';
+  const cache = {};
+  return rows.map(function(r) {
+    if (!String(r.texto_restrito||'').trim()) return r;
+    const pid = String(r.paciente_id||'');
+    if (!(pid in cache)) cache[pid] = !!perfil && podeVerPaciente(perfil, pacs[pid]);
+    const autora = !!email && String(r.autor_email||'').toLowerCase() === email;
+    if (cache[pid] || autora) return r;
+    const o = {}; Object.keys(r).forEach(function(k){ if (k !== 'texto_restrito') o[k] = r[k]; });
+    o.tem_restrito = true;
+    return o;
+  });
 }
 
 function salvar(body) {

@@ -33,6 +33,21 @@ Apps Script publicado como app da web, gravando numa planilha do Google Sheets:
 O prontuário grava uma linha por aba do paciente em `Checklists`, com os campos
 serializados em JSON na coluna `dados`.
 
+### Evoluções: parte reservada
+
+Cada evolução pode ter uma **parte reservada** (coluna `texto_restrito` da aba
+`Evolucoes`), para informação sensível. Ela só sai do servidor para a gestão,
+a coordenação da linha do paciente, a terapeuta de referência (`terapeuta_nome`
+da ficha) e quem escreveu aquela evolução — a regra é a de `podeVerPaciente()`
+mais a autora, aplicada em `ocultarReservado()` dentro do `listar`. Para os
+demais, a coluna é removida da resposta e vem `tem_restrito:true`, e a tela só
+avisa que existe uma parte reservada. Atenção: quem abre a **planilha** do
+Google vê tudo; a reserva vale para o sistema.
+
+Alterar ou excluir uma evolução também é checado no servidor: só a autora ou a
+gestão. Os registros internos da Avaliação infantil (origem `infantil…`) ficam
+fora dessa regra, porque são compartilhados entre quem avalia.
+
 ### Mensagens
 
 A aba `Mensagens` guarda a conversa de cada paciente com a clínica e alimenta a
