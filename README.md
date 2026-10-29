@@ -22,6 +22,17 @@ git log --diff-filter=D --name-only    # ver o que saiu e em qual commit
 git show <commit>^:'<arquivo>'         # ler o conteúdo de uma delas
 ```
 
+## Visual
+
+Paleta tirada do logo (`logo-simbolo.png`): oliva `#548732`, laranja `#E87121`
+e pêssego `#F7B865`, sobre creme `#FAF6EF`. Para texto e botões usam-se tons
+mais escuros que passam no contraste (oliva `#446F27`, laranja `#B4520D`) — os
+nomes antigos das variáveis (`--teal`, `--amber`…) foram mantidos e apontam
+para as cores novas. Títulos em Fraunces, texto em DM Sans. Ícones de traço
+desenhados no próprio arquivo (`ICONES` / `icone(nome, tamanho)`), no lugar dos
+emojis. Carregamento em blocos que pulsam, números que sobem até o valor e
+resposta ao toque — tudo desligado com `prefers-reduced-motion`.
+
 ## Como funciona
 
 O front-end é um HTML único, sem build nem dependências. O backend é um Google

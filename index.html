@@ -12,17 +12,21 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#faf8f5;--sur:#fff;--sur2:#f3f0eb;--bor:#e8e2d9;--bor2:#d4cdc0;
-  --ink:#1c1a17;--ink2:#6b6560;--ink3:#a09890;
-  --teal:#1d6b58;--teal-lt:#e8f4f0;
-  --amber:#c4600a;--amber-lt:#fef3e8;
-  --rose:#b81a3a;--rose-lt:#fde8ee;
-  --violet:#5b21b6;--violet-lt:#ede8fd;
-  --sky:#1355a0;--sky-lt:#e8eeff;
-  --sage:#3d6b3a;--sage-lt:#eaf4e8;
-  --r:14px;--r-sm:8px;--r-lg:20px;
-  --sh:0 1px 4px rgba(28,26,23,.06),0 4px 16px rgba(28,26,23,.06);
-  --sh-lg:0 4px 24px rgba(28,26,23,.14);
+  /* Paleta Casa Oliveira — cores do logo: oliva #548732, laranja #E87121,
+     pêssego #F7B865. Para texto usamos versões mais escuras, que passam no
+     contraste (oliva #446F27, laranja #B4520D). */
+  --oliva:#548732;--laranja:#E87121;--pessego:#F7B865;
+  --bg:#FAF6EF;--sur:#fff;--sur2:#F2EBDF;--bor:#E6DCCB;--bor2:#D9CDB8;
+  --ink:#2B2A20;--ink2:#5E5A4E;--ink3:#6F6A5C;
+  --teal:#446F27;--teal-lt:#EEF3E7;
+  --amber:#B4520D;--amber-lt:#FDEFE3;
+  --rose:#9B3524;--rose-lt:#FBE9E5;
+  --violet:#7A5313;--violet-lt:#FEF5E7;
+  --sky:#3E5C76;--sky-lt:#EAF0F5;
+  --sage:#3B6322;--sage-lt:#EEF3E7;
+  --r:16px;--r-sm:10px;--r-lg:22px;
+  --sh:0 1px 3px rgba(43,42,32,.05),0 4px 14px rgba(43,42,32,.05);
+  --sh-lg:0 4px 24px rgba(43,42,32,.14);
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);overflow-x:hidden;}
@@ -43,16 +47,16 @@ input,select,textarea{outline:none;}
 .cfg-logo{font-family:'Fraunces',serif;font-size:44px;color:#faf8f5;text-align:center;}
 .cfg-sub{font-size:11px;color:#555;letter-spacing:2px;text-transform:uppercase;margin-top:4px;text-align:center;margin-bottom:32px;}
 .cfg-card{width:100%;max-width:400px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:var(--r-lg);padding:28px 24px;}
-.cfg-title{font-size:13px;font-weight:700;color:#2d9175;text-transform:uppercase;letter-spacing:.8px;margin-bottom:18px;}
+.cfg-title{font-size:13px;font-weight:700;color:#A8C98A;text-transform:uppercase;letter-spacing:.8px;margin-bottom:18px;}
 .cfg-label{display:block;font-size:11px;color:#666;text-transform:uppercase;letter-spacing:.7px;margin-bottom:6px;margin-top:14px;}
 .cfg-input{width:100%;padding:12px 14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:var(--r-sm);color:#faf8f5;font-size:14px;}
-.cfg-input:focus{border-color:#2d9175;}
+.cfg-input:focus{border-color:#A8C98A;}
 .cfg-btn{width:100%;padding:14px;background:var(--teal);color:#faf8f5;border-radius:var(--r-sm);font-size:15px;font-weight:700;margin-top:20px;}
 .cfg-hint{margin-top:14px;font-size:12px;color:#555;line-height:1.6;text-align:center;}
-.cfg-hint a{color:#2d9175;}
+.cfg-hint a{color:#A8C98A;}
 .cfg-steps{margin-top:20px;text-align:left;}
 .cfg-step{display:flex;gap:10px;font-size:13px;color:#888;margin-bottom:10px;align-items:flex-start;}
-.cfg-step-n{width:20px;height:20px;background:rgba(45,145,117,.2);color:#2d9175;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px;}
+.cfg-step-n{width:20px;height:20px;background:rgba(168,201,138,.2);color:#A8C98A;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;margin-top:1px;}
 
 /* LOGIN */
 #loginScreen,#esqueciScreen,#resetScreen,#pacLoginScreen,#pacSenhaScreen{display:none;min-height:100vh;background:var(--ink);align-items:center;justify-content:center;padding:24px;flex-direction:column;}
@@ -63,18 +67,18 @@ input,select,textarea{outline:none;}
 .lf label{display:block;font-size:11px;font-weight:600;color:#666;text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px;}
 .lf input{width:100%;padding:13px 15px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:var(--r-sm);color:#faf8f5;font-size:15px;}
 .lf input::placeholder{color:#444;}
-.lf input:focus{border-color:#2d9175;}
+.lf input:focus{border-color:#A8C98A;}
 .login-btn{width:100%;padding:15px;background:var(--teal);color:#faf8f5;border-radius:var(--r-sm);font-size:15px;font-weight:600;margin-top:6px;transition:background .2s;}
-.login-btn:active{background:#155a47;}
+.login-btn:active{background:#3B6322;}
 .login-err{background:rgba(184,26,58,.15);border:1px solid rgba(184,26,58,.3);border-radius:6px;padding:9px 13px;font-size:13px;color:#f88;margin-bottom:14px;display:none;}
 .forgot{margin-top:14px;text-align:center;font-size:13px;color:#7a7a7a;cursor:pointer;}
 .forgot:hover{color:#aaa;text-decoration:underline;}
-.login-ok{background:rgba(45,145,117,.15);border:1px solid rgba(45,145,117,.35);border-radius:6px;padding:11px 13px;font-size:13px;color:#7ecfb4;margin-bottom:14px;line-height:1.5;}
+.login-ok{background:rgba(168,201,138,.15);border:1px solid rgba(168,201,138,.35);border-radius:6px;padding:11px 13px;font-size:13px;color:#C4DDB0;margin-bottom:14px;line-height:1.5;}
 .demo-section{margin-top:24px;border-top:1px solid rgba(255,255,255,.06);padding-top:18px;}
 .demo-title{font-size:11px;color:#555;text-transform:uppercase;letter-spacing:.8px;text-align:center;margin-bottom:10px;}
 .demo-pills{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;}
 .demo-pill{padding:6px 14px;border:1px solid rgba(255,255,255,.12);border-radius:20px;font-size:12px;color:#888;cursor:pointer;transition:all .2s;}
-.demo-pill:hover{border-color:#2d9175;color:#2d9175;}
+.demo-pill:hover{border-color:#A8C98A;color:#A8C98A;}
 
 /* APP */
 #app{display:none;min-height:100vh;padding-bottom:72px;}
@@ -240,10 +244,10 @@ input,select,textarea{outline:none;}
 
 /* BUTTONS */
 .savebtn{width:100%;padding:15px;background:var(--teal);color:#fff;border-radius:var(--r-sm);font-size:15px;font-weight:700;box-shadow:0 4px 16px rgba(29,107,88,.2);transition:background .15s;margin-top:8px;}
-.savebtn:active{background:#155a47;}
+.savebtn:active{background:#3B6322;}
 .savebtn:disabled{background:var(--ink3);box-shadow:none;}
 .addbtn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;background:var(--teal);color:#fff;border-radius:20px;font-size:13px;font-weight:600;}
-.addbtn:active{background:#155a47;}
+.addbtn:active{background:#3B6322;}
 .backbtn{display:inline-flex;align-items:center;gap:4px;padding:6px 14px;background:var(--sur2);border:1px solid var(--bor);border-radius:20px;font-size:13px;font-weight:600;color:var(--ink2);}
 
 /* ERROR BOX */
@@ -510,25 +514,60 @@ input,select,textarea{outline:none;}
 .casa-linha-t{font-size:13px;font-weight:700;margin-bottom:8px}
 .casa-pessoa{display:flex;gap:10px;align-items:center;padding:6px 0}
 .casa-sub{font-size:12px;color:var(--ink2)}
+/* ── Visual Casa Oliveira ─────────────────────── */
+.marca-simbolo{width:64px;height:auto;display:block;margin:0 auto 14px}
+.tb-simbolo{width:22px;height:auto;margin-right:8px;vertical-align:-4px}
+.tb-logo,.sd-logo{display:flex;align-items:center}
+.sp-logo,.login-logo,.cfg-logo{color:#FAF6EF}
+#splash,#loginScreen,#esqueciScreen,#resetScreen,#pacLoginScreen,#pacSenhaScreen,#configBanner{background:#2B2A20}
+.stat-e,.line-e{color:var(--teal);display:flex}
+.stat-e{margin-bottom:10px}
+.bnt-icon{display:flex;height:22px}
+.sd-icon{display:inline-flex;width:20px;justify-content:center;color:var(--ink3)}
+.sd-item.active .sd-icon{color:var(--teal)}
+.tb-btn{color:var(--ink2)}
+.astrip-icon{display:flex;color:inherit}
+.vazio-ico{display:flex;justify-content:center;color:var(--ink3);margin-bottom:10px}
+.vazio-ico .ico{width:34px;height:34px}
+button .ico{vertical-align:-3px}
+/* hoje */
+.hoje-card{background:var(--teal);color:#fff;border-radius:var(--r-lg);padding:18px;margin-bottom:14px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;position:relative;overflow:hidden;cursor:default}
+.hoje-card::after{content:"";position:absolute;right:-18px;top:-14px;width:110px;height:150px;background:url('logo-simbolo.png') no-repeat center/contain;opacity:.16;pointer-events:none}
+.hoje-n{font-size:30px;font-weight:700;line-height:1}
+.hoje-l{font-size:12.5px;line-height:1.3;color:#E4EDDC;margin-top:6px}
+.hoje-item{background:none;border:0;color:inherit;text-align:left;padding:0;font:inherit;cursor:pointer;position:relative;z-index:1}
+/* esqueleto de carregamento */
+.esqueleto{display:grid;gap:10px;padding:6px 0}
+.esqueleto span{display:block;height:54px;border-radius:var(--r);background:linear-gradient(90deg,var(--sur2) 0%,#EDE4D5 50%,var(--sur2) 100%);background-size:200% 100%;animation:pulsa 1.2s ease-in-out infinite}
+.esqueleto span:nth-child(2){width:86%}.esqueleto span:nth-child(3){width:70%}
+@keyframes pulsa{0%{background-position:100% 0}100%{background-position:-100% 0}}
+/* resposta ao toque */
+.savebtn,.addbtn,.backbtn,.bnt,.stat,.chip,.casa-apoio{transition:transform .15s ease,background-color .15s ease,box-shadow .15s ease}
+.savebtn:active,.addbtn:active,.backbtn:active,.stat:active{transform:scale(.97)}
+.bnt:active .bnt-icon{transform:scale(.9)}
+.stat:hover{box-shadow:var(--sh-lg)}
+.card,.evo,.mc-item{animation:surge .28s ease both}
+@keyframes surge{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
 
 <div id="splash">
-  <div class="sp-logo">Casa Oliveira</div>
+  <img class="marca-simbolo" src="logo-simbolo.png" alt=""><div class="sp-logo">Casa Oliveira</div>
   <div class="sp-sub">Sistema Clínico</div>
   <div class="sp-spin"></div>
 </div>
 
 <!-- CONFIG -->
 <div id="configBanner">
-  <div class="cfg-logo">Casa Oliveira</div>
+  <img class="marca-simbolo" src="logo-simbolo.png" alt=""><div class="cfg-logo">Casa Oliveira</div>
   <div class="cfg-sub">Sistema Clínico</div>
   <div class="cfg-card">
-    <div class="cfg-title">🔧 Configurar API</div>
+    <div class="cfg-title">Configurar API</div>
     <div class="cfg-hint">Cole abaixo o URL do Apps Script que você implantou na planilha.</div>
     <div class="cfg-hint" style="background:rgba(184,92,26,.15);border:1px solid rgba(184,92,26,.4);border-radius:8px;padding:11px 13px;color:#e0a06a;margin-bottom:16px;">
-      ⚠️ Só altere se você mesma implantou o Apps Script. Apontar para outro
+      Só altere se você mesma implantou o Apps Script. Apontar para outro
       endereço entrega o e-mail e a senha de quem entrar neste aparelho.
     </div>
     <label class="cfg-label">URL do Apps Script</label>
@@ -546,12 +585,12 @@ input,select,textarea{outline:none;}
 
 <!-- LOGIN -->
 <div id="loginScreen">
-  <div class="login-logo">Casa Oliveira</div>
+  <img class="marca-simbolo" src="logo-simbolo.png" alt=""><div class="login-logo">Casa Oliveira</div>
   <div class="login-sub">Sistema Clínico</div>
   <div class="login-card">
     <div class="quem">
-      <div class="quem-op" id="quemPac" onclick="mostrarLoginPaciente()">🙋 Paciente</div>
-      <div class="quem-op" id="quemEqp" onclick="mostrarLoginEquipe()">👩‍⚕️ Terapeuta</div>
+      <div class="quem-op" id="quemPac" onclick="mostrarLoginPaciente()">Paciente</div>
+      <div class="quem-op" id="quemEqp" onclick="mostrarLoginEquipe()">Terapeuta</div>
     </div>
     <div id="loginErr" class="login-err"></div>
     <div class="lf"><label>E-mail</label><input id="lEmail" type="email" placeholder="seu@email.com" autocomplete="email"></div>
@@ -562,10 +601,10 @@ input,select,textarea{outline:none;}
     <div class="demo-section" id="demoSection" style="display:none">
       <div class="demo-title">Modo demonstração</div>
       <div class="demo-pills">
-        <div class="demo-pill" onclick="demoLogin('admin')">👑 Gestora</div>
-        <div class="demo-pill" onclick="demoLogin('coordenador')">📋 Coordenadora</div>
-        <div class="demo-pill" onclick="demoLogin('profissional')">👩‍⚕️ Profissional</div>
-        <div class="demo-pill" onclick="demoLogin('recepcao')">📣 Recepção</div>
+        <div class="demo-pill" onclick="demoLogin('admin')">Gestora</div>
+        <div class="demo-pill" onclick="demoLogin('coordenador')">Coordenadora</div>
+        <div class="demo-pill" onclick="demoLogin('profissional')">Profissional</div>
+        <div class="demo-pill" onclick="demoLogin('recepcao')">Recepção</div>
       </div>
     </div>
   </div>
@@ -573,7 +612,7 @@ input,select,textarea{outline:none;}
 
 <!-- ESQUECI MINHA SENHA -->
 <div id="esqueciScreen" style="display:none">
-  <div class="login-logo">Casa Oliveira</div>
+  <img class="marca-simbolo" src="logo-simbolo.png" alt=""><div class="login-logo">Casa Oliveira</div>
   <div class="login-sub">Recuperar acesso</div>
   <div class="login-card">
     <div id="esqErr" class="login-err"></div>
@@ -590,7 +629,7 @@ input,select,textarea{outline:none;}
 
 <!-- DEFINIR NOVA SENHA (link do e-mail) -->
 <div id="resetScreen" style="display:none">
-  <div class="login-logo">Casa Oliveira</div>
+  <img class="marca-simbolo" src="logo-simbolo.png" alt=""><div class="login-logo">Casa Oliveira</div>
   <div class="login-sub">Criar nova senha</div>
   <div class="login-card">
     <div id="rstErr" class="login-err"></div>
@@ -609,12 +648,12 @@ input,select,textarea{outline:none;}
 
 <!-- ÁREA DO PACIENTE — LOGIN -->
 <div id="pacLoginScreen" style="display:none">
-  <div class="login-logo">Casa Oliveira</div>
+  <img class="marca-simbolo" src="logo-simbolo.png" alt=""><div class="login-logo">Casa Oliveira</div>
   <div class="login-sub">Área do paciente</div>
   <div class="login-card">
     <div class="quem">
-      <div class="quem-op" id="quemPac2" onclick="mostrarLoginPaciente()">🙋 Paciente</div>
-      <div class="quem-op" id="quemEqp2" onclick="mostrarLoginEquipe()">👩‍⚕️ Terapeuta</div>
+      <div class="quem-op" id="quemPac2" onclick="mostrarLoginPaciente()">Paciente</div>
+      <div class="quem-op" id="quemEqp2" onclick="mostrarLoginEquipe()">Terapeuta</div>
     </div>
     <div id="pacErr" class="login-err"></div>
     <div class="lf"><label>E-mail</label>
@@ -627,7 +666,7 @@ input,select,textarea{outline:none;}
     <div class="demo-section" id="demoSectionPac" style="display:none">
       <div class="demo-title">Modo demonstração</div>
       <div class="demo-pills">
-        <div class="demo-pill" onclick="demoLoginPaciente()">🙋 Entrar como paciente</div>
+        <div class="demo-pill" onclick="demoLoginPaciente()">Entrar como paciente</div>
       </div>
     </div>
   </div>
@@ -635,7 +674,7 @@ input,select,textarea{outline:none;}
 
 <!-- ÁREA DO PACIENTE — CRIAR SENHA -->
 <div id="pacSenhaScreen" style="display:none">
-  <div class="login-logo">Casa Oliveira</div>
+  <img class="marca-simbolo" src="logo-simbolo.png" alt=""><div class="login-logo">Casa Oliveira</div>
   <div class="login-sub">Criar minha senha</div>
   <div class="login-card">
     <div id="pacSErr" class="login-err"></div>
@@ -660,11 +699,11 @@ input,select,textarea{outline:none;}
       <div class="tb-burger" id="burgerBtn" onclick="openDrawer()" title="Menu">
         <span></span><span></span><span></span>
       </div>
-      <div class="tb-logo">Casa Oliveira</div>
+      <div class="tb-logo"><img class="tb-simbolo" src="logo-simbolo.png" alt="">Casa Oliveira</div>
     </div>
     <div class="tb-right">
       <div class="tb-role" id="roleLabel"></div>
-      <div class="tb-btn" onclick="loadPage('alertas')">🔔<div class="tb-dot" id="notifDot" style="display:none"></div></div>
+      <div class="tb-btn" onclick="loadPage('alertas')" aria-label="Alertas"><svg class="ico" aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg><div class="tb-dot" id="notifDot" style="display:none"></div></div>
       <div class="tb-btn" id="avatarBtn" onclick="openDrawer()">A</div>
     </div>
   </div>
@@ -732,7 +771,7 @@ let demoMode = false;
 // Muda a cada publicação. Serve para o aparelho perceber que está com uma
 // versão velha em cache — sem isto a pessoa continua vendo o problema já
 // corrigido e jura que não foi corrigido.
-const VERSAO = '2026-09-29.02';
+const VERSAO = '2026-10-29.01';
 let _profsCache = null;
 let _demoPacienteId = null;
 
@@ -762,7 +801,7 @@ function sessaoExpirou() {
   authToken = null;
   localStorage.removeItem('co_token');
   localStorage.removeItem('co_user');
-  showToast('🔒 Sua sessão expirou. Entre novamente.','err');
+  showToast('Sua sessão expirou. Entre novamente.','err');
   setTimeout(()=>{
     if(document.getElementById('lEmail') && currentUser) {
       document.getElementById('lEmail').value = currentUser.email || '';
@@ -1204,7 +1243,7 @@ function demoApi(action, body) {
         DEMO_DB.mensagens = DEMO_DB.mensagens||[];
         DEMO_DB.mensagens.push({id:'msg_'+Date.now(), paciente_id:pac.id, de:'equipe',
           autor_nome:(currentUser||{}).nome||'', texto:'Boas-vindas ao seu programa de acompanhamento '+
-          'personalizado na Casa Oliveira! 🎉', criado_em:new Date().toISOString(), status:'fechada'});
+          'personalizado na Casa Oliveira! ', criado_em:new Date().toISOString(), status:'fechada'});
       }
       const de = l.estagio;
       l.paciente_id = pac.id; l.estagio = 'Virou Paciente'; l.motivo_perda='';
@@ -1328,7 +1367,7 @@ function salvarConfig() {
   if(location.search.indexOf('config=') !== -1) history.replaceState(null,'',location.pathname);
   document.getElementById('configBanner').style.display='none';
   document.getElementById('loginScreen').style.display='flex';
-  showToast('✅ API configurada!','ok');
+  showToast('API configurada!','ok');
 }
 // Fora da tela de login de proposito: quem apontasse o sistema para outro
 // servidor capturaria o e-mail e a senha de quem entrasse neste aparelho.
@@ -1558,7 +1597,7 @@ async function pedirResetSenha() {
   // Mensagem igual para e-mail cadastrado ou não — o backend responde igual
   // nos dois casos, para não revelar quem tem conta
   const okEl = document.getElementById('esqOk');
-  okEl.innerHTML = '📧 Se <strong>'+esc(email)+'</strong> estiver cadastrado, o link para criar '+
+  okEl.innerHTML = 'Se <strong>'+esc(email)+'</strong> estiver cadastrado, o link para criar '+
                    'uma nova senha chegou na caixa de entrada.<br><br>O link vale por 1 hora. '+
                    'Confira também o spam.';
   okEl.style.display='block';
@@ -1587,7 +1626,7 @@ async function confirmarNovaSenha() {
   limparParamReset();
   if(eraPaciente) { mostrarLoginPaciente(); }
   else { mostrarTela('loginScreen'); }
-  showToast('✅ Senha criada! Entre com ela agora.','ok');
+  showToast('Senha criada! Entre com ela agora.','ok');
 }
 
 function showLoginErr(msg){
@@ -1600,12 +1639,12 @@ function showLoginErr(msg){
 // APP INIT
 // ═══════════════════════════════════════════════
 const LINHAS = {
-  infantil:     {emoji:'🧩',label:'Infantil',      color:'violet', servicos:'TO Infantil · Terapia Floral · Acupuntura'},
-  mulher:       {emoji:'🌸',label:'Saúde da Mulher',color:'rose',   servicos:'Fisio Pélvica · Acupuntura · Amamentação · Massagem · Rodas'},
-  reabilitacao: {emoji:'🦴',label:'Reabilitação',   color:'amber',  servicos:'Fisioterapia · Palmilha · RPG · Massagem · TO de Mão'},
-  pilates:      {emoji:'🧘',label:'Pilates',        color:'sage',   servicos:'Pilates'},
-  geriatria:    {emoji:'👴',label:'Geriatria',       color:'sky',    servicos:'TO Individual · Convivência · Casa Segura'},
-  mental:       {emoji:'🧠',label:'Saúde Mental',   color:'teal',   servicos:'TO · Acupuntura · Terapia Floral · Ateliê'},
+  infantil:     {ico:'crianca',emoji:'',label:'Infantil',      color:'violet', servicos:'TO Infantil · Terapia Floral · Acupuntura'},
+  mulher:       {ico:'flor',emoji:'',label:'Saúde da Mulher',color:'rose',   servicos:'Fisio Pélvica · Acupuntura · Amamentação · Massagem · Rodas'},
+  reabilitacao: {ico:'movimento',emoji:'',label:'Reabilitação',   color:'amber',  servicos:'Fisioterapia · Palmilha · RPG · Massagem · TO de Mão'},
+  pilates:      {ico:'equilibrio',emoji:'',label:'Pilates',        color:'sage',   servicos:'Pilates'},
+  geriatria:    {ico:'apoio',emoji:'',label:'Geriatria',       color:'sky',    servicos:'TO Individual · Convivência · Casa Segura'},
+  mental:       {ico:'cerebro',emoji:'',label:'Saúde Mental',   color:'teal',   servicos:'TO · Acupuntura · Terapia Floral · Ateliê'},
 };
 
 // Funcoes clinicas mais comuns. "Outra" cobre o que nao estiver aqui sem
@@ -1658,6 +1697,12 @@ const ICONES = {
   clipe:      '<path d="M20 11.5l-8 8a5 5 0 0 1-7-7l8.5-8.5a3.3 3.3 0 0 1 4.7 4.7L9.7 17.2a1.7 1.7 0 0 1-2.4-2.4L15 7"/>',
   alvo:       '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2"/>',
   lupa:       '<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>',
+  flor:       '<circle cx="12" cy="12" r="2.5"/><path d="M12 9.5C10 6 10.5 3.5 12 3c1.5.5 2 3 0 6.5M14.5 12c3.5-2 6-1.5 6.5 0-.5 1.5-3 2-6.5 0M12 14.5c2 3.5 1.5 6 0 6.5-1.5-.5-2-3 0-6.5M9.5 12c-3.5 2-6 1.5-6.5 0 .5-1.5 3-2 6.5 0"/>',
+  equilibrio: '<circle cx="12" cy="4.5" r="2"/><path d="M4 10h16M12 10v5l-3 6M12 15l3 6"/>',
+  cerebro:    '<path d="M9 4a3 3 0 0 0-3 3 3 3 0 0 0-2 5 3 3 0 0 0 2 5 3 3 0 0 0 3 3h1V4z"/><path d="M15 4a3 3 0 0 1 3 3 3 3 0 0 1 2 5 3 3 0 0 1-2 5 3 3 0 0 1-3 3h-1V4z"/>',
+  apoio:      '<circle cx="10" cy="4.5" r="2"/><path d="M10 7v6l-3 8M10 13l3 8M10 9l4 2v10"/>',
+  lixeira:    '<path d="M4 7h16M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13M9 7V4h6v3"/>',
+  olho:       '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
   cadeira:    '<path d="M7 3v9h10V3M5 12h14M7 12v9M17 12v9"/>',
 };
 function icone(nome, tam) {
@@ -1666,9 +1711,9 @@ function icone(nome, tam) {
 }
 
 const NAVS = {
-  admin:        [{id:'home',icon:'🏠',label:'Início'},{id:'agenda',icon:'📅',label:'Agenda'},{id:'linhas',icon:'🩺',label:'Linhas'},{id:'casa',icon:'💚',label:'Nossa Casa',barra:false},{id:'mensagens',icon:'💬',label:'Mensagens',num:true},{id:'leads',icon:'📣',label:'Leads'},{id:'servicos',icon:'🗂️',label:'Serviços',barra:false},{id:'tarefas',icon:'🧰',label:'Tarefas',barra:false},{id:'financeiro',icon:'💰',label:'Financeiro',barra:false},{id:'espera',icon:'🪑',label:'Espera',barra:false},{id:'equipe',icon:'👥',label:'Cadastro da equipe',barra:false},{id:'alertas',icon:'🔔',label:'Alertas',badge:true}],
-  coordenador:  [{id:'home',icon:'🏠',label:'Início'},{id:'agenda',icon:'📅',label:'Agenda'},{id:'casa',icon:'💚',label:'Nossa Casa',barra:false},{id:'linhas',icon:'🩺',label:'Pacientes'},{id:'mensagens',icon:'💬',label:'Mensagens',num:true},{id:'leads',icon:'📣',label:'Leads'},{id:'servicos',icon:'🗂️',label:'Serviços',barra:false},{id:'tarefas',icon:'🧰',label:'Tarefas',barra:false},{id:'espera',icon:'🪑',label:'Espera',barra:false},{id:'alertas',icon:'🔔',label:'Alertas',badge:true}],
-  profissional: [{id:'home',icon:'🏠',label:'Hoje'},{id:'agenda',icon:'📅',label:'Agenda'},{id:'linhas',icon:'🩺',label:'Meus Pcts'},{id:'casa',icon:'💚',label:'Nossa Casa'},{id:'mensagens',icon:'💬',label:'Mensagens',num:true},{id:'servicos',icon:'🗂️',label:'Serviços',barra:false},{id:'alertas',icon:'🔔',label:'Pendências',badge:true}],
+  admin:        [{id:'home',icon:'casa',label:'Início'},{id:'agenda',icon:'agenda',label:'Agenda'},{id:'linhas',icon:'folha',label:'Linhas'},{id:'casa',icon:'coracao',label:'Nossa Casa',barra:false},{id:'mensagens',icon:'mensagem',label:'Mensagens',num:true},{id:'leads',icon:'megafone',label:'Leads'},{id:'servicos',icon:'grade',label:'Serviços',barra:false},{id:'tarefas',icon:'tarefa',label:'Tarefas',barra:false},{id:'financeiro',icon:'carteira',label:'Financeiro',barra:false},{id:'espera',icon:'cadeira',label:'Espera',barra:false},{id:'equipe',icon:'equipe',label:'Cadastro da equipe',barra:false},{id:'alertas',icon:'sino',label:'Alertas',badge:true}],
+  coordenador:  [{id:'home',icon:'casa',label:'Início'},{id:'agenda',icon:'agenda',label:'Agenda'},{id:'casa',icon:'coracao',label:'Nossa Casa',barra:false},{id:'linhas',icon:'folha',label:'Pacientes'},{id:'mensagens',icon:'mensagem',label:'Mensagens',num:true},{id:'leads',icon:'megafone',label:'Leads'},{id:'servicos',icon:'grade',label:'Serviços',barra:false},{id:'tarefas',icon:'tarefa',label:'Tarefas',barra:false},{id:'espera',icon:'cadeira',label:'Espera',barra:false},{id:'alertas',icon:'sino',label:'Alertas',badge:true}],
+  profissional: [{id:'home',icon:'casa',label:'Hoje'},{id:'agenda',icon:'agenda',label:'Agenda'},{id:'linhas',icon:'folha',label:'Meus Pcts'},{id:'casa',icon:'coracao',label:'Nossa Casa'},{id:'mensagens',icon:'mensagem',label:'Mensagens',num:true},{id:'servicos',icon:'grade',label:'Serviços',barra:false},{id:'alertas',icon:'sino',label:'Pendências',badge:true}],
 };
 
 // Recepção é função, não nível de acesso: quem atende o telefone entra como
@@ -1687,13 +1732,13 @@ function ehAdministracao() {
 function navDoUsuario() {
   const itens = (NAVS[currentRole]||NAVS.profissional).map(i=>({...i}));
   if(!itens.some(i=>i.id==='leads') && ehRecepcao()) {
-    itens.splice(3, 0, {id:'leads',icon:'📣',label:'Leads'});
+    itens.splice(3, 0, {id:'leads',icon:'megafone',label:'Leads'});
     // Leads entrou: Serviços sai da barra do celular para não passar de cinco
     const srv = itens.find(i=>i.id==='servicos');
     if(srv) srv.barra = false;
   }
   if(!itens.some(i=>i.id==='financeiro') && ehAdministracao()) {
-    itens.push({id:'financeiro',icon:'💰',label:'Financeiro',barra:false});
+    itens.push({id:'financeiro',icon:'carteira',label:'Financeiro',barra:false});
   }
   return itens;
 }
@@ -1726,7 +1771,7 @@ function buildNav() {
   document.getElementById('bnavEl').innerHTML = items.map(i=>`
     <div class="bnt" id="bn-${i.id}" onclick="loadPage('${i.id}')">
       <div class="bnt-bar"></div>
-      <div class="bnt-icon">${i.icon}</div>
+      <div class="bnt-icon">${icone(i.icon,22)}</div>
       <div class="bnt-lbl">${i.label}</div>
       ${i.badge?'<div class="bnt-badge"></div>':''}
       ${i.num?`<div class="bnt-num" id="bnnum-${i.id}" style="display:none"></div>`:''}
@@ -1737,12 +1782,12 @@ function buildNav() {
 // menu do avatar, onde ninguém achava — agora saem no mesmo lugar do resto.
 function extrasDoMenu() {
   return [
-    {icon:'🧩', label:'Etapas e Programas', acao:`loadPage('programas')`, so:'admin'},
-    {icon:'🏃', label:'Exercícios',         acao:`loadPage('biblioteca')`, so:'equipe'},
-    {icon:'📐', label:'Avaliação física', acao:`location.href='avaliacao/'`, so:'todos'},
-    {icon:'🧒', label:'Avaliação infantil', acao:`location.href='avaliacao-infantil/'`, so:'todos'},
-    {icon:'🏥', label:'Dados da clínica',   acao:`abrirConfigClinica()`,   so:'admin'},
-    {icon:'📥', label:'Importar pacientes', acao:`abrirImportacao()`,      so:'admin'},
+    {icon:'camadas', label:'Etapas e Programas', acao:`loadPage('programas')`, so:'admin'},
+    {icon:'movimento', label:'Exercícios',         acao:`loadPage('biblioteca')`, so:'equipe'},
+    {icon:'regua', label:'Avaliação física', acao:`location.href='avaliacao/'`, so:'todos'},
+    {icon:'crianca', label:'Avaliação infantil', acao:`location.href='avaliacao-infantil/'`, so:'todos'},
+    {icon:'predio', label:'Dados da clínica',   acao:`abrirConfigClinica()`,   so:'admin'},
+    {icon:'importar', label:'Importar pacientes', acao:`abrirImportacao()`,      so:'admin'},
   ].filter(x=> x.so==='todos' || (x.so==='admin' ? currentRole==='admin' : currentRole!=='profissional'));
 }
 
@@ -1755,28 +1800,28 @@ function itensMenuHTML(prefixo, aoClicar) {
   const fecha = aoClicar ? aoClicar+';' : '';
   const extras = extrasDoMenu();
   const num = prefixo==='sd-' ? 'sdnum-' : 'drwnum-';
-  const item = (icone, rotulo, acao, id, extra) =>
+  const item = (ic, rotulo, acao, id, extra) =>
     `<div class="sd-item${extra||''}"${id?` id="${id}"`:''} onclick="${fecha}${acao}">
-       <span class="sd-icon">${icone}</span>${rotulo}</div>`;
+       <span class="sd-icon">${icone(ic,18)}</span>${rotulo}</div>`;
 
   return `<div class="sd-sec">Menu</div>` +
     navDoUsuario().map(i=>
       `<div class="sd-item" id="${prefixo}${i.id}" onclick="${fecha}loadPage('${i.id}')">
-         <span class="sd-icon">${i.icon}</span>${i.label}${
+         <span class="sd-icon">${icone(i.icon,18)}</span>${i.label}${
          i.num?`<span class="sd-num" id="${num}${i.id}" style="display:none"></span>`:''}</div>`).join('') +
     (extras.length ? `<div class="sd-sec">Gestão</div>` +
       extras.map(x=>item(x.icon, x.label, x.acao)).join('') : '') +
     `<div class="sd-sec">Conta</div>` +
     `<div class="sd-conta">${esc(currentUser.nome)}
        <div class="sd-conta-mail">${esc(currentUser.email)}</div></div>` +
-    item('🔑','Alterar senha','showAlterarSenha()') +
-    item('🚪','Sair','doLogout()',null,' sd-danger') +
+    item('chave','Alterar senha','showAlterarSenha()') +
+    item('sair','Sair','doLogout()',null,' sd-danger') +
     `<div class="sd-versao">versão ${esc(VERSAO)}</div>`;
 }
 
 function buildSidebar() {
   document.getElementById('sidebarEl').innerHTML =
-    `<div class="sd-logo">Casa Oliveira</div>` + itensMenuHTML('sd-', '');
+    `<div class="sd-logo"><img class="tb-simbolo" src="logo-simbolo.png" alt="">Casa Oliveira</div>` + itensMenuHTML('sd-', '');
   buildDrawer();
 }
 
@@ -1815,16 +1860,29 @@ function marcarAtivo(id) {
 // ═══════════════════════════════════════════════
 // PAGES
 // ═══════════════════════════════════════════════
+// "Dra. Ana Paula" -> "Ana": o título fica de fora da saudação
+function primeiroNome(nome) {
+  const p = String(nome||'').trim().split(/\s+/);
+  const t = p.findIndex(x=>!/^(dra?\.?|to|prof\.?|sr\.?|sra\.?)$/i.test(x));
+  return p[t>=0?t:0] || '';
+}
+
 function renderHome() {
   const h=new Date().getHours(), g=h<12?'Bom dia':h<18?'Boa tarde':'Boa noite';
   return `<div class="ph">
-    <div class="ph-title">${g}, ${currentUser.nome.split(' ')[0]} 👋</div>
-    <div class="ph-sub">${new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'})}</div>
+    <div class="ph-sub" style="margin:0 0 4px">${maiuscula(new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'}))}</div>
+    <div class="ph-title">${g}, ${esc(primeiroNome(currentUser.nome))}</div>
   </div>
+  <div class="hoje-card">
+    <button class="hoje-item" onclick="loadPage('agenda')"><div class="hoje-n" id="hjAtend">–</div><div class="hoje-l">atendimentos hoje</div></button>
+    <button class="hoje-item" onclick="loadPage('alertas')"><div class="hoje-n" id="hjPend">–</div><div class="hoje-l">pendências abertas</div></button>
+    <button class="hoje-item" onclick="loadPage('mensagens')"><div class="hoje-n" id="hjMsg">–</div><div class="hoje-l">mensagens esperando</div></button>
+  </div>
+  <div id="hjCasa"></div>
   <div class="stats-grid" id="statsGrid">
     ${Object.entries(LINHAS).map(([k,v],i)=>`
     <div class="stat ${v.color}" onclick="openLinha('${k}')">
-      <div class="stat-e">${v.emoji}</div>
+      <div class="stat-e">${icone(v.ico,22)}</div>
       <div class="stat-n" id="cnt-${k}">—</div>
       <div class="stat-l">${v.label}</div>
     </div>`).join('')}
@@ -1840,7 +1898,7 @@ function renderLinhas() {
   return `<div class="ph"><div class="ph-title">Linhas Clínicas</div><div class="ph-sub">Toque para ver pacientes</div></div>
   ${Object.entries(LINHAS).map(([k,v])=>`
   <div class="line-card" onclick="openLinha('${k}')">
-    <div class="line-e">${v.emoji}</div>
+    <div class="line-e">${icone(v.ico,22)}</div>
     <div style="flex:1">
       <div class="line-nm">${v.label}</div>
       <div class="line-sv">${v.servicos}</div>
@@ -1867,7 +1925,7 @@ function renderEquipe() {
   return `<div class="ph"><div class="ph-title">Equipe</div></div>
   ${currentRole==='admin'?`
   <div class="invite-card">
-    <div class="invite-title">✉️ Convidar Profissional</div>
+    <div class="invite-title">Convidar Profissional</div>
     <div class="f2">
       <div class="fg fa"><label class="fl">Nome *</label><input class="fi" id="invNome" placeholder="Nome completo"></div>
       <div class="fg"><label class="fl">E-mail *</label><input class="fi" id="invEmail" type="email" placeholder="email@casaoliveira.com"></div>
@@ -1894,13 +1952,13 @@ function renderEquipe() {
         <div id="invLinhas" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
           ${Object.entries(LINHAS).map(([k,v])=>`
           <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;background:var(--sur2);padding:6px 11px;border-radius:20px;border:1px solid var(--bor);">
-            <input type="checkbox" value="${k}" style="accent-color:var(--teal)"> ${v.emoji} ${v.label}
+            <input type="checkbox" value="${k}" style="accent-color:var(--teal)"> ${v.label}
           </label>`).join('')}
         </div>
       </div>
     </div>
     <div id="invErr" class="errbox"></div>
-    <button class="savebtn" id="invBtn" onclick="convidarProf()">📧 Cadastrar e Enviar Convite</button>
+    <button class="savebtn" id="invBtn" onclick="convidarProf()">Cadastrar e Enviar Convite</button>
   </div>`:''}
   <div id="listaProfs"><div class="loading-inline"><div class="loading-spin"></div>Carregando equipe...</div></div>`;
 }
@@ -1916,7 +1974,7 @@ async function openLinha(linha) {
   limparSujo();
   _currentLinha = linha;
   const cfg = LINHAS[linha];
-  document.getElementById('sheetTitle').textContent = cfg.emoji+' '+cfg.label;
+  document.getElementById('sheetTitle').textContent = cfg.label;
   document.getElementById('sheetBody').innerHTML = loadingHTML();
   openSheet();
   await carregarPacientes(linha);
@@ -1949,11 +2007,11 @@ async function carregarPacientes(linha) {
       <button class="addbtn" onclick="openFormNovoPaciente('${linha}')">+ Novo</button>
     </div>
     ${pacs.length > 8 ? `<input class="fi buscapc" id="buscaPac" type="search" autocomplete="off"
-        placeholder="🔎 Buscar por nome, terapeuta, serviço..."
+        placeholder="Buscar por nome, terapeuta, serviço..."
         oninput="filtrarPacientes('${linha}')">` : ''}
     <div id="listaPac">${pacs.length===0
       ? `<div style="text-align:center;padding:48px 20px;color:var(--ink3)">
-          <div style="font-size:48px;margin-bottom:12px">${cfg.emoji}</div>
+          <div class="vazio-ico">${icone(cfg.ico,32)}</div>
           <div style="font-size:15px;font-weight:600;margin-bottom:6px">Nenhum paciente cadastrado</div>
           <div style="font-size:13px">Clique em + Novo para adicionar</div>
         </div>`
@@ -2022,7 +2080,7 @@ async function openFormNovoPaciente(linha, existente) {
   const opcoesDoForm = opcoesServicos(linha, servicosAtuais);
   const nascVal = /^(\d{4}-\d{2}-\d{2})/.exec(String(p.data_nascimento||''));
 
-  document.getElementById('sheetTitle').textContent = editando ? '✏️ Editar Paciente' : '+ Novo Paciente';
+  document.getElementById('sheetTitle').textContent = editando ? 'Editar Paciente' : '+ Novo Paciente';
   document.getElementById('sheetBody').innerHTML = `
     <div style="margin-bottom:14px;">
       <button class="backbtn" onclick="${editando?`openPaciente('${linha}','${p.id}')`:`openLinha('${linha}')`}">‹ Voltar</button>
@@ -2047,7 +2105,7 @@ async function openFormNovoPaciente(linha, existente) {
         </select>
         ${String(p.status||'')==='Lead'?`<div class="pt-nota">Ainda não confirmou como cliente — veio de um lead
           com acesso ao portal. Para virar cliente de verdade, use "Confirmar virada de cliente" na ficha do lead
-          em 📣 Leads (isso também dispara a mensagem de boas-vindas).</div>`:''}
+          em Leads (isso também dispara a mensagem de boas-vindas).</div>`:''}
       </div>`:''}
       <div class="fg fa"><label class="fl">Serviços</label>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
@@ -2058,13 +2116,13 @@ async function openFormNovoPaciente(linha, existente) {
               servicosAtuais.some(n=>normalizar(n)===normalizar(o.nome))?' checked':''}> ${esc(o.nome)}${o.fora?' ⋯':''}
           </label>`).join('')}
         </div>
-        <div class="pt-nota">Vem da tela 🗂️ Serviços, só os ativos da linha. Os marcados com ⋯ não são mais oferecidos, mas seguem vinculados enquanto ficarem marcados.</div>
+        <div class="pt-nota">Vem da tela Serviços, só os ativos da linha. Os marcados com ⋯ não são mais oferecidos, mas seguem vinculados enquanto ficarem marcados.</div>
       </div>
       <div class="fg fa"><label class="fl">Observações</label><textarea class="ft" id="np_obs" placeholder="Queixa principal, motivo do encaminhamento...">${esc(p.observacoes)}</textarea></div>
     </div>
     <div id="np_err" class="errbox"></div>
     <button class="savebtn" id="np_btn" onclick="salvarPaciente('${linha}'${editando?`,'${p.id}'`:''})">${editando?'Salvar alterações':'Cadastrar Paciente'}</button>
-    ${editando&&currentRole==='admin'?`<button class="savebtn" id="np_del" style="background:var(--rose);margin-top:8px" onclick="excluirPaciente('${linha}','${p.id}')">🗑 Excluir paciente</button>`:''}`;
+    ${editando&&currentRole==='admin'?`<button class="savebtn" id="np_del" style="background:var(--rose);margin-top:8px" onclick="excluirPaciente('${linha}','${p.id}')">Excluir paciente</button>`:''}`;
 }
 
 async function excluirPaciente(linha, id) {
@@ -2083,10 +2141,10 @@ async function excluirPaciente(linha, id) {
   const res = await api('deletar',{tabela:'pacientes', id});
   if(!res.ok){
     showToast('Erro ao excluir: '+(res.erro||'tente novamente'),'err');
-    if(btn){ btn.textContent='🗑 Excluir paciente'; btn.disabled=false; }
+    if(btn){ btn.textContent='Excluir paciente'; btn.disabled=false; }
     return;
   }
-  showToast('🗑 '+nome+' excluído','ok');
+  showToast(''+nome+' excluído','ok');
   delete _pacientesCache[linha];
   _todosPacientes = null;
   openLinha(linha);
@@ -2138,7 +2196,7 @@ async function salvarPaciente(linha, idExistente) {
   }
 
   limparSujo();
-  showToast('✅ '+nome+(idExistente?' atualizado!':' cadastrado!'),'ok');
+  showToast(''+nome+(idExistente?' atualizado!':' cadastrado!'),'ok');
   delete _pacientesCache[linha];
   _todosPacientes = null;
   openLinha(linha);
@@ -2157,8 +2215,8 @@ function areaPacienteHTML(p, idxAba) {
   return `
     <div class="pac-status ${liberado?'on':''}">
       ${liberado
-        ? `✅ <strong>${esc(p.nome.split(' ')[0])}</strong> acompanha pelo site — acesso por <strong>${esc(p.email)}</strong>`
-        : `🔒 Sem acesso ainda. Libere abaixo para esta pessoa acompanhar pelo site.`}
+        ? `<strong>${esc(p.nome.split(' ')[0])}</strong> acompanha pelo site — acesso por <strong>${esc(p.email)}</strong>`
+        : `Sem acesso ainda. Libere abaixo para esta pessoa acompanhar pelo site.`}
     </div>
 
     <div class="fg"><label class="fl">Plano terapêutico — versão para o paciente</label>
@@ -2172,7 +2230,7 @@ function areaPacienteHTML(p, idxAba) {
     <div class="fg"><label class="fl">Próximo contato</label>
       <input class="fi" type="date" data-k="proximo_contato" value="${esc(String(p.proximo_contato||'').slice(0,10))}"></div>
 
-    <button class="savebtn" id="pacSalvarBtn" onclick="salvarAreaPaciente('${p.id}',${idxAba})">💾 Salvar e publicar para o paciente</button>
+    <button class="savebtn" id="pacSalvarBtn" onclick="salvarAreaPaciente('${p.id}',${idxAba})">Salvar e publicar para o paciente</button>
 
     ${currentRole==='admin'?`
     <div class="pac-acesso">
@@ -2182,13 +2240,13 @@ function areaPacienteHTML(p, idxAba) {
                placeholder="email@exemplo.com"></div>
       <div id="pacAcErr" class="errbox"></div>
       <button class="backbtn" id="pacAcBtn" style="width:100%" onclick="liberarAcessoPaciente('${p.id}')">
-        ${liberado?'🔁 Reenviar link de acesso':'📧 Liberar e enviar link por e-mail'}</button>
+        ${liberado?'Reenviar link de acesso':'Liberar e enviar link por e-mail'}</button>
       <div class="pt-nota">A pessoa recebe um link e cria a própria senha — nenhuma senha
         trafega por e-mail.</div>
 
       <div class="pac-ou">ou</div>
       <button class="backbtn" id="pacAcBtn2" style="width:100%" onclick="definirSenhaNaHora('${p.id}')">
-        ✍️ Definir a senha agora, aqui</button>
+        Definir a senha agora, aqui</button>
       <div class="pt-nota">Para quem não usa e-mail: você escolhe a senha e entrega em mãos.
         Bom para pessoa idosa ou quem prefere anotar no papel.</div>
 
@@ -2209,14 +2267,14 @@ async function salvarAreaPaciente(id, idxAba) {
 
   btn.textContent='Salvando...'; btn.disabled=true;
   const res = await api('atualizar',{tabela:'pacientes', id, dados});
-  btn.textContent='💾 Salvar e publicar para o paciente'; btn.disabled=false;
+  btn.textContent='Salvar e publicar para o paciente'; btn.disabled=false;
 
   if(!res.ok){ showToast('Erro ao salvar: '+(res.erro||''),'err'); return; }
 
   const p = (_pacientesCache[_currentLinha]||[]).find(x=>String(x.id)===String(id));
   if(p) Object.assign(p, dados);
   limparSujo();
-  showToast('✅ Publicado para o paciente','ok');
+  showToast('Publicado para o paciente','ok');
 }
 
 // Caminho para quem não usa e-mail: a gestora escolhe a senha e entrega em mãos
@@ -2274,7 +2332,7 @@ async function salvarSenhaManual(id) {
   const p = (_pacientesCache[_currentLinha]||[]).find(x=>String(x.id)===String(id));
   if(p){ p.email=email; p.acesso='Liberado'; }
   document.getElementById('pacSenhaManual').remove();
-  showToast('✅ Senha definida','ok');
+  showToast('Senha definida','ok');
   alert('Pronto.\n\nE-mail: '+email+'\nSenha: '+senha+'\n\nEntregue estes dados à pessoa. Anote agora — a senha não aparece de novo.');
 }
 
@@ -2292,15 +2350,15 @@ async function liberarAcessoPaciente(id) {
   btn.disabled=false;
 
   if(!res.ok){
-    btn.textContent='🔓 Liberar acesso';
+    btn.textContent='Liberar acesso';
     err.textContent=res.erro||'Não foi possível liberar.'; err.style.display='block';
     return;
   }
 
   const p = (_pacientesCache[_currentLinha]||[]).find(x=>String(x.id)===String(id));
   if(p){ p.email=email; p.acesso='Liberado'; }
-  btn.textContent='🔁 Reenviar link de acesso';
-  showToast('✅ Acesso liberado — link enviado por e-mail','ok');
+  btn.textContent='Reenviar link de acesso';
+  showToast('Acesso liberado — link enviado por e-mail','ok');
   alert('Acesso liberado para '+email+'.\n\nA pessoa recebeu um link para criar a própria senha, válido por 1 hora.\n\nSe o e-mail não chegar, ela pode pedir outro em "Primeiro acesso" na tela de login.');
 }
 
@@ -2363,7 +2421,7 @@ async function enviarMinhaMensagem() {
   const r = await api('minhas_mensagens',{});
   _pacMsgs = r.ok ? (r.dados||[]) : _pacMsgs;
   document.getElementById('pacMsgLista').innerHTML = listaMsgPacienteHTML();
-  showToast('✅ Mensagem enviada','ok');
+  showToast('Mensagem enviada','ok');
 }
 
 function mostrarLoginPaciente() {
@@ -2434,7 +2492,7 @@ async function pedirSenhaPaciente() {
 
   // Resposta igual para cadastrado e não cadastrado, de propósito
   const ok=document.getElementById('pacSOk');
-  ok.innerHTML='📧 Se <strong>'+esc(email)+'</strong> estiver cadastrado na clínica, '+
+  ok.innerHTML='Se <strong>'+esc(email)+'</strong> estiver cadastrado na clínica, '+
                'o link para criar sua senha chegou na caixa de entrada.<br><br>'+
                'O link vale por 1 hora. Confira também o spam.';
   ok.style.display='block';
@@ -2477,7 +2535,7 @@ async function abrirPortal() {
   const tela = document.getElementById('portalScreen');
   tela.style.display='block';
   tela.innerHTML = `<div class="pt-topo">
-      <div class="pt-marca">Casa Oliveira</div>
+      <div class="pt-marca"><img class="tb-simbolo" src="logo-simbolo.png" alt="">Casa Oliveira</div>
       <button class="backbtn" onclick="sairPortal()">Sair</button>
     </div>
     <div class="pt-corpo">${loadingHTML()}</div>`;
@@ -2512,7 +2570,7 @@ async function abrirPortal() {
   const ehLead = String(d.status||'').toLowerCase()==='lead';
 
   tela.querySelector('.pt-corpo').innerHTML = `
-    <div class="pt-ola">Olá, ${esc((d.nome||'').split(' ')[0])} 👋</div>
+    <div class="pt-ola">Olá, ${esc((d.nome||'').split(' ')[0])} </div>
     <div class="pt-sub">${ehLead?'Assim que você virar cliente, seu acompanhamento aparece aqui':'Acompanhe seu atendimento na Casa Oliveira'}</div>
 
     ${ehLead ? `<div class="pt-card">
@@ -2522,7 +2580,7 @@ async function abrirPortal() {
     </div>` : ''}
 
     ${!ehLead && f ? `<div class="pt-card pt-fila">
-      <div class="pt-t">🪑 Lista de espera</div>
+      <div class="pt-t">Lista de espera</div>
       ${(f.filas && f.filas.length>1)
         ? f.filas.map(x=>`<div class="pt-fila-linha">
             <div class="pt-fila-n" style="font-size:34px">${x.posicao}º</div>
@@ -2545,7 +2603,7 @@ async function abrirPortal() {
       <div class="pt-t">Situação</div><div class="pt-p">${esc(d.status)}</div></div>` : ''}
 
     ${!ehLead ? `<div class="pt-card">
-      <div class="pt-t">${cfg.emoji} Seu acompanhamento</div>
+      <div class="pt-t">Seu acompanhamento</div>
       ${d.terapeuta_nome?`<div class="pt-linha"><span>Profissional</span>
         <strong style="text-align:right">${esc(d.terapeuta_nome)}${d.terapeuta_funcao?`<div style="font-weight:400;font-size:12px;color:var(--ink3)">${esc(d.terapeuta_funcao)}${d.terapeuta_registro?' · '+esc(d.terapeuta_registro):''}</div>`:''}</strong></div>`:''}
       ${cfg.label?`<div class="pt-linha"><span>Área</span><strong>${esc(cfg.label)}</strong></div>`:''}
@@ -2554,7 +2612,7 @@ async function abrirPortal() {
     </div>` : ''}
 
     ${!ehLead && _pacResul ? `<div class="pt-card">
-      <div class="pt-t">📊 Meus resultados</div>
+      <div class="pt-t">Meus resultados</div>
       <div class="pt-p">Veja como você foi em cada teste da avaliação física, comparado com pessoas da sua idade e com as suas avaliações anteriores.</div>
       ${_pacResul.publicado_em?`<div class="pt-nota">Atualizado em ${esc(fmtDataBR(String(_pacResul.publicado_em).slice(0,10)))}</div>`:''}
       <button class="savebtn" style="margin-top:12px"
@@ -2562,22 +2620,22 @@ async function abrirPortal() {
     </div>` : ''}
 
     ${!ehLead && d.plano ? `<div class="pt-card">
-      <div class="pt-t">🎯 Seu plano terapêutico</div>
+      <div class="pt-t">Seu plano terapêutico</div>
       <div class="pt-p">${esc(d.plano)}</div>
       ${d.plano_atualizado_em?`<div class="pt-nota">Atualizado em ${esc(fmtDataBR(d.plano_atualizado_em))}</div>`:''}
     </div>` : (!ehLead && !f ? `<div class="pt-card">
-      <div class="pt-t">🎯 Seu plano terapêutico</div>
+      <div class="pt-t">Seu plano terapêutico</div>
       <div class="pt-p" style="color:var(--ink3)">Ainda não há um plano publicado.
         Sua equipe compartilha aqui os objetivos combinados.</div>
     </div>` : '')}
 
     ${!ehLead && d.orientacoes ? `<div class="pt-card">
-      <div class="pt-t">🏠 Orientações para casa</div>
+      <div class="pt-t">Orientações para casa</div>
       <div class="pt-p">${esc(d.orientacoes)}</div>
     </div>` : ''}
 
     ${!ehLead && _pacExer && _pacExer.exercicios && _pacExer.exercicios.length ? `<div class="pt-card">
-      <div class="pt-t">🏃 ${esc(_pacExer.titulo||'Exercícios para casa')}</div>
+      <div class="pt-t">${esc(_pacExer.titulo||'Exercícios para casa')}</div>
       ${_pacExer.orientacoes?`<div class="pt-aviso" style="margin-bottom:12px">${esc(_pacExer.orientacoes)}</div>`:''}
       ${_pacExer.exercicios.map((x,i)=>`<div class="exe">
         <div class="exe-n">${i+1}</div>
@@ -2596,7 +2654,7 @@ async function abrirPortal() {
     </div>` : ''}
 
     <div class="pt-card">
-      <div class="pt-t">📎 Meus documentos</div>
+      <div class="pt-t">Meus documentos</div>
       ${_pacDocs.length
         ? agruparDocumentos(_pacDocs).map(([categoria, docs])=>`
             <div class="doc-grupo">${esc(categoria)} <span>${docs.length}</span></div>
@@ -2606,14 +2664,14 @@ async function abrirPortal() {
                 <div class="doc-nome">${esc(d.nome)}</div>
                 <div class="doc-meta">${d.criado_em?esc(fmtDataBR(String(d.criado_em).slice(0,10))):''}</div>
               </div>
-              <button class="backbtn" onclick="baixarMeuDoc('${esc(d.id)}')">⬇</button>
+              <button class="backbtn" onclick="baixarMeuDoc('${esc(d.id)}')"><svg class="ico" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 17v3h16v-3"/></svg></button>
             </div>`).join('')}`).join('')
         : `<div class="pt-p" style="color:var(--ink3)">Nenhum documento disponível ainda.
              Notas fiscais, relatórios e orçamentos aparecem aqui.</div>`}
     </div>
 
     <div class="pt-card">
-      <div class="pt-t">💬 Falar com a clínica</div>
+      <div class="pt-t">Falar com a clínica</div>
       <div id="pacMsgLista">${listaMsgPacienteHTML()}</div>
       <textarea class="ft" id="pacMsgTexto" placeholder="Escreva sua mensagem..."
                 style="min-height:76px;margin-top:10px"></textarea>
@@ -2622,14 +2680,14 @@ async function abrirPortal() {
         acompanhamento, e qualquer pessoa da equipe consegue te ajudar.</div>
     </div>
 
-    <button class="backbtn" style="width:100%;margin-top:6px" onclick="trocarSenhaPaciente()">🔑 Alterar minha senha</button>
+    <button class="backbtn" style="width:100%;margin-top:6px" onclick="trocarSenhaPaciente()">Alterar minha senha</button>
     <div class="pt-rodape">Dúvidas sobre o tratamento? Fale com sua equipe pelo chat.</div>`;
 }
 
 function trocarSenhaPaciente() {
   const c = document.querySelector('#portalScreen .pt-corpo');
   c.innerHTML = `<div class="pt-card">
-    <div class="pt-t">🔑 Alterar minha senha</div>
+    <div class="pt-t">Alterar minha senha</div>
     <div class="fg"><label class="fl">Senha atual</label><input class="fi" id="psAtual" type="password"></div>
     <div class="fg"><label class="fl">Nova senha</label><input class="fi" id="psNova" type="password" placeholder="mínimo 6 caracteres"></div>
     <div class="fg"><label class="fl">Confirmar nova senha</label><input class="fi" id="psConf" type="password"></div>
@@ -2656,7 +2714,7 @@ async function salvarSenhaPaciente() {
   const res=await api('alterar_senha_paciente',{senha_atual:atual, nova_senha:nova});
   btn.disabled=false; btn.textContent='Salvar';
   if(!res.ok) return erro(res.erro||'Não foi possível alterar.');
-  showToast('✅ Senha alterada','ok');
+  showToast('Senha alterada','ok');
   abrirPortal();
 }
 
@@ -2732,7 +2790,7 @@ function desenharProgramas() {
     return `<div class="card" style="margin-bottom:12px">
       <div class="card-title">
         <div class="ct-bar" style="background:var(--${cfg.color})"></div>
-        ${cfg.emoji} ${esc(cfg.label)}
+        ${esc(cfg.label)}
       </div>
       ${usandoPadrao
         ? `<div class="pt-nota" style="margin:0 0 10px">Sem etapas ou programas próprios — usando a lista padrão:
@@ -2745,7 +2803,7 @@ function desenharProgramas() {
                 ${p.descricao?`<div class="prog-desc">${esc(p.descricao)}</div>`:''}
               </div>
               ${inativo?`<span class="chip ch-gray">Inativo</span>`:''}
-              <button class="backbtn" onclick="editarPrograma('${esc(p.id)}')">✏️</button>
+              <button class="backbtn" onclick="editarPrograma('${esc(p.id)}')"><svg class="ico" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4-1L19 8l-3-3L5 16z"/></svg></button>
             </div>`;
           }).join('')}
       <button class="addbtn" style="margin-top:10px" onclick="novoPrograma('${k}')">+ Adicionar em ${esc(cfg.label)}</button>
@@ -2760,7 +2818,7 @@ function novoPrograma(linha, existente) {
   const cfg = LINHAS[p.linha] || {label:p.linha};
   f.innerHTML = `<div class="evo-form">
     <div class="hist-tit" style="margin-bottom:10px">
-      ${existente?'✏️ Editar':'+ Nova etapa ou programa'} — ${esc(cfg.label)}</div>
+      ${existente?'Editar':'+ Nova etapa ou programa'} — ${esc(cfg.label)}</div>
     <div class="fg"><label class="fl">Nome *</label>
       <input class="fi" id="pgNome" value="${esc(p.nome)}"
              placeholder="Ex.: Acolhimento inicial, Grupo de estimulação motora"></div>
@@ -2781,7 +2839,7 @@ function novoPrograma(linha, existente) {
       <button class="backbtn" onclick="document.getElementById('progForm').innerHTML=''">Cancelar</button>
     </div>
     ${existente?`<button class="savebtn" style="background:var(--rose);margin-top:8px"
-      onclick="excluirPrograma('${esc(p.id)}')">🗑 Excluir programa</button>`:''}
+      onclick="excluirPrograma('${esc(p.id)}')">Excluir programa</button>`:''}
   </div>`;
   f.scrollIntoView({behavior:'smooth', block:'nearest'});
   document.getElementById('pgNome').focus();
@@ -2823,7 +2881,7 @@ async function salvarPrograma(linha, id) {
 
   document.getElementById('progForm').innerHTML='';
   await loadProgramas();
-  showToast('✅ Salvo','ok');
+  showToast('Salvo','ok');
 }
 
 async function excluirPrograma(id) {
@@ -2834,7 +2892,7 @@ async function excluirPrograma(id) {
   if(!res.ok){ showToast('Erro ao excluir: '+(res.erro||''),'err'); return; }
   document.getElementById('progForm').innerHTML='';
   await loadProgramas();
-  showToast('🗑 Excluído','ok');
+  showToast('Excluído','ok');
 }
 
 // ═══════════════════════════════════════════════
@@ -2937,7 +2995,7 @@ function desenharServicos() {
     return `<div class="card" style="margin-bottom:12px">
       <div class="card-title">
         <div class="ct-bar" style="background:var(--${cfg.color})"></div>
-        ${cfg.emoji} ${esc(cfg.label)}
+        ${esc(cfg.label)}
       </div>
       ${itens.length
         ? itens.map(itemServicoHTML).join('')
@@ -2948,12 +3006,12 @@ function desenharServicos() {
     </div>`;
   }).join('')
   + (orfaos.length ? `<div class="card" style="margin-bottom:12px">
-      <div class="card-title"><div class="ct-bar" style="background:var(--ink3)"></div>📄 Sem linha reconhecida</div>
+      <div class="card-title"><div class="ct-bar" style="background:var(--ink3)"></div>Sem linha reconhecida</div>
       ${orfaos.map(itemServicoHTML).join('')}
     </div>` : '')
   + (!_catalogo.length && !_podeEditarCatalogo
       ? `<div class="card" style="text-align:center;padding:36px 20px;color:var(--ink3)">
-          <div style="font-size:40px;margin-bottom:10px">🗂️</div>
+          <div class="vazio-ico"><svg class="ico" aria-hidden="true" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg></div>
           <div style="font-weight:600;color:var(--ink)">Nada cadastrado ainda</div>
           <div style="font-size:13px;margin-top:4px">A gestão ainda não montou a lista de serviços.</div></div>`
       : '')
@@ -2968,7 +3026,7 @@ function itemServicoHTML(s) {
       ${s.descricao?`<div class="srv-desc">${esc(s.descricao)}</div>`:''}
     </div>
     ${_veValorCatalogo && s.valor ? `<div class="srv-valor">${esc(precoServico(s.valor))}</div>` : ''}
-    ${_podeEditarCatalogo?`<button class="backbtn" onclick="editarServico('${esc(s.id)}')">✏️</button>`:''}
+    ${_podeEditarCatalogo?`<button class="backbtn" onclick="editarServico('${esc(s.id)}')"><svg class="ico" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4-1L19 8l-3-3L5 16z"/></svg></button>`:''}
   </div>`;
 }
 
@@ -2995,14 +3053,14 @@ function novoServico(linha, existente) {
   const cfg = LINHAS[s.linha] || {label:s.linha||'—'};
   f.innerHTML = `<div class="evo-form">
     <div class="hist-tit" style="margin-bottom:10px">
-      ${existente?'✏️ Editar serviço':'+ Novo serviço'} — ${esc(cfg.label)}</div>
+      ${existente?'Editar serviço':'+ Novo serviço'} — ${esc(cfg.label)}</div>
     <div class="fg"><label class="fl">Nome *</label>
       <input class="fi" id="svNome" value="${esc(s.nome)}"
              placeholder="Ex.: Fisioterapia Pélvica, Pilates Individual"></div>
     <div class="fg"><label class="fl">Linha de cuidado</label>
       <select class="fs" id="svLinha">
         ${Object.entries(LINHAS).map(([k,c])=>
-          `<option value="${k}"${String(s.linha)===k?' selected':''}>${c.emoji} ${esc(c.label)}</option>`).join('')}
+          `<option value="${k}"${String(s.linha)===k?' selected':''}>${esc(c.label)}</option>`).join('')}
       </select></div>
     <div class="fg"><label class="fl">Descrição curta (opcional)</label>
       <input class="fi" id="svDesc" value="${esc(s.descricao)}"
@@ -3023,7 +3081,7 @@ function novoServico(linha, existente) {
       <button class="backbtn" onclick="document.getElementById('srvForm').innerHTML=''">Cancelar</button>
     </div>
     ${existente?`<button class="savebtn" style="background:var(--rose);margin-top:8px"
-      onclick="excluirServico('${esc(s.id)}')">🗑 Excluir serviço</button>`:''}
+      onclick="excluirServico('${esc(s.id)}')">Excluir serviço</button>`:''}
   </div>`;
   f.scrollIntoView({behavior:'smooth', block:'nearest'});
   document.getElementById('svNome').focus();
@@ -3065,7 +3123,7 @@ async function salvarServico(id) {
   if(!res.ok) return falhar('Erro ao salvar: '+(res.erro||''));
   document.getElementById('srvForm').innerHTML='';
   await loadServicos();
-  showToast('✅ Salvo','ok');
+  showToast('Salvo','ok');
 }
 
 async function excluirServico(id) {
@@ -3076,7 +3134,7 @@ async function excluirServico(id) {
   if(!res.ok){ showToast('Erro ao excluir: '+(res.erro||''),'err'); return; }
   document.getElementById('srvForm').innerHTML='';
   await loadServicos();
-  showToast('🗑 Excluído','ok');
+  showToast('Excluído','ok');
 }
 
 // ═══════════════════════════════════════════════
@@ -3130,10 +3188,10 @@ function desenharTarefas() {
   <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">
     ${Object.entries(LINHAS).map(([tk,tc])=>`
       <button class="chip ${tk===k?'ch-'+tc.color:'ch-gray'}" style="cursor:pointer;border:none"
-        onclick="trocarLinhaTarefa('${tk}')">${tc.emoji} ${esc(tc.label)}</button>`).join('')}
+        onclick="trocarLinhaTarefa('${tk}')">${esc(tc.label)}</button>`).join('')}
   </div>
   <div class="card" style="margin-bottom:12px">
-    <div class="card-title"><div class="ct-bar" style="background:var(--${cfg.color})"></div>${cfg.emoji} ${esc(cfg.label)}</div>
+    <div class="card-title"><div class="ct-bar" style="background:var(--${cfg.color})"></div>${esc(cfg.label)}</div>
     <div id="tarForm"></div>
     <button class="addbtn" style="margin-top:12px" onclick="novaTarefaForm('${k}')">+ Nova tarefa</button>
   </div>
@@ -3157,13 +3215,13 @@ function itemTarefaHTML(t) {
     <div style="flex:1;min-width:0">
       <div class="srv-nome">${esc(t.descricao)}</div>
       <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px">
-        ${t.responsavel?`<span class="chip ch-gray">👤 ${esc(t.responsavel)}</span>`:''}
-        ${t.prazo?`<span class="chip ${atrasada?'ch-rose':'ch-gray'}">📅 ${fmtDataBR(t.prazo)}${atrasada?' — atrasada':''}</span>`:''}
+        ${t.responsavel?`<span class="chip ch-gray">${esc(t.responsavel)}</span>`:''}
+        ${t.prazo?`<span class="chip ${atrasada?'ch-rose':'ch-gray'}">${fmtDataBR(t.prazo)}${atrasada?' — atrasada':''}</span>`:''}
         ${String(t.prioridade||'').toLowerCase()==='alta'?`<span class="chip ch-rose">Alta</span>`:''}
       </div>
       ${t.observacoes?`<div class="srv-desc">${esc(t.observacoes)}</div>`:''}
     </div>
-    <button class="backbtn" onclick="excluirTarefa('${esc(t.id)}')">🗑</button>
+    <button class="backbtn" onclick="excluirTarefa('${esc(t.id)}')"><svg class="ico" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>
   </div>`;
 }
 
@@ -3217,14 +3275,14 @@ async function salvarTarefa(linha) {
   if(!res.ok) return falhar('Erro ao salvar: '+(res.erro||''));
   document.getElementById('tarForm').innerHTML='';
   await loadTarefas();
-  showToast('✅ Adicionada','ok');
+  showToast('Adicionada','ok');
 }
 
 async function concluirTarefa(id) {
   const res = await api('atualizar',{tabela:'tarefas', id, dados:{status:'concluida', concluido_em:new Date().toISOString()}});
   if(!res.ok) showToast('Erro: '+(res.erro||''),'err');
   await loadTarefas();
-  if(res.ok) showToast('✅ Concluída','ok');
+  if(res.ok) showToast('Concluída','ok');
 }
 
 async function reabrirTarefa(id) {
@@ -3240,7 +3298,7 @@ async function excluirTarefa(id) {
   const res = await api('deletar',{tabela:'tarefas', id});
   if(!res.ok) { showToast('Erro ao excluir: '+(res.erro||''),'err'); return; }
   await loadTarefas();
-  showToast('🗑 Excluída','ok');
+  showToast('Excluída','ok');
 }
 
 // ═══════════════════════════════════════════════
@@ -3271,10 +3329,10 @@ const REPASSE = {
 
 const FIN_CONFIG = {
   pilates: {
-    tabela: 'financeiro_pilates', titulo: 'Pilates', emoji: '🧘',
+    tabela: 'financeiro_pilates', titulo: 'Pilates', emoji: '',
     sub: 'Mensalidades dos alunos',
     campoValor: 'valor_plano',
-    duplicar: '📋 Gerar mês com os alunos ativos',
+    duplicar: 'Gerar mês com os alunos ativos',
     campos: [
       {k:'nome', label:'Aluno', tipo:'texto', obrigatorio:true},
       {k:'telefone', label:'Telefone / WhatsApp', tipo:'texto', placeholder:'Para cobrar pelo WhatsApp'},
@@ -3289,7 +3347,7 @@ const FIN_CONFIG = {
     colunas: ['nome','valor_plano','pago','cobrar','dia_vencimento','plano','data_pagamento'],
   },
   servicos: {
-    tabela: 'financeiro_servicos', titulo: 'Serviços', emoji: '💼',
+    tabela: 'financeiro_servicos', titulo: 'Serviços', emoji: '',
     sub: 'Sessões, pacotes, avaliações e parceiros - uma linha por venda',
     campoValor: 'valor',
     campos: [
@@ -3305,10 +3363,10 @@ const FIN_CONFIG = {
     ],
     colunas: ['paciente','valor','pago','servico','profissional','sessoes','data'],
   },
-  repasses: {titulo: 'Repasses', emoji: '👥', especial:true},
+  repasses: {titulo: 'Repasses', emoji: '', especial:true},
   // As abas antigas continuam para consultar os meses já lançados
   terapias: {
-    tabela: 'financeiro_terapias', titulo: 'Terapias (antigo)', emoji: '🗄️', antigo:true,
+    tabela: 'financeiro_terapias', titulo: 'Terapias (antigo)', emoji: '', antigo:true,
     campoValor: 'faturamento_previsto',
     campos: [
       {k:'nome', label:'Nome', tipo:'texto', obrigatorio:true},
@@ -3329,7 +3387,7 @@ const FIN_CONFIG = {
     colunas: ['nome','servico','terapeuta','sessoes_previstas','faturamento_previsto','sessoes_realizadas','faturamento_real','pago','data_pagamento'],
   },
   parceiros: {
-    tabela: 'financeiro_parceiros', titulo: 'Parceiros (antigo)', emoji: '🗄️', antigo:true,
+    tabela: 'financeiro_parceiros', titulo: 'Parceiros (antigo)', emoji: '', antigo:true,
     campoValor: 'valor',
     campos: [
       {k:'parceiro', label:'Parceiro', tipo:'texto', obrigatorio:true},
@@ -3484,7 +3542,7 @@ function linkCobranca(r) {
   const txt = `Olá, ${String(r.nome||'').split(' ')[0]}! Tudo bem? Passando para lembrar da mensalidade do Pilates`+
     `${m?' de '+m+'/'+y:''}${r.valor_plano?' ('+fmtMoeda(r.valor_plano)+')':''}. Se já pagou, desconsidere. Obrigada! Casa Oliveira`;
   return `<a href="https://wa.me/${num}?text=${encodeURIComponent(txt)}" target="_blank" rel="noopener"
-    onclick="event.stopPropagation()" class="chip ch-sage" style="text-decoration:none">💬 cobrar</a>`;
+    onclick="event.stopPropagation()" class="chip ch-sage" style="text-decoration:none">cobrar</a>`;
 }
 
 function celulaFin(r, k) {
@@ -3505,7 +3563,7 @@ function abasFinHTML() {
   return `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px">
     ${Object.entries(FIN_CONFIG).map(([k,c])=>`
       <button class="chip ${k===_finAba?'ch-teal':'ch-gray'}" style="cursor:pointer;border:none${c.antigo&&k!==_finAba?';opacity:.65':''}"
-        onclick="trocarAbaFinanceiro('${k}')">${c.emoji} ${esc(c.titulo)}</button>`).join('')}
+        onclick="trocarAbaFinanceiro('${k}')">${esc(c.titulo)}</button>`).join('')}
   </div>`;
 }
 function seletorMesHTML() {
@@ -3524,7 +3582,7 @@ function desenharFinanceiro() {
     <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:10px">
       ${seletorMesHTML()}
       <button class="addbtn" onclick="novoFinLancamento()">+ Novo lançamento</button>
-      ${cfg.duplicar||cfg.antigo?`<button class="backbtn" onclick="duplicarMesAnteriorFin()">${cfg.duplicar||'📋 Duplicar mês anterior'}</button>`:''}
+      ${cfg.duplicar||cfg.antigo?`<button class="backbtn" onclick="duplicarMesAnteriorFin()">${cfg.duplicar||'Duplicar mês anterior'}</button>`:''}
     </div>
     ${resumoFinHTML(cfg)}
     ${_finLista.length ? `<div style="overflow-x:auto"><table class="fin-tabela">
@@ -3546,7 +3604,7 @@ function novoFinLancamento(existente) {
   // o que já foi lançado, para o nome sair igual e somar certo nos repasses
   const sugestoes = k => [...new Set(_finTodos.map(x=>String(x[k]||'').trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
   f.innerHTML = `<div class="evo-form">
-    <div class="hist-tit" style="margin-bottom:10px">${existente?'✏️ Editar lançamento':'+ Novo lançamento'} — ${esc(cfg.titulo)}</div>
+    <div class="hist-tit" style="margin-bottom:10px">${existente?'Editar lançamento':'+ Novo lançamento'} — ${esc(cfg.titulo)}</div>
     ${cfg.campos.map(c=>{
       const v = r[c.k]!==undefined ? r[c.k] : (c.padraoHoje ? hojeISO() : (c.padrao||''));
       if(c.tipo==='select') return `<div class="fg"><label class="fl">${esc(c.label)}</label>
@@ -3567,7 +3625,7 @@ function novoFinLancamento(existente) {
       <button class="backbtn" onclick="document.getElementById('finForm').innerHTML=''">Cancelar</button>
     </div>
     ${existente?`<button class="savebtn" style="background:var(--rose);margin-top:8px"
-      onclick="excluirFinLancamento('${esc(r.id)}')">🗑 Excluir lançamento</button>`:''}
+      onclick="excluirFinLancamento('${esc(r.id)}')">Excluir lançamento</button>`:''}
   </div>`;
   // Marcou "pago" sem data: a data de pagamento vira hoje, que é o caso comum
   const pg = document.getElementById('fin_pago'), dp = document.getElementById('fin_data_pagamento');
@@ -3605,7 +3663,7 @@ async function salvarFinLancamento(id) {
   if(!res.ok) { err.textContent='Erro ao salvar: '+(res.erro||''); err.style.display='block'; return; }
   document.getElementById('finForm').innerHTML='';
   await loadFinanceiro();
-  showToast('✅ Salvo','ok');
+  showToast('Salvo','ok');
 }
 
 async function excluirFinLancamento(id) {
@@ -3615,7 +3673,7 @@ async function excluirFinLancamento(id) {
   if(!res.ok) { showToast('Erro ao excluir: '+(res.erro||''),'err'); return; }
   document.getElementById('finForm').innerHTML='';
   await loadFinanceiro();
-  showToast('🗑 Excluído','ok');
+  showToast('Excluído','ok');
 }
 
 // Resolve a repetição mensal de nome/valor/plano sem precisar de um cadastro
@@ -3646,7 +3704,7 @@ async function duplicarMesAnteriorFin() {
     await api('salvar',{tabela:cfg.tabela, dados});
   }
   await loadFinanceiro();
-  showToast('✅ '+novos.length+' trazido(s) de '+mesAnt,'ok');
+  showToast(''+novos.length+' trazido(s) de '+mesAnt,'ok');
 }
 
 // ── REPASSES ──────────────────────────────────────
@@ -3758,7 +3816,7 @@ function desenharRepasses() {
   </div>
 
   <div class="card" style="margin-bottom:12px">
-    <div class="hist-tit" style="margin-bottom:6px">🧘 Turnos das instrutoras de Pilates</div>
+    <div class="hist-tit" style="margin-bottom:6px">Turnos das instrutoras de Pilates</div>
     <div class="pt-nota" style="margin:0 0 10px">Cada turno de 4 horas no dia vale ${fmtMoeda(REPASSE.turnoPilates)}.</div>
     <div class="f2" style="align-items:flex-end">
       <div class="fg"><label class="fl">Data</label><input class="fi" type="date" id="jorData" value="${esc(_finMes===mesAtualISO()?hojeISO():_finMes+'-01')}"></div>
@@ -3770,7 +3828,7 @@ function desenharRepasses() {
     ${R.jor.length ? `<div style="overflow-x:auto;margin-top:10px"><table class="fin-tabela"><thead><tr><th>Data</th><th>Instrutora</th><th>Turnos</th><th></th></tr></thead><tbody>
       ${R.jor.sort((a,b)=>String(a.data).localeCompare(String(b.data))).map(j=>`<tr style="cursor:default">
         <td>${esc(fmtDataBR(String(j.data||'').slice(0,10)))}</td><td>${esc(j.profissional||'')}</td><td>${esc(j.quantidade||1)}</td>
-        <td style="text-align:right"><button class="backbtn" style="padding:4px 10px" onclick="excluirJornada('${esc(j.id)}')">🗑</button></td></tr>`).join('')}
+        <td style="text-align:right"><button class="backbtn" style="padding:4px 10px" onclick="excluirJornada('${esc(j.id)}')"><svg class="ico" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button></td></tr>`).join('')}
     </tbody></table></div>` : ''}
   </div>`;
 }
@@ -3787,7 +3845,7 @@ async function salvarJornada() {
   if(!res.ok) { showToast('Erro ao salvar: '+(res.erro||''),'err'); return; }
   if(data.slice(0,7)!==_finMes) _finMes = data.slice(0,7);
   await loadRepasses();
-  showToast('✅ Turno lançado','ok');
+  showToast('Turno lançado','ok');
 }
 
 async function excluirJornada(id) {
@@ -3795,7 +3853,7 @@ async function excluirJornada(id) {
   const res = await api('deletar',{tabela:'financeiro_jornadas', id});
   if(!res.ok) { showToast('Erro ao excluir: '+(res.erro||''),'err'); return; }
   await loadRepasses();
-  showToast('🗑 Excluído','ok');
+  showToast('Excluído','ok');
 }
 
 // ═══════════════════════════════════════════════
@@ -3994,7 +4052,7 @@ async function salvarAtendimento(eventoId, forcar) {
   document.getElementById('agForm').innerHTML = '';
   _agSemana = inicioDaSemana(inicio);
   await loadAgenda();
-  showToast(eventoId?'✅ Remarcado':'✅ Agendado','ok');
+  showToast(eventoId?'Remarcado':'Agendado','ok');
 }
 
 async function statusAtendimento(agendaEmail, eventoId, status) {
@@ -4024,7 +4082,7 @@ async function criarAgendasEquipe() {
   const res = await api('criar_agendas',{});
   if(!res.ok) { showToast('Erro: '+(res.erro||''),'err'); if(btn){btn.disabled=false;btn.textContent='Criar agendas';} return; }
   await loadAgenda();
-  showToast('✅ '+(res.criadas||[]).length+' agenda(s) criada(s). Falta compartilhar cada uma no Google Agenda.','ok');
+  showToast(''+(res.criadas||[]).length+' agenda(s) criada(s). Falta compartilhar cada uma no Google Agenda.','ok');
 }
 
 // ═══════════════════════════════════════════════
@@ -4270,9 +4328,9 @@ function desenharLeads() {
       </select>
       <select class="fs" onchange="filtrarLeads('linha',this.value)">
         <option value="">Todas as linhas</option>
-        ${Object.entries(LINHAS).map(([k,c])=>`<option value="${k}"${_leadFiltro.linha===k?' selected':''}>${c.emoji} ${esc(c.label)}</option>`).join('')}
+        ${Object.entries(LINHAS).map(([k,c])=>`<option value="${k}"${_leadFiltro.linha===k?' selected':''}>${esc(c.label)}</option>`).join('')}
       </select>
-      <input class="fi" list="leadCampanhas" placeholder="🔎 Campanha" value="${esc(_leadFiltro.campanha)}"
+      <input class="fi" list="leadCampanhas" placeholder="Campanha" value="${esc(_leadFiltro.campanha)}"
              oninput="filtrarLeads('campanha',this.value)">
       <datalist id="leadCampanhas">${campanhas.map(c=>`<option value="${esc(c)}">`).join('')}</datalist>
       ${(_leadFiltro.origem||_leadFiltro.linha||_leadFiltro.campanha)
@@ -4315,12 +4373,12 @@ function leadCardHTML(l) {
   return `<div class="kb-card" onclick="abrirLead('${esc(l.id)}')">
     <div class="kb-nome">${esc(l.nome)}</div>
     <div class="kb-meta">
-      ${cfg?`<span class="chip ch-${cfg.color}">${cfg.emoji} ${esc(cfg.label)}</span>`:''}
+      ${cfg?`<span class="chip ch-${cfg.color}">${esc(cfg.label)}</span>`:''}
       ${l.origem?`<span>${esc(l.origem)}</span>`:''}
     </div>
-    ${l.campanha?`<div class="kb-campanha">📣 ${esc(l.campanha)}</div>`:''}
-    ${l.motivo_perda?`<div class="kb-campanha">✖ ${esc(l.motivo_perda)}</div>`:''}
-    ${l.paciente_id?`<div class="kb-campanha">✅ virou paciente</div>`:''}
+    ${l.campanha?`<div class="kb-campanha">${esc(l.campanha)}</div>`:''}
+    ${l.motivo_perda?`<div class="kb-campanha">${esc(l.motivo_perda)}</div>`:''}
+    ${l.paciente_id?`<div class="kb-campanha">virou paciente</div>`:''}
   </div>`;
 }
 
@@ -4340,9 +4398,9 @@ async function abrirLead(id) {
   f.innerHTML = `<div class="evo-form">
     <div class="hist-tit" style="margin-bottom:4px">${esc(l.nome)}</div>
     <div class="mc-meta" style="margin-bottom:12px">
-      ${cfg?`<span class="chip ch-${cfg.color}">${cfg.emoji} ${esc(cfg.label)}</span>`:''}
-      ${l.telefone?`<span>📱 ${esc(l.telefone)}</span>`:''}
-      ${l.email?`<span>✉️ ${esc(l.email)}</span>`:''}
+      ${cfg?`<span class="chip ch-${cfg.color}">${esc(cfg.label)}</span>`:''}
+      ${l.telefone?`<span>${esc(l.telefone)}</span>`:''}
+      ${l.email?`<span>${esc(l.email)}</span>`:''}
     </div>
     <div class="cadgrid" style="margin-bottom:12px">
       ${[['Estágio',l.estagio],['Origem',l.origem],['Campanha',l.campanha],
@@ -4368,25 +4426,25 @@ async function abrirLead(id) {
       <button class="savebtn" id="ldBtn" style="margin-top:8px" onclick="moverLead('${esc(l.id)}')">Registrar</button>
     </div>
     ${l.estagio===_leadCfg.ganho
-      ? `<div class="pt-nota">✅ Já vinculado a um cadastro de paciente.</div>`
+      ? `<div class="pt-nota">Já vinculado a um cadastro de paciente.</div>`
       : l.paciente_id
         ? `<div class="fg" style="margin-top:14px"><label class="fl">Virou paciente?</label>
             <div class="pt-nota" style="margin-top:0">Este lead já tem acesso ao portal (orçamento e mensagens).
               Confirme para virar cliente de verdade — dispara a mensagem de boas-vindas.</div>
             <button class="addbtn" style="margin-top:8px"
-              onclick="converterLead('${esc(l.id)}','${esc(l.paciente_id)}')">🎉 Confirmar virada de cliente</button>
+              onclick="converterLead('${esc(l.id)}','${esc(l.paciente_id)}')">Confirmar virada de cliente</button>
           </div>`
         : `<div class="fg" style="margin-top:14px"><label class="fl">Virou paciente?</label>
             <div class="pt-nota" style="margin-top:0">Aponte para um cadastro que já existe — não cria paciente novo.</div>
-            <input class="fi" id="ldBuscaPac" list="ldPacientes" placeholder="🔎 Buscar paciente pelo nome"
+            <input class="fi" id="ldBuscaPac" list="ldPacientes" placeholder="Buscar paciente pelo nome"
                    style="margin-top:6px">
             <datalist id="ldPacientes"></datalist>
-            <button class="addbtn" style="margin-top:8px" onclick="converterLead('${esc(l.id)}')">✅ Vincular ao cadastro</button>
+            <button class="addbtn" style="margin-top:8px" onclick="converterLead('${esc(l.id)}')">Vincular ao cadastro</button>
           </div>`}`:''}
 
     <div class="hist-tit" style="margin:16px 0 8px">Histórico de interações</div>
     ${hist.length ? hist.map(h=>`<div class="tl-item">
-        <div class="tl-dot">${h.de_estagio&&h.de_estagio!==h.para_estagio?'↪':'📝'}</div>
+        <div class="tl-dot">${h.de_estagio&&h.de_estagio!==h.para_estagio?'↪':'•'}</div>
         <div><div class="tl-title">${h.de_estagio&&h.de_estagio!==h.para_estagio
               ? esc(h.de_estagio)+' → '+esc(h.para_estagio)
               : esc(h.para_estagio||'Anotação')}</div>
@@ -4396,7 +4454,7 @@ async function abrirLead(id) {
       : `<div class="pt-nota" style="margin-top:0">Sem interações registradas.</div>`}
 
     <div style="display:flex;gap:8px;margin-top:12px">
-      ${pode?`<button class="backbtn" onclick="novoLead(_leads.find(x=>String(x.id)==='${esc(l.id)}'))">✏️ Editar dados</button>`:''}
+      ${pode?`<button class="backbtn" onclick="novoLead(_leads.find(x=>String(x.id)==='${esc(l.id)}'))">Editar dados</button>`:''}
       <button class="backbtn" onclick="document.getElementById('leadForm').innerHTML=''">Fechar</button>
     </div>
   </div>`;
@@ -4435,7 +4493,7 @@ async function moverLead(id) {
   if(!res.ok){ err.textContent='Erro: '+(res.erro||''); err.style.display='block'; return; }
   await loadLeads();
   abrirLead(id);
-  showToast('✅ Registrado','ok');
+  showToast('Registrado','ok');
 }
 
 async function converterLead(id, pacienteId) {
@@ -4453,7 +4511,7 @@ async function converterLead(id, pacienteId) {
   if(!res.ok){ showToast('Erro: '+(res.erro||''),'err'); return; }
   await loadLeads();
   abrirLead(id);
-  showToast('🎉 '+(nomeAlvo?'Vinculado a '+nomeAlvo:'Virou cliente!'),'ok');
+  showToast(''+(nomeAlvo?'Vinculado a '+nomeAlvo:'Virou cliente!'),'ok');
 }
 
 function novoLead(existente) {
@@ -4461,7 +4519,7 @@ function novoLead(existente) {
   const l = existente || {};
   const f = document.getElementById('leadForm');
   f.innerHTML = `<div class="evo-form">
-    <div class="hist-tit" style="margin-bottom:10px">${existente?'✏️ Editar lead':'+ Novo lead'}</div>
+    <div class="hist-tit" style="margin-bottom:10px">${existente?'Editar lead':'+ Novo lead'}</div>
     <div class="f2">
       <div class="fg fa"><label class="fl">Nome *</label>
         <input class="fi" id="ndNome" value="${esc(l.nome)}" placeholder="Quem entrou em contato"></div>
@@ -4490,7 +4548,7 @@ function novoLead(existente) {
       <div class="fg"><label class="fl">Linha de interesse</label>
         <select class="fs" id="ndLinha">
           <option value="">Ainda não sabe</option>
-          ${Object.entries(LINHAS).map(([k,c])=>`<option value="${k}"${String(l.linha)===k?' selected':''}>${c.emoji} ${esc(c.label)}</option>`).join('')}
+          ${Object.entries(LINHAS).map(([k,c])=>`<option value="${k}"${String(l.linha)===k?' selected':''}>${esc(c.label)}</option>`).join('')}
         </select></div>
       <div class="fg fa"><label class="fl">Campanha</label>
         <input class="fi" id="ndCampanha" value="${esc(l.campanha)}"
@@ -4544,7 +4602,7 @@ async function salvarLead(id) {
   btn.disabled=false; btn.textContent = id?'Salvar':'Cadastrar lead';
   if(!res.ok){ err.textContent='Erro: '+(res.erro||''); err.style.display='block'; return; }
   await loadLeads();
-  showToast(id ? '✅ Salvo' : (res.paciente_id ? '✅ Lead cadastrado — link de acesso ao portal enviado por e-mail' : '✅ Lead cadastrado'),'ok');
+  showToast(id ? 'Salvo' : (res.paciente_id ? 'Lead cadastrado — link de acesso ao portal enviado por e-mail' : 'Lead cadastrado'),'ok');
 }
 
 // ═══════════════════════════════════════════════
@@ -4575,12 +4633,12 @@ function filtrosEsperaHTML() {
   const total = _espera.length;
   if(total < 4) return '';   // com pouca gente, filtro so atrapalha
   return `<div class="esp-filtros">
-    <input class="fi" id="espBusca" type="search" placeholder="🔎 Buscar por nome, telefone, programa ou observação"
+    <input class="fi" id="espBusca" type="search" placeholder="Buscar por nome, telefone, programa ou observação"
            value="${esc(_espFiltro.texto)}" oninput="mudarFiltroEspera('texto',this.value)">
     <div class="esp-filtro-linha">
       <select class="fs" onchange="mudarFiltroEspera('linha',this.value)">
         <option value="">Todas as linhas</option>
-        ${Object.entries(LINHAS).map(([k,v])=>`<option value="${k}"${_espFiltro.linha===k?' selected':''}>${v.emoji} ${v.label}</option>`).join('')}
+        ${Object.entries(LINHAS).map(([k,v])=>`<option value="${k}"${_espFiltro.linha===k?' selected':''}>${v.label}</option>`).join('')}
       </select>
       <select class="fs" onchange="mudarFiltroEspera('prioridade',this.value)">
         <option value="">Toda prioridade</option>
@@ -4651,7 +4709,7 @@ function desenharEspera() {
 
   if(!_espera.length){
     el.innerHTML = `<div style="text-align:center;padding:46px 20px;color:var(--ink3)">
-      <div style="font-size:40px;margin-bottom:10px">🪑</div>
+      <div class="vazio-ico"><svg class="ico" aria-hidden="true" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3v9h10V3M5 12h14M7 12v9M17 12v9"/></svg></div>
       <div style="font-size:15px;font-weight:600;margin-bottom:5px">Ninguém na lista de espera</div>
       <div style="font-size:13px">Quem procurar a clínica sem vaga entra aqui.</div>
     </div>`;
@@ -4712,7 +4770,7 @@ function desenharEspera() {
       const parcial = gente.length !== totalNaLinha;
       return `<div class="card-title" style="margin:16px 0 10px">
           <div class="ct-bar" style="background:var(--${cfg.color==='gray'?'ink3':cfg.color})"></div>
-          ${cfg.emoji} ${esc(cfg.label)} · ${parcial?gente.length+' de '+totalNaLinha:totalNaLinha} na fila
+          ${esc(cfg.label)} · ${parcial?gente.length+' de '+totalNaLinha:totalNaLinha} na fila
         </div>
         ${gente.map(e=>cardEspera(e, (posReal[String(e.id)]||{})[lin]||null, lin)).join('')}`;
     }).join('')}
@@ -4747,8 +4805,8 @@ function cardEspera(e, pos, linhaDoGrupo) {
       ${e.observacoes?`<div class="esp-obs">${esc(e.observacoes)}</div>`:''}
     </div>
     ${currentRole==='admin'&&!encerrado?`<div class="esp-acoes">
-      <button class="backbtn" onclick="editarEspera('${e.id}')">✏️</button>
-      <button class="backbtn" onclick="chamarDaEspera('${e.id}')" title="Virou paciente">✅</button>
+      <button class="backbtn" onclick="editarEspera('${e.id}')"><svg class="ico" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4-1L19 8l-3-3L5 16z"/></svg></button>
+      <button class="backbtn" onclick="chamarDaEspera('${e.id}')" title="Virou paciente"><svg class="ico" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></button>
     </div>`:''}
   </div>`;
 }
@@ -4772,7 +4830,7 @@ function caixasPorLinha(linhas, jaMarcados, opcoesDe, vazio) {
     const opcoes = opcoesDe(k);
     if(!opcoes.length) return '';
     return `<div style="margin-top:8px">
-      ${escolhidas.length>1?`<div class="pt-nota" style="margin:0 0 5px">${cfg.emoji} ${esc(cfg.label)}</div>`:''}
+      ${escolhidas.length>1?`<div class="pt-nota" style="margin:0 0 5px">${esc(cfg.label)}</div>`:''}
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
         ${opcoes.map(s=>`<label class="pill-chk">
           <input type="checkbox" value="${esc(s)}" style="accent-color:var(--teal)"${marcados.includes(s)?' checked':''}> ${esc(s)}
@@ -4829,7 +4887,7 @@ function novoNaEspera(existente) {
           <div id="espLinhas" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
             ${Object.entries(LINHAS).map(([k,v])=>`<label class="pill-chk">
               <input type="checkbox" value="${k}" style="accent-color:var(--teal)"
-                     onchange="atualizarServicosEspera()"${linhasDe(e.linha).includes(k)?' checked':''}> ${v.emoji} ${v.label}
+                     onchange="atualizarServicosEspera()"${linhasDe(e.linha).includes(k)?' checked':''}> ${v.label}
             </label>`).join('')}
           </div></div>
         <div class="fg fa"><label class="fl">Serviços de interesse <span style="font-weight:400;color:var(--ink3)">(pode marcar mais de um)</span></label>
@@ -4858,7 +4916,7 @@ function novoNaEspera(existente) {
         <button class="backbtn" onclick="document.getElementById('esperaForm').innerHTML=''">Cancelar</button>
       </div>
       ${existente&&currentRole==='admin'?`<button class="savebtn" style="background:var(--rose);margin-top:8px"
-        onclick="excluirEspera('${e.id}')">🗑 Remover da lista</button>`:''}
+        onclick="excluirEspera('${e.id}')">Remover da lista</button>`:''}
     </div>`;
   f.scrollIntoView({behavior:'smooth', block:'nearest'});
 }
@@ -4901,7 +4959,7 @@ async function salvarEspera(id) {
 
   document.getElementById('esperaForm').innerHTML='';
   await loadEspera();
-  showToast('✅ Lista de espera atualizada','ok');
+  showToast('Lista de espera atualizada','ok');
 }
 
 async function excluirEspera(id) {
@@ -4911,7 +4969,7 @@ async function excluirEspera(id) {
   if(!res.ok){ showToast('Erro ao remover: '+(res.erro||''),'err'); return; }
   document.getElementById('esperaForm').innerHTML='';
   await loadEspera();
-  showToast('🗑 Removido da lista','ok');
+  showToast('Removido da lista','ok');
 }
 
 // Saiu da espera e virou paciente: marca a fila e abre o cadastro já preenchido
@@ -4971,12 +5029,12 @@ const HIST = {
     versionado: true,
     campos: [
       {k:'prazo_reavaliacao', l:'Prazo de reavaliação', t:'date'},
-      {k:'hipotese',   l:'🎯 Hipótese Diagnóstica', t:'textarea', ph:'Hipótese diagnóstica...'},
-      {k:'objetivos',  l:'📌 Objetivos',            t:'textarea', ph:'Objetivos terapêuticos...'},
-      {k:'acoes',      l:'🔧 Ações',                t:'textarea', ph:'Ações e intervenções...'},
-      {k:'meta_curto', l:'🏆 Meta — curto prazo (3 meses)',  t:'textarea'},
-      {k:'meta_medio', l:'🏆 Meta — médio prazo (6 meses)',  t:'textarea'},
-      {k:'meta_longo', l:'🏆 Meta — longo prazo (12 meses)', t:'textarea'},
+      {k:'hipotese',   l:'Hipótese Diagnóstica', t:'textarea', ph:'Hipótese diagnóstica...'},
+      {k:'objetivos',  l:'Objetivos',            t:'textarea', ph:'Objetivos terapêuticos...'},
+      {k:'acoes',      l:'Ações',                t:'textarea', ph:'Ações e intervenções...'},
+      {k:'meta_curto', l:'Meta — curto prazo (3 meses)',  t:'textarea'},
+      {k:'meta_medio', l:'Meta — médio prazo (6 meses)',  t:'textarea'},
+      {k:'meta_longo', l:'Meta — longo prazo (12 meses)', t:'textarea'},
     ],
   },
   avaliacoes: {
@@ -5176,18 +5234,18 @@ function listaHistHTML(tipo) {
                   <div class="hist-val">${esc(mostrar)}</div></div>`;
         }).join('') || '<div class="hist-val" style="color:var(--ink3)">Sem conteúdo</div>'}
         <div class="hist-rodape">
-          🖊 ${esc(nomeDoAutor(r.autor_email, r.autor_nome))}
+          ${esc(nomeDoAutor(r.autor_email, r.autor_nome))}
           ${r.criado_em?' · '+esc(fmtDataHora(r.criado_em)):''}
           ${r.migrado_de_ficha?' · registro anterior ao histórico':''}
         </div>
         ${cfg.versionado && atual && currentRole!=='profissional' && !aprovado
           ? `<button class="addbtn" style="background:var(--teal);margin-top:10px"
-               onclick="aprovarPts('${r.id}')">✓ Aprovar esta versão</button>` : ''}
+               onclick="aprovarPts('${r.id}')">Aprovar esta versão</button>` : ''}
         ${tipo==='reunioes' && String(r.status||'').toLowerCase()==='agendada' && r.data
           ? `<a class="addbtn" style="background:var(--sky);margin-top:10px;text-decoration:none;display:inline-block"
-               href="${linkGoogleAgenda(r)}" target="_blank" rel="noopener">📅 Google Agenda</a>` : ''}
+               href="${linkGoogleAgenda(r)}" target="_blank" rel="noopener">Google Agenda</a>` : ''}
         ${podeApagarRegistro(r) ? `<button class="addbtn" style="background:var(--rose);margin-top:10px;margin-left:6px"
-             onclick="excluirRegistroHist('${tipo}','${r.id}')">🗑 Excluir</button>` : ''}
+             onclick="excluirRegistroHist('${tipo}','${r.id}')">Excluir</button>` : ''}
       </div>
     </details>`;
   }).join('');
@@ -5292,7 +5350,7 @@ async function salvarRegistroHist(tipo, pacienteId, versao) {
   f.innerHTML='';
   limparSujo();
   await carregarHistorico(tipo, pacienteId);
-  showToast('✅ '+cfg.rotulo+' registrado','ok');
+  showToast(''+cfg.rotulo+' registrado','ok');
 }
 
 async function aprovarPts(id) {
@@ -5304,7 +5362,7 @@ async function aprovarPts(id) {
   const r = (_hist.pts||[]).find(x=>String(x.id)===String(id));
   if(r) r.status='Aprovado';
   document.getElementById('histLista_pts').innerHTML = listaHistHTML('pts');
-  showToast('✅ PTS aprovado','ok');
+  showToast('PTS aprovado','ok');
 }
 
 async function excluirRegistroHist(tipo, id) {
@@ -5314,7 +5372,7 @@ async function excluirRegistroHist(tipo, id) {
   if(!res.ok){ showToast('Erro ao excluir: '+(res.erro||''),'err'); return; }
   const pid = _pacienteAberto;
   await carregarHistorico(tipo, pid);
-  showToast('🗑 Registro excluído','ok');
+  showToast('Registro excluído','ok');
 }
 
 
@@ -5356,7 +5414,7 @@ function desenharDocumentos(pacienteId) {
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
       <span style="font-size:13px;color:var(--ink3)">${_documentos.length} documento${_documentos.length!==1?'s':''}</span>
       <label class="addbtn" style="cursor:pointer">
-        📎 Anexar arquivo
+        Anexar arquivo
         <input type="file" id="docArquivo" style="display:none"
                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
                onchange="prepararUpload('${pacienteId}', event)">
@@ -5369,7 +5427,7 @@ function desenharDocumentos(pacienteId) {
 function listaDocumentosHTML() {
   if(!_documentos.length) {
     return `<div style="text-align:center;padding:38px 20px;color:var(--ink3)">
-      <div style="font-size:34px;margin-bottom:8px">📎</div>
+      <div class="vazio-ico"><svg class="ico" aria-hidden="true" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11.5l-8 8a5 5 0 0 1-7-7l8.5-8.5a3.3 3.3 0 0 1 4.7 4.7L9.7 17.2a1.7 1.7 0 0 1-2.4-2.4L15 7"/></svg></div>
       <div style="font-size:14px;font-weight:600;margin-bottom:4px">Nenhum documento anexado</div>
       <div style="font-size:13px">Nota fiscal, relatório, laudo — o paciente vê na área dele.</div>
     </div>`;
@@ -5392,11 +5450,11 @@ function listaDocumentosHTML() {
         </div>
       </div>
       <div class="esp-acoes">
-        <button class="backbtn" title="Baixar" onclick="baixarDoc('${esc(d.id)}')">⬇</button>
+        <button class="backbtn" title="Baixar" onclick="baixarDoc('${esc(d.id)}')"><svg class="ico" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 17v3h16v-3"/></svg></button>
         <button class="backbtn" title="${oculto?'Mostrar ao paciente':'Ocultar do paciente'}"
-                onclick="alternarVisibilidade('${esc(d.id)}')">${oculto?'🔒':'👁'}</button>
+                onclick="alternarVisibilidade('${esc(d.id)}')">${oculto?'<svg class="ico" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>':'<svg class="ico" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>'}</button>
         ${currentRole==='admin'?`<button class="backbtn" title="Excluir"
-                onclick="excluirDoc('${esc(d.id)}')">🗑</button>`:''}
+                onclick="excluirDoc('${esc(d.id)}')"><svg class="ico" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>`:''}
       </div>
     </div>`;
   }).join('')}`).join('');
@@ -5404,10 +5462,10 @@ function listaDocumentosHTML() {
 
 function iconeArquivo(tipo, nome) {
   const t = String(tipo||'') + ' ' + String(nome||'');
-  if(/pdf/i.test(t)) return '📕';
-  if(/(jpg|jpeg|png|gif|image)/i.test(t)) return '🖼';
-  if(/(doc|word)/i.test(t)) return '📘';
-  return '📄';
+  if(/pdf/i.test(t)) return '<svg class="ico" aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>';
+  if(/(jpg|jpeg|png|gif|image)/i.test(t)) return '<svg class="ico" aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>';
+  if(/(doc|word)/i.test(t)) return '<svg class="ico" aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>';
+  return '<svg class="ico" aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg>';
 }
 
 function tamanhoLegivel(bytes) {
@@ -5496,7 +5554,7 @@ async function enviarDoc(pacienteId) {
   _arquivoPendente = null;
   document.getElementById('docForm').innerHTML='';
   await carregarDocumentos(pacienteId);
-  showToast('✅ Documento anexado','ok');
+  showToast('Documento anexado','ok');
 }
 
 async function baixarDoc(id) {
@@ -5528,7 +5586,7 @@ async function alternarVisibilidade(id) {
   if(!res.ok){ showToast('Erro: '+(res.erro||''),'err'); return; }
   d.visivel_paciente = oculto?'Sim':'Nao';
   document.getElementById('docLista').innerHTML = listaDocumentosHTML();
-  showToast(oculto?'👁 O paciente passa a ver':'🔒 Oculto do paciente','ok');
+  showToast(oculto?'O paciente passa a ver':'Oculto do paciente','ok');
 }
 
 async function excluirDoc(id) {
@@ -5537,7 +5595,7 @@ async function excluirDoc(id) {
   const res = await api('excluir_documento',{id});
   if(!res.ok){ showToast('Erro: '+(res.erro||''),'err'); return; }
   await carregarDocumentos(_pacienteAberto);
-  showToast('🗑 Documento excluído','ok');
+  showToast('Documento excluído','ok');
 }
 
 
@@ -5568,7 +5626,7 @@ function desenharMensagens(pacienteId) {
       <textarea class="ft" id="msgTexto" placeholder="Escreva para o paciente..."
                 style="min-height:80px"></textarea>
       <label class="msg-aberta"><input type="checkbox" id="msgAberta">
-        Ainda espera retorno — manter em 💬 Mensagens</label>
+        Ainda espera retorno — manter em Mensagens</label>
       <button class="savebtn" id="msgBtn" style="margin-top:8px"
               onclick="responderPaciente('${pacienteId}')">Enviar</button>
     </div>`;
@@ -5579,7 +5637,7 @@ function desenharMensagens(pacienteId) {
 function listaMensagensHTML() {
   if(!_mensagens.length) {
     return `<div style="text-align:center;padding:34px 20px;color:var(--ink3)">
-      <div style="font-size:32px;margin-bottom:8px">💬</div>
+      <div class="vazio-ico"><svg class="ico" aria-hidden="true" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4z"/></svg></div>
       <div style="font-size:14px;font-weight:600;margin-bottom:4px">Nenhuma mensagem ainda</div>
       <div style="font-size:13px">O que for combinado aqui fica registrado.</div>
     </div>`;
@@ -5643,7 +5701,7 @@ function desenharCentral() {
          Você vê aqui apenas os pacientes a que já tem acesso.
        </div>` + _msgAbertas.map(itemMensagemHTML).join('')
     : `<div class="card" style="text-align:center;padding:36px 20px;color:var(--ink3)">
-        <div style="font-size:40px;margin-bottom:10px">✅</div>
+        <div class="vazio-ico"><svg class="ico" aria-hidden="true" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
         <div style="font-weight:600;color:var(--ink)">Nada em aberto</div>
         <div style="font-size:13px;margin-top:4px">Todo mundo já teve retorno.</div></div>`;
 }
@@ -5655,11 +5713,11 @@ function esperaHTML(iso) {
   if(isNaN(d)) return '';
   const dias = Math.floor((Date.now()-d)/86400000);
   const rotulo = dias<1 ? 'hoje' : dias===1 ? '1 dia' : dias+' dias';
-  return `<div class="mc-espera ${dias>=7?'crit':dias>=3?'warn':''}">⏳ ${rotulo}</div>`;
+  return `<div class="mc-espera ${dias>=7?'crit':dias>=3?'warn':''}"><svg class="ico" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg> ${rotulo}</div>`;
 }
 
 function itemMensagemHTML(m) {
-  const cfg = LINHAS[m.linha] || {emoji:'📄', label:m.linha||'sem linha', color:'sky'};
+  const cfg = LINHAS[m.linha] || {emoji:'', label:m.linha||'sem linha', color:'sky'};
   const origem = String(m.de)==='paciente'
     ? 'O paciente escreveu'
     : 'Registrado por '+(m.autor_nome||'alguém da equipe');
@@ -5670,7 +5728,7 @@ function itemMensagemHTML(m) {
       <div style="min-width:0">
         <div class="mc-nome" onclick="${abrir}">${esc(m.paciente_nome||'Paciente')}</div>
         <div class="mc-meta">
-          <span class="chip ch-${cfg.color}">${cfg.emoji} ${esc(cfg.label)}</span>
+          <span class="chip ch-${cfg.color}">${esc(cfg.label)}</span>
           <span>${esc(m.terapeuta_nome||'sem terapeuta')}</span>
           <span>· ${esc(fmtDataHora(m.criado_em))}</span>
         </div>
@@ -5683,12 +5741,12 @@ function itemMensagemHTML(m) {
       <textarea class="ft" id="mcTexto_${mid}" placeholder="Responder ${esc(m.paciente_nome||'paciente')}..."
                 style="min-height:56px"></textarea>
       <label class="msg-aberta"><input type="checkbox" id="mcAberta_${mid}">
-        Ainda espera retorno — manter em 💬 Mensagens</label>
+        Ainda espera retorno — manter em Mensagens</label>
       <button class="savebtn" id="mcBtn_${mid}" style="margin-top:6px"
               onclick="responderDaCentral('${mid}','${esc(m.paciente_id)}')">Enviar</button>
     </div>
     <div class="mc-acoes">
-      <button class="backbtn" onclick="${abrir}">💬 Abrir prontuário</button>
+      <button class="backbtn" onclick="${abrir}">Abrir prontuário</button>
       <button class="backbtn" onclick="marcarMensagemComo('${esc(m.id)}','fechada')">Fechar sem responder</button>
     </div>
   </div>`;
@@ -5708,7 +5766,7 @@ async function responderDaCentral(msgId, pacienteId) {
     {paciente_id:pacienteId, texto, autor_nome:currentUser.nome, status: aberta?'aberta':''});
   btn.disabled=false; btn.textContent='Enviar';
   if(!res.ok){ showToast('Erro: '+(res.erro||''),'err'); return; }
-  showToast('✅ Respondido','ok');
+  showToast('Respondido','ok');
   await loadMensagensCentral();
 }
 
@@ -5720,7 +5778,7 @@ async function marcarMensagemComo(id, status) {
   _msgAbertas = _msgAbertas.filter(m=>String(m.id)!==String(id));
   atualizarContadorMensagens(_msgAbertas.length);
   desenharCentral();
-  showToast(status==='respondida' ? '✓ Marcada como respondida.' : '✓ Conversa fechada.');
+  showToast(status==='respondida' ? 'Marcada como respondida.' : 'Conversa fechada.');
 }
 
 async function abrirDaMensagem(linha, pacienteId) {
@@ -5786,7 +5844,7 @@ function desenharExercicios(pacienteId) {
         ${_prescricao&&_prescricao.criado_em?' · '+esc(fmtDataBR(String(_prescricao.criado_em).slice(0,10))):''}
       </span>
       <button class="addbtn" onclick="montarSerie('${pacienteId}')">
-        ${itens.length?'✏️ Editar série':'+ Montar série'}</button>
+        ${itens.length?'Editar série':'+ Montar série'}</button>
     </div>
     <div id="exeForm"></div>
     <div id="exeLista">${listaExerciciosHTML(itens)}</div>`;
@@ -5795,7 +5853,7 @@ function desenharExercicios(pacienteId) {
 function listaExerciciosHTML(itens) {
   if(!itens.length) {
     return `<div style="text-align:center;padding:34px 20px;color:var(--ink3)">
-      <div style="font-size:32px;margin-bottom:8px">🏃</div>
+      <div class="vazio-ico"><svg class="ico" aria-hidden="true" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="4.5" r="2"/><path d="M8 21l3-6 3 2v4M6 11l3-3h4l3 3 2-1"/><path d="M11 15l-1-5"/></svg></div>
       <div style="font-size:14px;font-weight:600;margin-bottom:4px">Nenhum exercício prescrito</div>
       <div style="font-size:13px">O paciente vê a série na área dele, com séries e repetições.</div>
     </div>`;
@@ -5956,7 +6014,7 @@ async function salvarSerie(pacienteId) {
   document.getElementById('exeForm').innerHTML='';
   limparSujo();
   await carregarPrescricao(pacienteId);
-  showToast('✅ Série salva'+(novosParaBiblioteca.length?' · '+novosParaBiblioteca.length+' na biblioteca':''),'ok');
+  showToast('Série salva'+(novosParaBiblioteca.length?' · '+novosParaBiblioteca.length+' na biblioteca':''),'ok');
 }
 
 
@@ -5980,7 +6038,7 @@ async function abrirConfigClinica() {
   if(currentRole!=='admin'){ showToast('Só a gestão edita o cabeçalho.','err'); return; }
   const res = await api('obter_config',{});
   const c = res.ok ? (res.dados||{}) : {};
-  document.getElementById('sheetTitle').textContent = '🏥 Cabeçalho dos documentos';
+  document.getElementById('sheetTitle').textContent = 'Cabeçalho dos documentos';
   document.getElementById('sheetBody').innerHTML = `
     <div class="pt-nota" style="margin-top:0">Aparece no topo dos orçamentos e demais documentos gerados.</div>
     ${[['nome','Nome da clínica'],['razao_social','Razão social'],['cnpj','CNPJ'],
@@ -5995,7 +6053,7 @@ async function abrirConfigClinica() {
     <div class="fg"><label class="fl">Logo</label>
       ${c.logo?`<img src="${esc(c.logo)}" style="max-height:64px;max-width:200px;display:block;margin-bottom:8px">`:''}
       <label class="addbtn" style="cursor:pointer;display:inline-block">
-        🖼 ${c.logo?'Trocar logo':'Enviar logo'}
+        ${c.logo?'Trocar logo':'Enviar logo'}
         <input type="file" accept=".png,.jpg,.jpeg" style="display:none" onchange="lerLogo(event)">
       </label>
       <div class="pt-nota">PNG ou JPG, até 300 KB.</div>
@@ -6029,7 +6087,7 @@ async function salvarConfigClinica() {
   btn.disabled=false; btn.textContent='Salvar';
   if(!res.ok){ err.textContent='Erro: '+(res.erro||''); err.style.display='block'; return; }
   closeSheet(true);
-  showToast('✅ Cabeçalho salvo','ok');
+  showToast('Cabeçalho salvo','ok');
 }
 
 
@@ -6059,7 +6117,7 @@ function desenharBiblioteca() {
   if(!el) return;
   if(!_exercicios.length) {
     el.innerHTML = `<div style="text-align:center;padding:42px 20px;color:var(--ink3)">
-      <div style="font-size:36px;margin-bottom:10px">🏃</div>
+      <div class="vazio-ico"><svg class="ico" aria-hidden="true" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="4.5" r="2"/><path d="M8 21l3-6 3 2v4M6 11l3-3h4l3 3 2-1"/><path d="M11 15l-1-5"/></svg></div>
       <div style="font-size:15px;font-weight:600;margin-bottom:5px">Biblioteca vazia</div>
       <div style="font-size:13px">Ela se enche sozinha: o que a equipe digitar ao montar
         uma série fica guardado aqui.</div>
@@ -6074,11 +6132,11 @@ function desenharBiblioteca() {
         <div class="prog-desc">
           ${e.series?esc(e.series)+' séries':''}${e.repeticoes?' · '+esc(e.repeticoes):''}
           ${e.categoria?' · '+esc(e.categoria):''}
-          ${e.video?' · 🎬 com vídeo':''}
+          ${e.video?' · com vídeo':''}
         </div>
       </div>
       ${inativo?`<span class="chip ch-gray">Inativo</span>`:''}
-      <button class="backbtn" onclick="editarExercicio('${esc(e.id)}')">✏️</button>
+      <button class="backbtn" onclick="editarExercicio('${esc(e.id)}')"><svg class="ico" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4-1L19 8l-3-3L5 16z"/></svg></button>
     </div>`;
   }).join('');
 }
@@ -6088,7 +6146,7 @@ function novoExercicio(existente) {
   const f = document.getElementById('bibForm');
   if(!f) return;
   f.innerHTML = `<div class="evo-form">
-    <div class="hist-tit" style="margin-bottom:10px">${existente?'✏️ Editar exercício':'+ Novo exercício'}</div>
+    <div class="hist-tit" style="margin-bottom:10px">${existente?'Editar exercício':'+ Novo exercício'}</div>
     <div class="f2">
       <div class="fg fa"><label class="fl">Nome *</label>
         <input class="fi" id="bxNome" value="${esc(e.nome)}" placeholder="Ex.: Ponte, Prancha, Alongamento de isquiotibiais"></div>
@@ -6117,7 +6175,7 @@ function novoExercicio(existente) {
       <button class="backbtn" onclick="document.getElementById('bibForm').innerHTML=''">Cancelar</button>
     </div>
     ${existente&&currentRole==='admin'?`<button class="savebtn" style="background:var(--rose);margin-top:8px"
-      onclick="excluirExercicio('${esc(e.id)}')">🗑 Excluir</button>`:''}
+      onclick="excluirExercicio('${esc(e.id)}')">Excluir</button>`:''}
   </div>`;
   f.scrollIntoView({behavior:'smooth', block:'nearest'});
   document.getElementById('bxNome').focus();
@@ -6164,7 +6222,7 @@ async function salvarExercicio(id) {
   if(!res.ok){ err.textContent='Erro ao salvar: '+(res.erro||''); err.style.display='block'; return; }
   document.getElementById('bibForm').innerHTML='';
   await loadBiblioteca();
-  showToast('✅ Salvo','ok');
+  showToast('Salvo','ok');
 }
 
 async function excluirExercicio(id) {
@@ -6174,7 +6232,7 @@ async function excluirExercicio(id) {
   if(!res.ok){ showToast('Erro: '+(res.erro||''),'err'); return; }
   document.getElementById('bibForm').innerHTML='';
   await loadBiblioteca();
-  showToast('🗑 Excluído','ok');
+  showToast('Excluído','ok');
 }
 
 
@@ -6275,7 +6333,7 @@ function rodapeFormDoc(p) {
       O paciente pode ver e baixar
     </label>
     <div id="dcErr" class="errbox"></div>
-    <button class="savebtn" id="dcBtn" style="margin-top:12px" onclick="gerarDocumento('${p.id}')">📄 Gerar PDF</button>`;
+    <button class="savebtn" id="dcBtn" style="margin-top:12px" onclick="gerarDocumento('${p.id}')">Gerar PDF</button>`;
 }
 
 // Rascunho do texto, para não começar da folha em branco
@@ -6387,10 +6445,10 @@ async function gerarDocumento(pacienteId) {
   btn.disabled=true; btn.textContent='Gerando PDF...';
 
   const res = await api('gerar_orcamento', corpo);
-  btn.disabled=false; btn.textContent='📄 Gerar PDF';
+  btn.disabled=false; btn.textContent='Gerar PDF';
   if(!res.ok){ err.textContent='Erro ao gerar: '+(res.erro||''); err.style.display='block'; return; }
 
-  showToast('✅ Documento '+res.numero+' gerado','ok');
+  showToast('Documento '+res.numero+' gerado','ok');
   if(confirm('Documento '+res.numero+' gerado e anexado ao paciente.\n\nBaixar agora?')) {
     await baixarDoc(res.documento_id);
   }
@@ -6434,7 +6492,7 @@ function renderEvolucoes() {
 function listaEvolucoesHTML() {
   if(!_evolucoes.length) {
     return `<div style="text-align:center;padding:40px 20px;color:var(--ink3)">
-      <div style="font-size:38px;margin-bottom:10px">🗒</div>
+      <div class="vazio-ico"><svg class="ico" aria-hidden="true" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg></div>
       <div style="font-size:14px;font-weight:600;margin-bottom:4px">Nenhuma evolução registrada</div>
       <div style="font-size:13px">Cada atendimento fica registrado aqui, com data e autor.</div>
     </div>`;
@@ -6449,14 +6507,14 @@ function listaEvolucoesHTML() {
       <div class="evo-topo">
         <div class="evo-data">${esc(fmtDataBR(e.data))}</div>
         <div class="evo-autor">${esc(nomeDoAutor(e.autor_email, e.autor_nome))}${e.autor_registro?` · ${esc(e.autor_registro)}`:''}</div>
-        ${podeRetificar?`<button class="evo-del" title="Retificar" style="font-size:12px;width:auto;padding:0 8px" onclick="novaEvolucao('${esc(e.id)}')">✏️ Retificar</button>`:''}
+        ${podeRetificar?`<button class="evo-del" title="Retificar" style="font-size:12px;width:auto;padding:0 8px" onclick="novaEvolucao('${esc(e.id)}')">Retificar</button>`:''}
       </div>
       ${e.texto?`<div class="evo-texto">${esc(e.texto)}</div>`:''}
-      ${e.texto_restrito||histR.length?`<div class="evo-res"><div class="evo-res-t">🔒 Parte reservada</div>
+      ${e.texto_restrito||histR.length?`<div class="evo-res"><div class="evo-res-t">Parte reservada</div>
         ${e.texto_restrito?`<div class="evo-texto">${esc(e.texto_restrito)}</div>`:'<div class="evo-texto" style="color:var(--ink3)">(retirada na retificação)</div>'}
         ${histR.length?versoesHTML(histR,'Versões anteriores da parte reservada'):''}</div>`:''}
-      ${e.tem_restrito?`<div class="evo-res-aviso">🔒 Há uma parte reservada à terapeuta de referência e à coordenação.</div>`:''}
-      ${e.retificado_em?`<div class="evo-orig">✏️ Retificada em ${esc(fmtDataBR(e.retificado_em))}${e.retificado_por?' por '+esc(e.retificado_por):''}</div>`:''}
+      ${e.tem_restrito?`<div class="evo-res-aviso">Há uma parte reservada à terapeuta de referência e à coordenação.</div>`:''}
+      ${e.retificado_em?`<div class="evo-orig">Retificada em ${esc(fmtDataBR(e.retificado_em))}${e.retificado_por?' por '+esc(e.retificado_por):''}</div>`:''}
       ${hist.length?versoesHTML(hist,'Ver versões anteriores ('+hist.length+')'):''}
       ${e.importado_de?`<div class="evo-orig">↩ importado de ${esc(e.importado_de)}</div>`:''}
     </div>`;
@@ -6500,7 +6558,7 @@ function novaEvolucao(retificarId) {
   if(retificarId && !e) return;
   f.innerHTML = `
     <div class="evo-form">
-      ${e?`<div class="hist-tit" style="margin-bottom:8px">✏️ Retificar a evolução de ${esc(fmtDataBR(e.data))}</div>
+      ${e?`<div class="hist-tit" style="margin-bottom:8px">Retificar a evolução de ${esc(fmtDataBR(e.data))}</div>
         <div class="pt-nota" style="margin:0 0 10px">O texto atual não some: fica guardado como versão anterior, com a data e quem retificou.</div>`
        :`<div class="fg"><label class="fl">Data do atendimento</label>
         <input class="fi" type="date" id="evoData" value="${hojeISO()}" max="${hojeISO()}"></div>`}
@@ -6509,7 +6567,7 @@ function novaEvolucao(retificarId) {
         <textarea class="ft" id="evoTexto" style="min-height:120px"
           placeholder="O que foi feito, como o paciente respondeu, condutas...">${e?esc(e.texto||''):''}</textarea></div>
       <details id="evoResBox" style="margin:-4px 0 12px"${e&&e.texto_restrito?' open':''}>
-        <summary style="cursor:pointer;font-size:13px;font-weight:600;color:var(--ink2);padding:6px 0">🔒 Parte reservada (opcional)</summary>
+        <summary style="cursor:pointer;font-size:13px;font-weight:600;color:var(--ink2);padding:6px 0">Parte reservada (opcional)</summary>
         <textarea class="ft" id="evoRestrito" style="min-height:90px;margin-top:6px"
           placeholder="Informações sensíveis: contexto familiar, suspeitas, relatos em sigilo...">${e?esc(e.texto_restrito||''):''}</textarea>
         <div class="pt-nota" style="margin-top:6px">Só aparece para a terapeuta de referência do paciente, a coordenação da linha,
@@ -6571,7 +6629,7 @@ async function salvarNovaEvolucao() {
   document.getElementById('evoForm').innerHTML='';
   limparSujo();
   await carregarEvolucoes(_evoPacienteId);
-  showToast('✅ Evolução registrada','ok');
+  showToast('Evolução registrada','ok');
 }
 
 // Prontuário não se apaga: a retificação guarda a versão anterior em
@@ -6606,7 +6664,7 @@ async function salvarRetificacao(id) {
   document.getElementById('evoForm').innerHTML='';
   limparSujo();
   await carregarEvolucoes(_evoPacienteId);
-  showToast('✅ Evolução retificada','ok');
+  showToast('Evolução retificada','ok');
 }
 
 // ═══════════════════════════════════════════════
@@ -6633,7 +6691,7 @@ function abrirImportacao() {
   // Esconder o botão não basta: a função tem que recusar por conta própria
   if(currentRole !== 'admin') { showToast('Só a gestão pode importar pacientes.','err'); return; }
   _impLinhas = []; _impCols = [];
-  document.getElementById('sheetTitle').textContent = '📥 Importar pacientes';
+  document.getElementById('sheetTitle').textContent = 'Importar pacientes';
   document.getElementById('sheetBody').innerHTML = `
     <div class="imp-passo">
       <div class="imp-n">1</div>
@@ -6654,7 +6712,7 @@ function abrirImportacao() {
       placeholder="nome, data de nascimento, telefone, terapeuta, servicos&#10;Maria Silva, 15/03/1980, (11) 99999-0000, Dr. Carlos, Fisioterapia"></textarea>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0">
       <label class="addbtn" style="background:var(--sur2);color:var(--ink2);border:1px solid var(--bor)">
-        📎 Escolher arquivo
+        Escolher arquivo
         <input type="file" id="impArquivo" accept=".csv,.tsv,.txt" style="display:none" onchange="lerArquivoImport(event)">
       </label>
       <button class="addbtn" onclick="analisarImport()">Analisar →</button>
@@ -6819,13 +6877,13 @@ function mostrarPreviaImport(idx, problemas) {
 
   document.getElementById('impPreview').innerHTML = `
     <div class="imp-box">
-      <div class="imp-t">✅ ${_impLinhas.length} paciente${_impLinhas.length!==1?'s':''} pronto${_impLinhas.length!==1?'s':''} para importar</div>
+      <div class="imp-t">${_impLinhas.length} paciente${_impLinhas.length!==1?'s':''} pronto${_impLinhas.length!==1?'s':''} para importar</div>
       <div class="imp-d" style="margin-top:6px">Colunas reconhecidas: ${reconhecidos.join(', ')}</div>
       ${extras.length?`<div class="imp-d">Também vêm junto, como campos extras: ${esc(extras.join(', '))}</div>`:''}
     </div>
 
     ${problemas.length?`<div class="imp-box amber">
-      <div class="imp-t">⚠️ ${problemas.length} aviso${problemas.length!==1?'s':''}</div>
+      <div class="imp-t">${problemas.length} aviso${problemas.length!==1?'s':''}</div>
       ${problemas.slice(0,6).map(p=>`<div class="imp-d">• ${esc(p)}</div>`).join('')}
       ${problemas.length>6?`<div class="imp-d">…e mais ${problemas.length-6}</div>`:''}
     </div>`:''}
@@ -6844,13 +6902,13 @@ function mostrarPreviaImport(idx, problemas) {
     <div class="fg"><label class="fl">Importar todos para a linha clínica *</label>
       <select class="fs" id="impLinha">
         <option value="">Selecione...</option>
-        ${Object.entries(LINHAS).map(([k,v])=>`<option value="${k}">${v.emoji} ${v.label}</option>`).join('')}
+        ${Object.entries(LINHAS).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join('')}
       </select>
     </div>
     <div class="imp-d" style="margin-bottom:12px">
       Pacientes com nome já cadastrado nessa linha são pulados — dá para importar de novo sem duplicar.
     </div>
-    <button class="savebtn" id="impBtn" onclick="executarImport()">📥 Importar ${_impLinhas.length} paciente${_impLinhas.length!==1?'s':''}</button>
+    <button class="savebtn" id="impBtn" onclick="executarImport()">Importar ${_impLinhas.length} paciente${_impLinhas.length!==1?'s':''}</button>
     <div id="impProgresso" style="margin-top:10px"></div>`;
 }
 
@@ -6893,13 +6951,13 @@ async function executarImport() {
   prog.innerHTML = `
     <div class="imp-box">
       <div class="imp-t">Importação concluída</div>
-      <div class="imp-d">✅ ${criados} cadastrado${criados!==1?'s':''}</div>
+      <div class="imp-d">${criados} cadastrado${criados!==1?'s':''}</div>
       ${pulados?`<div class="imp-d">↩️ ${pulados} já existia${pulados!==1?'m':''} — não duplicado${pulados!==1?'s':''}</div>`:''}
-      ${falhas?`<div class="imp-d" style="color:var(--rose)">⚠️ ${falhas} não entrou${falhas!==1?'ram':''}:<br>${errosDetalhe.map(esc).join('<br>')}</div>`:''}
+      ${falhas?`<div class="imp-d" style="color:var(--rose)">${falhas} não entrou${falhas!==1?'ram':''}:<br>${errosDetalhe.map(esc).join('<br>')}</div>`:''}
     </div>
     <button class="savebtn" onclick="openLinha('${linha}')">Ver os pacientes →</button>`;
   btn.style.display='none';
-  showToast('✅ '+criados+' paciente(s) importado(s)','ok');
+  showToast(''+criados+' paciente(s) importado(s)','ok');
 }
 
 // ═══════════════════════════════════════════════
@@ -6926,22 +6984,22 @@ async function openPaciente(linha, id) {
   document.getElementById('sheetTitle').textContent = p.nome;
 
   const tabsDef = {
-    infantil:     ['📋 Checklist','🎯 PTS','🔬 Avaliações','📅 Reuniões'],
-    mulher:       ['📋 Checklist','🎯 PTS','📆 Serviços','🔔 Pós-Alta'],
-    reabilitacao: ['📋 Dados','🎯 PTS','🏠 Orientações','🔔 Pós-Alta'],
-    pilates:      ['📊 My Score','📋 Dados','🔗 Indicações'],
-    geriatria:    ['📋 Checklist','🎯 PTS','🏠 Casa Segura','📅 Reuniões'],
-    mental:       ['📋 Checklist','🎯 PTS','🎨 Ateliê'],
+    infantil:     ['Checklist','PTS','Avaliações','Reuniões'],
+    mulher:       ['Checklist','PTS','Serviços','Pós-Alta'],
+    reabilitacao: ['Dados','PTS','Orientações','Pós-Alta'],
+    pilates:      ['My Score','Dados','Indicações'],
+    geriatria:    ['Checklist','PTS','Casa Segura','Reuniões'],
+    mental:       ['Checklist','PTS','Ateliê'],
   };
-  const tabs = [...(tabsDef[linha]||['📋 Dados']), '🗒 Evoluções', '🏃 Exercícios', '📎 Documentos', '💬 Mensagens'];
-  if(currentRole==='admin') tabs.push('💰 Orçamento');
-  if(currentRole!=='profissional') tabs.push('👤 Área do paciente');
-  const iEvo = tabs.indexOf('🗒 Evoluções');
-  const iPac = tabs.indexOf('👤 Área do paciente');
-  const iExe = tabs.indexOf('🏃 Exercícios');
-  const iDoc = tabs.indexOf('📎 Documentos');
-  const iMsg = tabs.indexOf('💬 Mensagens');
-  const iOrc = tabs.indexOf('💰 Orçamento');
+  const tabs = [...(tabsDef[linha]||['Dados']), 'Evoluções', 'Exercícios', 'Documentos', 'Mensagens'];
+  if(currentRole==='admin') tabs.push('Orçamento');
+  if(currentRole!=='profissional') tabs.push('Área do paciente');
+  const iEvo = tabs.indexOf('Evoluções');
+  const iPac = tabs.indexOf('Área do paciente');
+  const iExe = tabs.indexOf('Exercícios');
+  const iDoc = tabs.indexOf('Documentos');
+  const iMsg = tabs.indexOf('Mensagens');
+  const iOrc = tabs.indexOf('Orçamento');
   // Evoluções aparece primeiro (é o que mais se usa), mas a numeração interna
   // das abas não muda: as fichas são gravadas pela posição (aba '0', '1'...)
   const ordemAbas = [iEvo, ...tabs.map((_,i)=>i).filter(i=>i!==iEvo)];
@@ -6950,8 +7008,8 @@ async function openPaciente(linha, id) {
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
       <button class="backbtn" onclick="openLinha('${_currentLinha}')">‹ Voltar</button>
       <span style="font-size:12px;color:var(--ink3);flex:1">${idade !== '—' ? idade+' anos · ' : ''}${esc(p.terapeuta_nome||'—')}${p.status&&p.status!=='Ativo'?' · '+esc(p.status):''}</span>
-      <button class="backbtn" onclick="exportarProntuario('${linha}','${id}')" title="Exportar o prontuário em PDF">🖨</button>
-      <button class="backbtn" onclick="editarPaciente('${linha}','${id}')">✏️ Editar</button>
+      <button class="backbtn" onclick="exportarProntuario('${linha}','${id}')" title="Exportar o prontuário em PDF"><svg class="ico" aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/></svg></button>
+      <button class="backbtn" onclick="editarPaciente('${linha}','${id}')">Editar</button>
     </div>
     ${chipsServicosHTML(p)}
     ${fichaCadastroHTML(p)}
@@ -6974,7 +7032,7 @@ async function openPaciente(linha, id) {
         : (()=>{ const c = renderTabContent(linha, p, i);
                  return _histAba[i]
                    ? c
-                   : `${c}<button class="savebtn" id="sv${i}" onclick="salvarEvolucao('${linha}','${id}',${i})">💾 Salvar</button>
+                   : `${c}<button class="savebtn" id="sv${i}" onclick="salvarEvolucao('${linha}','${id}',${i})">Salvar</button>
                       <div class="assin" id="as${i}">${assinaturaHTML(i)}</div>`; })()}
     </div>`).join('')}`;
 
@@ -7081,7 +7139,7 @@ function fichaCadastroHTML(p) {
     .filter(([k,v])=>!CAD_OCULTOS.includes(k) && v!=='' && v!=null);
   if(!campos.length) return '';
   return `<details class="cadbox">
-    <summary class="cadsum">📄 Dados do cadastro <span style="color:var(--ink3);font-weight:400">(${campos.length})</span></summary>
+    <summary class="cadsum">Dados do cadastro <span style="color:var(--ink3);font-weight:400">(${campos.length})</span></summary>
     <div class="cadgrid">
       ${campos.map(([k,v])=>`<div class="cadrow">
         <div class="cadk">${esc(rotuloCampo(k))}</div>
@@ -7101,7 +7159,7 @@ function assinaturaHTML(tabIdx) {
     ? currentUser.nome
     : (prof ? prof.nome : f.por);
   const quando = f.em ? fmtDataHora(f.em) : '';
-  return '🖊 Último registro por ' + esc(quem) + (quando ? ' · ' + quando : '');
+  return 'Último registro por ' + esc(quem) + (quando ? ' · ' + quando : '');
 }
 
 function atualizarAssinatura(tabIdx) {
@@ -7282,7 +7340,7 @@ function indicacoesPilates(p) {
 }
 
 function casaSeguraContent(p) {
-  return `<div class="astrip info" style="margin-bottom:14px"><div class="astrip-icon">🏠</div><div><div class="astrip-title">Programa Casa Segura</div><div class="astrip-meta">Avaliação Domiciliar</div></div></div>
+  return `<div class="astrip info" style="margin-bottom:14px"><div class="astrip-icon"><svg class="ico" aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg></div><div><div class="astrip-title">Programa Casa Segura</div><div class="astrip-meta">Avaliação Domiciliar</div></div></div>
   ${checkRows([
     ['cs_visita','Visita domiciliar realizada'],
     ['cs_reuniao_inicial','Reunião familiar inicial'],
@@ -7332,7 +7390,7 @@ async function salvarEvolucao(linha, id, tabIdx) {
         atualizado_por: currentUser.email
       }});
 
-  btn.textContent='💾 Salvar'; btn.disabled=false;
+  btn.textContent='Salvar'; btn.disabled=false;
 
   if(!res.ok) { showToast('Erro ao salvar: '+(res.erro||'tente novamente'),'err'); return; }
 
@@ -7340,7 +7398,7 @@ async function salvarEvolucao(linha, id, tabIdx) {
     por: currentUser.email, em: new Date().toISOString()};
   atualizarAssinatura(tabIdx);
   limparSujo();
-  showToast('✅ Evolução salva!','ok');
+  showToast('Evolução salva!','ok');
 }
 
 // ═══════════════════════════════════════════════
@@ -7366,7 +7424,7 @@ async function loadEquipe() {
         ${String(p.status||'Ativo').toLowerCase()==='inativo'?`<span class="chip ch-gray">Inativo</span>`:''}
       </div>
     </div>
-    ${currentRole==='admin'?`<button class="backbtn" onclick="editarProf('${esc(p.id)}')">✏️</button>`:''}
+    ${currentRole==='admin'?`<button class="backbtn" onclick="editarProf('${esc(p.id)}')"><svg class="ico" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4-1L19 8l-3-3L5 16z"/></svg></button>`:''}
   </div>`).join('');
 }
 
@@ -7384,7 +7442,7 @@ function editarProf(id) {
   const euMesma = (currentUser.email||'').toLowerCase() === String(p.email||'').toLowerCase();
 
   f.innerHTML = `<div class="evo-form">
-    <div class="hist-tit" style="margin-bottom:10px">✏️ Editar ${esc(p.nome)}</div>
+    <div class="hist-tit" style="margin-bottom:10px">Editar ${esc(p.nome)}</div>
     <div class="f2">
       <div class="fg fa"><label class="fl">Nome *</label>
         <input class="fi" id="epNome" value="${esc(p.nome)}"></div>
@@ -7414,7 +7472,7 @@ function editarProf(id) {
       <div class="fg fa"><label class="fl">Linhas</label>
         <div id="epLinhas" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
           ${Object.entries(LINHAS).map(([k,v])=>`<label class="pill-chk">
-            <input type="checkbox" value="${k}" style="accent-color:var(--teal)"${linhasAtuais.includes(k)?' checked':''}> ${v.emoji} ${v.label}
+            <input type="checkbox" value="${k}" style="accent-color:var(--teal)"${linhasAtuais.includes(k)?' checked':''}> ${v.label}
           </label>`).join('')}
         </div></div>
     </div>
@@ -7481,7 +7539,7 @@ async function salvarProf(id) {
   document.getElementById('profForm').innerHTML='';
   _todosPacientes = null; limparCaches();
   await loadEquipe();
-  showToast('✅ Perfil atualizado'+(pacientesParaAjustar.length?' e '+pacientesParaAjustar.length+' paciente(s) revinculado(s)':''),'ok');
+  showToast('Perfil atualizado'+(pacientesParaAjustar.length?' e '+pacientesParaAjustar.length+' paciente(s) revinculado(s)':''),'ok');
 }
 
 // Varias funcoes viram uma string separada por virgula: e assim que a coluna
@@ -7511,10 +7569,10 @@ async function convidarProf() {
 
   const registro = (document.getElementById('invRegistro')?.value||'').trim();
   const res = await api('convidar_prof',{nome, email, nivel, funcao, registro, senha_inicial:senha, linhas});
-  btn.textContent='📧 Cadastrar e Enviar Convite'; btn.disabled=false;
+  btn.textContent='Cadastrar e Enviar Convite'; btn.disabled=false;
 
   if(!res.ok){errEl.textContent=res.erro||'Erro ao cadastrar.';errEl.style.display='block';return;}
-  showToast('✅ '+nome+' cadastrado!','ok');
+  showToast(''+nome+' cadastrado!','ok');
   document.getElementById('invNome').value='';
   document.getElementById('invEmail').value='';
   document.getElementById('invSenha').value='';
@@ -7527,7 +7585,7 @@ async function convidarProf() {
 
 async function showAlterarSenha() {
   closeMenu();
-  document.getElementById('sheetTitle').textContent = '🔑 Alterar Senha';
+  document.getElementById('sheetTitle').textContent = 'Alterar Senha';
   document.getElementById('sheetBody').innerHTML = `
     <div class="fg"><label class="fl">Senha atual</label><input class="fi" id="senhaAtual" type="password" placeholder="••••••••"></div>
     <div class="fg"><label class="fl">Nova senha</label><input class="fi" id="senhaNova" type="password" placeholder="••••••••"></div>
@@ -7551,15 +7609,25 @@ async function salvarSenha() {
   // O backend confere a senha atual — sem isso, quem pegar a sessão aberta troca a senha
   const res = await api('alterar_senha',{senha_atual:atual, nova_senha:nova});
   if(!res.ok){erro(res.erro||'Erro.');return;}
-  showToast('✅ Senha alterada!','ok');
+  showToast('Senha alterada!','ok');
   closeSheet();
 }
 
 // ═══════════════════════════════════════════════
 // HELPERS
 // ═══════════════════════════════════════════════
+// Número que sobe até o valor (respeita quem prefere menos movimento)
+function animarNumero(el, alvo) {
+  if(!el) return;
+  const n = Number(alvo)||0;
+  if(n<=0 || window.matchMedia('(prefers-reduced-motion: reduce)').matches) { el.textContent = n; return; }
+  const t0 = performance.now(), dur = 600;
+  const passo = t => { const k = Math.min(1,(t-t0)/dur); el.textContent = Math.round(n*(1-Math.pow(1-k,3))); if(k<1) requestAnimationFrame(passo); };
+  requestAnimationFrame(passo);
+}
+
 function loadingHTML() {
-  return `<div class="loading-inline"><div class="loading-spin"></div>Carregando...</div>`;
+  return `<div class="esqueleto" role="status" aria-label="Carregando"><span></span><span></span><span></span></div>`;
 }
 
 function esc(v) {
@@ -7666,8 +7734,7 @@ async function loadContadores() {
   const pacs = await carregarTodosPacientes();
   Object.keys(LINHAS).forEach(k=>{
     const n = pacs.filter(p=>(p.linha||'')===k).length;
-    const cnt = document.getElementById('cnt-'+k);
-    if(cnt) cnt.textContent = n;
+    animarNumero(document.getElementById('cnt-'+k), n);
     const lc = document.getElementById('lc-'+k);
     if(lc) lc.textContent = n+' paciente'+(n!==1?'s':'');
   });
@@ -7785,11 +7852,11 @@ async function calcularAlertas() {
   return {criticos, altos, proximos};
 }
 
-function blocoAlertas(titulo, cor, itens, classe, icone) {
+function blocoAlertas(titulo, cor, itens, classe, ic) {
   if(!itens.length) return '';
   return `<div class="card">
     <div class="card-title"><div class="ct-bar" style="background:var(${cor})"></div>${titulo}</div>
-    ${itens.map(a=>`<div class="astrip ${classe}"><div class="astrip-icon">${icone}</div>
+    ${itens.map(a=>`<div class="astrip ${classe}"><div class="astrip-icon">${icone(ic,18)}</div>
       <div><div class="astrip-title">${esc(a.titulo)}</div><div class="astrip-meta">${esc(a.meta)}</div></div></div>`).join('')}
   </div>`;
 }
@@ -7802,18 +7869,18 @@ async function loadAlertas() {
 
   if(!criticos.length && !altos.length && !proximos.length) {
     alvo.innerHTML = `<div class="card" style="text-align:center;padding:36px 20px;color:var(--ink3)">
-      <div style="font-size:40px;margin-bottom:10px">✅</div>
+      <div class="vazio-ico"><svg class="ico" aria-hidden="true" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
       <div style="font-weight:600;color:var(--ink)">Nenhuma pendência</div>
       <div style="font-size:13px;margin-top:4px">Tudo em dia por aqui.</div></div>`;
     return;
   }
 
   alvo.innerHTML =
-    blocoAlertas('Críticos','--rose',criticos,'crit','🔴') +
-    blocoAlertas('Alta Prioridade','--amber',altos,'warn','🟡') +
+    blocoAlertas('Críticos','--rose',criticos,'crit','alerta') +
+    blocoAlertas('Alta Prioridade','--amber',altos,'warn','relogio') +
     (proximos.length?`<div class="card">
       <div class="card-title"><div class="ct-bar" style="background:var(--sky)"></div>Próximos 30 dias</div>
-      ${proximos.map(a=>`<div class="tl-item"><div class="tl-dot future">📅</div>
+      ${proximos.map(a=>`<div class="tl-item"><div class="tl-dot future"><svg class="ico" aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg></div>
         <div><div class="tl-title">${esc(a.titulo)}</div><div class="tl-meta">${esc(a.meta)}</div></div></div>`).join('')}
     </div>`:'');
 
@@ -7822,18 +7889,39 @@ async function loadAlertas() {
 }
 
 async function loadHomeResumo() {
+  carregarSeuDia();
   await loadContadores();
   const {criticos, altos} = await calcularAlertas();
+  animarNumero(document.getElementById('hjPend'), criticos.length + altos.length);
   const el = document.getElementById('homePendencias');
   if(el) {
     const n = criticos.length + altos.length;
     el.innerHTML = n
       ? `<div class="astrip ${criticos.length?'crit':'warn'}" onclick="loadPage('alertas')">
-          <div class="astrip-icon">${criticos.length?'🔴':'🟡'}</div>
+          <div class="astrip-icon">${icone(criticos.length?'alerta':'relogio',20)}</div>
           <div><div class="astrip-title">${n} pendência${n!==1?'s':''} — ${criticos.length} crítica${criticos.length!==1?'s':''}</div>
           <div class="astrip-meta">Clique para ver detalhes</div></div></div>`
-      : `<div style="padding:14px;color:var(--ink3);font-size:13px">✅ Nenhuma pendência aberta.</div>`;
+      : `<div style="padding:14px;color:var(--ink3);font-size:13px">Nenhuma pendência aberta.</div>`;
   }
+}
+
+// O bloco "Seu dia" da tela inicial: atendimentos de hoje nas agendas que a
+// pessoa vê, mensagens esperando resposta e quem está na Casa hoje
+async function carregarSeuDia() {
+  const ini = new Date(); ini.setHours(0,0,0,0);
+  const fim = new Date(ini.getTime()+86400000);
+  const [ag, hoje, msg] = await Promise.all([
+    api('listar_agenda',{de:ini.toISOString(), ate:fim.toISOString()}),
+    api('equipe_hoje',{}),
+    api('mensagens_abertas',{}),
+  ]);
+  animarNumero(document.getElementById('hjAtend'), ag.ok ? (ag.dados||[]).filter(e=>!e.dia_inteiro).length : 0);
+  animarNumero(document.getElementById('hjMsg'), msg.ok ? (msg.dados||[]).length : 0);
+  const el = document.getElementById('hjCasa');
+  const nomes = hoje.ok ? hoje.dados||[] : [];
+  if(el && nomes.length) el.innerHTML = `<div class="card" style="display:flex;align-items:center;gap:12px;cursor:pointer" onclick="loadPage('casa')">
+    <div class="avt-pilha" style="--casa-fundo:#fff">${nomes.slice(0,5).map(n=>avatarHTML(n,34)).join('')}</div>
+    <div style="font-size:13.5px;line-height:1.4"><strong>Na Casa hoje:</strong> ${esc(nomes.slice(0,3).join(', '))}${nomes.length>3?' e mais '+(nomes.length-3):''}</div></div>`;
 }
 
 // ── AVISO DE VERSÃO NOVA ────────────────────────
