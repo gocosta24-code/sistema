@@ -59,6 +59,28 @@ Alterar ou excluir uma evolução também é checado no servidor: só a autora o
 gestão. Os registros internos da Avaliação infantil (origem `infantil…`) ficam
 fora dessa regra, porque são compartilhados entre quem avalia.
 
+### Paciente em várias linhas
+
+A coluna `linha` de `Pacientes` aceita mais de uma linha separada por vírgula
+(`infantil, mental`). É **um prontuário só**: o paciente aparece na lista de
+cada linha marcada, e evoluções, documentos, mensagens e exercícios são os
+mesmos. As fichas próprias de cada linha (checklist, dados, Casa Segura…) são
+separadas — `Checklists` grava a `linha` junto da `aba`, e registro antigo sem
+linha conta como da primeira linha do cadastro. Dentro do prontuário, os botões
+de **Linhas** trocam de uma para a outra. Coordenação vê o paciente se tiver
+qualquer uma das linhas dele. Paciente com status `Lead` não entra nas listas,
+contagens nem pendências das linhas.
+
+### Exclusões (só gestão)
+
+- **Paciente** (`excluir_paciente`): apaga o cadastro e tudo o que é dele —
+  abas clínicas, mensagens e documentos (arquivo vai para a lixeira do Drive).
+  Pede o nome digitado. Para encerrar acompanhamento, use o status Inativo.
+- **Membro da equipe** (`excluir_prof`): sai da aba `Profissionais` e as
+  sessões dele caem na hora. O que registrou continua nos prontuários.
+- O servidor só aceita escrever na aba `Profissionais` e apagar pacientes pela
+  gestão (antes dava para mudar o próprio nível pela API).
+
 ### Prontuário: acesso, retificação e exportação
 
 - **Quem vê qual paciente é decidido no servidor** (`listar` e a checagem de

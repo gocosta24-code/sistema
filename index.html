@@ -485,6 +485,9 @@ input,select,textarea{outline:none;}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 .toast.ok{background:var(--teal);}
 .toast.err{background:var(--rose);}
+.lin-troca{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:-4px 0 10px;font-size:12px;color:var(--ink3)}
+.lin-troca span{margin-right:2px}
+.lin-troca .chip{cursor:pointer;border:none;font:600 12.5px 'DM Sans',sans-serif;padding:6px 12px}
 /* Nossa Casa */
 .ico{flex:none;vertical-align:-0.2em}
 .avt{display:inline-flex;align-items:center;justify-content:center;border-radius:50%;font-weight:700;flex:none;letter-spacing:.02em}
@@ -771,7 +774,7 @@ let demoMode = false;
 // Muda a cada publicação. Serve para o aparelho perceber que está com uma
 // versão velha em cache — sem isto a pessoa continua vendo o problema já
 // corrigido e jura que não foi corrigido.
-const VERSAO = '2026-10-29.01';
+const VERSAO = '2026-10-30.01';
 let _profsCache = null;
 let _demoPacienteId = null;
 
@@ -1257,6 +1260,20 @@ function demoApi(action, body) {
       const hoje = diaISO(new Date());
       const emails = new Set((DEMO_DB.agenda||[]).filter(e=>diaISO(new Date(e.inicio))===hoje).map(e=>e.agenda_email));
       return {ok:true, dados:(DEMO_DB.profissionais||[]).filter(p=>emails.has(p.email)).map(p=>p.nome)};
+    }
+    case 'excluir_paciente': {
+      if(currentRole!=='admin') return {ok:false, erro:'Só a gestão exclui pacientes'};
+      const pid=String(body.id);
+      DEMO_DB.pacientes=(DEMO_DB.pacientes||[]).filter(x=>String(x.id)!==pid);
+      ['evolucoes','checklists','documentos','mensagens','pts','avaliacoes','reunioes'].forEach(t=>{ if(DEMO_DB[t]) DEMO_DB[t]=DEMO_DB[t].filter(x=>String(x.paciente_id)!==pid); });
+      return {ok:true};
+    }
+    case 'excluir_prof': {
+      if(currentRole!=='admin') return {ok:false, erro:'Só a gestão remove membros da equipe'};
+      const pr=(DEMO_DB.profissionais||[]).find(x=>String(x.id)===String(body.id));
+      if(!pr) return {ok:false, erro:'Profissional não encontrado'};
+      if(pr.email===currentUser.email) return {ok:false, erro:'Você não pode remover a si mesma'};
+      DEMO_DB.profissionais=DEMO_DB.profissionais.filter(x=>x!==pr); return {ok:true};
     }
     case 'apoiar_post': {
       const post=(DEMO_DB.mural||[]).find(x=>String(x.id)===String(body.id));
@@ -1982,16 +1999,16 @@ async function openLinha(linha) {
 
 async function carregarPacientes(linha) {
   const cfg = LINHAS[linha];
-  const filtros = {linha};
   const res = await api('listar',{
-    tabela:'pacientes', filtros,
+    tabela:'pacientes',
     role: currentRole,
     nome_usuario: currentUser.nome
   });
 
   let pacs = [];
   if(res.ok) {
-    pacs = res.dados || [];
+    _todosPacientes = res.dados || [];
+    pacs = _todosPacientes.filter(p=>!ehLead(p) && linhasDoPaciente(p).includes(linha));
     _pacientesCache[linha] = pacs;
   }
 
@@ -2077,7 +2094,8 @@ async function openFormNovoPaciente(linha, existente) {
   const p = existente || {};
   const editando = !!(existente && existente.id);
   const servicosAtuais = servicosDoPaciente(p);
-  const opcoesDoForm = opcoesServicos(linha, servicosAtuais);
+  const linhasAtuais = editando ? linhasDoPaciente(p) : [linha];
+  const opcoesDoForm = opcoesServicos(linhasAtuais, servicosAtuais);
   const nascVal = /^(\d{4}-\d{2}-\d{2})/.exec(String(p.data_nascimento||''));
 
   document.getElementById('sheetTitle').textContent = editando ? 'Editar Paciente' : '+ Novo Paciente';
@@ -2089,9 +2107,17 @@ async function openFormNovoPaciente(linha, existente) {
       <div class="fg fa"><label class="fl">Nome completo *</label><input class="fi" id="np_nome" placeholder="Nome do paciente" autocomplete="off" value="${esc(p.nome)}"></div>
       <div class="fg"><label class="fl">Data de nascimento</label><input class="fi" id="np_nasc" type="date" value="${nascVal?nascVal[1]:''}"></div>
       <div class="fg"><label class="fl">Telefone</label><input class="fi" id="np_tel" type="tel" placeholder="(11) 99999-9999" value="${esc(p.telefone)}"></div>
-      ${linha==='infantil'||linha==='geriatria'?`
+      <div class="fg fa"><label class="fl">Linhas de cuidado * <span style="font-weight:400;color:var(--ink3)">(pode marcar mais de uma)</span></label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;" id="np_linhas">
+          ${Object.entries(LINHAS).map(([k,c])=>`
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;background:var(--sur2);padding:6px 12px;border-radius:20px;border:1px solid var(--bor)">
+            <input type="checkbox" value="${k}" style="accent-color:var(--teal)"${linhasAtuais.includes(k)?' checked':''}> ${esc(c.label)}</label>`).join('')}
+        </div>
+        <div class="pt-nota">É um prontuário só: o paciente aparece em cada linha marcada, com as evoluções, documentos e mensagens em comum.</div>
+      </div>
+      ${linhasAtuais.includes('infantil')||linhasAtuais.includes('geriatria')?`
       <div class="fg fa"><label class="fl">Responsável</label><input class="fi" id="np_resp" placeholder="Nome e parentesco" value="${esc(p.responsavel)}"></div>`:``}
-      ${linha==='infantil'?`
+      ${linhasAtuais.includes('infantil')?`
       <div class="fg fa"><label class="fl">Escola</label><input class="fi" id="np_escola" placeholder="Nome da escola" value="${esc(p.escola)}"></div>`:``}
       <div class="fg fa"><label class="fl">Terapeuta responsável *</label>
         <select class="fs" id="np_terapeuta">
@@ -2125,27 +2151,27 @@ async function openFormNovoPaciente(linha, existente) {
     ${editando&&currentRole==='admin'?`<button class="savebtn" id="np_del" style="background:var(--rose);margin-top:8px" onclick="excluirPaciente('${linha}','${p.id}')">Excluir paciente</button>`:''}`;
 }
 
+// Para cadastro duplicado ou feito por engano. Apaga o paciente e tudo o que é
+// dele (fichas, evoluções, mensagens, documentos) — por isso pede o nome
+// digitado. Para encerrar um acompanhamento, o caminho é o status Inativo.
 async function excluirPaciente(linha, id) {
-  const pacs = _pacientesCache[linha]||[];
-  const p = pacs.find(x=>String(x.id)===String(id));
-  const nome = p ? p.nome : 'este paciente';
-  if(!confirm('Excluir '+nome+' definitivamente?\n\nO cadastro e as fichas clínicas serão apagados e isso não pode ser desfeito.\n\nPara apenas encerrar o acompanhamento, use o status "Inativo".')) return;
-
+  const p = (_pacientesCache[linha]||[]).find(x=>String(x.id)===String(id))
+         || (await carregarTodosPacientes()).find(x=>String(x.id)===String(id));
+  if(!p) return;
+  const digitado = prompt('Excluir '+p.nome+' DEFINITIVAMENTE?\n\nSomem o cadastro e todo o prontuário: fichas, evoluções, mensagens e documentos. '+
+    'Não tem volta.\n\nPara só encerrar o acompanhamento, cancele e use o status "Inativo" (o prontuário fica guardado).\n\nPara confirmar, digite o nome do paciente:');
+  if(digitado===null) return;
+  if(normalizar(digitado)!==normalizar(p.nome)) { showToast('O nome não confere. Nada foi excluído.','err'); return; }
   const btn = document.getElementById('np_del');
   if(btn){ btn.textContent='Excluindo...'; btn.disabled=true; }
-
-  // Apaga também as fichas, senão elas viram lixo órfão na planilha
-  const resF = await api('listar',{tabela:'checklists', filtros:{paciente_id:id}});
-  if(resF.ok) for(const f of (resF.dados||[])) await api('deletar',{tabela:'checklists', id:f.id});
-
-  const res = await api('deletar',{tabela:'pacientes', id});
+  const res = await api('excluir_paciente',{id});
   if(!res.ok){
     showToast('Erro ao excluir: '+(res.erro||'tente novamente'),'err');
     if(btn){ btn.textContent='Excluir paciente'; btn.disabled=false; }
     return;
   }
-  showToast(''+nome+' excluído','ok');
-  delete _pacientesCache[linha];
+  showToast(p.nome+' excluído','ok');
+  _pacientesCache = {};
   _todosPacientes = null;
   openLinha(linha);
 }
@@ -2158,20 +2184,25 @@ async function salvarPaciente(linha, idExistente) {
 
   if(!nome){ errEl.textContent='Nome é obrigatório.'; errEl.style.display='block'; return; }
   if(!terapeuta){ errEl.textContent='Selecione o terapeuta.'; errEl.style.display='block'; return; }
+  const linhas = [...document.querySelectorAll('#np_linhas input:checked')].map(x=>x.value);
+  if(!linhas.length){ errEl.textContent='Marque ao menos uma linha de cuidado.'; errEl.style.display='block'; return; }
   errEl.style.display='none';
 
   btn.textContent='Salvando...'; btn.disabled=true;
 
+  // Campo que não está na tela (ex.: escola, fora da linha Infantil) não é
+  // enviado, para não apagar o que já estava gravado
+  const campo = id => { const el = document.getElementById(id); return el ? (el.value||'').trim() || null : undefined; };
   const nasc   = document.getElementById('np_nasc')?.value||null;
   const tel    = document.getElementById('np_tel')?.value?.trim()||null;
-  const resp   = document.getElementById('np_resp')?.value?.trim()||null;
-  const escola = document.getElementById('np_escola')?.value?.trim()||null;
+  const resp   = campo('np_resp');
+  const escola = campo('np_escola');
   const obs    = document.getElementById('np_obs')?.value?.trim()||null;
   const srvInputs = document.querySelectorAll('[id^="srv_"]:checked');
   const servicos = [...srvInputs].map(x=>x.value).join(', ');
 
   const dados = {
-    nome, linha,
+    nome, linha: linhas.join(', '),
     data_nascimento: nasc,
     telefone: tel,
     responsavel: resp,
@@ -2196,10 +2227,10 @@ async function salvarPaciente(linha, idExistente) {
   }
 
   limparSujo();
-  showToast(''+nome+(idExistente?' atualizado!':' cadastrado!'),'ok');
-  delete _pacientesCache[linha];
+  showToast(nome+(idExistente?' atualizado':' cadastrado'),'ok');
+  _pacientesCache = {};
   _todosPacientes = null;
-  openLinha(linha);
+  openLinha(linhas.includes(linha) ? linha : linhas[0]);
 }
 
 
@@ -2564,7 +2595,7 @@ async function abrirPortal() {
 
   const d = pront.dados;
   const f = fila.ok ? fila.dados : null;
-  const cfg = LINHAS[d.linha] || {emoji:'•', label:d.linha||''};
+  const cfg = {...cfgLinha(d.linha), label: rotuloLinhas(d.linha)};
   // Lead ainda nao tem prontuario, terapeuta ou plano - so orcamento e
   // mensagens, ate a equipe confirmar a virada de cliente (converterLead)
   const ehLead = String(d.status||'').toLowerCase()==='lead';
@@ -2956,13 +2987,15 @@ function catalogoAtivo(linha) {
 // Só serviço ativo entra como opção nova. Mas o que o paciente já usa fica na
 // lista mesmo inativado: sem isso, salvar a ficha apagaria o vínculo antigo,
 // que é justamente o histórico que se quer preservar.
-function opcoesServicos(linha, atuais) {
-  const ativos = catalogoAtivo(linha).map(s=>s.nome);
+function opcoesServicos(linhas, atuais) {
   // Enquanto a clínica não montar o catálogo, vale a lista que já existia no
   // código — assim o formulário nunca aparece sem opção nenhuma
-  const base = ativos.length
-    ? ativos
-    : String((LINHAS[linha]||{}).servicos||'').split(' · ').filter(Boolean);
+  const base = [];
+  (Array.isArray(linhas)?linhas:[linhas]).forEach(linha=>{
+    const ativos = catalogoAtivo(linha).map(s=>s.nome);
+    (ativos.length ? ativos : String((LINHAS[linha]||{}).servicos||'').split(' · ').filter(Boolean))
+      .forEach(n=>{ if(!base.some(b=>normalizar(b)===normalizar(n))) base.push(n); });
+  });
   const vistos = new Set(base.map(normalizar));
   return base.map(nome=>({nome, fora:false}))
     .concat(atuais.filter(n=>!vistos.has(normalizar(n))).map(nome=>({nome, fora:true})));
@@ -3976,7 +4009,7 @@ function cartaoAtendimento(e, mostrarProf) {
       ${!passou && e.status!=='confirmado' ? `<button class="backbtn" style="padding:5px 10px;font-size:12px" onclick="statusAtendimento(${ref},'confirmado')">Confirmado</button>` : ''}
       ${passou && e.status!=='realizado' ? `<button class="backbtn" style="padding:5px 10px;font-size:12px" onclick="statusAtendimento(${ref},'realizado')">Realizado</button>` : ''}
       ${passou && e.status!=='falta' ? `<button class="backbtn" style="padding:5px 10px;font-size:12px" onclick="statusAtendimento(${ref},'falta')">Faltou</button>` : ''}
-      ${pac && e.status==='realizado' ? `<button class="backbtn" style="padding:5px 10px;font-size:12px" onclick="abrirPacienteDaAgenda('${esc(pac.linha)}','${esc(pac.id)}')">Registrar evolução</button>` : ''}
+      ${pac && e.status==='realizado' ? `<button class="backbtn" style="padding:5px 10px;font-size:12px" onclick="abrirPacienteDaAgenda('${esc(linhasDoPaciente(pac)[0]||'')}','${esc(pac.id)}')">Registrar evolução</button>` : ''}
       ${e.do_sistema ? `<button class="backbtn" style="padding:5px 10px;font-size:12px" onclick="novoAtendimento(${ref})">Remarcar</button>` : ''}
       <button class="backbtn" style="padding:5px 10px;font-size:12px;color:var(--rose)" onclick="cancelarAtendimento(${ref})">Cancelar</button>
     </div>
@@ -4814,6 +4847,13 @@ function cardEspera(e, pos, linhaDoGrupo) {
 // A pessoa pode aguardar vaga em mais de uma linha ao mesmo tempo — quem quer
 // Fisioterapia e Pilates entra nas duas filas. A coluna guarda separado por
 // vírgula, como as demais listas do sistema.
+// Paciente pode estar em mais de uma linha ao mesmo tempo ("infantil, mental"):
+// um prontuário só, que aparece em cada linha. Lead ainda não é paciente.
+const ehLead = p => String((p||{}).status||'').toLowerCase()==='lead';
+function linhasDoPaciente(p) { return linhasDe((p||{}).linha); }
+function cfgLinha(valor) { return LINHAS[linhasDe(valor)[0]] || {label:String(valor||''), color:'sky', ico:'folha', emoji:''}; }
+function rotuloLinhas(valor) { return linhasDe(valor).map(l=>(LINHAS[l]||{label:l}).label).join(' · '); }
+
 function linhasDe(valor) {
   return String(valor||'').split(',').map(s=>s.trim()).filter(Boolean);
 }
@@ -5717,7 +5757,7 @@ function esperaHTML(iso) {
 }
 
 function itemMensagemHTML(m) {
-  const cfg = LINHAS[m.linha] || {emoji:'', label:m.linha||'sem linha', color:'sky'};
+  const cfg = m.linha ? {...cfgLinha(m.linha), label: rotuloLinhas(m.linha)} : {emoji:'', label:'sem linha', color:'sky'};
   const origem = String(m.de)==='paciente'
     ? 'O paciente escreveu'
     : 'Registrado por '+(m.autor_nome||'alguém da equipe');
@@ -6409,7 +6449,7 @@ async function gerarDocumento(pacienteId) {
     titulo: (document.getElementById('dcTitulo').value||'').trim(),
     visivel_paciente: document.getElementById('dcVisivel').checked,
     autor_nome: currentUser.nome,
-    linha_rotulo: (LINHAS[p.linha]||{}).label || '',
+    linha_rotulo: rotuloLinhas(p.linha),
   };
 
   if(_tipoDoc==='declaracao') {
@@ -6469,7 +6509,11 @@ async function carregarEvolucoes(pacienteId) {
   _evoPacienteId = pacienteId;
   const res = await api('listar',{tabela:'evolucoes', filtros:{paciente_id:pacienteId}});
   // Os registros 'infantil' são dados internos da Avaliação infantil, não evolução
-  _evolucoes = res.ok ? (res.dados||[]).filter(e=>e.origem!=='infantil') : [];
+  // Fora da lista: registros internos da Avaliação infantil e os registros
+  // técnicos da Avaliação física (dados do paciente, publicação do painel)
+  const tecnico = e => e.origem==='infantil' ||
+    (e.origem==='sensor' && /"type"\s*:\s*"(perfil|publicado)"/.test(String(e.sensor||'')));
+  _evolucoes = res.ok ? (res.dados||[]).filter(e=>!tecnico(e)) : [];
   // Mais recente primeiro
   _evolucoes.sort((a,b)=>String(b.data||'').localeCompare(String(a.data||'')));
   renderEvolucoes();
@@ -6967,15 +7011,20 @@ async function openPaciente(linha, id) {
   if(!podeFecharSheet()) return;
   limparSujo();
   _histAba = {}; _hist = {};
-  const pacs = _pacientesCache[linha]||[];
+  let pacs = _pacientesCache[linha]||[];
   let p = pacs.find(x=>String(x.id)===String(id));
-  if(!p) return;
+  if(!p) {
+    p = (await carregarTodosPacientes()).find(x=>String(x.id)===String(id));
+    if(!p) return;
+    _pacientesCache[linha] = pacs.concat([p]);
+  }
+  _currentLinha = linha;
   _pacienteAberto = id;
   _pacienteAbertoNome = p.nome;
 
   document.getElementById('sheetTitle').textContent = p.nome;
   document.getElementById('sheetBody').innerHTML = loadingHTML();
-  await Promise.all([carregarFichas(id), carregarCatalogo()]);
+  await Promise.all([carregarFichas(id, linha, linhasDoPaciente(p)[0]), carregarCatalogo()]);
 
   const cfg = LINHAS[linha];
   const nasc = p.data_nascimento;
@@ -7008,9 +7057,12 @@ async function openPaciente(linha, id) {
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
       <button class="backbtn" onclick="openLinha('${_currentLinha}')">‹ Voltar</button>
       <span style="font-size:12px;color:var(--ink3);flex:1">${idade !== '—' ? idade+' anos · ' : ''}${esc(p.terapeuta_nome||'—')}${p.status&&p.status!=='Ativo'?' · '+esc(p.status):''}</span>
+      ${currentRole==='admin'?`<button class="backbtn" onclick="excluirPaciente('${linha}','${id}')" title="Excluir paciente" aria-label="Excluir paciente" style="color:var(--rose)">${icone('lixeira',16)}</button>`:''}
       <button class="backbtn" onclick="exportarProntuario('${linha}','${id}')" title="Exportar o prontuário em PDF"><svg class="ico" aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/></svg></button>
       <button class="backbtn" onclick="editarPaciente('${linha}','${id}')">Editar</button>
     </div>
+    ${linhasDoPaciente(p).length>1?`<div class="lin-troca"><span>Linhas</span>${linhasDoPaciente(p).map(l=>
+      `<button class="chip ${l===linha?'ch-teal':'ch-gray'}" onclick="openPaciente('${l}','${id}')"${l===linha?' aria-current="true"':''}>${esc((LINHAS[l]||{label:l}).label)}</button>`).join('')}</div>`:''}
     ${chipsServicosHTML(p)}
     ${fichaCadastroHTML(p)}
     <div class="tabs">
@@ -7178,11 +7230,14 @@ function fmtDataHora(iso) {
 let _fichasCache = {};
 let _F = {};
 
-async function carregarFichas(pacienteId) {
+// As fichas (checklist, dados, PTS da linha...) são de cada linha: um paciente
+// em duas linhas tem uma ficha em cada. Registro antigo sem linha conta como
+// da linha principal (a primeira do cadastro).
+async function carregarFichas(pacienteId, linha, linhaPrincipal) {
   _fichasCache = {};
   const res = await api('listar',{tabela:'checklists', filtros:{paciente_id:pacienteId}});
   if(!res.ok) return;
-  (res.dados||[]).forEach(r=>{
+  (res.dados||[]).filter(r=> !linha || String(r.linha||'')===linha || (!r.linha && linha===linhaPrincipal)).forEach(r=>{
     let d = {};
     try { d = JSON.parse(r.dados||'{}'); } catch(e){}
     _fichasCache[String(r.aba)] = {id:r.id, dados:d,
@@ -7483,8 +7538,28 @@ function editarProf(id) {
       <button class="savebtn" id="epBtn" style="flex:1" onclick="salvarProf('${esc(p.id)}')">Salvar alterações</button>
       <button class="backbtn" onclick="document.getElementById('profForm').innerHTML=''">Cancelar</button>
     </div>
+    ${(p.email||'').toLowerCase()!==(currentUser.email||'').toLowerCase()?`<button class="savebtn" id="epDel"
+      style="background:var(--rose);margin-top:8px" onclick="excluirProf('${esc(p.id)}')">Remover da equipe</button>`:''}
   </div>`;
   f.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+// A pessoa sai do cadastro e perde o acesso na hora. O que ela registrou
+// continua no prontuário, com o nome gravado em cada evolução.
+async function excluirProf(id) {
+  const p = (_profsCache||[]).find(x=>String(x.id)===String(id));
+  if(!p) return;
+  const vinculados = (await carregarTodosPacientes()).filter(x=>(x.terapeuta_nome||'').trim()===String(p.nome||'').trim());
+  if(!confirm('Remover '+p.nome+' da equipe?\n\nEla perde o acesso ao sistema na hora. As evoluções e registros que ela fez continuam nos prontuários.'+
+    (vinculados.length?'\n\n'+vinculados.length+' paciente(s) têm '+p.nome+' como terapeuta de referência — troque a referência deles depois.':''))) return;
+  const btn = document.getElementById('epDel');
+  if(btn){ btn.disabled=true; btn.textContent='Removendo...'; }
+  const res = await api('excluir_prof',{id});
+  if(!res.ok){ showToast('Erro: '+(res.erro||''),'err'); if(btn){btn.disabled=false;btn.textContent='Remover da equipe';} return; }
+  document.getElementById('profForm').innerHTML='';
+  _profsCache = null;
+  if(typeof loadEquipe==='function') await loadEquipe();
+  showToast(p.nome+' saiu da equipe','ok');
 }
 
 async function salvarProf(id) {
@@ -7733,7 +7808,7 @@ async function carregarTodosPacientes(forcar) {
 async function loadContadores() {
   const pacs = await carregarTodosPacientes();
   Object.keys(LINHAS).forEach(k=>{
-    const n = pacs.filter(p=>(p.linha||'')===k).length;
+    const n = pacs.filter(p=>!ehLead(p) && linhasDoPaciente(p).includes(k)).length;
     animarNumero(document.getElementById('cnt-'+k), n);
     const lc = document.getElementById('lc-'+k);
     if(lc) lc.textContent = n+' paciente'+(n!==1?'s':'');
@@ -7789,8 +7864,9 @@ async function calcularAlertas() {
   const criticos = [], altos = [], proximos = [];
 
   pacs.forEach(p=>{
+    if(ehLead(p)) return;
     const d = porPaciente[String(p.id)] || {};
-    const cfg = LINHAS[p.linha] || {label:p.linha};
+    const cfg = {label: rotuloLinhas(p.linha)};
     const meta = `${p.nome} • ${cfg.label} • ${p.terapeuta_nome||'sem terapeuta'}`;
 
     if(d.pts_elaborado && !d.pts_aprovado)
@@ -7799,13 +7875,13 @@ async function calcularAlertas() {
       altos.push({titulo:'Ficha ainda não iniciada', meta});
     else if(!d.pts_elaborado)
       altos.push({titulo:'PTS pendente de elaboração', meta});
-    if(p.linha==='geriatria' && d.cs_visita && !d.cs_relatorio)
+    if(linhasDoPaciente(p).includes('geriatria') && d.cs_visita && !d.cs_relatorio)
       altos.push({titulo:'Relatório Casa Segura pendente', meta});
 
     // Paciente em atendimento sem evolução recente. Pilates fica de fora:
     // a aula em grupo não gera evolução individual a cada encontro.
     const emAtendimento = !p.status || String(p.status).toLowerCase()==='ativo';
-    if(emAtendimento && p.linha!=='pilates') {
+    if(emAtendimento && !(linhasDoPaciente(p).length===1 && linhasDoPaciente(p)[0]==='pilates')) {
       const ult = ultimaEvo[String(p.id)];
       const desde = ult ? dataLocal(ult) : dataLocal(String(p.criado_em||'').slice(0,10));
       const dias = desde ? Math.round((hoje-desde)/86400000) : null;

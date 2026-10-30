@@ -145,6 +145,15 @@ function handle(e) {
       }
     }
 
+    // Cadastro da equipe (inclusive nivel de acesso) e exclusao de paciente:
+    // so a gestao. Sem isto, qualquer login conseguiria, pela API, se dar
+    // nivel admin ou apagar a ficha de alguem.
+    if ((ACOES_ESCRITA.indexOf(action) !== -1 && body.tabela === 'profissionais') ||
+        (action === 'deletar' && body.tabela === 'pacientes')) {
+      const perfil = perfilDaEquipe(token);
+      if (!perfil || perfil.role !== 'admin') return resp({ok:false, erro:'S\u00f3 a gest\u00e3o pode fazer isso'});
+    }
+
     // Escrita no prontuario: so em paciente que a pessoa pode ver. Vale para
     // as abas clinicas e para a propria ficha (atualizar/excluir paciente).
     if (ACOES_ESCRITA.indexOf(action) !== -1 &&
@@ -253,6 +262,8 @@ function handle(e) {
       case 'criar_agendas':     return resp(criarAgendas(token));
       case 'equipe_hoje':       return resp(equipeHoje(token));
       case 'apoiar_post':       return resp(apoiarPost(body, token));
+      case 'excluir_paciente':  return resp(excluirPacienteTudo(body, token));
+      case 'excluir_prof':      return resp(excluirProf(body, token));
       default:              return resp({ok:false, erro:'A\u00e7\u00e3o desconhecida: '+action});
     }
   } catch(err) {
@@ -1260,6 +1271,10 @@ function perfilDaEquipe(token) {
   };
 }
 
+function linhasDoPaciente(pac) {
+  return String((pac && pac.linha) || '').toLowerCase().split(',').map(function(x){ return x.trim(); }).filter(Boolean);
+}
+
 function podeVerPaciente(perfil, pac) {
   if (!pac) return false;
   if (perfil.role === 'admin') return true;
@@ -1267,7 +1282,8 @@ function podeVerPaciente(perfil, pac) {
     // Coordenadora sem area preenchida enxerga tudo, como ja acontece no
     // resto do sistema. E a coluna "linhas" da aba Profissionais que estreita.
     if (!perfil.linhas.length || perfil.linhas.indexOf('todos') !== -1) return true;
-    return perfil.linhas.indexOf(String(pac.linha||'').trim().toLowerCase()) !== -1;
+    // O paciente pode estar em mais de uma linha ("infantil, mental"): basta uma em comum
+    return linhasDoPaciente(pac).some(function(l){ return perfil.linhas.indexOf(l) !== -1; });
   }
   const meu = String(pac.terapeuta_nome||'').trim().toLowerCase();
   return !!meu && meu === String(perfil.nome||'').trim().toLowerCase();
@@ -2706,5 +2722,79 @@ function equipeHoje(token) {
     if (cal && cal.getEvents(ini, fim).some(function(ev){ return !ev.isAllDayEvent(); })) nomes.push(p.nome);
   });
   return {ok:true, dados:nomes};
+}
+
+// --- EXCLUSOES (so a gestao) ------------------------------------
+// Apaga o paciente e tudo o que e dele: abas do prontuario, mensagens e
+// documentos (o arquivo vai para a lixeira do Drive, recuperavel por 30 dias).
+// Pensado para cadastro duplicado ou feito por engano: para encerrar um
+// acompanhamento, o caminho e o status Inativo, que preserva o prontuario.
+function apagarLinhasDoPaciente(aba, pacienteId, aoApagar) {
+  const sheet = getSpreadsheet().getSheetByName(aba);
+  if (!sheet || sheet.getLastRow() < 2) return 0;
+  const dados = sheet.getDataRange().getValues(), h = dados[0];
+  const iPac = h.indexOf('paciente_id');
+  if (iPac === -1) return 0;
+  let n = 0;
+  for (let i = dados.length-1; i >= 1; i--) {
+    if (String(dados[i][iPac]) !== String(pacienteId)) continue;
+    if (aoApagar) { const o = {}; h.forEach(function(k,j){ o[k] = dados[i][j]; }); aoApagar(o); }
+    sheet.deleteRow(i+1); n++;
+  }
+  return n;
+}
+
+function excluirPacienteTudo(body, token) {
+  const perfil = perfilDaEquipe(token);
+  if (!perfil || perfil.role !== 'admin') return {ok:false, erro:'Só a gestão exclui pacientes'};
+  const achado = acharPacientePorId(String(body.id||''));
+  if (!achado) return {ok:false, erro:'Paciente não encontrado'};
+  const pid = String(achado.obj.id);
+  let total = 0;
+  TABELAS_CLINICAS.forEach(function(t) {
+    if (t === 'documentos') return;
+    total += apagarLinhasDoPaciente(ABAS[t], pid);
+  });
+  total += apagarLinhasDoPaciente('Mensagens', pid);
+  total += apagarLinhasDoPaciente('Documentos', pid, function(doc) {
+    try { if (doc.drive_id) DriveApp.getFileById(doc.drive_id).setTrashed(true); } catch(e) {}
+  });
+  // Sessoes do portal do paciente caem junto
+  apagarTokensDe(String(achado.obj.email||''), 'paciente');
+  achado.sheet.deleteRow(achado.linha);
+  return {ok:true, registros: total};
+}
+
+function apagarTokensDe(email, role) {
+  if (!email) return;
+  const sheet = getSpreadsheet().getSheetByName('Tokens');
+  if (!sheet || sheet.getLastRow() < 2) return;
+  const dados = sheet.getDataRange().getValues();
+  for (let i = dados.length-1; i >= 1; i--) {
+    if (String(dados[i][1]||'').toLowerCase() !== email.toLowerCase()) continue;
+    if (role && (role === 'paciente') !== (String(dados[i][2]) === 'paciente')) continue;
+    sheet.deleteRow(i+1);
+  }
+}
+
+// Tira a pessoa da equipe: some do cadastro e perde o acesso na hora (as
+// sessoes abertas sao derrubadas). O que ela escreveu continua no prontuario,
+// com o nome gravado em cada registro.
+function excluirProf(body, token) {
+  const perfil = perfilDaEquipe(token);
+  if (!perfil || perfil.role !== 'admin') return {ok:false, erro:'Só a gestão remove membros da equipe'};
+  const sheet = getSpreadsheet().getSheetByName('Profissionais');
+  if (!sheet) return {ok:false, erro:'Profissional não encontrado'};
+  const dados = sheet.getDataRange().getValues(), h = dados[0];
+  const iId = h.indexOf('id'), iEmail = h.indexOf('email');
+  for (let i = 1; i < dados.length; i++) {
+    if (String(dados[i][iId]) !== String(body.id)) continue;
+    const email = String(dados[i][iEmail]||'').toLowerCase();
+    if (email === String(perfil.email).toLowerCase()) return {ok:false, erro:'Você não pode remover a si mesma'};
+    sheet.deleteRow(i+1);
+    apagarTokensDe(email, 'equipe');
+    return {ok:true};
+  }
+  return {ok:false, erro:'Profissional não encontrado'};
 }
 
