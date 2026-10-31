@@ -457,6 +457,103 @@ input,select,textarea{outline:none;}
 .loading-inline{text-align:center;padding:36px;color:var(--ink3);font-size:14px;}
 .loading-spin{width:24px;height:24px;border:2px solid var(--bor);border-top-color:var(--teal);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px;}
 
+/* AGENDA EM GRADE */
+.agx-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+.agx-nav{display:flex;align-items:center;gap:6px;flex:1;min-width:0;}
+.agx-ic{width:34px;height:34px;border-radius:50%;background:var(--sur);border:1px solid var(--bor);font-size:20px;line-height:1;color:var(--ink2);display:grid;place-items:center;flex-shrink:0;}
+.agx-ic:hover{background:var(--sur2);}
+.agx-hoje{padding:7px 14px;border-radius:20px;background:var(--sur);border:1px solid var(--bor);font-size:13px;font-weight:600;color:var(--ink2);}
+.agx-hoje.on{border-color:var(--teal);color:var(--teal);}
+.agx-rot{font-family:'Fraunces',serif;font-weight:500;font-size:20px;letter-spacing:-.3px;margin-left:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.agx-seg{display:inline-flex;background:var(--sur2);border:1px solid var(--bor);border-radius:20px;padding:3px;gap:2px;}
+.agx-seg button{padding:6px 14px;border-radius:16px;font-size:13px;font-weight:600;color:var(--ink3);background:transparent;}
+.agx-seg button.on{background:var(--sur);color:var(--ink);box-shadow:0 1px 3px rgba(43,42,32,.12);}
+.agx-seg-f{display:flex;width:100%;}
+.agx-seg-f button{flex:1;}
+.agx-profs{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:12px;scrollbar-width:none;}
+.agx-profs::-webkit-scrollbar{display:none;}
+.agx-pf{flex-shrink:0;display:inline-flex;align-items:center;gap:7px;padding:6px 13px;border-radius:20px;background:var(--sur);border:1px solid var(--bor);font-size:13px;font-weight:600;color:var(--ink2);}
+.agx-pf i{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.agx-pf span{color:var(--ink3);font-weight:500;}
+.agx-pf small{color:var(--amber);font-weight:600;}
+.agx-pf.on{background:var(--ink);border-color:var(--ink);color:#fff;}
+.agx-pf.on span{color:#d9d4c7;}
+.agx{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;transition:opacity .15s;}
+.agx-scroll{overflow:auto;max-height:calc(100vh - 250px);min-height:380px;position:relative;overscroll-behavior:contain;}
+.agx-head{display:grid;position:sticky;top:0;z-index:6;background:var(--sur);border-bottom:1px solid var(--bor);min-width:min-content;}
+.agx-hc{padding:9px 10px;border-left:1px solid var(--bor);min-width:0;}
+.agx-hz{border-left:0;position:sticky;left:0;background:var(--sur);z-index:2;}
+.agx-hd{display:flex;align-items:center;gap:8px;}
+.agx-dn{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:14px;flex-shrink:0;color:var(--ink);}
+.agx-hc.hoje .agx-dn{background:var(--laranja);color:#fff;}
+.agx-hc.hoje .agx-hn{color:var(--amber);}
+.agx-hn{font-weight:700;font-size:13px;display:flex;align-items:center;gap:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.agx-hn i{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.agx-hs{font-size:11.5px;color:var(--ink3);white-space:nowrap;}
+.agx-allday{display:flex;gap:6px;flex-wrap:wrap;padding:6px 10px 6px 62px;border-bottom:1px solid var(--bor);background:var(--sur2);}
+.agx-allday span{font-size:12px;font-weight:600;padding:3px 9px;border-radius:6px;background:color-mix(in srgb,var(--c) 14%,#fff);box-shadow:inset 3px 0 0 var(--c);}
+.agx-body{display:grid;position:relative;min-width:min-content;}
+.agx-horas{position:sticky;left:0;z-index:4;background:var(--sur);border-right:1px solid var(--bor);}
+.agx-horas div{position:absolute;right:7px;font-size:11px;color:var(--ink3);transform:translateY(-7px);font-variant-numeric:tabular-nums;}
+.agx-horas div:first-child{transform:none;}
+.agx-col{position:relative;border-left:1px solid var(--bor);cursor:pointer;
+  background-image:linear-gradient(var(--bor) 1px,transparent 1px),linear-gradient(rgba(217,205,184,.45) 1px,transparent 1px);
+  background-size:100% 64px,100% 32px;}
+.agx-col:first-of-type{border-left:0;}
+.agx-col.hoje{background-color:#FFFBF4;}
+.agx-fantasma{position:absolute;left:3px;right:3px;border:1.5px dashed var(--teal);border-radius:8px;color:var(--teal);font-size:12px;font-weight:700;padding:4px 8px;pointer-events:none;background:rgba(238,243,231,.7);}
+.agx-ev{position:absolute;display:flex;flex-direction:column;gap:1px;text-align:left;border-radius:8px;padding:4px 7px 4px 9px;overflow:hidden;font-size:12px;line-height:1.25;color:var(--ink);
+  background:color-mix(in srgb,var(--c) 13%,#fff);box-shadow:inset 3px 0 0 var(--c),0 0 0 1.5px var(--sur);transition:box-shadow .12s,background .12s;z-index:2;cursor:pointer;}
+.agx-ev:hover{background:color-mix(in srgb,var(--c) 22%,#fff);z-index:3;}
+.agx-ev:focus-visible{outline:2px solid var(--c);outline-offset:1px;}
+.agx-ev.mov{cursor:grab;}
+.agx-ev.st-realizado{background:color-mix(in srgb,var(--c) 6%,#fff);}
+.agx-ev.st-realizado .agx-en{color:var(--ink2);}
+.agx-ev.st-falta{background:repeating-linear-gradient(135deg,#fff 0 6px,var(--rose-lt) 6px 12px);box-shadow:inset 3px 0 0 var(--rose),0 0 0 1.5px var(--sur);}
+.agx-ev.st-falta .agx-en{text-decoration:line-through;color:var(--ink3);}
+.agx-ev.arrastando{cursor:grabbing;z-index:20;box-shadow:inset 3px 0 0 var(--c),0 10px 24px rgba(43,42,32,.22);opacity:.95;}
+.agx-ev.arrastando::after{content:attr(data-hora);position:absolute;right:6px;top:4px;font-size:11px;font-weight:700;background:var(--ink);color:#fff;border-radius:6px;padding:1px 6px;}
+.agx-mini{padding:3px 2px 3px 5px;align-items:center;gap:3px;}
+.agx-mini .agx-st{width:13px;height:13px;font-size:8px;}
+.agx-ini{font-weight:800;font-size:11px;letter-spacing:.3px;}
+.agx-et{display:flex;align-items:center;gap:5px;min-width:0;}
+.agx-en{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.agx-eh{margin-left:auto;font-size:11px;color:var(--ink3);flex-shrink:0;}
+.agx-es{font-size:11px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.agx-ep{color:var(--ink3);}
+.agx-st{width:15px;height:15px;border-radius:50%;display:inline-grid;place-items:center;font-size:9px;font-weight:800;color:#fff;flex-shrink:0;font-style:normal;}
+.agx-st.st-agendado{background:transparent;border:1.5px solid var(--bor2);}
+.agx-st.st-confirmado{background:var(--sky);}
+.agx-st.st-realizado{background:var(--sage);}
+.agx-st.st-falta{background:var(--rose);}
+.agx-agora{position:absolute;left:0;right:0;border-top:2px solid var(--laranja);z-index:5;pointer-events:none;}
+.agx-agora::before{content:"";position:absolute;left:-5px;top:-6px;width:10px;height:10px;border-radius:50%;background:var(--laranja);}
+.agx-leg{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;font-size:12px;color:var(--ink2);padding:10px 4px 4px;}
+.agx-leg span{display:inline-flex;align-items:center;gap:6px;}
+.agx-dica{margin-left:auto;color:var(--ink3);}
+body.agx-movendo{cursor:grabbing;user-select:none;}
+.agx-pre{display:inline-flex;align-items:center;gap:8px;font-weight:600;font-size:13.5px;background:var(--sur);border:1px solid var(--bor);border-radius:20px;padding:6px 14px;margin-bottom:16px;}
+.agx-pre i,.agx-det-l i{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:7px;}
+.agx-chips{display:flex;flex-wrap:wrap;gap:6px;}
+.agx-chip{padding:7px 12px;border-radius:18px;background:var(--sur);border:1px solid var(--bor);font-size:13px;font-weight:600;color:var(--ink2);}
+.agx-chip.on{background:var(--teal);border-color:var(--teal);color:#fff;}
+.agx-det{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r-sm);padding:4px 14px;}
+.agx-det-l{display:grid;grid-template-columns:110px 1fr;gap:10px;padding:10px 0;border-bottom:1px solid var(--bor);font-size:14px;}
+.agx-det-l:last-child{border-bottom:0;}
+.agx-det-l span{color:var(--ink3);font-size:13px;}
+.agx-acoes{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+.agx-ac{flex:1;min-width:110px;padding:11px 10px;border-radius:var(--r-sm);background:var(--sur);border:1px solid var(--bor);font-weight:700;font-size:13.5px;color:var(--ink2);}
+.agx-ac.on{background:var(--teal);border-color:var(--teal);color:#fff;}
+.agx-ac.falta.on{background:var(--rose);border-color:var(--rose);}
+.agx-ac:disabled{opacity:.4;cursor:not-allowed;}
+@media(max-width:767px){
+  .agx-rot{font-size:17px;}
+  .agx-add{order:-1;margin-left:auto;}
+  .agx-bar .agx-nav{flex-basis:100%;order:2;}
+  .agx-scroll{max-height:calc(100vh - 300px);}
+  .agx-dica{margin-left:0;flex-basis:100%;}
+}
+
 /* DESKTOP */
 @media(min-width:768px){
   #app.aberto{display:grid;grid-template-columns:240px 1fr;grid-template-rows:56px 1fr;padding-bottom:0;min-height:100vh;}
@@ -1446,9 +1543,21 @@ function demoAgenda(action, body) {
       return {id:'ev'+Math.random().toString(36).slice(2,8), agenda_email:email, paciente_id:pid, servico:serv, status:'', obs:'', do_sistema:true,
               titulo:(pac.nome||'Paciente').split(' ')[0]+' '+((pac.nome||'').split(' ').pop()||'').charAt(0)+'. · '+serv,
               inicio:i.toISOString(), fim:new Date(i.getTime()+dur*60000).toISOString()}; };
-    DEMO_DB.agenda = [ev(0,9,0,50,'carlos@casaoliveira.com','p3','Fisio pélvica'), ev(1,10,0,50,'juliana@casaoliveira.com','p1','TO infantil'),
-      ev(2,14,0,50,'paulo@casaoliveira.com','p4','Fisioterapia'), ev(3,11,30,60,'marcia@casaoliveira.com','p6','Casa Segura'),
-      ev(4,9,0,50,'carlos@casaoliveira.com','p3','Fisio pélvica')];
+    // Semana cheia o bastante para ver a grade como ela fica no dia a dia
+    const grade = [
+      ['juliana@casaoliveira.com','TO infantil',[[8,0],[9,0],[10,0],[14,0],[15,0],[16,30]],['p1','p2','p7']],
+      ['carlos@casaoliveira.com','Fisio pélvica',[[7,30],[8,30],[11,0],[13,30],[17,0]],['p3','p5']],
+      ['paulo@casaoliveira.com','Fisioterapia',[[8,0],[9,0],[10,0],[11,0],[14,0],[15,0],[16,0]],['p4','p6','p5']],
+      ['marcia@casaoliveira.com','Casa Segura',[[9,30],[14,0]],['p6','p4']],
+      ['paula@casaoliveira.com','Fisioterapia',[[13,0],[14,0],[18,0]],['p5','p3']],
+      ['beatriz@casaoliveira.com','TO mão',[[8,0],[10,30],[15,30]],['p4','p7']]];
+    DEMO_DB.agenda = [];
+    grade.forEach(([email,serv,horas,pacs],gi)=>{ for(let d=0; d<6; d++) horas.forEach(([h,m],hi)=>{
+      if((d+hi+gi)%4===3 || (d===5 && h>=12)) return;
+      const e = ev(d,h,m, serv==='Casa Segura'?90:50, email, pacs[(d+hi)%pacs.length], serv);
+      const passou = new Date(e.fim) < new Date();
+      e.status = passou ? ((d+hi+gi)%9===0?'falta':'realizado') : ((d+hi)%3===0?'':'confirmado');
+      DEMO_DB.agenda.push(e); }); });
     equipe.forEach(p=>{ if(!['clinicaoliveira20@gmail.com','recepcao@casaoliveira.com'].includes(p.email)) p.agenda_id = 'demo-'+p.id; });
   }
   const eu = (currentUser.email||'').toLowerCase();
@@ -3917,9 +4026,31 @@ function diaISO(d) { return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(
 const maiuscula = t => t.charAt(0).toUpperCase()+t.slice(1);
 function horaDe(iso) { return new Date(iso).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}); }
 
+// Vista em grade (dia e semana) e lista. Clicar num horário vazio abre o
+// agendamento já com profissional, dia e hora; arrastar remarca (só o que foi
+// marcado pelo sistema, porque o servidor só regrava esses eventos).
+// Repetição semanal é feita aqui, chamando salvar_evento uma vez por data,
+// para não precisar mexer no Code.gs.
+const AG_PX = 64;              // altura de uma hora na grade
+const AG_PASSO = 15;           // minutos: encaixe ao arrastar e ao clicar
+const AG_CORES = ['#446F27','#C25E14','#3E5C76','#9B3524','#2B7F7A','#7A5313','#6E559E','#A07C00','#5F8530','#B5456F'];
+let _agVista = (()=>{ try{ return localStorage.getItem('ag_vista') || (innerWidth<768?'dia':'semana'); }catch(e){ return innerWidth<768?'dia':'semana'; } })();
+let _agDia = (()=>{ const d=new Date(); d.setHours(0,0,0,0); return d; })();
+let _agArraste = null, _agAcabouDeArrastar = false;
+
+function agCor(email) {
+  const i = (_ag.profissionais||[]).findIndex(p=>p.email===email);
+  return AG_CORES[(i<0?0:i) % AG_CORES.length];
+}
+function agProfNome(email) { return ((_ag.profissionais||[]).find(p=>p.email===email)||{}).nome || ''; }
+function agMin(d) { return d.getHours()*60 + d.getMinutes(); }
+function agHM(min) { return String(Math.floor(min/60)).padStart(2,'0')+':'+String(min%60).padStart(2,'0'); }
+function agMesmoDia(a,b) { return diaISO(a)===diaISO(b); }
+function agPassou(e) { return new Date(e.inicio) <= new Date(); }
+
 function renderAgenda() {
   return `<div class="ph"><div class="ph-title">Agenda</div>
-    <div class="ph-sub">Atendimentos da semana, ligados ao Google Agenda</div></div>
+    <div class="ph-sub">Ligada ao Google Agenda de cada profissional</div></div>
   <div id="agBody">${loadingHTML()}</div>`;
 }
 
@@ -3934,45 +4065,48 @@ async function loadAgenda() {
   _ag = {eventos:res.dados||[], profissionais:res.profissionais||[], sem_acesso:res.sem_acesso||[],
          pode_criar_agendas:!!res.pode_criar_agendas};
   if(_agFiltro && !_ag.profissionais.some(p=>p.email===_agFiltro)) _agFiltro = '';
-  desenharAgenda();
+  if(_ag.profissionais.length===1) _agFiltro = _ag.profissionais[0].email;
+  desenharAgenda(true);
 }
 
-function trocarSemanaAgenda(n) { _agSemana = n===0 ? inicioDaSemana(new Date()) : somaDias(_agSemana, 7*n); loadAgenda(); }
+function trocarSemanaAgenda(n) {
+  if(n===0) { _agDia = new Date(); _agDia.setHours(0,0,0,0); }
+  else if(_agVista==='dia') _agDia = somaDias(_agDia, n);
+  else _agDia = somaDias(_agDia, 7*n);
+  const semana = inicioDaSemana(_agDia);
+  if(diaISO(semana)!==diaISO(_agSemana)) { _agSemana = semana; const el=document.getElementById('agGrade'); if(el) el.style.opacity=.5; loadAgenda(); }
+  else desenharAgenda(true);
+}
 function filtrarAgenda(email) { _agFiltro = email; desenharAgenda(); }
+function vistaAgenda(v) { _agVista = v; try{ localStorage.setItem('ag_vista', v); }catch(e){} desenharAgenda(true); }
 
-function desenharAgenda() {
+function desenharAgenda(rolar) {
   const el = document.getElementById('agBody');
   if(!el) return;
-  const fim = somaDias(_agSemana, 6);
-  const rotulo = _agSemana.toLocaleDateString('pt-BR',{day:'numeric',month:'short'})+' a '+fim.toLocaleDateString('pt-BR',{day:'numeric',month:'short'});
   const varias = _ag.profissionais.length > 1;
   const semAgenda = _ag.profissionais.filter(p=>!p.tem_agenda);
-  const eventos = _ag.eventos.filter(e=>!_agFiltro || e.agenda_email===_agFiltro);
-  const hoje = diaISO(new Date());
-
-  const dias = [];
-  for(let i=0;i<7;i++) {
-    const d = somaDias(_agSemana, i), k = diaISO(d);
-    const doDia = eventos.filter(e=>diaISO(new Date(e.inicio))===k);
-    if(doDia.length || k===hoje) dias.push({d, k, doDia});
-  }
+  const fimSem = somaDias(_agSemana, 6);
+  const rotulo = _agVista==='dia'
+    ? maiuscula(_agDia.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'}))
+    : _agSemana.toLocaleDateString('pt-BR',{day:'numeric',month:'short'})+' – '+fimSem.toLocaleDateString('pt-BR',{day:'numeric',month:'short'});
+  const ehHoje = _agVista==='dia' ? agMesmoDia(_agDia,new Date()) : diaISO(inicioDaSemana(new Date()))===diaISO(_agSemana);
+  const toque = matchMedia('(hover:none)').matches;
 
   el.innerHTML = `
-  <div class="card" style="margin-bottom:12px">
-    <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between">
-      <div style="display:flex;gap:6px;align-items:center">
-        <button class="backbtn" onclick="trocarSemanaAgenda(-1)" aria-label="Semana anterior">‹</button>
-        <strong style="min-width:130px;text-align:center">${esc(rotulo)}</strong>
-        <button class="backbtn" onclick="trocarSemanaAgenda(1)" aria-label="Próxima semana">›</button>
-        <button class="backbtn" onclick="trocarSemanaAgenda(0)">Hoje</button>
-      </div>
-      <button class="addbtn" onclick="novoAtendimento()">+ Agendar</button>
+  <div class="agx-bar">
+    <div class="agx-nav">
+      <button class="agx-ic" onclick="trocarSemanaAgenda(-1)" aria-label="${_agVista==='dia'?'Dia anterior':'Semana anterior'}">‹</button>
+      <button class="agx-hoje${ehHoje?' on':''}" onclick="trocarSemanaAgenda(0)">Hoje</button>
+      <button class="agx-ic" onclick="trocarSemanaAgenda(1)" aria-label="${_agVista==='dia'?'Próximo dia':'Próxima semana'}">›</button>
+      <strong class="agx-rot">${esc(rotulo)}</strong>
     </div>
-    ${varias?`<select class="fs" style="margin-top:10px" onchange="filtrarAgenda(this.value)">
-      <option value="">Todas as profissionais (${_ag.profissionais.length})</option>
-      ${_ag.profissionais.map(p=>`<option value="${esc(p.email)}"${_agFiltro===p.email?' selected':''}>${esc(p.nome)}${p.tem_agenda?'':' (sem agenda)'}</option>`).join('')}
-    </select>`:''}
+    <div class="agx-seg" role="tablist">${[['dia','Dia'],['semana','Semana'],['lista','Lista']].map(([v,t])=>`<button class="${_agVista===v?'on':''}" onclick="vistaAgenda('${v}')">${t}</button>`).join('')}</div>
+    <button class="addbtn agx-add" onclick="novoAtendimento()">+ Agendar</button>
   </div>
+  ${varias?`<div class="agx-profs">
+    <button class="agx-pf${!_agFiltro?' on':''}" onclick="filtrarAgenda('')">Todas <span>${_ag.profissionais.length}</span></button>
+    ${_ag.profissionais.map(p=>`<button class="agx-pf${_agFiltro===p.email?' on':''}" onclick="filtrarAgenda('${esc(p.email)}')"><i style="background:${agCor(p.email)}"></i>${esc(p.nome)}${p.tem_agenda?'':' <small>sem agenda</small>'}</button>`).join('')}
+  </div>`:''}
 
   ${_ag.pode_criar_agendas && semAgenda.length ? `<div class="card" style="margin-bottom:12px;border-left:3px solid var(--amber)">
     <div style="font-weight:600;margin-bottom:4px">${semAgenda.length} ${semAgenda.length===1?'profissional ainda não tem':'profissionais ainda não têm'} agenda no Google</div>
@@ -3982,21 +4116,254 @@ function desenharAgenda() {
   </div>` : ''}
   ${_ag.sem_acesso.length ? `<div class="card" style="margin-bottom:12px;color:var(--rose)">A clínica não tem acesso à agenda de ${esc(_ag.sem_acesso.join(', '))}. Confira o ID da agenda na aba Profissionais e se ela está compartilhada com a conta da clínica.</div>` : ''}
 
-  <div id="agForm"></div>
-  ${dias.length && eventos.length ? dias.map(({d,k,doDia})=>`
+  ${_agVista==='lista' ? listaAgenda(varias) : gradeAgenda(varias)}
+  ${_agVista!=='lista' ? `<div class="agx-leg">
+    ${Object.entries(AG_STATUS).map(([k,s])=>`<span><b class="agx-st st-${k||'agendado'}">${AG_ICONE[k]}</b>${s.t}</span>`).join('')}
+    ${_agVista==='semana'&&!_agFiltro&&_ag.profissionais.length>2?`<span class="agx-dica" style="margin-left:0">Semana cheia? Escolha uma profissional acima para ver os nomes.</span>`:''}
+    <span class="agx-dica">${toque?'Toque num horário vazio para agendar':'Clique num horário vazio para agendar · arraste para remarcar'}</span>
+  </div>`:''}`;
+
+  if(_agVista!=='lista') ligarGrade(rolar);
+}
+
+const AG_ICONE = {'':'', confirmado:'✓', realizado:'✓', falta:'✕'};
+
+function listaAgenda(varias) {
+  const eventos = _ag.eventos.filter(e=>!_agFiltro || e.agenda_email===_agFiltro);
+  const hoje = diaISO(new Date());
+  const dias = [];
+  for(let i=0;i<7;i++) {
+    const d = somaDias(_agSemana, i), k = diaISO(d);
+    const doDia = eventos.filter(e=>diaISO(new Date(e.inicio))===k);
+    if(doDia.length || k===hoje) dias.push({d, k, doDia});
+  }
+  return dias.length && eventos.length ? dias.map(({d,k,doDia})=>`
     <div style="margin:16px 0 8px;font-weight:700;font-size:13px;color:${k===hoje?'var(--teal)':'var(--ink2)'}">
       ${esc(maiuscula(d.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'short'})))}${k===hoje?' · hoje':''}</div>
     ${doDia.length ? doDia.map(e=>cartaoAtendimento(e, varias)).join('') : `<div class="pt-nota" style="margin:0">Nada marcado.</div>`}
-  `).join('') : `<div class="card" style="text-align:center;color:var(--ink3);padding:32px 16px">Nenhum atendimento nesta semana.</div>`}`;
+  `).join('') : `<div class="card" style="text-align:center;color:var(--ink3);padding:32px 16px">Nenhum atendimento nesta semana.</div>`;
+}
+
+// Colunas da grade: no Dia com "Todas", uma por profissional (como lado a lado
+// numa recepção); no resto, uma por dia.
+function colunasAgenda() {
+  if(_agVista==='dia') {
+    const profs = _agFiltro ? _ag.profissionais.filter(p=>p.email===_agFiltro) : _ag.profissionais.filter(p=>p.tem_agenda);
+    if(!_agFiltro && profs.length>1) return profs.map(p=>({dia:_agDia, email:p.email, prof:p}));
+    return [{dia:_agDia, email:_agFiltro||'', prof:profs[0]}];
+  }
+  const cols = [];
+  for(let i=0;i<7;i++) {
+    const d = somaDias(_agSemana, i);
+    if(i===6 && !_ag.eventos.some(e=>agMesmoDia(new Date(e.inicio),d) && (!_agFiltro||e.agenda_email===_agFiltro))) continue;
+    cols.push({dia:d, email:_agFiltro||''});
+  }
+  return cols;
+}
+function eventosDaColuna(c) {
+  return _ag.eventos.filter(e=>!e.dia_inteiro && agMesmoDia(new Date(e.inicio), c.dia) && (!c.email || e.agenda_email===c.email))
+    .sort((a,b)=>a.inicio.localeCompare(b.inicio));
+}
+// Quem se sobrepõe divide a largura (faixas), como no Google Agenda
+function faixas(evs) {
+  const out = []; let grupo = [], fimGrupo = -1;
+  const fecha = () => { const n = Math.max(1, ...grupo.map(g=>g.faixa+1)); grupo.forEach(g=>g.de=n); out.push(...grupo); grupo=[]; };
+  evs.forEach(e=>{
+    const ini = agMin(new Date(e.inicio)), fim = ini + Math.max(15,(new Date(e.fim)-new Date(e.inicio))/60000);
+    if(grupo.length && ini >= fimGrupo) fecha();
+    const ocupadas = grupo.filter(g=>g.fim>ini).map(g=>g.faixa);
+    let f = 0; while(ocupadas.includes(f)) f++;
+    grupo.push({e, ini, fim, faixa:f}); fimGrupo = Math.max(fimGrupo, fim);
+  });
+  if(grupo.length) fecha();
+  return out;
+}
+
+function gradeAgenda(varias) {
+  const cols = colunasAgenda();
+  const todos = cols.flatMap(eventosDaColuna);
+  let h0 = 7, h1 = 21;
+  todos.forEach(e=>{ const a=new Date(e.inicio), b=new Date(e.fim); h0=Math.min(h0,a.getHours()); h1=Math.max(h1, b.getHours()+(b.getMinutes()?1:0)); });
+  const H = (h1-h0)*AG_PX, porProf = cols.length>1 && !!cols[0].prof;
+  const hoje = new Date(), agora = agMin(hoje);
+  const largura = porProf ? 150 : (_agVista==='dia' ? 260 : 118);
+  const tmpl = `52px repeat(${cols.length}, minmax(${largura}px, 1fr))`;
+  const diaInteiro = _ag.eventos.filter(e=>e.dia_inteiro && cols.some(c=>agMesmoDia(new Date(e.inicio),c.dia) && (!c.email||e.agenda_email===c.email)));
+
+  const cab = cols.map(c=>{
+    const n = eventosDaColuna(c).length, hojeCol = agMesmoDia(c.dia, hoje);
+    if(porProf) return `<div class="agx-hc"><div class="agx-hn"><i style="background:${agCor(c.email)}"></i>${esc(c.prof.nome)}</div><div class="agx-hs">${n} ${n===1?'atendimento':'atendimentos'}</div></div>`;
+    return `<div class="agx-hc${hojeCol?' hoje':''}"><div class="agx-hd"><span class="agx-dn">${c.dia.getDate()}</span><div><div class="agx-hn">${esc(maiuscula(c.dia.toLocaleDateString('pt-BR',{weekday:_agVista==='dia'?'long':'short'}).replace('.','')))}</div><div class="agx-hs">${n||'Livre'}${n?(n===1?' atendimento':' atendimentos'):''}</div></div></div></div>`;
+  }).join('');
+
+  let horas = '';
+  for(let h=h0; h<=h1; h++) horas += `<div style="top:${(h-h0)*AG_PX}px">${String(h).padStart(2,'0')}:00</div>`;
+
+  const corpo = cols.map((c,ci)=>{
+    const evs = faixas(eventosDaColuna(c)).map(({e,ini,fim,faixa,de})=>{
+      const top = (ini-h0*60)/60*AG_PX, alt = Math.max(22,(fim-ini)/60*AG_PX-2);
+      const st = e.status||'', cor = agCor(e.agenda_email), curto = alt < 40, estreito = de >= 3 || (de===2 && largura<130);
+      const [nome, serv] = String(e.titulo||'(sem título)').split(' · ');
+      const prof = !porProf && !_agFiltro && varias ? esc(e.profissional||agProfNome(e.agenda_email)) : '';
+      if(estreito) return `<button class="agx-ev agx-mini st-${st||'agendado'}${e.do_sistema?' mov':''}" data-id="${esc(e.id)}" data-ag="${esc(e.agenda_email)}"
+        style="--c:${cor};top:${top}px;height:${alt}px;left:calc(${faixa*100/de}% + 1px);width:calc(${100/de}% - 2px)"
+        title="${esc(e.titulo)} · ${horaDe(e.inicio)}–${horaDe(e.fim)}${prof?' · '+prof:''}">${st?`<b class="agx-st st-${st}">${AG_ICONE[st]}</b>`:''}<span class="agx-ini">${esc(nome.split(' ').map(x=>x[0]).join('').slice(0,2))}</span></button>`;
+      return `<button class="agx-ev st-${st||'agendado'}${e.do_sistema?' mov':''}" data-id="${esc(e.id)}" data-ag="${esc(e.agenda_email)}"
+        style="--c:${cor};top:${top}px;height:${alt}px;left:calc(${faixa*100/de}% + 2px);width:calc(${100/de}% - 4px)"
+        title="${esc(e.titulo)} · ${horaDe(e.inicio)}–${horaDe(e.fim)}${prof?' · '+prof:''}">
+        <span class="agx-et">${st?`<b class="agx-st st-${st}">${AG_ICONE[st]}</b>`:''}<span class="agx-en">${esc(nome)}</span>${curto?`<span class="agx-eh">${horaDe(e.inicio)}</span>`:''}</span>
+        ${curto?'':`<span class="agx-es">${horaDe(e.inicio)}–${horaDe(e.fim)}${serv?' · '+esc(serv):''}</span>${prof && alt>=58?`<span class="agx-es agx-ep">${prof}</span>`:''}`}
+      </button>`;
+    }).join('');
+    const linhaAgora = agMesmoDia(c.dia, hoje) && agora>=h0*60 && agora<=h1*60 ? `<div class="agx-agora" style="top:${(agora-h0*60)/60*AG_PX}px"></div>` : '';
+    return `<div class="agx-col${agMesmoDia(c.dia,hoje)&&!porProf?' hoje':''}" data-col="${ci}" style="height:${H}px">${evs}${linhaAgora}<div class="agx-fantasma" hidden></div></div>`;
+  }).join('');
+
+  _agGrade = {cols, h0, h1};
+  return `<div class="agx" id="agGrade">
+    <div class="agx-scroll" id="agScroll">
+      <div class="agx-head" style="grid-template-columns:${tmpl}"><div class="agx-hc agx-hz"></div>${cab}</div>
+      ${diaInteiro.length?`<div class="agx-allday">${diaInteiro.map(e=>`<span style="--c:${agCor(e.agenda_email)}">${esc(e.titulo)}</span>`).join('')}</div>`:''}
+      <div class="agx-body" style="grid-template-columns:${tmpl}">
+        <div class="agx-horas" style="height:${H}px">${horas}</div>${corpo}
+      </div>
+    </div>
+  </div>`;
+}
+let _agGrade = {cols:[], h0:7, h1:21};
+
+function minutoDoPonteiro(colEl, clientY) {
+  const r = colEl.getBoundingClientRect();
+  const m = _agGrade.h0*60 + (clientY - r.top)/AG_PX*60;
+  return Math.max(_agGrade.h0*60, Math.min(_agGrade.h1*60 - AG_PASSO, Math.floor(m/AG_PASSO)*AG_PASSO));
+}
+
+function ligarGrade(rolar) {
+  const grade = document.getElementById('agGrade');
+  if(!grade) return;
+  const sc = document.getElementById('agScroll');
+  if(rolar && sc) {
+    const agora = agMin(new Date()), temHoje = _agGrade.cols.some(c=>agMesmoDia(c.dia,new Date()));
+    const alvo = temHoje && agora>=9*60 && agora<=19*60 ? agora-60 : 7*60+30;
+    sc.scrollTop = Math.max(0, (alvo - _agGrade.h0*60)/60*AG_PX);
+  }
+
+  // Passar o mouse num horário vazio mostra onde o atendimento vai cair
+  grade.addEventListener('pointermove', ev=>{
+    if(ev.pointerType!=='mouse' || _agArraste) return;
+    grade.querySelectorAll('.agx-fantasma').forEach(f=>f.hidden=true);
+    const col = ev.target.closest('.agx-col');
+    if(!col || ev.target.closest('.agx-ev')) return;
+    const m = minutoDoPonteiro(col, ev.clientY), f = col.querySelector('.agx-fantasma');
+    f.style.top = ((Math.floor(m/30)*30 - _agGrade.h0*60)/60*AG_PX)+'px'; f.style.height = (AG_PX*50/60-2)+'px';
+    f.textContent = '+ '+agHM(Math.floor(m/30)*30); f.hidden = false;
+  });
+  grade.addEventListener('pointerleave', ()=>grade.querySelectorAll('.agx-fantasma').forEach(f=>f.hidden=true));
+
+  grade.addEventListener('click', ev=>{
+    if(_agAcabouDeArrastar) { _agAcabouDeArrastar = false; return; }
+    const b = ev.target.closest('.agx-ev');
+    if(b) { detalheAtendimento(b.dataset.ag, b.dataset.id); return; }
+    const col = ev.target.closest('.agx-col');
+    if(!col) return;
+    const c = _agGrade.cols[+col.dataset.col];
+    const m = Math.floor(minutoDoPonteiro(col, ev.clientY)/30)*30;
+    const ini = new Date(c.dia); ini.setHours(0, m, 0, 0);
+    novoAtendimento(null, null, {inicio:ini, email:c.email});
+  });
+
+  // Arrastar para remarcar (mouse). No celular o toque rola a grade.
+  grade.addEventListener('pointerdown', ev=>{
+    const b = ev.target.closest('.agx-ev.mov');
+    if(!b || ev.pointerType!=='mouse' || ev.button!==0) return;
+    ev.preventDefault();
+    const e = _ag.eventos.find(x=>x.id===b.dataset.id && x.agenda_email===b.dataset.ag);
+    if(!e) return;
+    const col = b.closest('.agx-col'), r = b.getBoundingClientRect();
+    _agArraste = {e, b, x0:ev.clientX, y0:ev.clientY, dy:ev.clientY-r.top, ativo:false, col:+col.dataset.col, colOrig:+col.dataset.col,
+                  dur:(new Date(e.fim)-new Date(e.inicio))/60000};
+  });
+  window.onpointermove = ev=>{
+    const a = _agArraste; if(!a) return;
+    if(!a.ativo && Math.hypot(ev.clientX-a.x0, ev.clientY-a.y0) < 6) return;
+    if(!a.ativo) { a.ativo = true; a.b.classList.add('arrastando'); document.body.classList.add('agx-movendo'); }
+    // Trocar de coluna só faz sentido entre dias; entre profissionais, não (cada uma tem a sua agenda)
+    let colEl = a.b.closest('.agx-col');
+    if(!(_agGrade.cols[0]||{}).prof) {
+      const sob = document.elementsFromPoint(ev.clientX, ev.clientY).find(x=>x.classList && x.classList.contains('agx-col'));
+      if(sob && sob!==colEl) { sob.appendChild(a.b); colEl = sob; a.col = +sob.dataset.col; }
+    }
+    const m = minutoDoPonteiro(colEl, ev.clientY - a.dy + 2);
+    a.min = Math.min(m, _agGrade.h1*60 - a.dur);
+    a.b.style.top = ((a.min - _agGrade.h0*60)/60*AG_PX)+'px';
+    a.b.style.left = '2px'; a.b.style.width = 'calc(100% - 4px)';
+    a.b.dataset.hora = agHM(a.min)+'–'+agHM(a.min+a.dur);
+  };
+  window.onpointerup = ()=>{
+    const a = _agArraste; _agArraste = null;
+    document.body.classList.remove('agx-movendo');
+    if(!a || !a.ativo) return;
+    _agAcabouDeArrastar = true; setTimeout(()=>_agAcabouDeArrastar=false, 50);
+    const ini = new Date(_agGrade.cols[a.col].dia); ini.setHours(0, a.min, 0, 0);
+    if(+ini === +new Date(a.e.inicio)) { desenharAgenda(); return; }
+    moverAtendimento(a.e, ini, a.dur);
+  };
+}
+
+async function moverAtendimento(e, ini, dur, forcar) {
+  const antes = {inicio:e.inicio, fim:e.fim};
+  const fim = new Date(ini.getTime()+dur*60000);
+  e.inicio = ini.toISOString(); e.fim = fim.toISOString();
+  desenharAgenda();
+  const nome = String(e.titulo||'').split(' · ')[0];
+  const res = await api('salvar_evento', {agenda_email:e.agenda_email, evento_id:e.id, paciente_id:e.paciente_id||'', paciente_nome:nome,
+    servico:e.servico||'', obs:e.obs||'', inicio:e.inicio, fim:e.fim, forcar:!!forcar});
+  if(!res.ok && res.conflito && confirm(res.erro+'.\n\nRemarcar assim mesmo?')) return moverAtendimento(e, ini, dur, true);
+  if(!res.ok) { Object.assign(e, antes); desenharAgenda(); if(!res.conflito) showToast('Não foi possível remarcar: '+(res.erro||''),'err'); return; }
+  Object.assign(e, res.dados||{});
+  desenharAgenda();
+  showToast('Remarcado para '+ini.toLocaleDateString('pt-BR',{weekday:'short',day:'numeric'})+' às '+horaDe(e.inicio),'ok');
+}
+
+// ── Detalhe do atendimento ──
+function detalheAtendimento(agendaEmail, eventoId) {
+  const e = _ag.eventos.find(x=>x.id===eventoId && x.agenda_email===agendaEmail);
+  if(!e) return;
+  const st = AG_STATUS[e.status||''] || AG_STATUS[''];
+  const passou = agPassou(e);
+  const pac = e.paciente_id ? (_todosPacientes||[]).find(p=>String(p.id)===String(e.paciente_id)) : null;
+  const ref = `'${esc(e.agenda_email)}','${esc(e.id)}'`;
+  const ini = new Date(e.inicio);
+  document.getElementById('sheetTitle').textContent = String(e.titulo||'Atendimento').split(' · ')[0];
+  document.getElementById('sheetBody').innerHTML = `
+    <div class="agx-det">
+      <div class="agx-det-l"><span>Quando</span><b>${esc(maiuscula(ini.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'})))} · ${horaDe(e.inicio)} às ${horaDe(e.fim)}</b></div>
+      <div class="agx-det-l"><span>Profissional</span><b><i style="background:${agCor(e.agenda_email)}"></i>${esc(e.profissional||agProfNome(e.agenda_email))}</b></div>
+      ${e.servico?`<div class="agx-det-l"><span>Serviço</span><b>${esc(e.servico)}</b></div>`:''}
+      ${e.obs?`<div class="agx-det-l"><span>Observação</span><b style="font-weight:500">${esc(e.obs)}</b></div>`:''}
+      <div class="agx-det-l"><span>Situação</span><b><span class="chip ${st.c}">${st.t}</span></b></div>
+    </div>
+    <div class="fl" style="margin-top:18px">Presença</div>
+    <div class="agx-acoes">
+      <button class="agx-ac${e.status==='confirmado'?' on':''}" ${passou?'disabled title="Já passou do horário"':''} onclick="statusAtendimento(${ref},'confirmado',true)">✓ Confirmado</button>
+      <button class="agx-ac${e.status==='realizado'?' on':''}" ${passou?'':'disabled title="Disponível depois do horário"'} onclick="statusAtendimento(${ref},'realizado',true)">✓ Realizado</button>
+      <button class="agx-ac falta${e.status==='falta'?' on':''}" ${passou?'':'disabled title="Disponível depois do horário"'} onclick="statusAtendimento(${ref},'falta',true)">✕ Faltou</button>
+    </div>
+    ${pac && e.status==='realizado' ? `<button class="savebtn" onclick="closeSheet(true);abrirPacienteDaAgenda('${esc(linhasDoPaciente(pac)[0]||'')}','${esc(pac.id)}')">Registrar evolução</button>` : ''}
+    <div class="agx-acoes" style="margin-top:12px">
+      ${e.do_sistema ? `<button class="backbtn" onclick="novoAtendimento(${ref})">Remarcar</button>` : `<span class="pt-nota" style="margin:0">Criado direto no Google Agenda. Para mudar o horário, altere por lá.</span>`}
+      <button class="backbtn" style="color:var(--rose);margin-left:auto" onclick="cancelarAtendimento(${ref})">Cancelar atendimento</button>
+    </div>`;
+  openSheet();
 }
 
 function cartaoAtendimento(e, mostrarProf) {
   const st = AG_STATUS[e.status||''] || AG_STATUS[''];
-  const passou = new Date(e.inicio) <= new Date();
+  const passou = agPassou(e);
   const pac = e.paciente_id ? (_todosPacientes||[]).find(p=>String(p.id)===String(e.paciente_id)) : null;
   const ref = `'${esc(e.agenda_email)}','${esc(e.id)}'`;
-  return `<div class="card" style="margin-bottom:8px;padding:12px 14px">
-    <div style="display:flex;gap:12px;align-items:flex-start">
+  return `<div class="card" style="margin-bottom:8px;padding:12px 14px;border-left:3px solid ${agCor(e.agenda_email)}">
+    <div style="display:flex;gap:12px;align-items:flex-start;cursor:pointer" onclick="detalheAtendimento(${ref})">
       <div style="min-width:52px;font-weight:700">${e.dia_inteiro?'Dia todo':esc(horaDe(e.inicio))}
         ${e.dia_inteiro?'':`<div style="font-size:11px;font-weight:400;color:var(--ink3)">até ${esc(horaDe(e.fim))}</div>`}</div>
       <div style="flex:1;min-width:0">
@@ -4021,47 +4388,85 @@ async function abrirPacienteDaAgenda(linha, id) {
   await openPaciente(linha, id);
 }
 
-async function novoAtendimento(agendaEmail, eventoId) {
-  const f = document.getElementById('agForm');
-  if(!f) return;
+// ── Agendar e remarcar ──
+// novoAtendimento(agendaEmail, eventoId) remarca; novoAtendimento(null,null,{inicio,email}) vem do clique na grade
+async function novoAtendimento(agendaEmail, eventoId, pre) {
   const e = eventoId ? _ag.eventos.find(x=>x.id===eventoId && x.agenda_email===agendaEmail) : null;
-  const pacs = await carregarTodosPacientes();
   const profs = _ag.profissionais.filter(p=>p.tem_agenda);
   if(!profs.length) { showToast('Nenhuma agenda disponível ainda','err'); return; }
+  document.getElementById('sheetTitle').textContent = e ? 'Remarcar' : 'Novo atendimento';
+  document.getElementById('sheetBody').innerHTML = loadingHTML();
+  openSheet();
+  const pacs = await carregarTodosPacientes();
   const eu = (currentUser.email||'').toLowerCase();
-  const profPadrao = e ? e.agenda_email : (_agFiltro || (profs.find(p=>p.email===eu)||profs[0]).email);
-  const ini = e ? new Date(e.inicio) : null;
+  const profPadrao = e ? e.agenda_email : ((pre&&pre.email) || _agFiltro || (profs.find(p=>p.email===eu)||profs[0]).email);
+  let ini = e ? new Date(e.inicio) : (pre&&pre.inicio) || null;
+  if(!ini) { ini = new Date(_agVista==='dia'?_agDia:new Date()); const ag=new Date(); ini.setHours(Math.min(19,Math.max(8,ag.getHours()+1)),0,0,0); }
   const dur = e ? Math.round((new Date(e.fim)-new Date(e.inicio))/60000) : 50;
   const pacAtual = e && e.paciente_id ? pacs.find(p=>String(p.id)===String(e.paciente_id)) : null;
-  f.innerHTML = `<div class="evo-form" style="margin-bottom:12px">
-    <div class="hist-tit" style="margin-bottom:10px">${e?'Remarcar atendimento':'Novo atendimento'}</div>
+  const nomeAtual = pacAtual ? pacAtual.nome : (e ? String(e.titulo||'').split(' · ')[0] : '');
+  const durs = [30,40,50,60,90,120]; if(!durs.includes(dur)) durs.push(dur);
+  document.getElementById('sheetBody').innerHTML = `
+    ${pre&&pre.inicio?`<div class="agx-pre"><i style="background:${agCor(profPadrao)}"></i>${esc(maiuscula(ini.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'short'})))} · ${horaDe(ini)}${!_agFiltro&&pre.email?' · '+esc(agProfNome(pre.email)):''}</div>`:''}
     <div class="f2">
-      <div class="fg fa"><label class="fl">Profissional</label>
-        <select class="fs" id="agProf">${profs.map(p=>`<option value="${esc(p.email)}"${p.email===profPadrao?' selected':''}>${esc(p.nome)}</option>`).join('')}</select></div>
-      <div class="fg fa"><label class="fl">Paciente</label>
-        <input class="fi" id="agPac" list="agPacs" value="${esc(pacAtual?pacAtual.nome:'')}" placeholder="Comece a digitar o nome">
+      <div class="fg fa"><label class="fl" for="agPac">Paciente</label>
+        <input class="fi" id="agPac" list="agPacs" value="${esc(nomeAtual)}" placeholder="Comece a digitar o nome" autocomplete="off" ${e?'':'autofocus'}>
         <datalist id="agPacs">${pacs.map(p=>`<option value="${esc(p.nome)}">`).join('')}</datalist></div>
-      <div class="fg fa"><label class="fl">Serviço</label>
-        <input class="fi" id="agServ" list="agServs" value="${esc(e?e.servico:'')}" placeholder="Ex.: Fisioterapia">
+      <div class="fg fa"><label class="fl" for="agProf">Profissional</label>
+        <select class="fs" id="agProf" ${e?'disabled':''}>${profs.map(p=>`<option value="${esc(p.email)}"${p.email===profPadrao?' selected':''}>${esc(p.nome)}</option>`).join('')}</select></div>
+      <div class="fg fa"><label class="fl" for="agServ">Serviço</label>
+        <div class="agx-chips" id="agServChips">${FIN_SERVICOS.filter(s=>s!=='Parceiro'&&s!=='Outro').map(s=>`<button type="button" class="agx-chip${(e?e.servico:'')===s?' on':''}" onclick="escolherServico(this,'${esc(s)}')">${esc(s)}</button>`).join('')}</div>
+        <input class="fi" id="agServ" list="agServs" value="${esc(e?e.servico:'')}" placeholder="Ou escreva outro serviço" style="margin-top:8px" oninput="document.querySelectorAll('#agServChips .agx-chip').forEach(c=>c.classList.toggle('on',c.textContent===this.value))">
         <datalist id="agServs">${FIN_SERVICOS.map(s=>`<option value="${esc(s)}">`).join('')}</datalist></div>
-      <div class="fg"><label class="fl">Data</label><input class="fi" type="date" id="agData" value="${ini?diaISO(ini):diaISO(new Date())}"></div>
-      <div class="fg"><label class="fl">Horário</label><input class="fi" type="time" id="agHora" step="300" value="${ini?ini.toTimeString().slice(0,5):'09:00'}"></div>
-      <div class="fg"><label class="fl">Duração</label>
-        <select class="fs" id="agDur">${[30,40,50,60,90,120].map(m=>`<option value="${m}"${m===dur?' selected':''}>${m} min</option>`).join('')}</select></div>
-      <div class="fg fa"><label class="fl">Observação (aparece no Google Agenda)</label>
+      <div class="fg"><label class="fl" for="agData">Data</label><input class="fi" type="date" id="agData" value="${diaISO(ini)}" oninput="previaRepeticao()"></div>
+      <div class="fg"><label class="fl" for="agHora">Horário</label><input class="fi" type="time" id="agHora" step="300" value="${ini.toTimeString().slice(0,5)}"></div>
+      <div class="fg fa"><label class="fl">Duração</label>
+        <div class="agx-chips" id="agDurChips">${durs.map(m=>`<button type="button" class="agx-chip${m===dur?' on':''}" data-min="${m}" onclick="this.parentNode.querySelectorAll('.agx-chip').forEach(c=>c.classList.remove('on'));this.classList.add('on')">${m} min</button>`).join('')}</div></div>
+      ${e?'':`<div class="fg fa"><label class="fl">Repetir</label>
+        <div class="agx-seg agx-seg-f" id="agRep">${[['0','Não repete'],['7','Toda semana'],['14','A cada 2 semanas']].map(([v,t])=>`<button type="button" class="${v==='0'?'on':''}" data-v="${v}" onclick="this.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('on'));this.classList.add('on');previaRepeticao()">${t}</button>`).join('')}</div>
+        <div id="agRepQtd" hidden style="margin-top:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <select class="fs" id="agVezes" style="width:auto" onchange="previaRepeticao()">${[4,8,12,16,24].map(n=>`<option value="${n}"${n===8?' selected':''}>${n} vezes</option>`).join('')}</select>
+          <span class="pt-nota" id="agRepPrev" style="margin:0"></span></div></div>`}
+      <div class="fg fa"><label class="fl" for="agObs">Observação (aparece no Google Agenda)</label>
         <input class="fi" id="agObs" value="${esc(e?e.obs:'')}" placeholder="Ex.: trazer exames"></div>
     </div>
     <div id="agErr" class="errbox"></div>
-    <div style="display:flex;gap:8px;margin-top:10px">
-      <button class="savebtn" id="agBtn" style="flex:1" onclick="salvarAtendimento(${e?`'${esc(e.id)}'`:''})">${e?'Salvar':'Agendar'}</button>
-      <button class="backbtn" onclick="document.getElementById('agForm').innerHTML=''">Cancelar</button>
-    </div>
-  </div>`;
-  f.scrollIntoView({behavior:'smooth', block:'nearest'});
+    <button class="savebtn" id="agBtn" onclick="salvarAtendimento(${e?`'${esc(e.id)}'`:''})">${e?'Salvar novo horário':'Agendar'}</button>`;
+  previaRepeticao();
+  if(!e) setTimeout(()=>{ const i=document.getElementById('agPac'); if(i && matchMedia('(hover:hover)').matches) i.focus(); }, 60);
+}
+
+function escolherServico(btn, s) {
+  const on = !btn.classList.contains('on');
+  btn.parentNode.querySelectorAll('.agx-chip').forEach(c=>c.classList.remove('on'));
+  if(on) btn.classList.add('on');
+  document.getElementById('agServ').value = on ? s : '';
+}
+
+function datasRepeticao() {
+  const rep = document.querySelector('#agRep button.on');
+  const passo = rep ? +rep.dataset.v : 0;
+  const base = document.getElementById('agData').value;
+  if(!base) return [];
+  if(!passo) return [base];
+  const n = +(document.getElementById('agVezes')||{}).value || 1;
+  const d0 = new Date(base+'T12:00:00');
+  return Array.from({length:n}, (_,i)=>diaISO(somaDias(d0, i*passo)));
+}
+function previaRepeticao() {
+  const box = document.getElementById('agRepQtd'); if(!box) return;
+  const ds = datasRepeticao(), repete = ds.length>1 || (document.querySelector('#agRep button.on')||{}).dataset?.v!=='0';
+  box.hidden = !repete; box.style.display = repete?'flex':'none';
+  const btn = document.getElementById('agBtn');
+  if(repete && ds.length) {
+    const ult = new Date(ds[ds.length-1]+'T12:00:00');
+    document.getElementById('agRepPrev').textContent = 'Até '+ult.toLocaleDateString('pt-BR',{day:'numeric',month:'long'});
+    if(btn) btn.textContent = 'Agendar '+ds.length+' atendimentos';
+  } else if(btn && btn.textContent.startsWith('Agendar')) btn.textContent = 'Agendar';
 }
 
 async function salvarAtendimento(eventoId, forcar) {
-  const v = id => (document.getElementById(id).value||'').trim();
+  const v = id => ((document.getElementById(id)||{}).value||'').trim();
   const err = document.getElementById('agErr'), btn = document.getElementById('agBtn');
   const erro = m => { err.textContent = m; err.style.display = 'block'; };
   const nomePac = v('agPac');
@@ -4069,34 +4474,51 @@ async function salvarAtendimento(eventoId, forcar) {
   if(!nomePac) return erro('Informe o paciente.');
   if(!v('agData') || !v('agHora')) return erro('Informe data e horário.');
   err.style.display = 'none';
-  const inicio = new Date(v('agData')+'T'+v('agHora')+':00');
-  const fim = new Date(inicio.getTime() + Number(v('agDur'))*60000);
-  const body = {agenda_email:v('agProf'), paciente_id: pac?pac.id:'', paciente_nome:nomePac,
-                servico:v('agServ'), inicio:inicio.toISOString(), fim:fim.toISOString(), obs:v('agObs'),
-                evento_id: eventoId||'', forcar: !!forcar};
-  btn.disabled = true; btn.textContent = 'Salvando...';
-  const res = await api('salvar_evento', body);
-  btn.disabled = false; btn.textContent = eventoId?'Salvar':'Agendar';
-  if(!res.ok && res.conflito) {
-    if(confirm(res.erro+'.\n\nMarcar assim mesmo?')) return salvarAtendimento(eventoId, true);
-    return;
+  const durEl = document.querySelector('#agDurChips .agx-chip.on');
+  const dur = durEl ? +durEl.dataset.min : 50;
+  const e = eventoId ? _ag.eventos.find(x=>x.id===eventoId) : null;
+  const email = e ? e.agenda_email : v('agProf');
+  const datas = eventoId ? [v('agData')] : datasRepeticao();
+  const textoBtn = btn.textContent;
+  btn.disabled = true;
+  let feitos = 0, primeiro = null; const choques = [];
+  for(let i=0;i<datas.length;i++) {
+    btn.textContent = datas.length>1 ? `Agendando ${i+1} de ${datas.length}…` : 'Salvando…';
+    const inicio = new Date(datas[i]+'T'+v('agHora')+':00');
+    const fim = new Date(inicio.getTime() + dur*60000);
+    const body = {agenda_email:email, paciente_id: pac?pac.id:'', paciente_nome:nomePac,
+                  servico:v('agServ'), inicio:inicio.toISOString(), fim:fim.toISOString(), obs:v('agObs'),
+                  evento_id: eventoId||'', forcar: !!forcar};
+    const res = await api('salvar_evento', body);
+    if(!res.ok && res.conflito) {
+      if(datas.length===1) {
+        btn.disabled = false; btn.textContent = textoBtn;
+        if(confirm(res.erro+'.\n\nMarcar assim mesmo?')) return salvarAtendimento(eventoId, true);
+        return;
+      }
+      choques.push(inicio.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})); continue;
+    }
+    if(!res.ok) { btn.disabled = false; btn.textContent = textoBtn; return erro((feitos?feitos+' agendados. Parou em '+datas[i].split('-').reverse().join('/')+': ':'')+(res.erro||'Não foi possível salvar.')); }
+    feitos++; if(!primeiro) primeiro = inicio;
   }
-  if(!res.ok) return erro(res.erro||'Não foi possível salvar.');
-  document.getElementById('agForm').innerHTML = '';
-  _agSemana = inicioDaSemana(inicio);
+  btn.disabled = false; btn.textContent = textoBtn;
+  closeSheet(true);
+  if(primeiro) { _agDia = new Date(primeiro); _agDia.setHours(0,0,0,0); _agSemana = inicioDaSemana(primeiro); }
   await loadAgenda();
-  showToast(eventoId?'Remarcado':'Agendado','ok');
+  if(choques.length) showToast(feitos+' agendados. Ficaram de fora por choque de horário: '+choques.join(', '),'err');
+  else showToast(eventoId?'Remarcado':(feitos>1?feitos+' atendimentos agendados':'Agendado'),'ok');
 }
 
-async function statusAtendimento(agendaEmail, eventoId, status) {
+async function statusAtendimento(agendaEmail, eventoId, status, doDetalhe) {
   const res = await api('status_evento',{agenda_email:agendaEmail, evento_id:eventoId, status});
   if(!res.ok) { showToast('Erro: '+(res.erro||''),'err'); return; }
   const e = _ag.eventos.find(x=>x.id===eventoId && x.agenda_email===agendaEmail);
   if(e) e.status = status;
   desenharAgenda();
+  if(doDetalhe) detalheAtendimento(agendaEmail, eventoId);
   const aviso = {lancado:'Lançado em Financeiro › Serviços', retirado:'Lançamento retirado do Financeiro',
                  pago_mantido:'O lançamento já estava pago e continua no Financeiro'}[res.lancamento];
-  if(aviso) showToast(aviso,'ok');
+  showToast(aviso || (AG_STATUS[status]||{}).t || 'Atualizado','ok');
 }
 
 async function cancelarAtendimento(agendaEmail, eventoId) {
@@ -4105,6 +4527,7 @@ async function cancelarAtendimento(agendaEmail, eventoId) {
   const res = await api('excluir_evento',{agenda_email:agendaEmail, evento_id:eventoId});
   if(!res.ok) { showToast('Erro: '+(res.erro||''),'err'); return; }
   _ag.eventos = _ag.eventos.filter(x=>!(x.id===eventoId && x.agenda_email===agendaEmail));
+  closeSheet(true);
   desenharAgenda();
   showToast('Atendimento cancelado','ok');
 }
