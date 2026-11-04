@@ -555,6 +555,70 @@ body.agx-movendo{cursor:grabbing;user-select:none;}
 .agx-op input[type=radio]{width:18px;height:18px;accent-color:var(--teal);}
 .agx-num{width:76px!important;padding:8px 10px!important;text-align:center;font-weight:700;font-size:15px!important;}
 .agx-encerrar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:space-between;margin-top:16px;padding:12px 14px;border:1px dashed var(--bor2);border-radius:var(--r-sm);font-size:13.5px;}
+/* MAPA DO PILATES */
+.mp-resumo{display:flex;flex-wrap:wrap;gap:10px 26px;align-items:center;background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);padding:12px 16px;margin-bottom:12px;box-shadow:var(--sh);}
+.mp-resumo>div{display:flex;align-items:baseline;gap:7px;}
+.mp-resumo b{font-family:'Fraunces',serif;font-size:24px;font-weight:500;}
+.mp-resumo span{font-size:12.5px;color:var(--ink3);}
+.mp-resumo .mp-leg{margin-left:auto;display:flex;gap:14px;flex-wrap:wrap;}
+.mp-leg span{display:inline-flex;align-items:center;gap:6px;}
+.mp-sw{width:12px;height:12px;border-radius:3px;display:inline-block;border:1px solid var(--bor);}
+.mp-scroll{overflow:auto;max-height:calc(100vh - 290px);}
+.mp{border-collapse:separate;border-spacing:0;width:100%;min-width:760px;table-layout:fixed;}
+.mp th{position:sticky;top:0;z-index:3;background:var(--sur);font-size:12.5px;font-weight:700;color:var(--ink2);padding:9px 8px;border-bottom:1px solid var(--bor);text-align:left;}
+.mp th span{color:var(--ink3);font-weight:500;}
+.mp th.hoje{color:var(--amber);}
+.mp th.mp-h,.mp tbody th.mp-h{width:52px;position:sticky;left:0;z-index:4;background:var(--sur);color:var(--ink3);font-weight:600;font-size:12px;text-align:right;padding-right:10px;vertical-align:top;border-right:1px solid var(--bor);}
+.mp tbody th.mp-h{z-index:2;padding-top:9px;border-bottom:1px solid var(--bor);}
+.mp-c{vertical-align:top;padding:6px;border-bottom:1px solid var(--bor);border-left:1px solid var(--bor);cursor:pointer;height:64px;position:relative;}
+.mp-c:hover{box-shadow:inset 0 0 0 2px var(--teal);}
+.mp-vaga,.mp-sw.mp-vaga{background:#F3F8EE;}
+.mp-cheio,.mp-sw.mp-cheio{background:#FBEDE9;}
+.mp-vazio,.mp-sw.mp-vazio{background:var(--sur);}
+.mp-passou{opacity:.62;}
+.mp-g{margin-bottom:5px;}
+.mp-gh{display:flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.3px;margin-bottom:2px;}
+.mp-gh i{width:7px;height:7px;border-radius:50%;}
+.mp-gh b{margin-left:auto;color:var(--teal);font-size:11px;}
+.mp-gh b.cheio{color:var(--rose);}
+.mp-gh1{justify-content:flex-end;}
+.mp-n{display:block;width:100%;text-align:left;font-size:12.5px;font-weight:600;color:var(--ink);background:none;padding:1px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mp-n small{color:var(--ink3);font-weight:500;}
+.mp-n:hover{color:var(--teal);text-decoration:underline;}
+.mp-n.st-falta{text-decoration:line-through;color:var(--ink3);}
+.mp-n.st-realizado::before{content:"✓ ";color:var(--sage);font-weight:800;}
+.mp-mais{display:none;font-size:11.5px;font-weight:700;color:var(--teal);}
+.mp-c:hover .mp-mais{display:block;}
+/* FICHA FINANCEIRA */
+.ff-topo{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+.ff-n{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r-sm);padding:10px 12px;}
+.ff-n span{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink3);}
+.ff-n b{font-family:'Fraunces',serif;font-weight:500;font-size:21px;}
+.ff-acoes{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;}
+.ff-mes{font-size:12px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.6px;margin:16px 0 6px;}
+.ff-item{display:grid;grid-template-columns:1fr auto auto;grid-template-areas:"info v st" "info bt bt";gap:4px 12px;align-items:center;background:var(--sur);border:1px solid var(--bor);border-radius:var(--r-sm);padding:10px 12px;margin-bottom:6px;}
+.ff-item.pago{background:transparent;}
+.ff-info{grid-area:info;min-width:0;}
+.ff-t{font-weight:700;font-size:14px;}
+.ff-d{font-size:12px;color:var(--ink3);}
+.ff-v{grid-area:v;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;}
+.ff-st{grid-area:st;}
+.ff-bt{grid-area:bt;justify-self:end;}
+.ff-ok{padding:5px 14px;border-radius:16px;background:var(--teal);color:#fff;font-weight:700;font-size:12.5px;}
+.ff-rec .ff-formas{display:none;gap:4px;}
+.ff-rec.abre .ff-ok{display:none;}
+.ff-rec.abre .ff-formas{display:inline-flex;}
+.ff-formas button{padding:5px 11px;border-radius:16px;border:1px solid var(--teal);color:var(--teal);background:var(--sur);font-weight:700;font-size:12.5px;}
+.ff-formas button:hover{background:var(--teal);color:#fff;}
+.ff-link{background:none;color:var(--ink3);font-size:12px;text-decoration:underline;}
+.ff-nome{background:none;color:var(--ink);font:inherit;font-weight:600;text-decoration:underline;text-decoration-color:var(--bor2);text-underline-offset:3px;padding:0;}
+.ff-nome:hover{color:var(--teal);text-decoration-color:var(--teal);}
+.ff-portal-total{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;}
+.ff-portal-total span{font-size:13px;color:var(--ink3);}
+.ff-portal-total b{font-family:'Fraunces',serif;font-size:26px;font-weight:500;color:var(--amber);}
+.ff-portal-sub{font-size:12px;font-weight:700;color:var(--ink3);margin:16px 0 2px;text-transform:uppercase;letter-spacing:.5px;}
+.ff-pix{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--teal-lt);border-radius:var(--r-sm);padding:10px 12px;margin-top:12px;word-break:break-all;}
+@media(max-width:520px){.ff-topo{grid-template-columns:1fr 1fr 1fr;gap:6px}.ff-n b{font-size:16px}.ff-n{padding:8px}}
 @media(max-width:767px){
   .agx-rot{font-size:17px;}
   .agx-add{order:-1;margin-left:auto;}
@@ -1002,6 +1066,10 @@ const DEMO_DB = {
   ],
   checklists: [],
   evolucoes: [],
+  financeiro_pilates: (()=>{ const d=new Date(), m=k=>{const x=new Date(d.getFullYear(),d.getMonth()-k,1);return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0');};
+    return [0,1,2].map(k=>({id:'fp'+k, nome:'Patricia Rocha', paciente_id:'p5', telefone:'11988887777', plano:'2x por semana', valor_plano:'330', dia_vencimento:'10', mes:m(k),
+      pago:k===0?'Não':'Sim', data_pagamento:k===0?'':m(k)+'-08', forma_pagamento:k===0?'':'Pix', status:'Ativo'})); })(),
+  financeiro_servicos: [{id:'fs1', data:new Date(Date.now()-20*864e5).toISOString().slice(0,10), mes:new Date(Date.now()-20*864e5).toISOString().slice(0,7), paciente:'Patricia Rocha', paciente_id:'p5', servico:'Avaliação', profissional:'Dra. Paula', sessoes:'1', valor:'180', pago:'Não'}],
   mural: [
     {id:'mu1', tipo:'boas_vindas', texto:'A Lívia chega hoje para a TO infantil. Passe na sala 2 para dar um oi!', para:'', autor_email:'clinicaoliveira20@gmail.com', autor_nome:'Dra. Ana Paula', apoios:'juliana@casaoliveira.com,carlos@casaoliveira.com', criado_em:new Date(Date.now()-2*3600e3).toISOString()},
     {id:'mu2', tipo:'agradecimento', texto:'Obrigada por cobrir minha sessão de ontem com tanto cuidado.', para:'Dr. Carlos', autor_email:'juliana@casaoliveira.com', autor_nome:'TO Juliana', apoios:'clinicaoliveira20@gmail.com', criado_em:new Date(Date.now()-26*3600e3).toISOString()},
@@ -1270,6 +1338,14 @@ function demoApi(action, body) {
       const i=(DEMO_DB.documentos||[]).findIndex(x=>String(x.id)===String(body.id));
       if(i>=0) DEMO_DB.documentos.splice(i,1);
       return {ok:true};
+    }
+    case 'meu_financeiro': {
+      const pac=(DEMO_DB.pacientes||[]).find(p=>p.id===_demoPacienteId); if(!pac) return {ok:false, erro:'Sessão inválida'};
+      const meu=r=>String(r.paciente_id||'')===pac.id || normalizar(r.nome||r.paciente||'')===normalizar(pac.nome);
+      const cfg=DEMO_DB.config||{};
+      return {ok:true, dados:{paciente_id:pac.id, nome:pac.nome, pix_chave:cfg.pix_chave||'', pix_nome:cfg.pix_nome||'',
+        itens:[...(DEMO_DB.financeiro_pilates||[]).filter(meu).map(r=>({...r,origem_tabela:'pilates'})),
+               ...(DEMO_DB.financeiro_servicos||[]).filter(meu).map(r=>({...r,origem_tabela:'servicos'}))]}};
     }
     case 'meus_resultados': {
       // O painel de exemplo (avaliacao/?painel=demo) traz os próprios dados fictícios
@@ -1558,10 +1634,10 @@ function demoAgenda(action, body) {
       ['carlos@casaoliveira.com','Fisio pélvica',[[7,30],[8,30],[11,0],[13,30],[17,0]],['p3','p5']],
       ['paulo@casaoliveira.com','Fisioterapia',[[8,0],[9,0],[10,0],[11,0],[14,0],[15,0],[16,0]],['p4','p6','p5']],
       ['marcia@casaoliveira.com','Casa Segura',[[9,30],[14,0]],['p6','p4']],
-      ['paula@casaoliveira.com','Fisioterapia',[[13,0],[14,0],[18,0]],['p5','p3']],
+      ['paula@casaoliveira.com','Fisioterapia',[[13,0],[14,0],[15,0]],['p5','p3']],
       ['beatriz@casaoliveira.com','TO mão',[[8,0],[10,30],[15,30]],['p4','p7']]];
     DEMO_DB.agenda = [];
-    DEMO_DB.config = {...(DEMO_DB.config||{}), salas:'Sala 1\nSala 2\nSala Brincar\nPilates\nDomicílio'};
+    DEMO_DB.config = {...(DEMO_DB.config||{}), salas:'Sala 1\nSala 2\nSala Brincar\nPilates\nDomicílio', pix_chave:'00.000.000/0001-00', pix_nome:'Casa Oliveira Saúde'};
     grade.forEach(([email,serv,horas,pacs],gi)=>{ for(let d=0; d<6; d++) horas.forEach(([h,m],hi)=>{
       if((d+hi+gi)%4===3 || (d===5 && h>=12)) return;
       const e = ev(d,h,m, serv==='Casa Segura'?90:50, email, pacs[(d+hi)%pacs.length], serv);
@@ -1569,6 +1645,12 @@ function demoAgenda(action, body) {
       const passou = new Date(e.fim) < new Date();
       e.status = passou ? ((d+hi+gi)%9===0?'falta':'realizado') : ((d+hi)%3===0?'':'confirmado');
       DEMO_DB.agenda.push(e); }); });
+    // Turmas de Pilates (Dra. Paula): 1 a 3 alunas por horário
+    const alunasPil = ['p5','p3','p4','p2','p6','p7'];
+    for(let d=0; d<5; d++) [8,9,10,17,18].forEach(h=>{ const n=(d+h)%3+1; for(let k=0;k<n;k++){
+      const e = ev(d,h,0,50,'paula@casaoliveira.com', alunasPil[(d+h+k)%alunasPil.length], 'Pilates');
+      e.obs = 'Sala: Pilates'; e.status = new Date(e.fim)<new Date() ? 'realizado' : 'confirmado';
+      DEMO_DB.agenda.push(e); } });
     equipe.forEach(p=>{ if(!['clinicaoliveira20@gmail.com','recepcao@casaoliveira.com'].includes(p.email)) p.agenda_id = 'demo-'+p.id; });
   }
   const eu = (currentUser.email||'').toLowerCase();
@@ -1595,6 +1677,8 @@ function demoAgenda(action, body) {
   if(!prof) return {ok:false, erro:'Você não tem acesso à agenda dessa profissional'};
   if(action==='salvar_evento') {
     const ini=new Date(body.inicio), fim=new Date(body.fim);
+    if(/pilates/i.test(body.servico||'') && DEMO_DB.agenda.filter(e=>e.agenda_email===prof.email && e.id!==body.evento_id && /pilates/i.test(e.servico||'') && e.status!=='falta' && new Date(e.inicio)<fim && new Date(e.fim)>ini).length>=3)
+      return {ok:false, lotado:true, erro:'Turma cheia: '+prof.nome+' já tem 3 alunas nesse horário'};
     if(!body.forcar) {
       const choque = DEMO_DB.agenda.find(e=>e.agenda_email===prof.email && e.id!==body.evento_id && new Date(e.inicio)<fim && new Date(e.fim)>ini);
       if(choque) return {ok:false, conflito:true, erro:'Já existe "'+choque.titulo+'" nesse horário na agenda de '+prof.nome};
@@ -2679,6 +2763,32 @@ async function doLoginPaciente() {
   abrirPortal();
 }
 
+
+// Área do paciente: o que está em aberto e o que já foi pago (vem de
+// meu_financeiro, que lê as mesmas linhas do Financeiro geral)
+let _pacFin = null;
+function pagamentosPacienteHTML(f) {
+  if(!f || !(f.itens||[]).length) return '';
+  const itens = itensFinanceiros(f.itens.filter(x=>x.origem_tabela==='pilates'), f.itens.filter(x=>x.origem_tabela==='servicos'), {id:f.paciente_id, nome:f.nome});
+  const aberto = itens.filter(i=>!i.pago && !i.sem_valor), pagos = itens.filter(i=>i.pago).slice(0,6);
+  const total = aberto.reduce((s,i)=>s+i.valor,0);
+  return `<div class="pt-card">
+    <div class="pt-t">Pagamentos</div>
+    ${aberto.length ? `<div class="ff-portal-total"><span>Em aberto</span><b>${fmtMoeda(total)}</b></div>
+      ${aberto.map(i=>`<div class="pt-linha"><span>${esc(i.titulo)}${i.tabela==='financeiro_pilates'&&i.venc?`<div style="font-size:12px;color:${i.atrasado?'var(--rose)':'var(--ink3)'}">${i.atrasado?'Venceu':'Vence'} em ${esc(fmtDataBR(String(i.venc).slice(0,10)))}</div>`:''}</span><strong>${fmtMoeda(i.valor)}</strong></div>`).join('')}
+      ${f.pix_chave?`<div class="ff-pix"><div><div style="font-size:12px;color:var(--ink3)">Chave Pix${f.pix_nome?' · '+esc(f.pix_nome):''}</div><b id="pixChave">${esc(f.pix_chave)}</b></div>
+        <button class="addbtn" onclick="copiarPix()">Copiar</button></div>
+        <div class="pt-nota">Depois de pagar, a equipe confirma e o pagamento aparece aqui.</div>`:''}`
+    : `<div class="pt-p" style="color:var(--teal);font-weight:600">Tudo em dia. Obrigada!</div>`}
+    ${pagos.length?`<div class="ff-portal-sub">Pagos recentemente</div>${pagos.map(i=>`<div class="pt-linha"><span>${esc(i.titulo)}<div style="font-size:12px;color:var(--ink3)">Pago${i.data_pagamento?' em '+esc(fmtDataBR(String(i.data_pagamento).slice(0,10))):''}</div></span><strong style="color:var(--ink2)">${fmtMoeda(i.valor)}</strong></div>`).join('')}`:''}
+  </div>`;
+}
+function copiarPix() {
+  const t = (document.getElementById('pixChave')||{}).textContent||'';
+  const ok = ()=>showToast('Chave Pix copiada','ok');
+  if(navigator.clipboard) navigator.clipboard.writeText(t).then(ok, ()=>showToast('Selecione e copie a chave','err'));
+}
+
 async function abrirPortal() {
   fecharTudoDaEquipe();
   document.getElementById('pacLoginScreen').style.display='none';
@@ -2694,14 +2804,16 @@ async function abrirPortal() {
   // A Avaliação física (avaliacao/?painel=paciente) usa esta mesma sessão e
   // precisa saber qual implantação do Apps Script está em uso
   if(!demoMode) localStorage.setItem('co_api_ativa', API_URL);
-  const [pront, fila, docs, msgs, exers, resul] = await Promise.all([
+  const [pront, fila, docs, msgs, exers, resul, finan] = await Promise.all([
     api('meu_prontuario',{}),
     api('minha_posicao',{}),
     api('meus_documentos',{}),
     api('minhas_mensagens',{}),
     api('meus_exercicios',{}),
     api('meus_resultados',{}),
+    api('meu_financeiro',{}),
   ]);
+  _pacFin = finan && finan.ok ? finan.dados : null;
   const _pacResul = resul && resul.ok ? resul.dados : null;
   _pacDocs = docs.ok ? (docs.dados||[]) : [];
   _pacMsgs = msgs.ok ? (msgs.dados||[]) : [];
@@ -2779,6 +2891,8 @@ async function abrirPortal() {
       <div class="pt-p" style="color:var(--ink3)">Ainda não há um plano publicado.
         Sua equipe compartilha aqui os objetivos combinados.</div>
     </div>` : '')}
+
+    ${!ehLead ? pagamentosPacienteHTML(_pacFin) : ''}
 
     ${!ehLead && d.orientacoes ? `<div class="pt-card">
       <div class="pt-t">Orientações para casa</div>
@@ -3708,7 +3822,7 @@ function celulaFin(r, k) {
   if(k==='cobrar') return linkCobranca(r);
   if(['valor_plano','faturamento_previsto','faturamento_real','valor'].includes(k)) return fmtMoeda(v);
   if(k==='data_pagamento' || k==='data') return v?esc(fmtDataBR(String(v).slice(0,10))):'—';
-  if(k==='nome' && String(r.status||'')==='Inativo') return esc(v)+' <span class="chip ch-gray">inativo</span>';
+  if((k==='nome'&&_finAba==='pilates') || (k==='paciente'&&_finAba==='servicos')) return `<button class="ff-nome" title="Abrir a ficha financeira" onclick="event.stopPropagation();abrirFichaFinanceira('${esc(String(v||'').replace(/'/g,"\\'"))}','${esc(r.paciente_id||'')}')">${esc(v||'—')}</button>`+(String(r.status||'')==='Inativo'?' <span class="chip ch-gray">inativo</span>':'');
   return v?esc(v):'—';
 }
 
@@ -3719,6 +3833,183 @@ function abasFinHTML() {
         onclick="trocarAbaFinanceiro('${k}')">${esc(c.titulo)}</button>`).join('')}
   </div>`;
 }
+// ═══════════════════════════════════════════════
+// FICHA FINANCEIRA DO CLIENTE
+// Junta, para uma pessoa, as mensalidades do Pilates e os serviços lançados
+// (pela agenda ou à mão). Não existe tabela nova: tudo o que se faz aqui grava
+// nas mesmas linhas do Financeiro geral, então as três telas (geral, ficha do
+// paciente e área do paciente) mostram sempre o mesmo número.
+// O vínculo é pelo paciente_id; linhas antigas, sem id, entram pelo nome.
+// ═══════════════════════════════════════════════
+const podeVerFinanceiro = () => currentRole==='admin' || ehAdministracao();
+let _ficha = {alvo:null, itens:[], el:''};
+
+function itensFinanceiros(pil, ser, alvo) {
+  const nome = normalizar(alvo.nome||'');
+  const doCliente = r => (alvo.id && String(r.paciente_id||'')===String(alvo.id)) || (nome && normalizar(r.nome||r.paciente||'')===nome);
+  const mesExt = m => { const [y,mm]=String(m||'').split('-').map(Number); return y&&mm ? new Date(y,mm-1,1).toLocaleDateString('pt-BR',{month:'long',year:'numeric'}) : ''; };
+  const itens = [];
+  normalizarFin(pil).filter(doCliente).forEach(r=>{
+    const [y,m] = String(r.mes||'').split('-').map(Number);
+    const dia = parseInt(r.dia_vencimento,10);
+    const venc = y&&m ? diaISO(new Date(y, m-1, dia>=1 ? Math.min(dia, new Date(y,m,0).getDate()) : 10)) : '';
+    itens.push({tabela:'financeiro_pilates', campoValor:'valor_plano', r, id:r.id,
+      titulo:'Pilates · '+(mesExt(r.mes)||'mensalidade'), detalhe:r.plano||'Mensalidade',
+      valor:numDe(r.valor_plano), venc, ref:venc||r.mes, pago:ehPago(r), atrasado:mensalidadeAtrasada(r),
+      data_pagamento:r.data_pagamento, forma:r.forma_pagamento, telefone:r.telefone});
+  });
+  normalizarFin(ser).filter(doCliente).forEach(r=>{
+    const n = numDe(r.sessoes);
+    itens.push({tabela:'financeiro_servicos', campoValor:'valor', r, id:r.id,
+      titulo:(r.servico||'Serviço')+(n>1?' · '+n+' sessões':''), detalhe:[r.data?fmtDataBR(String(r.data).slice(0,10)):'', r.profissional||''].filter(Boolean).join(' · '),
+      valor:numDe(r.valor), venc:r.data||'', ref:r.data||r.mes, pago:ehPago(r), sem_valor:!numDe(r.valor),
+      atrasado:!ehPago(r) && r.data && (Date.now()-new Date(String(r.data).slice(0,10)+'T12:00:00'))>15*86400000,
+      data_pagamento:r.data_pagamento, forma:r.forma_pagamento});
+  });
+  return itens.sort((a,b)=>String(b.ref||'').localeCompare(String(a.ref||'')));
+}
+
+// el: id do contêiner onde a ficha é desenhada; alvo: {id, nome, telefone}
+async function carregarFichaFinanceira(el, alvo) {
+  const box = document.getElementById(el); if(!box) return;
+  box.innerHTML = loadingHTML();
+  const [pil, ser] = await Promise.all([api('listar',{tabela:'financeiro_pilates'}), api('listar',{tabela:'financeiro_servicos'})]);
+  if(!pil.ok || !ser.ok) { box.innerHTML = `<div class="pt-nota">Não foi possível carregar: ${esc((pil.erro||ser.erro)||'')}</div>`; return; }
+  _ficha = {alvo, el, itens:itensFinanceiros(pil.dados, ser.dados, alvo)};
+  desenharFicha();
+}
+
+function desenharFicha() {
+  const box = document.getElementById(_ficha.el); if(!box) return;
+  const {itens, alvo} = _ficha;
+  const aberto = itens.filter(i=>!i.pago);
+  const somaAberto = aberto.reduce((s,i)=>s+i.valor,0);
+  const somaAtras = aberto.filter(i=>i.atrasado).reduce((s,i)=>s+i.valor,0);
+  const umAno = diaISO(somaDias(new Date(), -365));
+  const pagoAno = itens.filter(i=>i.pago && String(i.data_pagamento||i.ref||'')>=umAno).reduce((s,i)=>s+i.valor,0);
+  const tel = String(alvo.telefone || (itens.find(i=>i.telefone)||{}).telefone || '').replace(/\D/g,'');
+  const zap = tel && aberto.length ? `https://wa.me/${tel.length<=11?'55'+tel:tel}?text=${encodeURIComponent(
+    `Olá, ${String(alvo.nome||'').split(' ')[0]}! Tudo bem? Segue o que está em aberto com a Casa Oliveira:\n`+
+    aberto.map(i=>`• ${i.titulo}: ${fmtMoeda(i.valor)}`).join('\n')+`\nTotal: ${fmtMoeda(somaAberto)}. Se já pagou, desconsidere. Obrigada!`)}` : '';
+  // agrupado por mês de referência, do mais recente para o mais antigo
+  const grupos = {};
+  itens.forEach(i=>{ const k=String(i.ref||'').slice(0,7)||'sem-data'; (grupos[k]=grupos[k]||[]).push(i); });
+  const rotMes = k => k==='sem-data' ? 'Sem data' : maiuscula(new Date(k+'-15T12:00:00').toLocaleDateString('pt-BR',{month:'long',year:'numeric'}));
+
+  box.innerHTML = `
+  <div class="ff-topo">
+    <div class="ff-n"><span>Em aberto</span><b style="color:${somaAberto?'var(--amber)':'var(--ink)'}">${fmtMoeda(somaAberto)}</b></div>
+    <div class="ff-n"><span>Atrasado</span><b style="color:${somaAtras?'var(--rose)':'var(--ink)'}">${fmtMoeda(somaAtras)}</b></div>
+    <div class="ff-n"><span>Pago em 12 meses</span><b style="color:var(--teal)">${fmtMoeda(pagoAno)}</b></div>
+  </div>
+  <div class="ff-acoes">
+    <button class="addbtn" onclick="novaCobrancaFicha()">+ Nova cobrança</button>
+    ${zap?`<a class="backbtn" href="${zap}" target="_blank" rel="noopener" style="text-decoration:none">Cobrar no WhatsApp</a>`:''}
+  </div>
+  <div id="ffForm"></div>
+  ${itens.length ? Object.entries(grupos).map(([k,lista])=>`
+    <div class="ff-mes">${esc(rotMes(k))}</div>
+    ${lista.map(i=>`<div class="ff-item${i.pago?' pago':''}">
+      <div class="ff-info"><div class="ff-t">${esc(i.titulo)}</div>
+        <div class="ff-d">${esc(i.detalhe||'')}${i.pago&&i.data_pagamento?' · pago em '+esc(fmtDataBR(String(i.data_pagamento).slice(0,10)))+(i.forma?' ('+esc(i.forma)+')':''):''}${!i.pago&&i.venc&&i.tabela==='financeiro_pilates'?' · vence '+esc(fmtDataBR(String(i.venc).slice(0,10))):''}</div></div>
+      <div class="ff-v">${i.sem_valor?'<span class="ff-d">sem valor</span>':fmtMoeda(i.valor)}</div>
+      <div class="ff-st">${i.pago?'<span class="chip ch-sage">Pago</span>':i.atrasado?'<span class="chip ch-rose">Atrasado</span>':'<span class="chip ch-gray">Em aberto</span>'}</div>
+      <div class="ff-bt">${i.pago
+        ? `<button class="ff-link" onclick="desfazerPagamento('${esc(i.id)}')">desfazer</button>`
+        : `<div class="ff-rec" id="ffr_${esc(i.id)}"><button class="ff-ok" onclick="this.parentNode.classList.add('abre')">Recebi</button>
+            <span class="ff-formas">${['Pix','Cartão','Dinheiro'].map(f=>`<button onclick="registrarPagamento('${esc(i.id)}','${f}')">${f}</button>`).join('')}</span></div>`}</div>
+    </div>`).join('')}`).join('')
+  : `<div class="pt-nota" style="text-align:center;padding:18px 0">Nenhuma cobrança registrada para ${esc(String(alvo.nome||'').split(' ')[0])} ainda.</div>`}`;
+}
+
+async function registrarPagamento(id, forma) {
+  const it = _ficha.itens.find(x=>String(x.id)===String(id)); if(!it) return;
+  if(it.sem_valor) {
+    const v = prompt('Qual foi o valor recebido? (R$)'); if(v===null) return;
+    const n = numDe(String(v).replace('R$','').trim()); if(!n) return showToast('Valor inválido','err');
+    it.valor = n;
+  }
+  const dados = {pago:'Sim', data_pagamento:hojeISO(), forma_pagamento:forma};
+  if(it.sem_valor) dados[it.campoValor] = it.valor;
+  const res = await api('atualizar',{tabela:it.tabela, id, dados});
+  if(!res.ok) { showToast('Erro: '+(res.erro||''),'err'); return; }
+  Object.assign(it, {pago:true, atrasado:false, sem_valor:false, data_pagamento:dados.data_pagamento, forma});
+  desenharFicha(); atualizarFinanceiroAberto();
+  showToast('Pagamento registrado ('+forma+')','ok');
+}
+async function desfazerPagamento(id) {
+  const it = _ficha.itens.find(x=>String(x.id)===String(id)); if(!it) return;
+  if(!confirm('Marcar "'+it.titulo+'" como não pago?')) return;
+  const res = await api('atualizar',{tabela:it.tabela, id, dados:{pago:'Não', data_pagamento:'', forma_pagamento:''}});
+  if(!res.ok) { showToast('Erro: '+(res.erro||''),'err'); return; }
+  Object.assign(it, {pago:false, data_pagamento:'', forma:''});
+  it.atrasado = it.tabela==='financeiro_pilates' ? mensalidadeAtrasada({...it.r, pago:'Não'}) : false;
+  desenharFicha(); atualizarFinanceiroAberto();
+}
+function atualizarFinanceiroAberto() { if(_activePage==='financeiro' && document.getElementById('finBody')) loadFinanceiro(); }
+
+function novaCobrancaFicha() {
+  const f = document.getElementById('ffForm'); if(!f) return;
+  const ultPil = _ficha.itens.find(i=>i.tabela==='financeiro_pilates');
+  f.innerHTML = `<div class="evo-form" style="margin:10px 0 14px">
+    <div class="agx-seg agx-seg-f" id="ffTipo" style="margin-bottom:12px">
+      <button type="button" class="${ultPil?'on':''}" data-v="pilates" onclick="tipoCobranca(this)">Mensalidade do Pilates</button>
+      <button type="button" class="${ultPil?'':'on'}" data-v="servico" onclick="tipoCobranca(this)">Sessão ou serviço</button></div>
+    <div class="f2">
+      <div class="fg" id="ffMesBox"><label class="fl" for="ffMes">Mês</label><input class="fi" type="month" id="ffMes" value="${mesAtualISO()}"></div>
+      <div class="fg" id="ffDataBox"><label class="fl" for="ffData">Data</label><input class="fi" type="date" id="ffData" value="${hojeISO()}"></div>
+      <div class="fg"><label class="fl" for="ffValor">Valor (R$)</label><input class="fi" type="number" step="0.01" inputmode="decimal" id="ffValor" value="${ultPil?esc(ultPil.valor||''):''}"></div>
+      <div class="fg fa" id="ffPlanoBox"><label class="fl" for="ffPlano">Plano</label><input class="fi" id="ffPlano" value="${esc(ultPil?ultPil.detalhe:'')}" placeholder="Ex.: 2x por semana"></div>
+      <div class="fg fa" id="ffServBox"><label class="fl" for="ffServ">Serviço</label><select class="fs" id="ffServ">${FIN_SERVICOS.map(s=>`<option>${esc(s)}</option>`).join('')}</select></div>
+      <div class="fg fa"><label class="agx-op"><input type="checkbox" id="ffPago" style="width:18px;height:18px;accent-color:var(--teal)"> Já foi pago hoje</label></div>
+    </div>
+    <div id="ffErr" class="errbox"></div>
+    <div style="display:flex;gap:8px"><button class="savebtn" id="ffBtn" style="flex:1;margin-top:0" onclick="salvarCobrancaFicha()">Lançar</button>
+      <button class="backbtn" onclick="document.getElementById('ffForm').innerHTML=''">Cancelar</button></div>
+  </div>`;
+  tipoCobranca(f.querySelector('#ffTipo button.on'));
+}
+function tipoCobranca(btn) {
+  btn.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('on')); btn.classList.add('on');
+  const pil = btn.dataset.v==='pilates';
+  ['ffMesBox','ffPlanoBox'].forEach(id=>document.getElementById(id).style.display = pil?'':'none');
+  ['ffDataBox','ffServBox'].forEach(id=>document.getElementById(id).style.display = pil?'none':'');
+}
+async function salvarCobrancaFicha() {
+  const v = id => ((document.getElementById(id)||{}).value||'').trim();
+  const pil = document.querySelector('#ffTipo button.on').dataset.v==='pilates';
+  const valor = v('ffValor'), pago = document.getElementById('ffPago').checked;
+  const err = document.getElementById('ffErr');
+  if(!valor) { err.textContent='Informe o valor.'; err.style.display='block'; return; }
+  const a = _ficha.alvo, ult = _ficha.itens.find(i=>i.tabela==='financeiro_pilates');
+  const pagto = pago ? {pago:'Sim', data_pagamento:hojeISO()} : {pago:'Não'};
+  const dados = pil
+    ? {nome:a.nome, paciente_id:a.id||'', telefone:a.telefone||(ult&&ult.r.telefone)||'', plano:v('ffPlano'), valor_plano:valor,
+       dia_vencimento:(ult&&ult.r.dia_vencimento)||'10', mes:v('ffMes'), status:'Ativo', ...pagto}
+    : {paciente:a.nome, paciente_id:a.id||'', servico:v('ffServ'), sessoes:'1', valor, data:v('ffData'), mes:v('ffData').slice(0,7), origem:'ficha', ...pagto};
+  const btn = document.getElementById('ffBtn'); btn.disabled = true; btn.textContent = 'Lançando…';
+  const res = await api('salvar',{tabela:pil?'financeiro_pilates':'financeiro_servicos', dados});
+  btn.disabled = false; btn.textContent = 'Lançar';
+  if(!res.ok) { err.textContent='Erro: '+(res.erro||''); err.style.display='block'; return; }
+  showToast('Lançado no financeiro','ok');
+  atualizarFinanceiroAberto();
+  carregarFichaFinanceira(_ficha.el, _ficha.alvo);
+}
+
+// Aberta a partir do Financeiro geral (clique no nome)
+async function abrirFichaFinanceira(nome, pacienteId) {
+  const pacs = await carregarTodosPacientes();
+  const p = pacs.find(x=>pacienteId && String(x.id)===String(pacienteId)) || pacs.find(x=>normalizar(x.nome)===normalizar(nome));
+  const alvo = p ? {id:p.id, nome:p.nome, telefone:p.telefone||p.whatsapp||''} : {id:pacienteId||'', nome};
+  document.getElementById('sheetTitle').textContent = alvo.nome;
+  document.getElementById('sheetBody').innerHTML = `
+    ${p?`<div style="margin:-6px 0 14px"><button class="backbtn" onclick="closeSheet(true);abrirPacienteDaAgenda('${esc(linhasDoPaciente(p)[0]||'')}','${esc(p.id)}')">Abrir prontuário ›</button></div>`
+       :`<div class="pt-nota" style="margin:-6px 0 12px">Sem cadastro de paciente com esse nome; a ficha junta os lançamentos pelo nome.</div>`}
+    <div id="ffBox"></div>`;
+  openSheet();
+  carregarFichaFinanceira('ffBox', alvo);
+}
+
 function seletorMesHTML() {
   return `<div class="fg" style="margin:0"><label class="fl">Mês</label>
     <input class="fi" type="month" value="${esc(_finMes)}" onchange="trocarMesFinanceiro(this.value)"></div>`;
@@ -4137,6 +4428,7 @@ async function estenderRepeticoes() {
     const datas = new Set(evs.map(e=>diaISO(new Date(e.inicio))));
     for(let d = somaDias(new Date(ult.inicio), passo); d < somaDias(hoje, AG_REP_JANELA+1); d = somaDias(d, passo)) {
       if(datas.has(diaISO(d))) continue;
+      if(ehPilates(ult.servico) && alunasNoHorario(res.dados||[], ult.agenda_email, d, new Date(d.getTime()+dur), '').length >= PILATES_VAGAS) continue;
       const r = await api('salvar_evento',{agenda_email:ult.agenda_email, paciente_id:ult.paciente_id||'', paciente_nome:String(ult.titulo||'').split(' · ')[0],
         servico:ult.servico||'', obs:ult.obs||'', inicio:d.toISOString(), fim:new Date(d.getTime()+dur).toISOString(), forcar:true});
       if(r.ok) criados++;
@@ -4176,7 +4468,7 @@ function desenharAgenda(rolar) {
       <button class="agx-ic" onclick="trocarSemanaAgenda(1)" aria-label="${_agVista==='dia'?'Próximo dia':'Próxima semana'}">›</button>
       <strong class="agx-rot">${esc(rotulo)}</strong>
     </div>
-    <div class="agx-seg" role="tablist">${[['dia','Dia'],['semana','Semana'],['lista','Lista']].map(([v,t])=>`<button class="${_agVista===v?'on':''}" onclick="vistaAgenda('${v}')">${t}</button>`).join('')}</div>
+    <div class="agx-seg" role="tablist">${[['dia','Dia'],['semana','Semana'],['lista','Lista'],['mapa','Mapa do Pilates']].map(([v,t])=>`<button class="${_agVista===v?'on':''}" onclick="vistaAgenda('${v}')">${t}</button>`).join('')}</div>
     <button class="addbtn agx-add" onclick="novoAtendimento()">+ Agendar</button>
   </div>
   ${_agVista==='dia' && !_agFiltro && varias ? `<div class="agx-cols"><span>Colunas por</span><div class="agx-seg">${[['prof','Profissional'],['sala','Sala']].map(([v,t])=>`<button class="${_agColunas===v?'on':''}" onclick="colunasPor('${v}')">${t}</button>`).join('')}</div>${currentRole==='admin'?`<button class="agx-link" onclick="editarSalas()">Salas da clínica</button>`:''}</div>` : (currentRole==='admin' && _agVista!=='dia' ? '' : '')}
@@ -4193,14 +4485,14 @@ function desenharAgenda(rolar) {
   </div>` : ''}
   ${_ag.sem_acesso.length ? `<div class="card" style="margin-bottom:12px;color:var(--rose)">A clínica não tem acesso à agenda de ${esc(_ag.sem_acesso.join(', '))}. Confira o ID da agenda na aba Profissionais e se ela está compartilhada com a conta da clínica.</div>` : ''}
 
-  ${_agVista==='lista' ? listaAgenda(varias) : gradeAgenda(varias)}
-  ${_agVista!=='lista' ? `<div class="agx-leg">
+  ${_agVista==='lista' ? listaAgenda(varias) : _agVista==='mapa' ? mapaPilates() : gradeAgenda(varias)}
+  ${_agVista!=='lista' && _agVista!=='mapa' ? `<div class="agx-leg">
     ${Object.entries(AG_STATUS).map(([k,s])=>`<span><b class="agx-st st-${k||'agendado'}">${AG_ICONE[k]}</b>${s.t}</span>`).join('')}
     ${_agVista==='semana'&&!_agFiltro&&_ag.profissionais.length>2?`<span class="agx-dica" style="margin-left:0">Semana cheia? Escolha uma profissional acima para ver os nomes.</span>`:''}
     <span class="agx-dica">${toque?'Toque num horário vazio para agendar':'Clique num horário vazio para agendar · arraste para remarcar'}</span>
   </div>`:''}`;
 
-  if(_agVista!=='lista') ligarGrade(rolar);
+  if(_agVista!=='lista' && _agVista!=='mapa') ligarGrade(rolar);
 }
 
 const AG_ICONE = {'':'', confirmado:'✓', realizado:'✓', falta:'✕'};
@@ -4399,13 +4691,19 @@ function ligarGrade(rolar) {
 async function moverAtendimento(e, ini, dur, forcar) {
   const antes = {inicio:e.inicio, fim:e.fim};
   const fim = new Date(ini.getTime()+dur*60000);
+  if(ehPilates(e.servico)) {
+    if(alunasNoHorario(_ag.eventos, e.agenda_email, ini, fim, e.id).length >= PILATES_VAGAS) {
+      desenharAgenda(); showToast('Turma cheia: já há '+PILATES_VAGAS+' alunas nesse horário com '+(agProfNome(e.agenda_email)||'essa profissional'),'err'); return;
+    }
+    forcar = true;
+  }
   e.inicio = ini.toISOString(); e.fim = fim.toISOString();
   desenharAgenda();
   const nome = String(e.titulo||'').split(' · ')[0];
   const res = await api('salvar_evento', {agenda_email:e.agenda_email, evento_id:e.id, paciente_id:e.paciente_id||'', paciente_nome:nome,
     servico:e.servico||'', obs:e.obs||'', inicio:e.inicio, fim:e.fim, forcar:!!forcar});
   if(!res.ok && res.conflito && confirm(res.erro+'.\n\nRemarcar assim mesmo?')) return moverAtendimento(e, ini, dur, true);
-  if(!res.ok) { Object.assign(e, antes); desenharAgenda(); if(!res.conflito) showToast('Não foi possível remarcar: '+(res.erro||''),'err'); return; }
+  if(!res.ok) { Object.assign(e, antes); desenharAgenda(); if(res.lotado) showToast(res.erro,'err'); else if(!res.conflito) showToast('Não foi possível remarcar: '+(res.erro||''),'err'); return; }
   Object.assign(e, res.dados||{}); prepEvento(e);
   desenharAgenda();
   showToast('Remarcado para '+ini.toLocaleDateString('pt-BR',{weekday:'short',day:'numeric'})+' às '+horaDe(e.inicio),'ok');
@@ -4492,7 +4790,8 @@ async function novoAtendimento(agendaEmail, eventoId, pre) {
   const profPadrao = e ? e.agenda_email : ((pre&&pre.email) || _agFiltro || (profs.find(p=>p.email===eu)||profs[0]).email);
   let ini = e ? new Date(e.inicio) : (pre&&pre.inicio) || null;
   if(!ini) { ini = new Date(_agVista==='dia'?_agDia:new Date()); const ag=new Date(); ini.setHours(Math.min(19,Math.max(8,ag.getHours()+1)),0,0,0); }
-  const dur = e ? Math.round((new Date(e.fim)-new Date(e.inicio))/60000) : 50;
+  const dur = e ? Math.round((new Date(e.fim)-new Date(e.inicio))/60000) : ((pre&&pre.dur) || 50);
+  const servAtual = e ? (e.servico||'') : ((pre&&pre.servico) || '');
   const pacAtual = e && e.paciente_id ? pacs.find(p=>String(p.id)===String(e.paciente_id)) : null;
   const nomeAtual = pacAtual ? pacAtual.nome : (e ? String(e.titulo||'').split(' · ')[0] : '');
   const salaAtual = e ? e.sala : ((pre&&pre.sala) || '');
@@ -4508,8 +4807,9 @@ async function novoAtendimento(agendaEmail, eventoId, pre) {
       <div class="fg fa"><label class="fl" for="agProf">Profissional</label>
         <select class="fs" id="agProf" ${e?'disabled':''}>${profs.map(p=>`<option value="${esc(p.email)}"${p.email===profPadrao?' selected':''}>${esc(p.nome)}</option>`).join('')}</select></div>
       <div class="fg fa"><label class="fl" for="agServ">Serviço</label>
-        <div class="agx-chips" id="agServChips">${FIN_SERVICOS.filter(s=>s!=='Parceiro'&&s!=='Outro').map(s=>`<button type="button" class="agx-chip${(e?e.servico:'')===s?' on':''}" onclick="escolherChip(this,'agServ')">${esc(s)}</button>`).join('')}</div>
-        <input class="fi" id="agServ" list="agServs" value="${esc(e?e.servico:'')}" placeholder="Ou escreva outro serviço" style="margin-top:8px" oninput="sincronizarChips('agServChips',this.value)">
+        <div class="agx-chips" id="agServChips">${['Pilates',...FIN_SERVICOS.filter(s=>s!=='Parceiro'&&s!=='Outro')].map(s=>`<button type="button" class="agx-chip${normalizar(servAtual)===normalizar(s)?' on':''}" onclick="escolherChip(this,'agServ')">${esc(s)}</button>`).join('')}</div>
+        <div class="pt-nota" style="margin:6px 0 0">No Pilates, cada profissional recebe até ${PILATES_VAGAS} alunas por horário.</div>
+        <input class="fi" id="agServ" list="agServs" value="${esc(servAtual)}" placeholder="Ou escreva outro serviço" style="margin-top:8px" oninput="sincronizarChips('agServChips',this.value)">
         <datalist id="agServs">${FIN_SERVICOS.map(s=>`<option value="${esc(s)}">`).join('')}</datalist></div>
       <div class="fg fa"><label class="fl" for="agSala">Sala</label>
         ${salas.length?`<div class="agx-chips" id="agSalaChips">${salas.map(s=>`<button type="button" class="agx-chip${agMesmaSala(s,salaAtual)?' on':''}" onclick="escolherChip(this,'agSala')">${esc(s)}</button>`).join('')}</div>`:''}
@@ -4608,7 +4908,32 @@ async function salvarAtendimento(eventoId, forcar) {
   const sala = v('agSala');
   const rp = e ? e.rep : (r.passo && r.nunca ? {id:Date.now().toString(36)+Math.random().toString(36).slice(2,5), passo:r.passo} : null);
   const obs = montaObs(sala, rp, v('agObs'));
-  const datas = eventoId ? [v('agData')] : datasRepeticao();
+  let datas = eventoId ? [v('agData')] : datasRepeticao();
+  const servico = v('agServ');
+  let forcarGrupo = false;
+
+  // Pilates: confere as vagas da turma em todas as datas antes de gravar
+  if(ehPilates(servico)) {
+    const txt0 = btn.textContent; btn.disabled = true; btn.textContent = 'Conferindo vagas da turma…';
+    const periodo = await agendaDoPeriodo(datas);
+    btn.disabled = false; btn.textContent = txt0;
+    const cheias = [], outros = [];
+    datas.forEach(dt=>{
+      const a = new Date(dt+'T'+v('agHora')+':00'), b = new Date(a.getTime()+dur*60000);
+      if(alunasNoHorario(periodo, email, a, b, eventoId).length >= PILATES_VAGAS) cheias.push(dt);
+      const o = outroAtendimentoNoHorario(periodo, email, a, b, eventoId);
+      if(o) outros.push(a.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})+' ('+String(o.titulo||'')+')');
+    });
+    const fmt = dt=>dt.split('-').reverse().slice(0,2).join('/');
+    const quem = agProfNome(email) || 'Essa profissional';
+    if(cheias.length===datas.length) return erro('Turma cheia: '+quem+' já tem '+PILATES_VAGAS+' alunas às '+v('agHora')+(datas.length===1?' em '+fmt(datas[0]):' em todas as datas')+'. Escolha outro horário ou outra profissional.');
+    if(cheias.length) {
+      if(!confirm('A turma das '+v('agHora')+' com '+quem+' está cheia em '+cheias.map(fmt).join(', ')+'.\n\nAgendar só nas outras '+(datas.length-cheias.length)+' datas?')) return;
+      datas = datas.filter(dt=>!cheias.includes(dt));
+    }
+    if(outros.length && !forcar && !confirm(quem+' tem outro atendimento nesse horário: '+outros.join('; ')+'.\n\nMarcar assim mesmo?')) return;
+    forcarGrupo = true;   // alunas da mesma turma se sobrepõem por natureza
+  }
 
   // Sala ocupada por outra pessoa no mesmo horário (dentro da semana carregada)
   if(sala && !forcar) {
@@ -4629,9 +4954,13 @@ async function salvarAtendimento(eventoId, forcar) {
     const inicio = new Date(datas[i]+'T'+v('agHora')+':00');
     const fim = new Date(inicio.getTime() + dur*60000);
     const body = {agenda_email:email, paciente_id: pac?pac.id:'', paciente_nome:nomePac,
-                  servico:v('agServ'), inicio:inicio.toISOString(), fim:fim.toISOString(), obs,
-                  evento_id: eventoId||'', forcar: !!forcar};
+                  servico, inicio:inicio.toISOString(), fim:fim.toISOString(), obs,
+                  evento_id: eventoId||'', forcar: !!forcar || forcarGrupo};
     const res = await api('salvar_evento', body);
+    if(!res.ok && res.lotado) {
+      if(datas.length===1) { btn.disabled = false; btn.textContent = textoBtn; return erro(res.erro); }
+      choques.push(inicio.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})); continue;
+    }
     if(!res.ok && res.conflito) {
       if(datas.length===1) {
         btn.disabled = false; btn.textContent = textoBtn;
@@ -4648,7 +4977,7 @@ async function salvarAtendimento(eventoId, forcar) {
   if(primeiro) { _agDia = new Date(primeiro); _agDia.setHours(0,0,0,0); _agSemana = inicioDaSemana(primeiro); }
   await loadAgenda();
   const msg = eventoId ? 'Remarcado' : rp ? 'Agendado sem data para acabar. As próximas semanas já estão marcadas' : (feitos>1?feitos+' atendimentos agendados':'Agendado');
-  if(choques.length) showToast(feitos+' agendados. Ficaram de fora por choque de horário: '+choques.join(', '),'err');
+  if(choques.length) showToast(feitos+' agendados. Ficaram de fora por choque de horário ou turma cheia: '+choques.join(', '),'err');
   else showToast(msg,'ok');
 }
 
@@ -4714,6 +5043,98 @@ async function cancelarAtendimento(agendaEmail, eventoId) {
   closeSheet(true);
   desenharAgenda();
   showToast('Atendimento cancelado','ok');
+}
+
+// ═══════════════════════════════════════════════
+// PILATES — trava de vagas e mapa de ocupação
+// Cada profissional atende até PILATES_VAGAS alunas no mesmo horário.
+// A trava vale aqui (resposta rápida, também antes de atualizar o Code.gs)
+// e no salvar_evento do servidor (vale para duas recepções ao mesmo tempo).
+// ═══════════════════════════════════════════════
+const PILATES_VAGAS = 3;
+const ehPilates = s => /pilates/i.test(String(s||''));
+function alunasNoHorario(lista, email, ini, fim, ignorarId) {
+  return lista.filter(o=>o.agenda_email===email && o.id!==ignorarId && ehPilates(o.servico) && o.status!=='falta'
+    && new Date(o.inicio)<fim && new Date(o.fim)>ini);
+}
+function outroAtendimentoNoHorario(lista, email, ini, fim, ignorarId) {
+  return lista.find(o=>o.agenda_email===email && o.id!==ignorarId && !ehPilates(o.servico) && !o.dia_inteiro
+    && new Date(o.inicio)<fim && new Date(o.fim)>ini);
+}
+// Busca a agenda do período das datas (o servidor limita a 2 meses por vez)
+async function agendaDoPeriodo(datas) {
+  if(!datas.length) return [];
+  const ord = [...datas].sort(), out = [];
+  let de = new Date(ord[0]+'T00:00:00'); const fim = somaDias(new Date(ord[ord.length-1]+'T00:00:00'), 1);
+  while(de < fim) {
+    const ate = new Date(Math.min(+somaDias(de, 60), +fim));
+    const r = await api('listar_agenda',{de:de.toISOString(), ate:ate.toISOString()});
+    if(r.ok) out.push(...(r.dados||[]).map(prepEvento));
+    de = ate;
+  }
+  return out;
+}
+
+// ── Mapa de ocupação: semana × hora, como o mapa de turmas em papel ──
+function professorasPilates() {
+  const comAula = new Set(_ag.eventos.filter(e=>ehPilates(e.servico)).map(e=>e.agenda_email));
+  return _ag.profissionais.filter(p=>p.tem_agenda && (comAula.has(p.email) || (p.linhas||[]).includes('pilates')));
+}
+function mapaPilates() {
+  const profs = professorasPilates().filter(p=>!_agFiltro || p.email===_agFiltro);
+  const dias = [0,1,2,3,4,5].map(i=>somaDias(_agSemana, i));
+  const evs = _ag.eventos.filter(e=>ehPilates(e.servico) && !e.dia_inteiro && (!_agFiltro || e.agenda_email===_agFiltro));
+  let h0 = 7, h1 = 20;
+  evs.forEach(e=>{ const h=new Date(e.inicio).getHours(); h0=Math.min(h0,h); h1=Math.max(h1,h); });
+  const hoje = new Date();
+  let vagasLivres = 0, turmasCheias = 0;
+  const alunas = new Set(evs.filter(e=>e.status!=='falta').map(e=>e.paciente_id||normalizar(String(e.titulo||'').split(' · ')[0])));
+
+  const linhas = [];
+  for(let h=h0; h<=h1; h++) {
+    const celulas = dias.map((d,di)=>{
+      const doHorario = evs.filter(e=>{ const a=new Date(e.inicio); return agMesmoDia(a,d) && a.getHours()===h; })
+        .sort((a,b)=>a.inicio.localeCompare(b.inicio));
+      const grupos = profs.map(p=>({p, evs:doHorario.filter(e=>e.agenda_email===p.email)})).filter(g=>g.evs.length);
+      let estado = 'vazio';
+      if(grupos.length) {
+        const ocupadas = g => g.evs.filter(e=>e.status!=='falta').length;
+        const livres = grupos.reduce((s,g)=>s+Math.max(0, PILATES_VAGAS-ocupadas(g)),0);
+        vagasLivres += livres;
+        estado = livres ? 'vaga' : 'cheio';
+        if(!livres) turmasCheias++;
+      }
+      const ini = new Date(d); ini.setHours(h,0,0,0);
+      const passou = ini < hoje && !agMesmoDia(ini,hoje);
+      return `<td class="mp-c mp-${estado}${passou?' mp-passou':''}" onclick="cliqueMapaPilates(${di},${h})" title="${esc(maiuscula(d.toLocaleDateString('pt-BR',{weekday:'long'})))} às ${String(h).padStart(2,'0')}h">
+        ${grupos.map(g=>{
+          const n = g.evs.filter(e=>e.status!=='falta').length;
+          return `<div class="mp-g">
+            ${profs.length>1?`<div class="mp-gh"><i style="background:${agCor(g.p.email)}"></i>${esc(g.p.nome.split(' ').slice(-1)[0])}<b class="${n>=PILATES_VAGAS?'cheio':''}">${n}/${PILATES_VAGAS}</b></div>`:`<div class="mp-gh mp-gh1"><b class="${n>=PILATES_VAGAS?'cheio':''}">${n}/${PILATES_VAGAS}</b></div>`}
+            ${g.evs.map(e=>`<button class="mp-n st-${e.status||'agendado'}" onclick="event.stopPropagation();detalheAtendimento('${esc(e.agenda_email)}','${esc(e.id)}')">${esc(String(e.titulo||'').split(' · ')[0])}${new Date(e.inicio).getMinutes()?` <small>${horaDe(e.inicio)}</small>`:''}${e.rep?' <small>↻</small>':''}</button>`).join('')}
+          </div>`;}).join('')}
+        ${estado!=='cheio'?`<span class="mp-mais">+ aluna</span>`:''}
+      </td>`;
+    }).join('');
+    linhas.push(`<tr><th class="mp-h">${String(h).padStart(2,'0')}h</th>${celulas}</tr>`);
+  }
+  return `<div class="mp-resumo">
+      <div><b>${alunas.size}</b><span>alunas na semana</span></div>
+      <div><b style="color:var(--teal)">${vagasLivres}</b><span>vagas livres nas turmas abertas</span></div>
+      <div><b style="color:${turmasCheias?'var(--rose)':'var(--ink)'}">${turmasCheias}</b><span>${turmasCheias===1?'horário cheio':'horários cheios'}</span></div>
+      <div class="mp-leg"><span><i class="mp-sw mp-vaga"></i>Tem vaga</span><span><i class="mp-sw mp-cheio"></i>Cheio (${PILATES_VAGAS} por profissional)</span><span><i class="mp-sw mp-vazio"></i>Sem turma</span></div>
+    </div>
+    ${profs.length?'':`<div class="card" style="color:var(--ink3)">Nenhuma aula de Pilates nesta semana. Clique num horário para marcar a primeira aluna.</div>`}
+    <div class="agx"><div class="mp-scroll"><table class="mp">
+      <thead><tr><th class="mp-h"></th>${dias.map(d=>`<th class="${agMesmoDia(d,hoje)?'hoje':''}">${esc(maiuscula(d.toLocaleDateString('pt-BR',{weekday:'short'}).replace('.','')))} <span>${d.getDate()}</span></th>`).join('')}</tr></thead>
+      <tbody>${linhas.join('')}</tbody>
+    </table></div></div>`;
+}
+function cliqueMapaPilates(di, h) {
+  const ini = somaDias(_agSemana, di); ini.setHours(h,0,0,0);
+  const profs = professorasPilates();
+  const email = _agFiltro || (profs.length===1 ? profs[0].email : '');
+  novoAtendimento(null, null, {inicio:ini, email, servico:'Pilates', dur:50});
 }
 
 async function criarAgendasEquipe() {
@@ -6691,7 +7112,8 @@ async function abrirConfigClinica() {
     ${[['nome','Nome da clínica'],['razao_social','Razão social'],['cnpj','CNPJ'],
        ['endereco','Endereço'],['telefone','Telefone'],['email','E-mail'],
        ['cidade','Cidade (para a data dos documentos)'],
-       ['assinatura','Nome na assinatura'],['lema','Lema']].map(([k,l])=>`
+       ['assinatura','Nome na assinatura'],['lema','Lema'],
+       ['pix_chave','Chave Pix (aparece para o paciente pagar)'],['pix_nome','Nome do recebedor do Pix']].map(([k,l])=>`
       <div class="fg"><label class="fl">${l}</label>
         <input class="fi" id="cfg_${k}" value="${esc(c[k])}"></div>`).join('')}
     <div class="fg"><label class="fl">Rodapé</label>
@@ -6726,7 +7148,7 @@ async function salvarConfigClinica() {
   const btn = document.getElementById('cfgBtn');
   const err = document.getElementById('cfgErr');
   const dados = {};
-  ['nome','razao_social','cnpj','endereco','telefone','email','cidade','assinatura','lema','rodape','logo'].forEach(k=>{
+  ['nome','razao_social','cnpj','endereco','telefone','email','cidade','assinatura','lema','pix_chave','pix_nome','rodape','logo'].forEach(k=>{
     dados[k] = (document.getElementById('cfg_'+k)||{}).value || '';
   });
   btn.disabled=true; btn.textContent='Salvando...';
@@ -7649,6 +8071,7 @@ async function openPaciente(linha, id) {
   };
   const tabs = [...(tabsDef[linha]||['Dados']), 'Evoluções', 'Exercícios', 'Documentos', 'Mensagens'];
   if(currentRole==='admin') tabs.push('Orçamento');
+  if(podeVerFinanceiro()) tabs.push('Financeiro');
   if(currentRole!=='profissional') tabs.push('Área do paciente');
   const iEvo = tabs.indexOf('Evoluções');
   const iPac = tabs.indexOf('Área do paciente');
@@ -7656,6 +8079,7 @@ async function openPaciente(linha, id) {
   const iDoc = tabs.indexOf('Documentos');
   const iMsg = tabs.indexOf('Mensagens');
   const iOrc = tabs.indexOf('Orçamento');
+  const iFin = tabs.indexOf('Financeiro');
   // Evoluções aparece primeiro (é o que mais se usa), mas a numeração interna
   // das abas não muda: as fichas são gravadas pela posição (aba '0', '1'...)
   const ordemAbas = [iEvo, ...tabs.map((_,i)=>i).filter(i=>i!==iEvo)];
@@ -7686,6 +8110,8 @@ async function openPaciente(linha, id) {
         ? `<div id="msgPainel">${loadingHTML()}</div>`
         : i===iOrc
         ? orcamentoHTML(p)
+        : i===iFin
+        ? `<div id="ffPac"></div>`
         : i===iPac
         ? areaPacienteHTML(p, i)
         : (()=>{ const c = renderTabContent(linha, p, i);
@@ -7696,6 +8122,7 @@ async function openPaciente(linha, id) {
     </div>`).join('')}`;
 
   carregarEvolucoes(id);
+  if(iFin>=0) carregarFichaFinanceira('ffPac', {id:p.id, nome:p.nome, telefone:p.telefone||''});
   carregarDocumentos(id);
   carregarMensagens(id);
   carregarPrescricao(id);

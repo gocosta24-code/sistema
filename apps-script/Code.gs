@@ -255,6 +255,7 @@ function handle(e) {
       case 'salvar_config':     return resp(salvarConfigClinica(body, token));
       case 'gerar_orcamento':   return resp(gerarOrcamento(body, token));
       case 'meus_exercicios':   return resp(meusExercicios(token));
+      case 'meu_financeiro':    return resp(meuFinanceiro(token));
       case 'listar_agenda':     return resp(listarAgenda(body, token));
       case 'salvar_evento':     return resp(salvarEvento(body, token));
       case 'status_evento':     return resp(statusEvento(body, token));
@@ -723,6 +724,29 @@ function meuProntuario(token) {
     orientacoes: p.orientacoes_paciente || '',
     proximo_contato: p.proximo_contato || '',
   }};
+}
+
+// Pagamentos do proprio paciente: as mesmas linhas do Financeiro (Pilates e
+// Servicos), achadas pelo paciente_id ou, nas linhas antigas, pelo nome.
+// So sai o que interessa ao paciente; nada de repasse ou de outros clientes.
+function nomeComparavel(s) {
+  return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
+}
+function meuFinanceiro(token) {
+  const info = getInfoToken(token);
+  if (!info || info.role !== 'paciente' || !info.refId) return {ok:false, erro:'Sess\u00e3o inv\u00e1lida'};
+  const achado = acharPacientePorId(info.refId);
+  if (!achado) return {ok:false, erro:'Cadastro n\u00e3o encontrado'};
+  const p = achado.obj, alvo = nomeComparavel(p.nome);
+  const ss = getSpreadsheet();
+  const meu = function(r){ return String(r.paciente_id||'') === String(p.id) || (alvo && nomeComparavel(r.nome||r.paciente) === alvo); };
+  const campos = ['id','mes','data','nome','paciente','paciente_id','plano','servico','sessoes','profissional','valor','valor_plano','dia_vencimento','pago','data_pagamento','forma_pagamento'];
+  const enxuto = function(r, origem){ const o = {origem_tabela:origem}; campos.forEach(function(k){ if (r[k] !== undefined) o[k] = r[k]; }); return o; };
+  const itens = [];
+  lerAba(getOuCria(ss, ABAS.financeiro_pilates)).filter(meu).forEach(function(r){ if (String(r.status||'') !== 'Inativo' || String(r.pago||'').toLowerCase()==='sim') itens.push(enxuto(r,'pilates')); });
+  lerAba(getOuCria(ss, ABAS.financeiro_servicos)).filter(meu).forEach(function(r){ itens.push(enxuto(r,'servicos')); });
+  const cfg = lerConfig();
+  return {ok:true, dados:{paciente_id:p.id, nome:p.nome, pix_chave:cfg.pix_chave||'', pix_nome:cfg.pix_nome||'', itens:itens}};
 }
 
 // Resultados da avaliacao fisica (avaliacao/) para o painel do paciente.
@@ -2534,6 +2558,7 @@ function profVisivel(perfil, email) {
   return agendasVisiveis(perfil).filter(function(p){ return p.email === alvo; })[0] || null;
 }
 
+const PILATES_VAGAS = 3;
 function salvarEvento(body, token) {
   const perfil = perfilDaEquipe(token);
   if (!perfil) return {ok:false, erro:'Sem permissão'};
@@ -2554,9 +2579,18 @@ function salvarEvento(body, token) {
     nomePac = pac.nome;
   }
 
+  // Pilates e em turma: ate PILATES_VAGAS alunas no mesmo horario com a mesma
+  // profissional. A trava vale mesmo com "forcar" (forcar so passa por cima de
+  // choque com outro tipo de atendimento).
+  const ehPilates = /pilates/i.test(String(body.servico||''));
+  const noHorario = cal.getEvents(inicio, fim).filter(function(ev){ return ev.getId() !== body.evento_id && !ev.isAllDayEvent(); });
+  if (ehPilates) {
+    const alunas = noHorario.filter(function(ev){ return /pilates/i.test(String(ev.getTag('servico')||'')) && ev.getTag('status') !== 'falta'; });
+    if (alunas.length >= PILATES_VAGAS) return {ok:false, lotado:true, erro:'Turma cheia: ' + prof.nome + ' já tem ' + PILATES_VAGAS + ' alunas nesse horário'};
+  }
   // Choque de horario na mesma agenda (o proprio evento, ao editar, nao conta)
   if (!body.forcar) {
-    const choque = cal.getEvents(inicio, fim).filter(function(ev){ return ev.getId() !== body.evento_id && !ev.isAllDayEvent(); });
+    const choque = noHorario.filter(function(ev){ return !(ehPilates && /pilates/i.test(String(ev.getTag('servico')||''))); });
     if (choque.length) return {ok:false, conflito:true, erro:'Já existe "' + choque[0].getTitle() + '" nesse horário na agenda de ' + prof.nome};
   }
 
