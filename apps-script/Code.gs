@@ -1504,7 +1504,7 @@ const MOTIVOS_PERDA = ['N\u00e3o respondeu','N\u00e3o tinha or\u00e7amento','Des
 
 const LEAD_CABECALHO = ['id','nome','telefone','email','data_contato','origem','campanha',
                         'indicado_por','linha','responsavel','estagio','motivo_perda',
-                        'paciente_id','criado_em','atualizado_em'];
+                        'paciente_id','criado_em','atualizado_em','observacoes'];
 const LEADLOG_CABECALHO = ['id','lead_id','em','de_estagio','para_estagio','obs','por'];
 
 function abaComCabecalho(nome, cabecalho) {
@@ -1638,6 +1638,7 @@ function salvarLead(body, token) {
   const pacId = email ? criarPacienteLead({
     nome: nome, email: email, telefone: d.telefone||'',
     data_nascimento: d.data_nascimento||'', linha: d.linha||'',
+    observacoes: d.observacoes||'',
     criado_por: perfil.nome || perfil.email
   }) : '';
 
@@ -1648,6 +1649,7 @@ function salvarLead(body, token) {
     data_contato: d.data_contato || agora.slice(0,10),
     origem: d.origem||'', campanha: d.campanha||'', indicado_por: d.indicado_por||'',
     linha: d.linha||'', responsavel: d.responsavel || perfil.nome,
+    observacoes: d.observacoes||'',
     estagio: estagio, motivo_perda: '', paciente_id: pacId,
     criado_em: agora, atualizado_em: agora
   };

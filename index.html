@@ -594,6 +594,8 @@ body.agx-movendo{cursor:grabbing;user-select:none;}
 .mp-mais{display:none;font-size:11.5px;font-weight:700;color:var(--teal);}
 .mp-c:hover .mp-mais{display:block;}
 /* FICHA FINANCEIRA */
+.kb-obs{font-size:12px;color:var(--ink2);margin-top:6px;font-style:italic;line-height:1.4;white-space:pre-line;}
+.lead-obs{background:var(--sur);border:1px solid var(--bor);border-left:3px solid var(--amber);border-radius:var(--r-sm);padding:10px 12px;margin-bottom:12px;font-size:14px;line-height:1.5;white-space:pre-line;}
 .fe-topo{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:12px;}
 .fe-topo>div{background:var(--bg);border:1px solid var(--bor);border-radius:var(--r-sm);padding:10px 12px;}
 .fe-topo span{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink3);}
@@ -5722,6 +5724,7 @@ function leadCardHTML(l) {
       ${l.origem?`<span>${esc(l.origem)}</span>`:''}
     </div>
     ${l.campanha?`<div class="kb-campanha">${esc(l.campanha)}</div>`:''}
+    ${l.observacoes?`<div class="kb-obs">${esc(String(l.observacoes).length>90?String(l.observacoes).slice(0,88)+'…':l.observacoes)}</div>`:''}
     ${l.motivo_perda?`<div class="kb-campanha">${esc(l.motivo_perda)}</div>`:''}
     ${l.paciente_id?`<div class="kb-campanha">virou paciente</div>`:''}
   </div>`;
@@ -5747,6 +5750,7 @@ async function abrirLead(id) {
       ${l.telefone?`<span>${esc(l.telefone)}</span>`:''}
       ${l.email?`<span>${esc(l.email)}</span>`:''}
     </div>
+    ${l.observacoes?`<div class="lead-obs"><div class="fl" style="margin-bottom:4px">Observações</div>${esc(l.observacoes)}</div>`:''}
     <div class="cadgrid" style="margin-bottom:12px">
       ${[['Estágio',l.estagio],['Origem',l.origem],['Campanha',l.campanha],
          ['Indicado por',l.indicado_por],['Primeiro contato',valorCampo('data',l.data_contato)],
@@ -5904,6 +5908,8 @@ function novoLead(existente) {
         <input class="fi" id="ndResp" value="${esc(l.responsavel||currentUser.nome)}"></div>
     </div>
     </details>
+    <div class="fg" style="margin-top:6px"><label class="fl" for="ndObsLead">Observações</label>
+      <textarea class="ft" id="ndObsLead" rows="3" placeholder="Ex.: quer horário à tarde, mãe da Sofia, prefere contato por WhatsApp">${esc(l.observacoes||'')}</textarea></div>
     <div id="ndErr" class="errbox"></div>
     <div style="display:flex;gap:8px;margin-top:10px">
       <button class="savebtn" id="ndBtn" style="flex:1"
@@ -5941,6 +5947,7 @@ async function salvarLead(id) {
     origem:v('ndOrigem'), campanha:v('ndCampanha'),
     indicado_por: /indica/i.test(v('ndOrigem')) ? v('ndIndicado') : '',
     linha:v('ndLinha'), responsavel:v('ndResp'),
+    observacoes:v('ndObsLead'),
   };
   btn.disabled=true; btn.textContent='Salvando...';
   const res = await api('salvar_lead',{id, dados});
