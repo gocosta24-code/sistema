@@ -261,6 +261,10 @@ input,select,textarea{outline:none;}
 .line-stats{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
 
 /* PROFISSIONAIS */
+.prof-acoes{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;}
+.prof-acoes .backbtn{padding:6px 12px;}
+.prof-card.inativo{opacity:.6;}
+.prof-sair{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:18px;padding:12px 14px;border:1px dashed var(--bor2);border-radius:var(--r-sm);font-size:13.5px;}
 .prof-card{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;box-shadow:var(--sh);}
 .prof-av{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;flex-shrink:0;}
 .prof-nm{font-size:14px;font-weight:600;}
@@ -957,6 +961,7 @@ let demoMode = false;
 // corrigido e jura que não foi corrigido.
 const VERSAO = '2026-10-30.01';
 let _profsCache = null;
+let _equipeLista = null;   // tela Equipe: inclui quem está Inativo
 let _demoPacienteId = null;
 
 // ═══════════════════════════════════════════════
@@ -8580,15 +8585,15 @@ async function salvarEvolucao(linha, id, tabIdx) {
 // EQUIPE
 // ═══════════════════════════════════════════════
 async function loadEquipe() {
-  const res = await api('listar_profs',{});
-  if(res.ok) _profsCache = res.dados||[];
+  const res = await api('listar_profs',{incluir_inativos:true});
+  if(res.ok) { _equipeLista = res.dados||[]; _profsCache = _equipeLista.filter(x=>String(x.status||'Ativo').toLowerCase()!=='inativo'); }
   const el = document.getElementById('listaProfs');
   if(!el) return;
   if(!res.ok){el.innerHTML=`<div style="color:var(--rose);padding:16px">${res.erro}</div>`;return;}
-  const profs = res.dados||[];
+  const profs = (res.dados||[]).slice().sort((a,b)=>(String(a.status||'Ativo').toLowerCase()==='inativo')-(String(b.status||'Ativo').toLowerCase()==='inativo') || String(a.nome||'').localeCompare(String(b.nome||''),'pt-BR'));
   const cores = ['#1d6b58','#5b21b6','#1355a0','#c4600a','#3d6b3a','#b81a3a','#92700a'];
   el.innerHTML = `<div id="profForm"></div>` + profs.map((p,i)=>`
-  <div class="prof-card">
+  <div class="prof-card${String(p.status||'Ativo').toLowerCase()==='inativo'?' inativo':''}">
     <div class="prof-av" style="background:${cores[i%cores.length]}">${esc((p.nome||'?')[0])}</div>
     <div style="flex:1;min-width:0">
       <div class="prof-nm">${esc(p.nome)}</div>
@@ -8599,16 +8604,21 @@ async function loadEquipe() {
         ${String(p.status||'Ativo').toLowerCase()==='inativo'?`<span class="chip ch-gray">Inativo</span>`:''}
       </div>
     </div>
-    ${currentRole==='admin'?`<button class="backbtn" onclick="editarProf('${esc(p.id)}')"><svg class="ico" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4-1L19 8l-3-3L5 16z"/></svg></button>`:''}
+    ${currentRole==='admin'?`<div class="prof-acoes">
+      <button class="backbtn" onclick="editarProf('${esc(p.id)}')"><svg class="ico" aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4-1L19 8l-3-3L5 16z"/></svg> Editar</button>
+      ${String(p.email||'').toLowerCase()!==String(currentUser.email||'').toLowerCase()?`<button class="backbtn" style="color:var(--rose)" onclick="excluirProf('${esc(p.id)}')" aria-label="Remover ${esc(p.nome)}">Remover</button>`:''}
+    </div>`:''}
   </div>`).join('');
 }
 
 function editarProf(id) {
   if(currentRole!=='admin'){ showToast('Só a gestão pode editar a equipe.','err'); return; }
-  const p = (_profsCache||[]).find(x=>String(x.id)===String(id));
+  const p = (_equipeLista||_profsCache||[]).find(x=>String(x.id)===String(id));
   if(!p) return;
-  const f = document.getElementById('profForm');
-  if(!f) return;
+  document.getElementById('sheetTitle').textContent = 'Editar profissional';
+  document.getElementById('sheetBody').innerHTML = '<div id="profFormSheet"></div>';
+  const f = document.getElementById('profFormSheet');
+  openSheet();
 
   const funcoesAtuais = String(p.funcao||'').split(',').map(s=>s.trim()).filter(Boolean);
   const conhecidas = funcoesAtuais.filter(x=>FUNCOES.includes(x));
@@ -8616,14 +8626,18 @@ function editarProf(id) {
   const linhasAtuais = String(p.linhas||'').split(',').map(s=>s.trim()).filter(Boolean);
   const euMesma = (currentUser.email||'').toLowerCase() === String(p.email||'').toLowerCase();
 
-  f.innerHTML = `<div class="evo-form">
-    <div class="hist-tit" style="margin-bottom:10px">Editar ${esc(p.nome)}</div>
+  f.innerHTML = `<div>
     <div class="f2">
       <div class="fg fa"><label class="fl">Nome *</label>
         <input class="fi" id="epNome" value="${esc(p.nome)}"></div>
-      <div class="fg fa"><label class="fl">E-mail</label>
+      <div class="fg fa"><label class="fl">E-mail de acesso</label>
         <input class="fi" value="${esc(p.email)}" disabled
-               style="opacity:.6;cursor:not-allowed"></div>
+               style="opacity:.6;cursor:not-allowed">
+        <div class="pt-nota" style="margin-top:4px">O e-mail é o login e liga a agenda do Google. Para trocar, remova e convide de novo.</div></div>
+      <div class="fg"><label class="fl">Telefone / WhatsApp</label>
+        <input class="fi" id="epTel" type="tel" value="${esc(p.telefone||'')}" placeholder="(11) 99999-9999"></div>
+      <div class="fg"><label class="fl">CPF ou CNPJ</label>
+        <input class="fi" id="epDoc" value="${esc(p.documento||'')}" placeholder="Para os repasses"></div>
       <div class="fg fa"><label class="fl">Registro profissional
         <span style="font-weight:400;color:var(--ink3)">(sai na assinatura dos documentos)</span></label>
         <input class="fi" id="epRegistro" value="${esc(p.registro)}"
@@ -8656,27 +8670,29 @@ function editarProf(id) {
     <div id="epErr" class="errbox"></div>
     <div style="display:flex;gap:8px;margin-top:10px">
       <button class="savebtn" id="epBtn" style="flex:1" onclick="salvarProf('${esc(p.id)}')">Salvar alterações</button>
-      <button class="backbtn" onclick="document.getElementById('profForm').innerHTML=''">Cancelar</button>
+      <button class="backbtn" onclick="closeSheet(true)">Cancelar</button>
     </div>
-    ${(p.email||'').toLowerCase()!==(currentUser.email||'').toLowerCase()?`<button class="savebtn" id="epDel"
-      style="background:var(--rose);margin-top:8px" onclick="excluirProf('${esc(p.id)}')">Remover da equipe</button>`:''}
+    ${(p.email||'').toLowerCase()!==(currentUser.email||'').toLowerCase()?`<div class="prof-sair">
+      <div><b>Saiu da Casa?</b><div class="pt-nota" style="margin:2px 0 0">Mude a Situação para <b>Inativo</b> para guardar o histórico, ou remova de vez.</div></div>
+      <button class="backbtn" id="epDel" style="color:var(--rose)" onclick="excluirProf('${esc(p.id)}')">Remover da equipe</button></div>`:''}
   </div>`;
-  f.scrollIntoView({behavior:'smooth', block:'nearest'});
 }
 
 // A pessoa sai do cadastro e perde o acesso na hora. O que ela registrou
 // continua no prontuário, com o nome gravado em cada evolução.
 async function excluirProf(id) {
-  const p = (_profsCache||[]).find(x=>String(x.id)===String(id));
+  const p = (_equipeLista||_profsCache||[]).find(x=>String(x.id)===String(id));
   if(!p) return;
   const vinculados = (await carregarTodosPacientes()).filter(x=>(x.terapeuta_nome||'').trim()===String(p.nome||'').trim());
-  if(!confirm('Remover '+p.nome+' da equipe?\n\nEla perde o acesso ao sistema na hora. As evoluções e registros que ela fez continuam nos prontuários.'+
+  if(!confirm('Remover '+p.nome+' da equipe?\n\nEla perde o acesso ao sistema na hora e sai da lista. As evoluções e registros que ela fez continuam nos prontuários.\n\nSe quiser só bloquear o acesso e manter o nome na lista, cancele e use Editar › Situação: Inativo.'+
     (vinculados.length?'\n\n'+vinculados.length+' paciente(s) têm '+p.nome+' como terapeuta de referência — troque a referência deles depois.':''))) return;
   const btn = document.getElementById('epDel');
   if(btn){ btn.disabled=true; btn.textContent='Removendo...'; }
   const res = await api('excluir_prof',{id});
-  if(!res.ok){ showToast('Erro: '+(res.erro||''),'err'); if(btn){btn.disabled=false;btn.textContent='Remover da equipe';} return; }
-  document.getElementById('profForm').innerHTML='';
+  if(!res.ok){
+    const msg = /desconhecida/i.test(res.erro||'') ? 'O Apps Script ainda não tem a função de remover. Atualize o Code.gs e faça uma nova versão da implantação.' : (res.erro||'');
+    showToast('Não foi possível remover: '+msg,'err'); if(btn){btn.disabled=false;btn.textContent='Remover da equipe';} return; }
+  closeSheet(true);
   _profsCache = null;
   if(typeof loadEquipe==='function') await loadEquipe();
   showToast(p.nome+' saiu da equipe','ok');
@@ -8684,7 +8700,7 @@ async function excluirProf(id) {
 
 async function salvarProf(id) {
   if(currentRole!=='admin'){ showToast('Só a gestão pode editar a equipe.','err'); return; }
-  const p = (_profsCache||[]).find(x=>String(x.id)===String(id));
+  const p = (_equipeLista||_profsCache||[]).find(x=>String(x.id)===String(id));
   if(!p) return;
   const err = document.getElementById('epErr');
   const btn = document.getElementById('epBtn');
@@ -8711,6 +8727,8 @@ async function salvarProf(id) {
     registro: (document.getElementById('epRegistro').value||'').trim(),
     funcao: coletarFuncoes('epFuncoes','epFuncaoOutra'),
     linhas: [...document.querySelectorAll('#epLinhas input:checked')].map(x=>x.value).join(', '),
+    telefone: (document.getElementById('epTel').value||'').trim(),
+    documento: (document.getElementById('epDoc').value||'').trim(),
   };
   const nivelEl = document.getElementById('epNivel');
   const statusEl = document.getElementById('epStatus');
@@ -8731,7 +8749,7 @@ async function salvarProf(id) {
   }
 
   btn.textContent='Salvar alterações'; btn.disabled=false;
-  document.getElementById('profForm').innerHTML='';
+  closeSheet(true);
   _todosPacientes = null; limparCaches();
   await loadEquipe();
   showToast('Perfil atualizado'+(pacientesParaAjustar.length?' e '+pacientesParaAjustar.length+' paciente(s) revinculado(s)':''),'ok');

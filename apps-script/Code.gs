@@ -232,7 +232,7 @@ function handle(e) {
       case 'salvar':        return resp(salvar(body));
       case 'atualizar':     return resp(atualizar(body));
       case 'deletar':       return resp(deletar(body));
-      case 'listar_profs':  return resp(listarProfs(token));
+      case 'listar_profs':  return resp(listarProfs(token, body));
       case 'convidar_prof': return resp(convidarProf(body, token));
       case 'alterar_senha': return resp(alterarSenha(body, token));
       case 'dar_acesso_paciente': return resp(darAcessoPaciente(body, token));
@@ -2272,8 +2272,13 @@ function deletar(body) {
 }
 
 // --- PROFISSIONAIS ---------------------------------------------
-function listarProfs(token) {
+// A tela de Equipe (gestão) pede tambem quem esta Inativo, para poder
+// reativar ou remover; o resto do sistema so recebe quem esta ativo.
+// CPF/CNPJ do profissional so sai para a gestao.
+function listarProfs(token, body) {
   const info = getInfoToken(token);
+  const ehAdmin = !!info && info.role === 'admin';
+  const comInativos = ehAdmin && !!(body && body.incluir_inativos);
   if (!info) return {ok:false,erro:'Token inv\u00e1lido'};
   const ss = getSpreadsheet();
   const sheet = getOuCria(ss,'Profissionais');
@@ -2281,8 +2286,8 @@ function listarProfs(token) {
   if (dados.length<2) return {ok:true,dados:[]};
   const h = dados[0];
   const profs = dados.slice(1)
-    .map(row => { const o={}; h.forEach((k,i)=>{ if(k!=='senha_hash') o[k]=row[i]; }); return o; })
-    .filter(r => r.id && (r.status||'Ativo')!=='Inativo');
+    .map(row => { const o={}; h.forEach((k,i)=>{ if(k!=='senha_hash' && (ehAdmin || k!=='documento')) o[k]=row[i]; }); return o; })
+    .filter(r => r.id && (comInativos || (r.status||'Ativo')!=='Inativo'));
   return {ok:true, dados:profs};
 }
 
