@@ -594,6 +594,42 @@ body.agx-movendo{cursor:grabbing;user-select:none;}
 .mp-mais{display:none;font-size:11.5px;font-weight:700;color:var(--teal);}
 .mp-c:hover .mp-mais{display:block;}
 /* FICHA FINANCEIRA */
+.agx-nv{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;background:var(--amber);color:#fff;border-radius:4px;padding:1px 5px;flex-shrink:0;}
+.agx-ev.avisou{background:repeating-linear-gradient(135deg,#fff 0 6px,var(--amber-lt) 6px 12px);box-shadow:inset 3px 0 0 var(--amber),0 0 0 1.5px var(--sur);}
+.agx-det-aviso b{color:var(--amber);}
+.ps-item{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--bor);}
+.ps-item:last-of-type{border-bottom:0;}
+.ps-q{display:flex;flex-direction:column;font-size:14px;min-width:0;}
+.ps-q span{font-size:12.5px;color:var(--ink3);}
+.ps-st{display:flex;align-items:center;gap:10px;}
+.ps-st .addbtn{padding:6px 14px;}
+.ps-item.aviso .ps-q b{color:var(--ink3);}
+.pp-ov{position:fixed;inset:0;background:rgba(28,26,23,.5);z-index:700;display:flex;align-items:center;justify-content:center;padding:18px;animation:oi .2s ease;backdrop-filter:blur(3px);}
+.pp{background:var(--bg);border-radius:var(--r-lg);max-width:400px;width:100%;padding:24px 22px 18px;text-align:center;box-shadow:var(--sh-lg);animation:su .3s cubic-bezier(.32,.72,0,1);}
+.pp-ico{width:52px;height:52px;border-radius:50%;background:var(--teal-lt);color:var(--teal);display:grid;place-items:center;margin:0 auto 10px;}
+.pp-t{font-family:'Fraunces',serif;font-size:22px;letter-spacing:-.3px;margin-bottom:8px;}
+.pp-d{font-size:14px;color:var(--ink2);line-height:1.55;}
+.pp-bts{display:flex;flex-direction:column;gap:8px;margin-top:16px;}
+.pp-bts .backbtn{justify-content:center;padding:11px;}
+.pp-x{display:block;margin:12px auto 0;}
+.pp textarea{width:100%;text-align:left;}
+.pl-topo{margin-bottom:12px;}
+.pl-res{font-family:'Fraunces',serif;font-size:19px;}
+.pl-slot{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r-sm);padding:12px 14px 8px;margin-bottom:8px;}
+.pl-slot.removido{opacity:.5;}
+.pl-slot.removido .pl-grid{pointer-events:none;}
+.pl-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px 10px;}
+.pl-grid .fl{margin:0;}
+.pl-grid .fi,.pl-grid .fs{margin-top:4px;padding:8px 10px;font-size:13.5px;text-transform:none;letter-spacing:0;font-weight:500;}
+.pl-wide{grid-column:span 2;}
+.pl-rod{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:8px;}
+.pl-salvar{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;}
+.pl-salvar .fi{margin-top:4px;}
+@media(max-width:600px){.pl-grid{grid-template-columns:1fr 1fr}.pl-wide{grid-column:span 2}}
+.kb-contato{font-size:11.5px;font-weight:500;color:var(--ink3);margin-top:1px;}
+.lead-para{font-size:13.5px;color:var(--ink2);background:var(--sur);border:1px solid var(--bor);border-radius:var(--r-sm);padding:8px 12px;margin:6px 0 10px;}
+.kb-obs{font-size:12px;color:var(--ink2);margin-top:6px;font-style:italic;line-height:1.4;white-space:pre-line;}
+.lead-obs{background:var(--sur);border:1px solid var(--bor);border-left:3px solid var(--amber);border-radius:var(--r-sm);padding:10px 12px;margin-bottom:12px;font-size:14px;line-height:1.5;white-space:pre-line;}
 .fe-topo{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:12px;}
 .fe-topo>div{background:var(--bg);border:1px solid var(--bor);border-radius:var(--r-sm);padding:10px 12px;}
 .fe-topo span{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink3);}
@@ -1372,6 +1408,22 @@ function demoApi(action, body) {
       if(i>=0) DEMO_DB.documentos.splice(i,1);
       return {ok:true};
     }
+    case 'minha_agenda': {
+      if(!DEMO_DB.agenda) demoAgenda('listar_agenda',{de:new Date().toISOString(), ate:new Date().toISOString()});
+      const profs=DEMO_DB.profissionais||[];
+      return {ok:true, dados:(DEMO_DB.agenda||[]).filter(e=>e.paciente_id===_demoPacienteId && new Date(e.inicio)>new Date() && new Date(e.inicio)<new Date(Date.now()+35*864e5) && e.status!=='falta')
+        .sort((a,b)=>a.inicio.localeCompare(b.inicio)).map(e=>({id:e.id, agenda_email:e.agenda_email, profissional:(profs.find(p=>p.email===e.agenda_email)||{}).nome||'',
+          inicio:e.inicio, fim:e.fim, servico:e.servico, sala:(String(e.obs||'').match(/^Sala:\s*(.+)$/m)||[])[1]||'', status:e.status||'', aviso:e.aviso||'', confirmado_paciente:e.confirmado_paciente||''}))};
+    }
+    case 'responder_presenca': {
+      const e=(DEMO_DB.agenda||[]).find(x=>x.id===body.evento_id && x.paciente_id===_demoPacienteId);
+      if(!e) return {ok:false, erro:'Sessão não encontrada'};
+      if(body.resposta==='confirmar'){ e.confirmado_paciente=new Date().toISOString(); e.aviso=''; if(!e.status) e.status='confirmado'; return {ok:true}; }
+      e.aviso=new Date().toISOString()+(body.motivo?' | '+body.motivo:''); e.confirmado_paciente=''; if(e.status==='confirmado') e.status='';
+      const pac=(DEMO_DB.pacientes||[]).find(p=>p.id===_demoPacienteId)||{};
+      DEMO_DB.mensagens.push({id:'msg_'+Date.now(), paciente_id:_demoPacienteId, de:'paciente', autor_nome:pac.nome, texto:'Aviso: não poderei comparecer na sessão de '+new Date(e.inicio).toLocaleString('pt-BR')+'.'+(body.motivo?'\nMotivo: '+body.motivo:''), criado_em:new Date().toISOString(), status:'aberta'});
+      return {ok:true};
+    }
     case 'meu_financeiro': {
       const pac=(DEMO_DB.pacientes||[]).find(p=>p.id===_demoPacienteId); if(!pac) return {ok:false, erro:'Sessão inválida'};
       const meu=r=>String(r.paciente_id||'')===pac.id || normalizar(r.nome||r.paciente||'')===normalizar(pac.nome);
@@ -1426,7 +1478,8 @@ function demoApi(action, body) {
         return {ok:false, erro:'Este e-mail já tem cadastro de paciente'};
       const id='ld_'+Date.now();
       const pacId=email ? 'pac_'+Date.now() : '';
-      if(email) DEMO_DB.pacientes.push({id:pacId, nome:(body.dados||{}).nome, email,
+      const dd=body.dados||{}, outraP=dd.para_quem==='outra'&&dd.paciente_nome;
+      if(email) DEMO_DB.pacientes.push({id:pacId, nome:outraP?dd.paciente_nome:dd.nome, responsavel:outraP?dd.nome+(dd.parentesco?' ('+dd.parentesco.toLowerCase()+')':''):'', email,
         telefone:(body.dados||{}).telefone||'', data_nascimento:(body.dados||{}).data_nascimento||'',
         linha:(body.dados||{}).linha||'', status:'Lead', acesso:'Liberado',
         criado_em:new Date().toISOString()});
@@ -2822,6 +2875,104 @@ function copiarPix() {
   if(navigator.clipboard) navigator.clipboard.writeText(t).then(ok, ()=>showToast('Selecione e copie a chave','err'));
 }
 
+// ═══════════════════════════════════════════════
+// ÁREA DO PACIENTE — próximas sessões, lembrete e aviso de ausência
+// Ao abrir a área, um aviso na tela lembra a sessão das próximas 48 h (e as
+// mensagens novas da equipe). O paciente confirma ou avisa que não vem; o
+// aviso chega na central de mensagens, na agenda e no e-mail da profissional.
+// ═══════════════════════════════════════════════
+let _pacAgenda = [];
+const fmtSessao = e => maiuscula(new Date(e.inicio).toLocaleDateString('pt-BR',{weekday:'long', day:'numeric', month:'long'}))+' às '+horaDe(e.inicio);
+
+function proximasSessoesHTML() {
+  if(!_pacAgenda.length) return '';
+  return `<div class="pt-card" id="pacAgendaCard">
+    <div class="pt-t">Próximos atendimentos</div>
+    ${_pacAgenda.slice(0,6).map(e=>`<div class="ps-item${e.aviso?' aviso':''}">
+      <div class="ps-q"><b>${esc(fmtSessao(e))}</b>
+        <span>${esc([e.servico, e.profissional, e.sala].filter(Boolean).join(' · '))}</span></div>
+      <div class="ps-st">${e.aviso ? '<span class="chip ch-amber">Você avisou que não vem</span>'
+        : e.confirmado_paciente || e.status==='confirmado' ? '<span class="chip ch-sage">Confirmado</span>'
+        : `<button class="addbtn" onclick="responderSessao('${esc(e.id)}','confirmar')">Confirmar</button>`}
+        ${e.aviso ? `<button class="ff-link" onclick="responderSessao('${esc(e.id)}','confirmar')">Vou sim</button>` : `<button class="ff-link" onclick="avisarAusencia('${esc(e.id)}')">Não vou poder ir</button>`}</div>
+    </div>`).join('')}
+    <div class="pt-nota">Não vai conseguir vir? Avise por aqui o quanto antes: a equipe é avisada na hora e combina outro horário com você.</div>
+  </div>`;
+}
+
+function popupPaciente(html) {
+  fecharPopupPaciente();
+  const ov = document.createElement('div');
+  ov.className = 'pp-ov'; ov.id = 'ppOv';
+  ov.innerHTML = `<div class="pp" role="dialog" aria-modal="true">${html}</div>`;
+  ov.addEventListener('click', ev=>{ if(ev.target===ov) fecharPopupPaciente(); });
+  document.body.appendChild(ov);
+  const b = ov.querySelector('button'); if(b) b.focus();
+}
+function fecharPopupPaciente() { const o = document.getElementById('ppOv'); if(o) o.remove(); }
+
+// Chamado depois que a área do paciente termina de carregar
+function avisosAoAbrirPortal() {
+  const visto = k => { try{ return sessionStorage.getItem('pp_'+k); }catch(e){ return null; } };
+  const marcar = k => { try{ sessionStorage.setItem('pp_'+k,'1'); }catch(e){} };
+  const limite = Date.now() + 48*3600000;
+  const prox = _pacAgenda.find(e=>new Date(e.inicio).getTime() < limite && !e.aviso && !e.confirmado_paciente && e.status!=='confirmado' && !visto(e.id));
+  const naoLidas = (_pacMsgs||[]).filter(m=>String(m.de)==='equipe' && !m.lida_paciente).length;
+  if(prox) {
+    marcar(prox.id);
+    const quando = new Date(prox.inicio), hoje = new Date(); const amanha = somaDias(new Date(hoje.setHours(0,0,0,0)),1);
+    const rot = agMesmoDia(quando,new Date()) ? 'hoje' : agMesmoDia(quando,amanha) ? 'amanhã' : quando.toLocaleDateString('pt-BR',{weekday:'long'});
+    popupPaciente(`<div class="pp-ico">${icone('agenda',26)}</div>
+      <div class="pp-t">Lembrete: sua sessão é ${esc(rot)}</div>
+      <div class="pp-d"><b>${esc(fmtSessao(prox))}</b><br>${esc([prox.servico, prox.profissional, prox.sala].filter(Boolean).join(' · '))}</div>
+      <div class="pp-bts"><button class="savebtn" style="margin:0" onclick="responderSessao('${esc(prox.id)}','confirmar')">Confirmar presença</button>
+        <button class="backbtn" onclick="avisarAusencia('${esc(prox.id)}')">Não vou poder ir</button></div>
+      ${naoLidas?`<button class="ff-link" style="margin-top:12px" onclick="fecharPopupPaciente();irParaMensagens()">Você também tem ${naoLidas} ${naoLidas===1?'mensagem nova':'mensagens novas'} da equipe</button>`:''}
+      <button class="ff-link pp-x" onclick="fecharPopupPaciente()">Ver depois</button>`);
+    return;
+  }
+  if(naoLidas && !visto('msgs'+naoLidas)) {
+    marcar('msgs'+naoLidas);
+    const ult = (_pacMsgs||[]).filter(m=>String(m.de)==='equipe').slice(-1)[0] || {};
+    popupPaciente(`<div class="pp-ico">${icone('mensagem',26)}</div>
+      <div class="pp-t">${naoLidas===1?'Você tem uma mensagem nova':'Você tem '+naoLidas+' mensagens novas'}</div>
+      <div class="pp-d">${esc(String(ult.texto||'').slice(0,160))}${String(ult.texto||'').length>160?'…':''}</div>
+      <div class="pp-bts"><button class="savebtn" style="margin:0" onclick="fecharPopupPaciente();irParaMensagens()">Ler agora</button></div>
+      <button class="ff-link pp-x" onclick="fecharPopupPaciente()">Depois</button>`);
+  }
+}
+function irParaMensagens() { const el = document.getElementById('pacMsgLista'); if(el) el.closest('.pt-card').scrollIntoView({behavior:'smooth', block:'start'}); }
+
+function avisarAusencia(id) {
+  const e = _pacAgenda.find(x=>x.id===id); if(!e) return;
+  popupPaciente(`<div class="pp-t">Não vai conseguir vir?</div>
+    <div class="pp-d">${esc(fmtSessao(e))}<br>${esc([e.servico, e.profissional].filter(Boolean).join(' · '))}</div>
+    <label class="fl" for="ppMotivo" style="text-align:left;margin-top:14px">Quer contar o motivo? (opcional)</label>
+    <textarea class="ft" id="ppMotivo" style="min-height:70px" placeholder="Ex.: estou gripada, imprevisto no trabalho"></textarea>
+    <div class="pt-nota" style="text-align:left">A equipe recebe o aviso na hora e entra em contato para remarcar.</div>
+    <div class="pp-bts"><button class="savebtn" id="ppEnviar" style="margin:0;background:var(--amber)" onclick="responderSessao('${esc(id)}','nao_vou')">Avisar a equipe</button>
+      <button class="backbtn" onclick="fecharPopupPaciente()">Voltar</button></div>`);
+  setTimeout(()=>{ const t=document.getElementById('ppMotivo'); if(t) t.focus(); }, 50);
+}
+
+async function responderSessao(id, resposta) {
+  const e = _pacAgenda.find(x=>x.id===id); if(!e) return;
+  const motivo = resposta==='nao_vou' ? ((document.getElementById('ppMotivo')||{}).value||'').trim() : '';
+  const b = document.getElementById('ppEnviar'); if(b){ b.disabled=true; b.textContent='Enviando…'; }
+  const r = await api('responder_presenca',{agenda_email:e.agenda_email, evento_id:id, resposta, motivo});
+  if(!r.ok) { if(b){ b.disabled=false; b.textContent='Avisar a equipe'; } showToast(r.erro||'Não foi possível enviar','err'); return; }
+  if(resposta==='confirmar') { e.confirmado_paciente = new Date().toISOString(); e.aviso = ''; }
+  else { e.aviso = new Date().toISOString()+(motivo?' | '+motivo:''); e.confirmado_paciente = ''; }
+  fecharPopupPaciente();
+  const card = document.getElementById('pacAgendaCard'); if(card) card.outerHTML = proximasSessoesHTML();
+  if(resposta==='nao_vou') {
+    popupPaciente(`<div class="pp-ico">${icone('agenda',26)}</div><div class="pp-t">Aviso enviado</div>
+      <div class="pp-d">A equipe já sabe que você não vem ${esc(fmtSessao(e).toLowerCase())}. Vamos falar com você para combinar outro horário.</div>
+      <div class="pp-bts"><button class="savebtn" style="margin:0" onclick="fecharPopupPaciente()">Ok</button></div>`);
+    const rm = await api('minhas_mensagens',{}); if(rm.ok){ _pacMsgs = rm.dados||[]; const l=document.getElementById('pacMsgLista'); if(l) l.innerHTML = listaMsgPacienteHTML(); }
+  } else showToast('Presença confirmada. Até lá!','ok');
+}
+
 async function abrirPortal() {
   fecharTudoDaEquipe();
   document.getElementById('pacLoginScreen').style.display='none';
@@ -2837,7 +2988,7 @@ async function abrirPortal() {
   // A Avaliação física (avaliacao/?painel=paciente) usa esta mesma sessão e
   // precisa saber qual implantação do Apps Script está em uso
   if(!demoMode) localStorage.setItem('co_api_ativa', API_URL);
-  const [pront, fila, docs, msgs, exers, resul, finan] = await Promise.all([
+  const [pront, fila, docs, msgs, exers, resul, finan, agPac] = await Promise.all([
     api('meu_prontuario',{}),
     api('minha_posicao',{}),
     api('meus_documentos',{}),
@@ -2845,7 +2996,9 @@ async function abrirPortal() {
     api('meus_exercicios',{}),
     api('meus_resultados',{}),
     api('meu_financeiro',{}),
+    api('minha_agenda',{}),
   ]);
+  _pacAgenda = agPac && agPac.ok ? (agPac.dados||[]) : [];
   _pacFin = finan && finan.ok ? finan.dados : null;
   const _pacResul = resul && resul.ok ? resul.dados : null;
   _pacDocs = docs.ok ? (docs.dados||[]) : [];
@@ -2868,6 +3021,8 @@ async function abrirPortal() {
   tela.querySelector('.pt-corpo').innerHTML = `
     <div class="pt-ola">Olá, ${esc((d.nome||'').split(' ')[0])} </div>
     <div class="pt-sub">${ehLead?'Assim que você virar cliente, seu acompanhamento aparece aqui':'Acompanhe seu atendimento na Casa Oliveira'}</div>
+
+    ${!ehLead ? proximasSessoesHTML() : ''}
 
     ${ehLead ? `<div class="pt-card">
       <div class="pt-t">Situação</div>
@@ -2980,6 +3135,7 @@ async function abrirPortal() {
 
     <button class="backbtn" style="width:100%;margin-top:6px" onclick="trocarSenhaPaciente()">Alterar minha senha</button>
     <div class="pt-rodape">Dúvidas sobre o tratamento? Fale com sua equipe pelo chat.</div>`;
+  if(!ehLead) setTimeout(avisosAoAbrirPortal, 400);
 }
 
 function trocarSenhaPaciente() {
@@ -4772,6 +4928,7 @@ function desenharAgenda(rolar) {
   ${_agVista==='lista' ? listaAgenda(varias) : _agVista==='mapa' ? mapaPilates() : gradeAgenda(varias)}
   ${_agVista!=='lista' && _agVista!=='mapa' ? `<div class="agx-leg">
     ${Object.entries(AG_STATUS).map(([k,s])=>`<span><b class="agx-st st-${k||'agendado'}">${AG_ICONE[k]}</b>${s.t}</span>`).join('')}
+    <span><span class="agx-nv">não vem</span>Paciente avisou</span>
     ${_agVista==='semana'&&!_agFiltro&&_ag.profissionais.length>2?`<span class="agx-dica" style="margin-left:0">Semana cheia? Escolha uma profissional acima para ver os nomes.</span>`:''}
     <span class="agx-dica">${toque?'Toque num horário vazio para agendar':'Clique num horário vazio para agendar · arraste para remarcar'}</span>
   </div>`:''}`;
@@ -4870,10 +5027,10 @@ function gradeAgenda(varias) {
       if(estreito) return `<button class="agx-ev agx-mini st-${st||'agendado'}${e.do_sistema?' mov':''}" data-id="${esc(e.id)}" data-ag="${esc(e.agenda_email)}"
         style="--c:${cor};top:${top}px;height:${alt}px;left:calc(${faixa*100/de}% + 1px);width:calc(${100/de}% - 2px)"
         title="${esc(e.titulo)} · ${horaDe(e.inicio)}–${horaDe(e.fim)}${prof?' · '+prof:''}${sala?' · '+sala:''}">${st?`<b class="agx-st st-${st}">${AG_ICONE[st]}</b>`:''}<span class="agx-ini">${esc(nome.split(' ').map(x=>x[0]).join('').slice(0,2))}</span></button>`;
-      return `<button class="agx-ev st-${st||'agendado'}${e.do_sistema?' mov':''}" data-id="${esc(e.id)}" data-ag="${esc(e.agenda_email)}"
+      return `<button class="agx-ev st-${st||'agendado'}${e.do_sistema?' mov':''}${e.aviso?' avisou':''}" data-id="${esc(e.id)}" data-ag="${esc(e.agenda_email)}"
         style="--c:${cor};top:${top}px;height:${alt}px;left:calc(${faixa*100/de}% + 2px);width:calc(${100/de}% - 4px)"
         title="${esc(e.titulo)} · ${horaDe(e.inicio)}–${horaDe(e.fim)}${prof?' · '+prof:''}${sala?' · '+sala:''}${e.rep?' · repete sem data para acabar':''}">
-        <span class="agx-et">${st?`<b class="agx-st st-${st}">${AG_ICONE[st]}</b>`:''}<span class="agx-en">${esc(nome)}</span>${e.rep?'<span class="agx-rep" aria-label="Repete">↻</span>':''}${curto?`<span class="agx-eh">${horaDe(e.inicio)}</span>`:''}</span>
+        <span class="agx-et">${st?`<b class="agx-st st-${st}">${AG_ICONE[st]}</b>`:''}<span class="agx-en">${esc(nome.replace(/^\[Não vem\] /,''))}</span>${e.aviso?'<span class="agx-nv">não vem</span>':''}${e.rep?'<span class="agx-rep" aria-label="Repete">↻</span>':''}${curto?`<span class="agx-eh">${horaDe(e.inicio)}</span>`:''}</span>
         ${curto?'':`<span class="agx-es">${horaDe(e.inicio)}–${horaDe(e.fim)}${serv?' · '+esc(serv):''}</span>${(prof||sala) && alt>=58?`<span class="agx-es agx-ep">${[prof,sala].filter(Boolean).join(' · ')}</span>`:''}`}
       </button>`;
     }).join('');
@@ -5009,6 +5166,8 @@ function detalheAtendimento(agendaEmail, eventoId) {
       <div class="agx-det-l"><span>Profissional</span><b><i style="background:${agCor(e.agenda_email)}"></i>${esc(e.profissional||agProfNome(e.agenda_email))}</b></div>
       ${e.servico?`<div class="agx-det-l"><span>Serviço</span><b>${esc(e.servico)}</b></div>`:''}
       ${e.sala?`<div class="agx-det-l"><span>Sala</span><b>${esc(e.sala)}</b></div>`:''}
+      ${e.aviso?`<div class="agx-det-l agx-det-aviso"><span>Paciente avisou</span><b>Não vem${(()=>{const [q,m]=String(e.aviso).split(' | ');const d=new Date(q);return (isNaN(d)?'':' · avisou em '+d.toLocaleDateString('pt-BR')+' '+horaDe(q))+(m?'<div style="font-weight:500;margin-top:2px">Motivo: '+esc(m)+'</div>':'');})()}</b></div>`:''}
+      ${!e.aviso&&e.confirmado_paciente?`<div class="agx-det-l"><span>Paciente</span><b>Confirmou pela área do paciente</b></div>`:''}
       ${e.rep?`<div class="agx-det-l"><span>Repetição</span><b>↻ ${e.rep.passo===14?'A cada 2 semanas':'Toda semana'}, sem data para acabar</b></div>`:''}
       ${e.nota?`<div class="agx-det-l"><span>Observação</span><b style="font-weight:500;white-space:pre-line">${esc(e.nota)}</b></div>`:''}
       <div class="agx-det-l"><span>Situação</span><b><span class="chip ${st.c}">${st.t}</span></b></div>
@@ -5024,6 +5183,7 @@ function detalheAtendimento(agendaEmail, eventoId) {
       ${e.do_sistema ? `<button class="backbtn" onclick="novoAtendimento(${ref})">Remarcar</button>` : `<span class="pt-nota" style="margin:0">Criado direto no Google Agenda. Para mudar o horário, altere por lá.</span>`}
       <button class="backbtn" style="color:var(--rose);margin-left:auto" onclick="cancelarAtendimento(${ref})">Cancelar atendimento</button>
     </div>
+    ${e.paciente_id ? `<button class="backbtn" style="margin-top:12px" onclick="abrirPlanoPaciente('${esc(e.paciente_id)}','${esc(String(e.titulo||'').split(' · ')[0].replace(/'/g,''))}')">Ver ou mudar o plano de horários do paciente</button>` : ''}
     ${e.rep && e.do_sistema ? `<div class="agx-encerrar"><div><b>Encerrar a repetição</b><div class="pt-nota" style="margin:2px 0 0">Cancela este e os próximos atendimentos da série. Os anteriores ficam como estão.</div></div>
       <button class="backbtn" style="color:var(--rose)" onclick="encerrarRepeticao(${ref})">Encerrar a partir de ${new Date(e.inicio).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})}</button></div>` : ''}`;
   openSheet();
@@ -5421,6 +5581,152 @@ function cliqueMapaPilates(di, h) {
   novoAtendimento(null, null, {inicio:ini, email, servico:'Pilates', dur:50});
 }
 
+// ═══════════════════════════════════════════════
+// PLANO DE ATENDIMENTO DO PACIENTE
+// O plano são os horários fixos do paciente: cada linha é uma série
+// "sem data para acabar" da agenda (dia da semana, hora, profissional,
+// sala, serviço, frequência). Não existe tabela própria: o plano é lido da
+// agenda e, ao salvar, a agenda é refeita dali em diante. Como os eventos
+// vivem no Google Agenda de cada profissional, a agenda delas muda junto.
+// ═══════════════════════════════════════════════
+const DIAS_SEMANA = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+let _plano = null;   // {pac, slots:[...], originais:[...], avulsos:[], el}
+
+async function carregarPlano(el, pac) {
+  const box = document.getElementById(el); if(!box) return;
+  box.innerHTML = loadingHTML();
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const [ag, salas] = await Promise.all([
+    api('listar_agenda',{de:hoje.toISOString(), ate:somaDias(hoje, AG_REP_JANELA+5).toISOString()}),
+    carregarSalas()]);
+  if(!ag.ok) { box.innerHTML = `<div class="pt-nota">Não foi possível ler a agenda: ${esc(ag.erro||'')}</div>`; return; }
+  if(!_ag.profissionais.length && ag.profissionais) _ag.profissionais = ag.profissionais;
+  const doPaciente = (ag.dados||[]).map(prepEvento).filter(e=>!e.dia_inteiro && String(e.paciente_id||'')===String(pac.id));
+  const series = {};
+  doPaciente.filter(e=>e.rep && e.do_sistema).forEach(e=>{ (series[e.agenda_email+'|'+e.rep.id] = series[e.agenda_email+'|'+e.rep.id] || []).push(e); });
+  const slots = Object.values(series).map(evs=>{
+    evs.sort((a,b)=>a.inicio.localeCompare(b.inicio));
+    const p = evs[0], ini = new Date(p.inicio);
+    return {chave:p.agenda_email+'|'+p.rep.id, repId:p.rep.id, dow:ini.getDay(), hora:horaDe(p.inicio), dur:Math.round((new Date(p.fim)-ini)/60000),
+      email:p.agenda_email, sala:p.sala||'', servico:p.servico||'', passo:p.rep.passo||7, nota:p.nota||'', proximas:evs.length, eventos:evs};
+  }).sort((a,b)=>((a.dow+6)%7)-((b.dow+6)%7) || a.hora.localeCompare(b.hora));
+  const avulsos = doPaciente.filter(e=>!e.rep).sort((a,b)=>a.inicio.localeCompare(b.inicio));
+  _plano = {pac, el, slots:slots.map(s=>({...s})), originais:slots, avulsos};
+  desenharPlano();
+}
+
+function resumoPlano(slots) {
+  if(!slots.length) return 'Sem horários fixos';
+  const sem = slots.reduce((s,x)=>s+(x.passo===14?0.5:1),0);
+  return (Number.isInteger(sem)?sem:sem.toString().replace('.',','))+'x por semana · '+slots.map(s=>DIAS_SEMANA[s.dow].slice(0,3).toLowerCase()+' '+s.hora).join(', ');
+}
+
+function desenharPlano() {
+  const box = document.getElementById(_plano.el); if(!box) return;
+  const P = _plano, profs = _ag.profissionais.filter(p=>p.tem_agenda);
+  const amanha = diaISO(somaDias(new Date(),1));
+  box.innerHTML = `
+    <div class="pl-topo"><div><div class="pl-res">${esc(resumoPlano(P.slots))}</div>
+      <div class="pt-nota" style="margin:2px 0 0">Mude o que precisar e salve: a agenda do sistema e o Google Agenda das profissionais se ajustam sozinhos.</div></div></div>
+    ${P.slots.map((s,i)=>`<div class="pl-slot${s.removido?' removido':''}">
+      <div class="pl-grid">
+        <label class="fl">Dia<select class="fs" onchange="mudarSlot(${i},'dow',+this.value)">${[1,2,3,4,5,6,0].map(d=>`<option value="${d}"${s.dow===d?' selected':''}>${DIAS_SEMANA[d]}</option>`).join('')}</select></label>
+        <label class="fl">Horário<input class="fi" type="time" step="300" value="${esc(s.hora)}" onchange="mudarSlot(${i},'hora',this.value)"></label>
+        <label class="fl">Duração<select class="fs" onchange="mudarSlot(${i},'dur',+this.value)">${[...new Set([30,40,50,60,90,120,s.dur])].map(m=>`<option value="${m}"${s.dur===m?' selected':''}>${m} min</option>`).join('')}</select></label>
+        <label class="fl">Frequência<select class="fs" onchange="mudarSlot(${i},'passo',+this.value)"><option value="7"${s.passo===7?' selected':''}>Toda semana</option><option value="14"${s.passo===14?' selected':''}>A cada 2 semanas</option></select></label>
+        <label class="fl pl-wide">Profissional<select class="fs" onchange="mudarSlot(${i},'email',this.value)">${profs.map(p=>`<option value="${esc(p.email)}"${s.email===p.email?' selected':''}>${esc(p.nome)}</option>`).join('')}</select></label>
+        <label class="fl">Serviço<input class="fi" list="plServs" value="${esc(s.servico)}" onchange="mudarSlot(${i},'servico',this.value.trim())"></label>
+        <label class="fl">Sala<input class="fi" list="plSalas" value="${esc(s.sala)}" onchange="mudarSlot(${i},'sala',this.value.trim())"></label>
+      </div>
+      <div class="pl-rod">
+        <span class="pt-nota" style="margin:0">${s.novo?'Horário novo':s.removido?'Será retirado da agenda':slotMudou(s)?'Alterado — será refeito na agenda':`${s.proximas} ${s.proximas===1?'sessão marcada':'sessões marcadas'} à frente`}</span>
+        <button class="ff-link" onclick="${s.removido?`mudarSlot(${i},'removido',false)`:`mudarSlot(${i},'removido',true)`}">${s.removido?'desfazer':'retirar horário'}</button>
+      </div>
+    </div>`).join('')}
+    <datalist id="plServs">${['Pilates',...FIN_SERVICOS].map(x=>`<option value="${esc(x)}">`).join('')}</datalist>
+    <datalist id="plSalas">${(_agSalas||[]).map(x=>`<option value="${esc(x)}">`).join('')}</datalist>
+    <button class="backbtn" style="margin:4px 0 14px" onclick="novoSlotPlano()">+ Adicionar horário fixo</button>
+    <div class="pl-salvar">
+      <label class="fl" style="margin:0">Valendo a partir de<input class="fi" type="date" id="plDesde" value="${diaISO(new Date())}" min="${diaISO(new Date())}"></label>
+      <button class="savebtn" id="plBtn" style="margin:0;flex:1" onclick="salvarPlano()" ${planoMudou()?'':'disabled'}>${planoMudou()?'Salvar plano e ajustar agenda':'Nada alterado'}</button>
+    </div>
+    <div id="plErr" class="errbox" style="margin-top:10px"></div>
+    ${P.avulsos.length?`<div class="ff-mes">Outros atendimentos marcados (fora do plano)</div>${P.avulsos.slice(0,8).map(e=>`<div class="pt-linha"><span>${esc(maiuscula(new Date(e.inicio).toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit'})))} · ${horaDe(e.inicio)}</span><span>${esc(e.servico||'')} · ${esc(e.profissional||agProfNome(e.agenda_email))}</span></div>`).join('')}`:''}`;
+}
+
+function slotMudou(s) {
+  const o = _plano.originais.find(x=>x.chave===s.chave); if(!o) return false;
+  return ['dow','hora','dur','email','sala','servico','passo'].some(k=>String(o[k])!==String(s[k]));
+}
+const planoMudou = () => _plano.slots.some(s=>s.novo ? !s.removido : (s.removido || slotMudou(s)));
+function mudarSlot(i, k, v) { _plano.slots[i][k] = v; if(_plano.slots[i].novo && k==='removido' && v) _plano.slots.splice(i,1); desenharPlano(); }
+function novoSlotPlano() {
+  const base = _plano.slots.find(s=>!s.removido) || {};
+  const eu = (currentUser.email||'').toLowerCase();
+  const profs = _ag.profissionais.filter(p=>p.tem_agenda);
+  _plano.slots.push({novo:true, dow:base.dow===undefined?1:base.dow, hora:base.hora||'09:00', dur:base.dur||50, passo:7,
+    email:base.email || (profs.find(p=>p.email===eu)||profs[0]||{}).email || '', sala:base.sala||'', servico:base.servico||'', nota:''});
+  desenharPlano();
+}
+
+async function salvarPlano() {
+  const P = _plano, btn = document.getElementById('plBtn'), err = document.getElementById('plErr');
+  const desde = new Date((document.getElementById('plDesde').value||diaISO(new Date()))+'T00:00:00');
+  const removerSlots = P.slots.filter(s=>!s.novo && (s.removido || slotMudou(s)));
+  const criarSlots = P.slots.filter(s=>!s.removido && (s.novo || slotMudou(s)));
+  const apagar = removerSlots.flatMap(s=>s.eventos.filter(e=>new Date(e.inicio)>=desde && e.status!=='realizado' && e.status!=='falta'));
+  const msg = [removerSlots.length?`${apagar.length} ${apagar.length===1?'sessão sai':'sessões saem'} da agenda`:'', criarSlots.length?`${criarSlots.length} ${criarSlots.length===1?'horário novo entra':'horários novos entram'}`:'']
+    .filter(Boolean).join(' e ');
+  if(!confirm('Ajustar o plano de '+P.pac.nome+' a partir de '+desde.toLocaleDateString('pt-BR')+'?\n\n'+msg+'. A agenda das profissionais é atualizada junto.')) return;
+  btn.disabled = true; err.style.display = 'none';
+  const fim = somaDias(new Date(new Date().setHours(0,0,0,0)), AG_REP_JANELA+1);
+  // Ocupação do período, sem as sessões que vão sair, para conferir choque e turma cheia
+  btn.textContent = 'Conferindo a agenda…';
+  const apagarIds = new Set(apagar.map(e=>e.id));
+  const periodo = (await agendaDoPeriodo([diaISO(desde), diaISO(fim)])).filter(e=>!apagarIds.has(e.id));
+  // 1. tira as sessões futuras dos horários que mudaram ou saíram
+  let feitos = 0;
+  for(const e of apagar) {
+    btn.textContent = `Ajustando a agenda… ${++feitos}/${apagar.length}`;
+    await api('excluir_evento',{agenda_email:e.agenda_email, evento_id:e.id});
+  }
+  // 2. cria os horários novos como séries sem data para acabar
+  const pulos = []; let criados = 0;
+  for(const s of criarSlots) {
+    const rp = {id:Date.now().toString(36)+Math.random().toString(36).slice(2,5), passo:s.passo};
+    const obs = montaObs(s.sala, rp, s.nota);
+    let d = new Date(desde); while(d.getDay()!==s.dow) d = somaDias(d,1);
+    const [hh,mm] = s.hora.split(':').map(Number);
+    for(; d < fim; d = somaDias(d, s.passo)) {
+      const ini = new Date(d); ini.setHours(hh, mm, 0, 0);
+      const ate = new Date(ini.getTime()+s.dur*60000);
+      const quando = ini.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})+' '+s.hora;
+      if(ehPilates(s.servico) && alunasNoHorario(periodo, s.email, ini, ate, '').length >= PILATES_VAGAS) { pulos.push(quando+' (turma cheia)'); continue; }
+      const outro = outroAtendimentoNoHorario(periodo, s.email, ini, ate, '');
+      if(outro && !ehPilates(outro.servico)) { pulos.push(quando+' (choque)'); continue; }
+      btn.textContent = `Marcando horários novos… ${criados+1}`;
+      const r = await api('salvar_evento',{agenda_email:s.email, paciente_id:P.pac.id, paciente_nome:P.pac.nome, servico:s.servico,
+        obs, inicio:ini.toISOString(), fim:ate.toISOString(), forcar:true});
+      if(r.ok) { criados++; periodo.push(prepEvento({...r.dados, servico:s.servico})); } else pulos.push(quando+' ('+(r.lotado?'turma cheia':'erro')+')');
+    }
+  }
+  btn.disabled = false;
+  showToast('Plano atualizado: '+criados+' '+(criados===1?'sessão marcada':'sessões marcadas')+(apagar.length?', '+apagar.length+' retirada'+(apagar.length>1?'s':''):''),'ok');
+  if(document.getElementById('agBody')) loadAgenda();
+  await carregarPlano(P.el, P.pac);
+  if(pulos.length) { const e2=document.getElementById('plErr'); if(e2){ e2.textContent='Não deu para marcar: '+pulos.join(', ')+'. Escolha outro horário para essas datas.'; e2.style.display='block'; } }
+}
+
+// Aberto a partir da agenda (detalhe de um atendimento que se repete)
+async function abrirPlanoPaciente(pacId, nome) {
+  document.getElementById('sheetTitle').textContent = 'Plano de '+String(nome||'').split(' ')[0];
+  document.getElementById('sheetBody').innerHTML = '<div id="plSheet"></div>';
+  openSheet();
+  const pacs = await carregarTodosPacientes();
+  const p = pacs.find(x=>String(x.id)===String(pacId)) || {id:pacId, nome};
+  carregarPlano('plSheet', {id:p.id, nome:p.nome});
+}
+
 async function criarAgendasEquipe() {
   const btn = document.getElementById('agCriarBtn');
   if(btn){ btn.disabled = true; btn.textContent = 'Criando...'; }
@@ -5716,12 +6022,13 @@ function colunaLeadHTML(estagio, itens) {
 function leadCardHTML(l) {
   const cfg = LINHAS[l.linha];
   return `<div class="kb-card" onclick="abrirLead('${esc(l.id)}')">
-    <div class="kb-nome">${esc(l.nome)}</div>
+    <div class="kb-nome">${l.para_quem==='outra'&&l.paciente_nome?`${esc(l.paciente_nome)}<div class="kb-contato">contato: ${esc(l.nome)}${l.parentesco?' ('+esc(String(l.parentesco).toLowerCase())+')':''}</div>`:esc(l.nome)}</div>
     <div class="kb-meta">
       ${cfg?`<span class="chip ch-${cfg.color}">${esc(cfg.label)}</span>`:''}
       ${l.origem?`<span>${esc(l.origem)}</span>`:''}
     </div>
     ${l.campanha?`<div class="kb-campanha">${esc(l.campanha)}</div>`:''}
+    ${l.observacoes?`<div class="kb-obs">${esc(String(l.observacoes).length>90?String(l.observacoes).slice(0,88)+'…':l.observacoes)}</div>`:''}
     ${l.motivo_perda?`<div class="kb-campanha">${esc(l.motivo_perda)}</div>`:''}
     ${l.paciente_id?`<div class="kb-campanha">virou paciente</div>`:''}
   </div>`;
@@ -5742,11 +6049,13 @@ async function abrirLead(id) {
 
   f.innerHTML = `<div class="evo-form">
     <div class="hist-tit" style="margin-bottom:4px">${esc(l.nome)}</div>
+    ${l.para_quem==='outra'&&l.paciente_nome?`<div class="lead-para">Atendimento para <b>${esc(l.paciente_nome)}</b>${l.parentesco?' · quem entrou em contato é '+esc(String(l.parentesco).toLowerCase()):''}${l.data_nascimento&&calcIdade(l.data_nascimento)!=null?' · '+calcIdade(l.data_nascimento)+' anos':''}</div>`:''}
     <div class="mc-meta" style="margin-bottom:12px">
       ${cfg?`<span class="chip ch-${cfg.color}">${esc(cfg.label)}</span>`:''}
       ${l.telefone?`<span>${esc(l.telefone)}</span>`:''}
       ${l.email?`<span>${esc(l.email)}</span>`:''}
     </div>
+    ${l.observacoes?`<div class="lead-obs"><div class="fl" style="margin-bottom:4px">Observações</div>${esc(l.observacoes)}</div>`:''}
     <div class="cadgrid" style="margin-bottom:12px">
       ${[['Estágio',l.estagio],['Origem',l.origem],['Campanha',l.campanha],
          ['Indicado por',l.indicado_por],['Primeiro contato',valorCampo('data',l.data_contato)],
@@ -5781,7 +6090,7 @@ async function abrirLead(id) {
           </div>`
         : `<div class="fg" style="margin-top:14px"><label class="fl">Virou paciente?</label>
             <div class="pt-nota" style="margin-top:0">Aponte para um cadastro que já existe — não cria paciente novo.</div>
-            <input class="fi" id="ldBuscaPac" list="ldPacientes" placeholder="Buscar paciente pelo nome"
+            <input class="fi" id="ldBuscaPac" list="ldPacientes" value="${esc(l.para_quem==='outra'?(l.paciente_nome||''):'')}" placeholder="Buscar paciente pelo nome"
                    style="margin-top:6px">
             <datalist id="ldPacientes"></datalist>
             <button class="addbtn" style="margin-top:8px" onclick="converterLead('${esc(l.id)}')">Vincular ao cadastro</button>
@@ -5866,22 +6175,32 @@ function novoLead(existente) {
   f.innerHTML = `<div class="evo-form">
     <div class="hist-tit" style="margin-bottom:10px">${existente?'Editar lead':'+ Novo lead'}</div>
     <div class="f2">
-      <div class="fg fa"><label class="fl">Nome *</label>
-        <input class="fi" id="ndNome" value="${esc(l.nome)}" placeholder="Quem entrou em contato"></div>
+      <div class="fg fa"><label class="fl" for="ndNome">Quem entrou em contato *</label>
+        <input class="fi" id="ndNome" value="${esc(l.nome)}" placeholder="Nome de quem falou com a Casa"></div>
       <div class="fg"><label class="fl">Telefone / WhatsApp *</label>
         <input class="fi" id="ndTel" type="tel" inputmode="tel" value="${esc(l.telefone)}" placeholder="(11) 99999-9999"></div>
     </div>
     <!-- Cadastro rápido: nome e telefone bastam. O resto fica recolhido para
          completar depois - aberto só na edição de quem já tem esses dados -->
-    <details id="ndMais" ${existente&&(l.email||l.origem||l.campanha||l.linha)?'open':''} style="margin-top:6px">
+    <details id="ndMais" ${existente&&(l.email||l.origem||l.campanha||l.linha||l.para_quem==='outra')?'open':''} style="margin-top:6px">
       <summary style="cursor:pointer;font-weight:600;font-size:13px;color:var(--ink2);padding:8px 0">
         Mais dados (opcional)</summary>
+    <div class="fg"><label class="fl">Para quem é o atendimento?</label>
+      <div class="agx-seg agx-seg-f" id="ndParaQuem">
+        <button type="button" class="${l.para_quem==='outra'?'':'on'}" data-v="propria" onclick="paraQuemLead(this)">Para a própria pessoa</button>
+        <button type="button" class="${l.para_quem==='outra'?'on':''}" data-v="outra" onclick="paraQuemLead(this)">Para outra pessoa</button></div></div>
+    <div class="f2" id="ndOutraBox" style="${l.para_quem==='outra'?'':'display:none'}">
+      <div class="fg fa"><label class="fl" for="ndPacNome">Nome de quem vai ser atendido</label>
+        <input class="fi" id="ndPacNome" value="${esc(l.paciente_nome||'')}" placeholder="Ex.: Pedro"></div>
+      <div class="fg fa"><label class="fl">Quem entrou em contato é…</label>
+        <div class="agx-chips" id="ndParentesco">${['Mãe','Pai','Filho(a)','Cônjuge','Neto(a)','Irmã(o)','Cuidador(a)','Outro'].map(x=>`<button type="button" class="agx-chip${String(l.parentesco||'')===x?' on':''}" onclick="this.parentNode.querySelectorAll('.agx-chip').forEach(c=>c.classList.toggle('on',c===this&&!c.classList.contains('on')))">${x}</button>`).join('')}</div></div>
+    </div>
     <div class="f2">
       <div class="fg"><label class="fl">E-mail</label>
         <input class="fi" id="ndEmail" type="email" value="${esc(l.email)}"></div>
       ${existente?'':`<div class="pt-nota fa" style="margin:-6px 0 0">Com e-mail, a pessoa já recebe acesso ao portal
         do paciente (orçamento e mensagens direto com a equipe). Sem e-mail, fica só no funil.</div>`}
-      <div class="fg"><label class="fl">Data de nascimento</label>
+      <div class="fg"><label class="fl" id="ndNascLbl">${l.para_quem==='outra'?'Nascimento de quem vai ser atendido':'Data de nascimento'}</label>
         <input class="fi" id="ndNasc" type="date" value="${esc(String(l.data_nascimento||'').slice(0,10))}"></div>
       <div class="fg"><label class="fl">Primeiro contato</label>
         <input class="fi" id="ndData" type="date" value="${esc(String(l.data_contato||'').slice(0,10)) || new Date().toISOString().slice(0,10)}"></div>
@@ -5904,6 +6223,8 @@ function novoLead(existente) {
         <input class="fi" id="ndResp" value="${esc(l.responsavel||currentUser.nome)}"></div>
     </div>
     </details>
+    <div class="fg" style="margin-top:6px"><label class="fl" for="ndObsLead">Observações</label>
+      <textarea class="ft" id="ndObsLead" rows="3" placeholder="Ex.: quer horário à tarde, mãe da Sofia, prefere contato por WhatsApp">${esc(l.observacoes||'')}</textarea></div>
     <div id="ndErr" class="errbox"></div>
     <div style="display:flex;gap:8px;margin-top:10px">
       <button class="savebtn" id="ndBtn" style="flex:1"
@@ -5914,6 +6235,14 @@ function novoLead(existente) {
   f.scrollIntoView({behavior:'smooth', block:'nearest'});
   alternarIndicacao();
   document.getElementById('ndNome').focus();
+}
+
+function paraQuemLead(btn) {
+  btn.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('on')); btn.classList.add('on');
+  const outra = btn.dataset.v==='outra';
+  document.getElementById('ndOutraBox').style.display = outra ? '' : 'none';
+  document.getElementById('ndNascLbl').textContent = outra ? 'Nascimento de quem vai ser atendido' : 'Data de nascimento';
+  if(outra) document.getElementById('ndPacNome').focus();
 }
 
 // "Indicado por" só aparece quando a origem é indicação — perguntar sempre
@@ -5941,7 +6270,13 @@ async function salvarLead(id) {
     origem:v('ndOrigem'), campanha:v('ndCampanha'),
     indicado_por: /indica/i.test(v('ndOrigem')) ? v('ndIndicado') : '',
     linha:v('ndLinha'), responsavel:v('ndResp'),
+    observacoes:v('ndObsLead'),
   };
+  const outra = (document.querySelector('#ndParaQuem button.on')||{}).dataset?.v==='outra';
+  dados.para_quem = outra ? 'outra' : 'propria';
+  dados.paciente_nome = outra ? v('ndPacNome') : '';
+  dados.parentesco = outra ? ((document.querySelector('#ndParentesco .agx-chip.on')||{}).textContent||'') : '';
+  if(outra && !dados.paciente_nome) { err.textContent='Informe o nome de quem vai ser atendido.'; err.style.display='block'; document.getElementById('ndMais').open=true; return; }
   btn.disabled=true; btn.textContent='Salvando...';
   const res = await api('salvar_lead',{id, dados});
   btn.disabled=false; btn.textContent = id?'Salvar':'Cadastrar lead';
@@ -8353,7 +8688,7 @@ async function openPaciente(linha, id) {
     geriatria:    ['Checklist','PTS','Casa Segura','Reuniões'],
     mental:       ['Checklist','PTS','Ateliê'],
   };
-  const tabs = [...(tabsDef[linha]||['Dados']), 'Evoluções', 'Exercícios', 'Documentos', 'Mensagens'];
+  const tabs = [...(tabsDef[linha]||['Dados']), 'Evoluções', 'Exercícios', 'Documentos', 'Mensagens', 'Plano e horários'];
   if(currentRole==='admin') tabs.push('Orçamento');
   if(podeVerFinanceiro()) tabs.push('Financeiro');
   if(currentRole!=='profissional') tabs.push('Área do paciente');
@@ -8364,6 +8699,7 @@ async function openPaciente(linha, id) {
   const iMsg = tabs.indexOf('Mensagens');
   const iOrc = tabs.indexOf('Orçamento');
   const iFin = tabs.indexOf('Financeiro');
+  const iPlano = tabs.indexOf('Plano e horários');
   // Evoluções aparece primeiro (é o que mais se usa), mas a numeração interna
   // das abas não muda: as fichas são gravadas pela posição (aba '0', '1'...)
   const ordemAbas = [iEvo, ...tabs.map((_,i)=>i).filter(i=>i!==iEvo)];
@@ -8396,6 +8732,8 @@ async function openPaciente(linha, id) {
         ? orcamentoHTML(p)
         : i===iFin
         ? `<div id="ffPac"></div>`
+        : i===iPlano
+        ? `<div id="plPac"></div>`
         : i===iPac
         ? areaPacienteHTML(p, i)
         : (()=>{ const c = renderTabContent(linha, p, i);
@@ -8406,6 +8744,7 @@ async function openPaciente(linha, id) {
     </div>`).join('')}`;
 
   carregarEvolucoes(id);
+  carregarPlano('plPac', {id:p.id, nome:p.nome});
   if(iFin>=0) carregarFichaFinanceira('ffPac', {id:p.id, nome:p.nome, telefone:p.telefone||'', cpf:p.cpf||'', email:p.email||'', temCadastro:true});
   carregarDocumentos(id);
   carregarMensagens(id);
