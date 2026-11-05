@@ -590,6 +590,17 @@ body.agx-movendo{cursor:grabbing;user-select:none;}
 .mp-mais{display:none;font-size:11.5px;font-weight:700;color:var(--teal);}
 .mp-c:hover .mp-mais{display:block;}
 /* FICHA FINANCEIRA */
+.ff-dados{display:flex;align-items:flex-start;gap:10px;background:var(--sur);border:1px solid var(--bor);border-radius:var(--r-sm);padding:10px 12px;margin-bottom:10px;}
+.ff-dgrid{flex:1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 14px;min-width:0;}
+.ff-dl{min-width:0;}
+.ff-dl span{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink3);}
+.ff-dl b{font-size:14px;font-weight:600;word-break:break-all;}
+.ff-dl em{font-size:13px;color:var(--ink3);}
+.ff-edit{flex-shrink:0;color:var(--teal);font-weight:700;}
+.ff-dform{flex:1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 10px;}
+.ff-dform .fg{margin-bottom:10px;}
+.ff-dbt{grid-column:1/-1;display:flex;gap:8px;}
+@media(max-width:600px){.ff-dgrid,.ff-dform{grid-template-columns:1fr}}
 .ff-topo{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
 .ff-n{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r-sm);padding:10px 12px;}
 .ff-n span{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink3);}
@@ -3603,6 +3614,8 @@ const FIN_CONFIG = {
     campos: [
       {k:'nome', label:'Aluno', tipo:'texto', obrigatorio:true},
       {k:'telefone', label:'Telefone / WhatsApp', tipo:'texto', placeholder:'Para cobrar pelo WhatsApp'},
+      {k:'cpf', label:'CPF', tipo:'texto', placeholder:'Para recibo e reembolso'},
+      {k:'email', label:'E-mail', tipo:'texto'},
       {k:'plano', label:'Plano', tipo:'texto', placeholder:'Ex.: 2x por semana, mensal', lista:true},
       {k:'valor_plano', label:'Valor da mensalidade (R$)', tipo:'numero'},
       {k:'dia_vencimento', label:'Dia de vencimento', tipo:'numero'},
@@ -3876,6 +3889,8 @@ async function carregarFichaFinanceira(el, alvo) {
   const [pil, ser] = await Promise.all([api('listar',{tabela:'financeiro_pilates'}), api('listar',{tabela:'financeiro_servicos'})]);
   if(!pil.ok || !ser.ok) { box.innerHTML = `<div class="pt-nota">Não foi possível carregar: ${esc((pil.erro||ser.erro)||'')}</div>`; return; }
   _ficha = {alvo, el, itens:itensFinanceiros(pil.dados, ser.dados, alvo)};
+  // Sem o dado no cadastro, vale o que estiver no lançamento mais recente
+  ['cpf','telefone','email'].forEach(k=>{ if(!alvo[k]) { const r=_ficha.itens.find(i=>i.r && i.r[k]); if(r) alvo[k]=r.r[k]; } });
   desenharFicha();
 }
 
@@ -3897,6 +3912,7 @@ function desenharFicha() {
   const rotMes = k => k==='sem-data' ? 'Sem data' : maiuscula(new Date(k+'-15T12:00:00').toLocaleDateString('pt-BR',{month:'long',year:'numeric'}));
 
   box.innerHTML = `
+  <div class="ff-dados" id="ffDados">${dadosClienteHTML(alvo)}</div>
   <div class="ff-topo">
     <div class="ff-n"><span>Em aberto</span><b style="color:${somaAberto?'var(--amber)':'var(--ink)'}">${fmtMoeda(somaAberto)}</b></div>
     <div class="ff-n"><span>Atrasado</span><b style="color:${somaAtras?'var(--rose)':'var(--ink)'}">${fmtMoeda(somaAtras)}</b></div>
@@ -3920,6 +3936,76 @@ function desenharFicha() {
             <span class="ff-formas">${['Pix','Cartão','Dinheiro'].map(f=>`<button onclick="registrarPagamento('${esc(i.id)}','${f}')">${f}</button>`).join('')}</span></div>`}</div>
     </div>`).join('')}`).join('')
   : `<div class="pt-nota" style="text-align:center;padding:18px 0">Nenhuma cobrança registrada para ${esc(String(alvo.nome||'').split(' ')[0])} ainda.</div>`}`;
+}
+
+
+// ── Dados do cliente na ficha: CPF (recibo e reembolso), telefone (cobrança)
+// e e-mail. Com cadastro de paciente, grava no cadastro; sem cadastro, grava
+// nos lançamentos dessa pessoa no Financeiro.
+const soDigitos = v => String(v||'').replace(/\D/g,'');
+function fmtCPF(v) { const d=soDigitos(v); return d.length===11 ? d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4') : String(v||''); }
+function fmtTel(v) { const d=soDigitos(v).replace(/^55(?=\d{10,11}$)/,''); return d.length===11 ? d.replace(/(\d{2})(\d{5})(\d{4})/,'($1) $2-$3') : d.length===10 ? d.replace(/(\d{2})(\d{4})(\d{4})/,'($1) $2-$3') : String(v||''); }
+function cpfValido(v) {
+  const d = soDigitos(v); if(d.length!==11 || /^(\d)\1{10}$/.test(d)) return false;
+  const dv = n => { let s=0; for(let i=0;i<n;i++) s += +d[i]*(n+1-i); const r=(s*10)%11; return r===10?0:r; };
+  return dv(9)===+d[9] && dv(10)===+d[10];
+}
+function dadosClienteHTML(a) {
+  const linha = (rot, val, vazio) => `<div class="ff-dl"><span>${rot}</span>${val?`<b>${esc(val)}</b>`:`<em>${vazio}</em>`}</div>`;
+  return `<div class="ff-dgrid">
+      ${linha('CPF', a.cpf?fmtCPF(a.cpf):'', 'não informado')}
+      ${linha('Telefone', a.telefone?fmtTel(a.telefone):'', 'não informado')}
+      ${linha('E-mail', a.email||'', 'não informado')}
+    </div>
+    <button class="ff-link ff-edit" onclick="editarDadosCliente()">${a.cpf||a.telefone||a.email?'Editar':'Preencher'}</button>`;
+}
+function editarDadosCliente() {
+  const a = _ficha.alvo, box = document.getElementById('ffDados');
+  box.innerHTML = `<div class="ff-dform">
+    <div class="fg"><label class="fl" for="ffCpf">CPF</label><input class="fi" id="ffCpf" inputmode="numeric" placeholder="000.000.000-00" value="${esc(a.cpf?fmtCPF(a.cpf):'')}" oninput="this.value=mascaraCPF(this.value)"></div>
+    <div class="fg"><label class="fl" for="ffTel">Telefone / WhatsApp</label><input class="fi" id="ffTel" type="tel" inputmode="tel" placeholder="(11) 99999-9999" value="${esc(a.telefone?fmtTel(a.telefone):'')}"></div>
+    <div class="fg"><label class="fl" for="ffEmail">E-mail</label><input class="fi" id="ffEmail" type="email" placeholder="nome@email.com" value="${esc(a.email||'')}"></div>
+    <div id="ffDErr" class="errbox" style="grid-column:1/-1"></div>
+    <div class="ff-dbt"><button class="addbtn" id="ffDBtn" onclick="salvarDadosCliente()">Salvar dados</button>
+      <button class="backbtn" onclick="document.getElementById('ffDados').innerHTML=dadosClienteHTML(_ficha.alvo)">Cancelar</button></div>
+    ${a.temCadastro?'':`<div class="pt-nota" style="grid-column:1/-1;margin:0">Esta pessoa não tem cadastro de paciente; os dados ficam guardados nos lançamentos dela no Financeiro.</div>`}
+  </div>`;
+  document.getElementById('ffCpf').focus();
+}
+function mascaraCPF(v) {
+  const d = soDigitos(v).slice(0,11);
+  return d.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})\.(\d{3})(\d)/,'$1.$2.$3').replace(/\.(\d{3})(\d{1,2})$/,'.$1-$2');
+}
+async function salvarDadosCliente() {
+  const a = _ficha.alvo, err = document.getElementById('ffDErr'), btn = document.getElementById('ffDBtn');
+  const erro = m => { err.textContent = m; err.style.display = 'block'; };
+  const cpf = soDigitos(document.getElementById('ffCpf').value);
+  const telefone = soDigitos(document.getElementById('ffTel').value);
+  const email = document.getElementById('ffEmail').value.trim();
+  if(cpf && !cpfValido(cpf)) return erro('Esse CPF não confere. Verifique os números.');
+  if(telefone && (telefone.length<10 || telefone.length>13)) return erro('Telefone incompleto. Use DDD + número.');
+  if(email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return erro('E-mail inválido.');
+  const dados = {cpf:cpf?fmtCPF(cpf):'', telefone:telefone?fmtTel(telefone):'', email};
+  btn.disabled = true; btn.textContent = 'Salvando…';
+  let ok = true, msg = '';
+  if(a.temCadastro && a.id) {
+    const res = await api('atualizar',{tabela:'pacientes', id:a.id, dados});
+    ok = res.ok; msg = res.erro||'';
+    const c = (_todosPacientes||[]).find(x=>String(x.id)===String(a.id)); if(c && ok) Object.assign(c, dados);
+    Object.values(_pacientesCache||{}).forEach(l=>(l||[]).forEach(x=>{ if(ok && String(x.id)===String(a.id)) Object.assign(x, dados); }));
+  }
+  // Também nos lançamentos da pessoa: o Financeiro geral e a cobrança usam o telefone de lá
+  if(ok) for(const i of _ficha.itens) {
+    const d = i.tabela==='financeiro_pilates' ? dados : {cpf:dados.cpf};
+    const r = await api('atualizar',{tabela:i.tabela, id:i.id, dados:d});
+    if(r.ok) Object.assign(i.r, d); else if(!a.temCadastro) { ok=false; msg=r.erro||''; break; }
+  }
+  btn.disabled = false; btn.textContent = 'Salvar dados';
+  if(!ok) return erro('Não foi possível salvar: '+msg);
+  Object.assign(a, dados);
+  if(!a.temCadastro && !_ficha.itens.length) showToast('Dados guardados quando houver a primeira cobrança','ok');
+  else showToast('Dados do cliente salvos','ok');
+  desenharFicha(); atualizarFinanceiroAberto();
 }
 
 async function registrarPagamento(id, forma) {
@@ -3984,9 +4070,9 @@ async function salvarCobrancaFicha() {
   const a = _ficha.alvo, ult = _ficha.itens.find(i=>i.tabela==='financeiro_pilates');
   const pagto = pago ? {pago:'Sim', data_pagamento:hojeISO()} : {pago:'Não'};
   const dados = pil
-    ? {nome:a.nome, paciente_id:a.id||'', telefone:a.telefone||(ult&&ult.r.telefone)||'', plano:v('ffPlano'), valor_plano:valor,
+    ? {nome:a.nome, paciente_id:a.id||'', telefone:a.telefone||(ult&&ult.r.telefone)||'', cpf:a.cpf||'', email:a.email||'', plano:v('ffPlano'), valor_plano:valor,
        dia_vencimento:(ult&&ult.r.dia_vencimento)||'10', mes:v('ffMes'), status:'Ativo', ...pagto}
-    : {paciente:a.nome, paciente_id:a.id||'', servico:v('ffServ'), sessoes:'1', valor, data:v('ffData'), mes:v('ffData').slice(0,7), origem:'ficha', ...pagto};
+    : {paciente:a.nome, paciente_id:a.id||'', cpf:a.cpf||'', servico:v('ffServ'), sessoes:'1', valor, data:v('ffData'), mes:v('ffData').slice(0,7), origem:'ficha', ...pagto};
   const btn = document.getElementById('ffBtn'); btn.disabled = true; btn.textContent = 'Lançando…';
   const res = await api('salvar',{tabela:pil?'financeiro_pilates':'financeiro_servicos', dados});
   btn.disabled = false; btn.textContent = 'Lançar';
@@ -4000,7 +4086,7 @@ async function salvarCobrancaFicha() {
 async function abrirFichaFinanceira(nome, pacienteId) {
   const pacs = await carregarTodosPacientes();
   const p = pacs.find(x=>pacienteId && String(x.id)===String(pacienteId)) || pacs.find(x=>normalizar(x.nome)===normalizar(nome));
-  const alvo = p ? {id:p.id, nome:p.nome, telefone:p.telefone||p.whatsapp||''} : {id:pacienteId||'', nome};
+  const alvo = p ? {id:p.id, nome:p.nome, telefone:p.telefone||p.whatsapp||'', cpf:p.cpf||'', email:p.email||'', temCadastro:true} : {id:pacienteId||'', nome};
   document.getElementById('sheetTitle').textContent = alvo.nome;
   document.getElementById('sheetBody').innerHTML = `
     ${p?`<div style="margin:-6px 0 14px"><button class="backbtn" onclick="closeSheet(true);abrirPacienteDaAgenda('${esc(linhasDoPaciente(p)[0]||'')}','${esc(p.id)}')">Abrir prontuário ›</button></div>`
@@ -8122,7 +8208,7 @@ async function openPaciente(linha, id) {
     </div>`).join('')}`;
 
   carregarEvolucoes(id);
-  if(iFin>=0) carregarFichaFinanceira('ffPac', {id:p.id, nome:p.nome, telefone:p.telefone||''});
+  if(iFin>=0) carregarFichaFinanceira('ffPac', {id:p.id, nome:p.nome, telefone:p.telefone||'', cpf:p.cpf||'', email:p.email||'', temCadastro:true});
   carregarDocumentos(id);
   carregarMensagens(id);
   carregarPrescricao(id);
