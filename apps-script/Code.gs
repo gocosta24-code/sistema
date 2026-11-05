@@ -1504,7 +1504,8 @@ const MOTIVOS_PERDA = ['N\u00e3o respondeu','N\u00e3o tinha or\u00e7amento','Des
 
 const LEAD_CABECALHO = ['id','nome','telefone','email','data_contato','origem','campanha',
                         'indicado_por','linha','responsavel','estagio','motivo_perda',
-                        'paciente_id','criado_em','atualizado_em','observacoes'];
+                        'paciente_id','criado_em','atualizado_em','observacoes',
+                        'para_quem','paciente_nome','parentesco','data_nascimento'];
 const LEADLOG_CABECALHO = ['id','lead_id','em','de_estagio','para_estagio','obs','por'];
 
 function abaComCabecalho(nome, cabecalho) {
@@ -1635,8 +1636,10 @@ function salvarLead(body, token) {
   if (email && email.indexOf('@') === -1) return {ok:false, erro:'Confira o e-mail, ou deixe em branco'};
   if (email && acharPacientePorEmail(email)) return {ok:false, erro:'Este e-mail já tem cadastro de paciente'};
 
+  const outraPessoa = d.para_quem === 'outra' && String(d.paciente_nome||'').trim();
   const pacId = email ? criarPacienteLead({
-    nome: nome, email: email, telefone: d.telefone||'',
+    nome: outraPessoa ? String(d.paciente_nome).trim() : nome, email: email, telefone: d.telefone||'',
+    responsavel: outraPessoa ? nome + (d.parentesco ? ' (' + String(d.parentesco).toLowerCase() + ')' : '') : '',
     data_nascimento: d.data_nascimento||'', linha: d.linha||'',
     observacoes: d.observacoes||'',
     criado_por: perfil.nome || perfil.email
@@ -1650,6 +1653,8 @@ function salvarLead(body, token) {
     origem: d.origem||'', campanha: d.campanha||'', indicado_por: d.indicado_por||'',
     linha: d.linha||'', responsavel: d.responsavel || perfil.nome,
     observacoes: d.observacoes||'',
+    para_quem: d.para_quem||'', paciente_nome: d.paciente_nome||'', parentesco: d.parentesco||'',
+    data_nascimento: d.data_nascimento||'',
     estagio: estagio, motivo_perda: '', paciente_id: pacId,
     criado_em: agora, atualizado_em: agora
   };

@@ -594,6 +594,8 @@ body.agx-movendo{cursor:grabbing;user-select:none;}
 .mp-mais{display:none;font-size:11.5px;font-weight:700;color:var(--teal);}
 .mp-c:hover .mp-mais{display:block;}
 /* FICHA FINANCEIRA */
+.kb-contato{font-size:11.5px;font-weight:500;color:var(--ink3);margin-top:1px;}
+.lead-para{font-size:13.5px;color:var(--ink2);background:var(--sur);border:1px solid var(--bor);border-radius:var(--r-sm);padding:8px 12px;margin:6px 0 10px;}
 .kb-obs{font-size:12px;color:var(--ink2);margin-top:6px;font-style:italic;line-height:1.4;white-space:pre-line;}
 .lead-obs{background:var(--sur);border:1px solid var(--bor);border-left:3px solid var(--amber);border-radius:var(--r-sm);padding:10px 12px;margin-bottom:12px;font-size:14px;line-height:1.5;white-space:pre-line;}
 .fe-topo{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:12px;}
@@ -1428,7 +1430,8 @@ function demoApi(action, body) {
         return {ok:false, erro:'Este e-mail já tem cadastro de paciente'};
       const id='ld_'+Date.now();
       const pacId=email ? 'pac_'+Date.now() : '';
-      if(email) DEMO_DB.pacientes.push({id:pacId, nome:(body.dados||{}).nome, email,
+      const dd=body.dados||{}, outraP=dd.para_quem==='outra'&&dd.paciente_nome;
+      if(email) DEMO_DB.pacientes.push({id:pacId, nome:outraP?dd.paciente_nome:dd.nome, responsavel:outraP?dd.nome+(dd.parentesco?' ('+dd.parentesco.toLowerCase()+')':''):'', email,
         telefone:(body.dados||{}).telefone||'', data_nascimento:(body.dados||{}).data_nascimento||'',
         linha:(body.dados||{}).linha||'', status:'Lead', acesso:'Liberado',
         criado_em:new Date().toISOString()});
@@ -5718,7 +5721,7 @@ function colunaLeadHTML(estagio, itens) {
 function leadCardHTML(l) {
   const cfg = LINHAS[l.linha];
   return `<div class="kb-card" onclick="abrirLead('${esc(l.id)}')">
-    <div class="kb-nome">${esc(l.nome)}</div>
+    <div class="kb-nome">${l.para_quem==='outra'&&l.paciente_nome?`${esc(l.paciente_nome)}<div class="kb-contato">contato: ${esc(l.nome)}${l.parentesco?' ('+esc(String(l.parentesco).toLowerCase())+')':''}</div>`:esc(l.nome)}</div>
     <div class="kb-meta">
       ${cfg?`<span class="chip ch-${cfg.color}">${esc(cfg.label)}</span>`:''}
       ${l.origem?`<span>${esc(l.origem)}</span>`:''}
@@ -5745,6 +5748,7 @@ async function abrirLead(id) {
 
   f.innerHTML = `<div class="evo-form">
     <div class="hist-tit" style="margin-bottom:4px">${esc(l.nome)}</div>
+    ${l.para_quem==='outra'&&l.paciente_nome?`<div class="lead-para">Atendimento para <b>${esc(l.paciente_nome)}</b>${l.parentesco?' · quem entrou em contato é '+esc(String(l.parentesco).toLowerCase()):''}${l.data_nascimento&&calcIdade(l.data_nascimento)!=null?' · '+calcIdade(l.data_nascimento)+' anos':''}</div>`:''}
     <div class="mc-meta" style="margin-bottom:12px">
       ${cfg?`<span class="chip ch-${cfg.color}">${esc(cfg.label)}</span>`:''}
       ${l.telefone?`<span>${esc(l.telefone)}</span>`:''}
@@ -5785,7 +5789,7 @@ async function abrirLead(id) {
           </div>`
         : `<div class="fg" style="margin-top:14px"><label class="fl">Virou paciente?</label>
             <div class="pt-nota" style="margin-top:0">Aponte para um cadastro que já existe — não cria paciente novo.</div>
-            <input class="fi" id="ldBuscaPac" list="ldPacientes" placeholder="Buscar paciente pelo nome"
+            <input class="fi" id="ldBuscaPac" list="ldPacientes" value="${esc(l.para_quem==='outra'?(l.paciente_nome||''):'')}" placeholder="Buscar paciente pelo nome"
                    style="margin-top:6px">
             <datalist id="ldPacientes"></datalist>
             <button class="addbtn" style="margin-top:8px" onclick="converterLead('${esc(l.id)}')">Vincular ao cadastro</button>
@@ -5870,22 +5874,32 @@ function novoLead(existente) {
   f.innerHTML = `<div class="evo-form">
     <div class="hist-tit" style="margin-bottom:10px">${existente?'Editar lead':'+ Novo lead'}</div>
     <div class="f2">
-      <div class="fg fa"><label class="fl">Nome *</label>
-        <input class="fi" id="ndNome" value="${esc(l.nome)}" placeholder="Quem entrou em contato"></div>
+      <div class="fg fa"><label class="fl" for="ndNome">Quem entrou em contato *</label>
+        <input class="fi" id="ndNome" value="${esc(l.nome)}" placeholder="Nome de quem falou com a Casa"></div>
       <div class="fg"><label class="fl">Telefone / WhatsApp *</label>
         <input class="fi" id="ndTel" type="tel" inputmode="tel" value="${esc(l.telefone)}" placeholder="(11) 99999-9999"></div>
     </div>
     <!-- Cadastro rápido: nome e telefone bastam. O resto fica recolhido para
          completar depois - aberto só na edição de quem já tem esses dados -->
-    <details id="ndMais" ${existente&&(l.email||l.origem||l.campanha||l.linha)?'open':''} style="margin-top:6px">
+    <details id="ndMais" ${existente&&(l.email||l.origem||l.campanha||l.linha||l.para_quem==='outra')?'open':''} style="margin-top:6px">
       <summary style="cursor:pointer;font-weight:600;font-size:13px;color:var(--ink2);padding:8px 0">
         Mais dados (opcional)</summary>
+    <div class="fg"><label class="fl">Para quem é o atendimento?</label>
+      <div class="agx-seg agx-seg-f" id="ndParaQuem">
+        <button type="button" class="${l.para_quem==='outra'?'':'on'}" data-v="propria" onclick="paraQuemLead(this)">Para a própria pessoa</button>
+        <button type="button" class="${l.para_quem==='outra'?'on':''}" data-v="outra" onclick="paraQuemLead(this)">Para outra pessoa</button></div></div>
+    <div class="f2" id="ndOutraBox" style="${l.para_quem==='outra'?'':'display:none'}">
+      <div class="fg fa"><label class="fl" for="ndPacNome">Nome de quem vai ser atendido</label>
+        <input class="fi" id="ndPacNome" value="${esc(l.paciente_nome||'')}" placeholder="Ex.: Pedro"></div>
+      <div class="fg fa"><label class="fl">Quem entrou em contato é…</label>
+        <div class="agx-chips" id="ndParentesco">${['Mãe','Pai','Filho(a)','Cônjuge','Neto(a)','Irmã(o)','Cuidador(a)','Outro'].map(x=>`<button type="button" class="agx-chip${String(l.parentesco||'')===x?' on':''}" onclick="this.parentNode.querySelectorAll('.agx-chip').forEach(c=>c.classList.toggle('on',c===this&&!c.classList.contains('on')))">${x}</button>`).join('')}</div></div>
+    </div>
     <div class="f2">
       <div class="fg"><label class="fl">E-mail</label>
         <input class="fi" id="ndEmail" type="email" value="${esc(l.email)}"></div>
       ${existente?'':`<div class="pt-nota fa" style="margin:-6px 0 0">Com e-mail, a pessoa já recebe acesso ao portal
         do paciente (orçamento e mensagens direto com a equipe). Sem e-mail, fica só no funil.</div>`}
-      <div class="fg"><label class="fl">Data de nascimento</label>
+      <div class="fg"><label class="fl" id="ndNascLbl">${l.para_quem==='outra'?'Nascimento de quem vai ser atendido':'Data de nascimento'}</label>
         <input class="fi" id="ndNasc" type="date" value="${esc(String(l.data_nascimento||'').slice(0,10))}"></div>
       <div class="fg"><label class="fl">Primeiro contato</label>
         <input class="fi" id="ndData" type="date" value="${esc(String(l.data_contato||'').slice(0,10)) || new Date().toISOString().slice(0,10)}"></div>
@@ -5922,6 +5936,14 @@ function novoLead(existente) {
   document.getElementById('ndNome').focus();
 }
 
+function paraQuemLead(btn) {
+  btn.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('on')); btn.classList.add('on');
+  const outra = btn.dataset.v==='outra';
+  document.getElementById('ndOutraBox').style.display = outra ? '' : 'none';
+  document.getElementById('ndNascLbl').textContent = outra ? 'Nascimento de quem vai ser atendido' : 'Data de nascimento';
+  if(outra) document.getElementById('ndPacNome').focus();
+}
+
 // "Indicado por" só aparece quando a origem é indicação — perguntar sempre
 // deixa o formulário cheio de campo que não se aplica
 function alternarIndicacao() {
@@ -5949,6 +5971,11 @@ async function salvarLead(id) {
     linha:v('ndLinha'), responsavel:v('ndResp'),
     observacoes:v('ndObsLead'),
   };
+  const outra = (document.querySelector('#ndParaQuem button.on')||{}).dataset?.v==='outra';
+  dados.para_quem = outra ? 'outra' : 'propria';
+  dados.paciente_nome = outra ? v('ndPacNome') : '';
+  dados.parentesco = outra ? ((document.querySelector('#ndParentesco .agx-chip.on')||{}).textContent||'') : '';
+  if(outra && !dados.paciente_nome) { err.textContent='Informe o nome de quem vai ser atendido.'; err.style.display='block'; document.getElementById('ndMais').open=true; return; }
   btn.disabled=true; btn.textContent='Salvando...';
   const res = await api('salvar_lead',{id, dados});
   btn.disabled=false; btn.textContent = id?'Salvar':'Cadastrar lead';
