@@ -261,6 +261,10 @@ input,select,textarea{outline:none;}
 .line-stats{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;}
 
 /* PROFISSIONAIS */
+.prof-acoes{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;}
+.prof-acoes .backbtn{padding:6px 12px;}
+.prof-card.inativo{opacity:.6;}
+.prof-sair{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:18px;padding:12px 14px;border:1px dashed var(--bor2);border-radius:var(--r-sm);font-size:13.5px;}
 .prof-card{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px;box-shadow:var(--sh);}
 .prof-av{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;flex-shrink:0;}
 .prof-nm{font-size:14px;font-weight:600;}
@@ -546,6 +550,105 @@ body.agx-movendo{cursor:grabbing;user-select:none;}
 .agx-ac.on{background:var(--teal);border-color:var(--teal);color:#fff;}
 .agx-ac.falta.on{background:var(--rose);border-color:var(--rose);}
 .agx-ac:disabled{opacity:.4;cursor:not-allowed;}
+.agx-rep{font-size:11px;color:var(--ink3);flex-shrink:0;}
+.agx-cols{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;font-size:12.5px;color:var(--ink3);font-weight:600;}
+.agx-cols .agx-seg button{padding:4px 12px;font-size:12.5px;}
+.agx-link{background:none;color:var(--teal);font-weight:700;font-size:12.5px;text-decoration:underline;text-underline-offset:3px;padding:4px 6px;}
+.agx-repfim{display:flex;flex-direction:column;gap:8px;margin-top:12px;background:var(--sur);border:1px solid var(--bor);border-radius:var(--r-sm);padding:12px 14px;}
+.agx-op{display:flex;align-items:center;gap:9px;font-size:14px;font-weight:600;color:var(--ink2);cursor:pointer;flex-wrap:wrap;}
+.agx-op input[type=radio]{width:18px;height:18px;accent-color:var(--teal);}
+.agx-num{width:76px!important;padding:8px 10px!important;text-align:center;font-weight:700;font-size:15px!important;}
+.agx-encerrar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:space-between;margin-top:16px;padding:12px 14px;border:1px dashed var(--bor2);border-radius:var(--r-sm);font-size:13.5px;}
+/* MAPA DO PILATES */
+.mp-resumo{display:flex;flex-wrap:wrap;gap:10px 26px;align-items:center;background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);padding:12px 16px;margin-bottom:12px;box-shadow:var(--sh);}
+.mp-resumo>div{display:flex;align-items:baseline;gap:7px;}
+.mp-resumo b{font-family:'Fraunces',serif;font-size:24px;font-weight:500;}
+.mp-resumo span{font-size:12.5px;color:var(--ink3);}
+.mp-resumo .mp-leg{margin-left:auto;display:flex;gap:14px;flex-wrap:wrap;}
+.mp-leg span{display:inline-flex;align-items:center;gap:6px;}
+.mp-sw{width:12px;height:12px;border-radius:3px;display:inline-block;border:1px solid var(--bor);}
+.mp-scroll{overflow:auto;max-height:calc(100vh - 290px);}
+.mp{border-collapse:separate;border-spacing:0;width:100%;min-width:760px;table-layout:fixed;}
+.mp th{position:sticky;top:0;z-index:3;background:var(--sur);font-size:12.5px;font-weight:700;color:var(--ink2);padding:9px 8px;border-bottom:1px solid var(--bor);text-align:left;}
+.mp th span{color:var(--ink3);font-weight:500;}
+.mp th.hoje{color:var(--amber);}
+.mp th.mp-h,.mp tbody th.mp-h{width:52px;position:sticky;left:0;z-index:4;background:var(--sur);color:var(--ink3);font-weight:600;font-size:12px;text-align:right;padding-right:10px;vertical-align:top;border-right:1px solid var(--bor);}
+.mp tbody th.mp-h{z-index:2;padding-top:9px;border-bottom:1px solid var(--bor);}
+.mp-c{vertical-align:top;padding:6px;border-bottom:1px solid var(--bor);border-left:1px solid var(--bor);cursor:pointer;height:64px;position:relative;}
+.mp-c:hover{box-shadow:inset 0 0 0 2px var(--teal);}
+.mp-vaga,.mp-sw.mp-vaga{background:#F3F8EE;}
+.mp-cheio,.mp-sw.mp-cheio{background:#FBEDE9;}
+.mp-vazio,.mp-sw.mp-vazio{background:var(--sur);}
+.mp-passou{opacity:.62;}
+.mp-g{margin-bottom:5px;}
+.mp-gh{display:flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.3px;margin-bottom:2px;}
+.mp-gh i{width:7px;height:7px;border-radius:50%;}
+.mp-gh b{margin-left:auto;color:var(--teal);font-size:11px;}
+.mp-gh b.cheio{color:var(--rose);}
+.mp-gh1{justify-content:flex-end;}
+.mp-n{display:block;width:100%;text-align:left;font-size:12.5px;font-weight:600;color:var(--ink);background:none;padding:1px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.mp-n small{color:var(--ink3);font-weight:500;}
+.mp-n:hover{color:var(--teal);text-decoration:underline;}
+.mp-n.st-falta{text-decoration:line-through;color:var(--ink3);}
+.mp-n.st-realizado::before{content:"✓ ";color:var(--sage);font-weight:800;}
+.mp-mais{display:none;font-size:11.5px;font-weight:700;color:var(--teal);}
+.mp-c:hover .mp-mais{display:block;}
+/* FICHA FINANCEIRA */
+.fe-topo{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:12px;}
+.fe-topo>div{background:var(--bg);border:1px solid var(--bor);border-radius:var(--r-sm);padding:10px 12px;}
+.fe-topo span{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink3);}
+.fe-topo b{font-family:'Fraunces',serif;font-weight:500;font-size:22px;}
+.fe-topo small{display:block;font-size:11.5px;color:var(--ink3);}
+.fe-aviso{display:flex;align-items:center;gap:12px;justify-content:space-between;flex-wrap:wrap;background:var(--amber-lt);border-radius:var(--r-sm);padding:10px 14px;margin-bottom:10px;font-size:13px;}
+.fe-tab td{vertical-align:middle;}
+.fe-tab .r{text-align:right;}
+.fe-tab td.fe-serv{white-space:normal;max-width:200px;color:var(--ink2);}
+.fe-mini{font-size:11px;color:var(--ink3);font-weight:500;}
+.fe-valor{display:inline-flex;gap:4px;align-items:center;}
+.fe-valor .fi{width:90px;padding:6px 8px;font-size:13px;}
+.fe-valor .addbtn{padding:6px 10px;}
+.fe-acoes{display:flex;gap:6px;align-items:center;justify-content:flex-end;}
+@media(max-width:767px){.fe-topo{grid-template-columns:1fr 1fr}}
+.ff-dados{display:flex;align-items:flex-start;gap:10px;background:var(--sur);border:1px solid var(--bor);border-radius:var(--r-sm);padding:10px 12px;margin-bottom:10px;}
+.ff-dgrid{flex:1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px 14px;min-width:0;}
+.ff-dl{min-width:0;}
+.ff-dl span{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink3);}
+.ff-dl b{font-size:14px;font-weight:600;word-break:break-all;}
+.ff-dl em{font-size:13px;color:var(--ink3);}
+.ff-edit{flex-shrink:0;color:var(--teal);font-weight:700;}
+.ff-dform{flex:1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 10px;}
+.ff-dform .fg{margin-bottom:10px;}
+.ff-dbt{grid-column:1/-1;display:flex;gap:8px;}
+@media(max-width:600px){.ff-dgrid,.ff-dform{grid-template-columns:1fr}}
+.ff-topo{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
+.ff-n{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r-sm);padding:10px 12px;}
+.ff-n span{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink3);}
+.ff-n b{font-family:'Fraunces',serif;font-weight:500;font-size:21px;}
+.ff-acoes{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;}
+.ff-mes{font-size:12px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.6px;margin:16px 0 6px;}
+.ff-item{display:grid;grid-template-columns:1fr auto auto;grid-template-areas:"info v st" "info bt bt";gap:4px 12px;align-items:center;background:var(--sur);border:1px solid var(--bor);border-radius:var(--r-sm);padding:10px 12px;margin-bottom:6px;}
+.ff-item.pago{background:transparent;}
+.ff-info{grid-area:info;min-width:0;}
+.ff-t{font-weight:700;font-size:14px;}
+.ff-d{font-size:12px;color:var(--ink3);}
+.ff-v{grid-area:v;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;}
+.ff-st{grid-area:st;}
+.ff-bt{grid-area:bt;justify-self:end;}
+.ff-ok{padding:5px 14px;border-radius:16px;background:var(--teal);color:#fff;font-weight:700;font-size:12.5px;}
+.ff-rec .ff-formas{display:none;gap:4px;}
+.ff-rec.abre .ff-ok{display:none;}
+.ff-rec.abre .ff-formas{display:inline-flex;}
+.ff-formas button{padding:5px 11px;border-radius:16px;border:1px solid var(--teal);color:var(--teal);background:var(--sur);font-weight:700;font-size:12.5px;}
+.ff-formas button:hover{background:var(--teal);color:#fff;}
+.ff-link{background:none;color:var(--ink3);font-size:12px;text-decoration:underline;}
+.ff-nome{background:none;color:var(--ink);font:inherit;font-weight:600;text-decoration:underline;text-decoration-color:var(--bor2);text-underline-offset:3px;padding:0;}
+.ff-nome:hover{color:var(--teal);text-decoration-color:var(--teal);}
+.ff-portal-total{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;}
+.ff-portal-total span{font-size:13px;color:var(--ink3);}
+.ff-portal-total b{font-family:'Fraunces',serif;font-size:26px;font-weight:500;color:var(--amber);}
+.ff-portal-sub{font-size:12px;font-weight:700;color:var(--ink3);margin:16px 0 2px;text-transform:uppercase;letter-spacing:.5px;}
+.ff-pix{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--teal-lt);border-radius:var(--r-sm);padding:10px 12px;margin-top:12px;word-break:break-all;}
+@media(max-width:520px){.ff-topo{grid-template-columns:1fr 1fr 1fr;gap:6px}.ff-n b{font-size:16px}.ff-n{padding:8px}}
 @media(max-width:767px){
   .agx-rot{font-size:17px;}
   .agx-add{order:-1;margin-left:auto;}
@@ -873,6 +976,7 @@ let demoMode = false;
 // corrigido e jura que não foi corrigido.
 const VERSAO = '2026-10-30.01';
 let _profsCache = null;
+let _equipeLista = null;   // tela Equipe: inclui quem está Inativo
 let _demoPacienteId = null;
 
 // ═══════════════════════════════════════════════
@@ -993,6 +1097,10 @@ const DEMO_DB = {
   ],
   checklists: [],
   evolucoes: [],
+  financeiro_pilates: (()=>{ const d=new Date(), m=k=>{const x=new Date(d.getFullYear(),d.getMonth()-k,1);return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0');};
+    return [0,1,2].map(k=>({id:'fp'+k, nome:'Patricia Rocha', paciente_id:'p5', telefone:'11988887777', plano:'2x por semana', valor_plano:'330', dia_vencimento:'10', mes:m(k),
+      pago:k===0?'Não':'Sim', data_pagamento:k===0?'':m(k)+'-08', forma_pagamento:k===0?'':'Pix', status:'Ativo'})); })(),
+  financeiro_servicos: [{id:'fs1', data:new Date(Date.now()-20*864e5).toISOString().slice(0,10), mes:new Date(Date.now()-20*864e5).toISOString().slice(0,7), paciente:'Patricia Rocha', paciente_id:'p5', servico:'Avaliação', profissional:'Dra. Paula', sessoes:'1', valor:'180', pago:'Não'}],
   mural: [
     {id:'mu1', tipo:'boas_vindas', texto:'A Lívia chega hoje para a TO infantil. Passe na sala 2 para dar um oi!', para:'', autor_email:'clinicaoliveira20@gmail.com', autor_nome:'Dra. Ana Paula', apoios:'juliana@casaoliveira.com,carlos@casaoliveira.com', criado_em:new Date(Date.now()-2*3600e3).toISOString()},
     {id:'mu2', tipo:'agradecimento', texto:'Obrigada por cobrir minha sessão de ontem com tanto cuidado.', para:'Dr. Carlos', autor_email:'juliana@casaoliveira.com', autor_nome:'TO Juliana', apoios:'clinicaoliveira20@gmail.com', criado_em:new Date(Date.now()-26*3600e3).toISOString()},
@@ -1090,6 +1198,8 @@ const DEMO_DB = {
      descricao:'Aulas em grupo de até 4 pessoas.', valor:'420,00', ativo:'Sim'},
     {id:'c9', nome:'Ateliê Expressivo', linha:'mental',
      descricao:'Grupo semanal de arte como recurso terapêutico.', valor:'', ativo:'Sim'},
+    {id:'c11', nome:'Fisioterapia — sessão', linha:'reabilitacao', descricao:'Sessão individual de fisioterapia.', valor:'150,00', ativo:'Sim'},
+    {id:'c12', nome:'TO mão — sessão', linha:'reabilitacao', descricao:'Terapia ocupacional de mão.', valor:'220,00', ativo:'Sim'},
     {id:'c10', nome:'Massagem Relaxante', linha:'pilates',
      descricao:'Descontinuado em 2026 — encaminhar para Reabilitação.',
      valor:'150,00', ativo:'Não'},
@@ -1175,7 +1285,7 @@ function demoApi(action, body) {
     }
     case 'listar_profs': return {ok:true, dados:DEMO_DB.profissionais};
     case 'salvar': {
-      const id = 'demo_'+Date.now();
+      const id = 'demo_'+Date.now()+'_'+Math.floor(Math.random()*99999);
       const obj = {...body.dados, id, criado_em:new Date().toISOString()};
       if(!DEMO_DB[body.tabela]) DEMO_DB[body.tabela] = [];
       DEMO_DB[body.tabela].push(obj);
@@ -1261,6 +1371,14 @@ function demoApi(action, body) {
       const i=(DEMO_DB.documentos||[]).findIndex(x=>String(x.id)===String(body.id));
       if(i>=0) DEMO_DB.documentos.splice(i,1);
       return {ok:true};
+    }
+    case 'meu_financeiro': {
+      const pac=(DEMO_DB.pacientes||[]).find(p=>p.id===_demoPacienteId); if(!pac) return {ok:false, erro:'Sessão inválida'};
+      const meu=r=>String(r.paciente_id||'')===pac.id || normalizar(r.nome||r.paciente||'')===normalizar(pac.nome);
+      const cfg=DEMO_DB.config||{};
+      return {ok:true, dados:{paciente_id:pac.id, nome:pac.nome, pix_chave:cfg.pix_chave||'', pix_nome:cfg.pix_nome||'',
+        itens:[...(DEMO_DB.financeiro_pilates||[]).filter(meu).map(r=>({...r,origem_tabela:'pilates'})),
+               ...(DEMO_DB.financeiro_servicos||[]).filter(meu).map(r=>({...r,origem_tabela:'servicos'}))]}};
     }
     case 'meus_resultados': {
       // O painel de exemplo (avaliacao/?painel=demo) traz os próprios dados fictícios
@@ -1549,15 +1667,23 @@ function demoAgenda(action, body) {
       ['carlos@casaoliveira.com','Fisio pélvica',[[7,30],[8,30],[11,0],[13,30],[17,0]],['p3','p5']],
       ['paulo@casaoliveira.com','Fisioterapia',[[8,0],[9,0],[10,0],[11,0],[14,0],[15,0],[16,0]],['p4','p6','p5']],
       ['marcia@casaoliveira.com','Casa Segura',[[9,30],[14,0]],['p6','p4']],
-      ['paula@casaoliveira.com','Fisioterapia',[[13,0],[14,0],[18,0]],['p5','p3']],
+      ['paula@casaoliveira.com','Fisioterapia',[[13,0],[14,0],[15,0]],['p5','p3']],
       ['beatriz@casaoliveira.com','TO mão',[[8,0],[10,30],[15,30]],['p4','p7']]];
     DEMO_DB.agenda = [];
+    DEMO_DB.config = {...(DEMO_DB.config||{}), salas:'Sala 1\nSala 2\nSala Brincar\nPilates\nDomicílio', pix_chave:'00.000.000/0001-00', pix_nome:'Casa Oliveira Saúde'};
     grade.forEach(([email,serv,horas,pacs],gi)=>{ for(let d=0; d<6; d++) horas.forEach(([h,m],hi)=>{
       if((d+hi+gi)%4===3 || (d===5 && h>=12)) return;
       const e = ev(d,h,m, serv==='Casa Segura'?90:50, email, pacs[(d+hi)%pacs.length], serv);
+      e.obs = 'Sala: '+({'TO infantil':'Sala Brincar','Casa Segura':'Domicílio','Fisio pélvica':'Sala 1','TO mão':'Sala 2'}[serv]||['Sala 1','Sala 2','Pilates'][(d+hi)%3]);
       const passou = new Date(e.fim) < new Date();
       e.status = passou ? ((d+hi+gi)%9===0?'falta':'realizado') : ((d+hi)%3===0?'':'confirmado');
       DEMO_DB.agenda.push(e); }); });
+    // Turmas de Pilates (Dra. Paula): 1 a 3 alunas por horário
+    const alunasPil = ['p5','p3','p4','p2','p6','p7'];
+    for(let d=0; d<5; d++) [8,9,10,17,18].forEach(h=>{ const n=(d+h)%3+1; for(let k=0;k<n;k++){
+      const e = ev(d,h,0,50,'paula@casaoliveira.com', alunasPil[(d+h+k)%alunasPil.length], 'Pilates');
+      e.obs = 'Sala: Pilates'; e.status = new Date(e.fim)<new Date() ? 'realizado' : 'confirmado';
+      DEMO_DB.agenda.push(e); } });
     equipe.forEach(p=>{ if(!['clinicaoliveira20@gmail.com','recepcao@casaoliveira.com'].includes(p.email)) p.agenda_id = 'demo-'+p.id; });
   }
   const eu = (currentUser.email||'').toLowerCase();
@@ -1584,6 +1710,8 @@ function demoAgenda(action, body) {
   if(!prof) return {ok:false, erro:'Você não tem acesso à agenda dessa profissional'};
   if(action==='salvar_evento') {
     const ini=new Date(body.inicio), fim=new Date(body.fim);
+    if(/pilates/i.test(body.servico||'') && DEMO_DB.agenda.filter(e=>e.agenda_email===prof.email && e.id!==body.evento_id && /pilates/i.test(e.servico||'') && e.status!=='falta' && new Date(e.inicio)<fim && new Date(e.fim)>ini).length>=3)
+      return {ok:false, lotado:true, erro:'Turma cheia: '+prof.nome+' já tem 3 alunas nesse horário'};
     if(!body.forcar) {
       const choque = DEMO_DB.agenda.find(e=>e.agenda_email===prof.email && e.id!==body.evento_id && new Date(e.inicio)<fim && new Date(e.fim)>ini);
       if(choque) return {ok:false, conflito:true, erro:'Já existe "'+choque.titulo+'" nesse horário na agenda de '+prof.nome};
@@ -2668,6 +2796,32 @@ async function doLoginPaciente() {
   abrirPortal();
 }
 
+
+// Área do paciente: o que está em aberto e o que já foi pago (vem de
+// meu_financeiro, que lê as mesmas linhas do Financeiro geral)
+let _pacFin = null;
+function pagamentosPacienteHTML(f) {
+  if(!f || !(f.itens||[]).length) return '';
+  const itens = itensFinanceiros(f.itens.filter(x=>x.origem_tabela==='pilates'), f.itens.filter(x=>x.origem_tabela==='servicos'), {id:f.paciente_id, nome:f.nome});
+  const aberto = itens.filter(i=>!i.pago && !i.sem_valor), pagos = itens.filter(i=>i.pago).slice(0,6);
+  const total = aberto.reduce((s,i)=>s+i.valor,0);
+  return `<div class="pt-card">
+    <div class="pt-t">Pagamentos</div>
+    ${aberto.length ? `<div class="ff-portal-total"><span>Em aberto</span><b>${fmtMoeda(total)}</b></div>
+      ${aberto.map(i=>`<div class="pt-linha"><span>${esc(i.titulo)}${i.tabela==='financeiro_pilates'&&i.venc?`<div style="font-size:12px;color:${i.atrasado?'var(--rose)':'var(--ink3)'}">${i.atrasado?'Venceu':'Vence'} em ${esc(fmtDataBR(String(i.venc).slice(0,10)))}</div>`:''}</span><strong>${fmtMoeda(i.valor)}</strong></div>`).join('')}
+      ${f.pix_chave?`<div class="ff-pix"><div><div style="font-size:12px;color:var(--ink3)">Chave Pix${f.pix_nome?' · '+esc(f.pix_nome):''}</div><b id="pixChave">${esc(f.pix_chave)}</b></div>
+        <button class="addbtn" onclick="copiarPix()">Copiar</button></div>
+        <div class="pt-nota">Depois de pagar, a equipe confirma e o pagamento aparece aqui.</div>`:''}`
+    : `<div class="pt-p" style="color:var(--teal);font-weight:600">Tudo em dia. Obrigada!</div>`}
+    ${pagos.length?`<div class="ff-portal-sub">Pagos recentemente</div>${pagos.map(i=>`<div class="pt-linha"><span>${esc(i.titulo)}<div style="font-size:12px;color:var(--ink3)">Pago${i.data_pagamento?' em '+esc(fmtDataBR(String(i.data_pagamento).slice(0,10))):''}</div></span><strong style="color:var(--ink2)">${fmtMoeda(i.valor)}</strong></div>`).join('')}`:''}
+  </div>`;
+}
+function copiarPix() {
+  const t = (document.getElementById('pixChave')||{}).textContent||'';
+  const ok = ()=>showToast('Chave Pix copiada','ok');
+  if(navigator.clipboard) navigator.clipboard.writeText(t).then(ok, ()=>showToast('Selecione e copie a chave','err'));
+}
+
 async function abrirPortal() {
   fecharTudoDaEquipe();
   document.getElementById('pacLoginScreen').style.display='none';
@@ -2683,14 +2837,16 @@ async function abrirPortal() {
   // A Avaliação física (avaliacao/?painel=paciente) usa esta mesma sessão e
   // precisa saber qual implantação do Apps Script está em uso
   if(!demoMode) localStorage.setItem('co_api_ativa', API_URL);
-  const [pront, fila, docs, msgs, exers, resul] = await Promise.all([
+  const [pront, fila, docs, msgs, exers, resul, finan] = await Promise.all([
     api('meu_prontuario',{}),
     api('minha_posicao',{}),
     api('meus_documentos',{}),
     api('minhas_mensagens',{}),
     api('meus_exercicios',{}),
     api('meus_resultados',{}),
+    api('meu_financeiro',{}),
   ]);
+  _pacFin = finan && finan.ok ? finan.dados : null;
   const _pacResul = resul && resul.ok ? resul.dados : null;
   _pacDocs = docs.ok ? (docs.dados||[]) : [];
   _pacMsgs = msgs.ok ? (msgs.dados||[]) : [];
@@ -2768,6 +2924,8 @@ async function abrirPortal() {
       <div class="pt-p" style="color:var(--ink3)">Ainda não há um plano publicado.
         Sua equipe compartilha aqui os objetivos combinados.</div>
     </div>` : '')}
+
+    ${!ehLead ? pagamentosPacienteHTML(_pacFin) : ''}
 
     ${!ehLead && d.orientacoes ? `<div class="pt-card">
       <div class="pt-t">Orientações para casa</div>
@@ -3478,6 +3636,8 @@ const FIN_CONFIG = {
     campos: [
       {k:'nome', label:'Aluno', tipo:'texto', obrigatorio:true},
       {k:'telefone', label:'Telefone / WhatsApp', tipo:'texto', placeholder:'Para cobrar pelo WhatsApp'},
+      {k:'cpf', label:'CPF', tipo:'texto', placeholder:'Para recibo e reembolso'},
+      {k:'email', label:'E-mail', tipo:'texto'},
       {k:'plano', label:'Plano', tipo:'texto', placeholder:'Ex.: 2x por semana, mensal', lista:true},
       {k:'valor_plano', label:'Valor da mensalidade (R$)', tipo:'numero'},
       {k:'dia_vencimento', label:'Dia de vencimento', tipo:'numero'},
@@ -3622,6 +3782,16 @@ async function loadFinanceiro() {
   if(!el) return;
   const cfg = FIN_CONFIG[_finAba];
   if(cfg.especial) return loadRepasses();
+  if(_finAba==='servicos' && _finVistaServ==='paciente') {
+    el.innerHTML = `${abasFinHTML()}
+    <div class="card" style="margin-bottom:12px">
+      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:12px">
+        ${seletorMesHTML()}${vistaServHTML()}
+      </div>
+      <div id="feBody">${loadingHTML()}</div>
+    </div><div id="finForm"></div>`;
+    return loadFechamento(document.getElementById('feBody'));
+  }
   // Filtra aqui no navegador em vez de mandar filtros:{mes} pro Apps Script:
   // o filtro no servidor estava voltando vazio mesmo com o mes gravado
   // certinho na planilha, e nao valia a pena caçar a causa exata la.
@@ -3697,7 +3867,7 @@ function celulaFin(r, k) {
   if(k==='cobrar') return linkCobranca(r);
   if(['valor_plano','faturamento_previsto','faturamento_real','valor'].includes(k)) return fmtMoeda(v);
   if(k==='data_pagamento' || k==='data') return v?esc(fmtDataBR(String(v).slice(0,10))):'—';
-  if(k==='nome' && String(r.status||'')==='Inativo') return esc(v)+' <span class="chip ch-gray">inativo</span>';
+  if((k==='nome'&&_finAba==='pilates') || (k==='paciente'&&_finAba==='servicos')) return `<button class="ff-nome" title="Abrir a ficha financeira" onclick="event.stopPropagation();abrirFichaFinanceira('${esc(String(v||'').replace(/'/g,"\\'"))}','${esc(r.paciente_id||'')}')">${esc(v||'—')}</button>`+(String(r.status||'')==='Inativo'?' <span class="chip ch-gray">inativo</span>':'');
   return v?esc(v):'—';
 }
 
@@ -3708,6 +3878,421 @@ function abasFinHTML() {
         onclick="trocarAbaFinanceiro('${k}')">${esc(c.titulo)}</button>`).join('')}
   </div>`;
 }
+// ═══════════════════════════════════════════════
+// FICHA FINANCEIRA DO CLIENTE
+// Junta, para uma pessoa, as mensalidades do Pilates e os serviços lançados
+// (pela agenda ou à mão). Não existe tabela nova: tudo o que se faz aqui grava
+// nas mesmas linhas do Financeiro geral, então as três telas (geral, ficha do
+// paciente e área do paciente) mostram sempre o mesmo número.
+// O vínculo é pelo paciente_id; linhas antigas, sem id, entram pelo nome.
+// ═══════════════════════════════════════════════
+const podeVerFinanceiro = () => currentRole==='admin' || ehAdministracao();
+let _ficha = {alvo:null, itens:[], el:''};
+
+function itensFinanceiros(pil, ser, alvo) {
+  const nome = normalizar(alvo.nome||'');
+  const doCliente = r => (alvo.id && String(r.paciente_id||'')===String(alvo.id)) || (nome && normalizar(r.nome||r.paciente||'')===nome);
+  const mesExt = m => { const [y,mm]=String(m||'').split('-').map(Number); return y&&mm ? new Date(y,mm-1,1).toLocaleDateString('pt-BR',{month:'long',year:'numeric'}) : ''; };
+  const itens = [];
+  normalizarFin(pil).filter(doCliente).forEach(r=>{
+    const [y,m] = String(r.mes||'').split('-').map(Number);
+    const dia = parseInt(r.dia_vencimento,10);
+    const venc = y&&m ? diaISO(new Date(y, m-1, dia>=1 ? Math.min(dia, new Date(y,m,0).getDate()) : 10)) : '';
+    itens.push({tabela:'financeiro_pilates', campoValor:'valor_plano', r, id:r.id,
+      titulo:'Pilates · '+(mesExt(r.mes)||'mensalidade'), detalhe:r.plano||'Mensalidade',
+      valor:numDe(r.valor_plano), venc, ref:venc||r.mes, pago:ehPago(r), atrasado:mensalidadeAtrasada(r),
+      data_pagamento:r.data_pagamento, forma:r.forma_pagamento, telefone:r.telefone});
+  });
+  normalizarFin(ser).filter(doCliente).forEach(r=>{
+    const n = numDe(r.sessoes);
+    itens.push({tabela:'financeiro_servicos', campoValor:'valor', r, id:r.id,
+      titulo:(r.servico||'Serviço')+(n>1?' · '+n+' sessões':''), detalhe:[r.data?fmtDataBR(String(r.data).slice(0,10)):'', r.profissional||''].filter(Boolean).join(' · '),
+      valor:numDe(r.valor), venc:r.data||'', ref:r.data||r.mes, pago:ehPago(r), sem_valor:!numDe(r.valor),
+      atrasado:!ehPago(r) && r.data && (Date.now()-new Date(String(r.data).slice(0,10)+'T12:00:00'))>15*86400000,
+      data_pagamento:r.data_pagamento, forma:r.forma_pagamento});
+  });
+  return itens.sort((a,b)=>String(b.ref||'').localeCompare(String(a.ref||'')));
+}
+
+// el: id do contêiner onde a ficha é desenhada; alvo: {id, nome, telefone}
+async function carregarFichaFinanceira(el, alvo) {
+  const box = document.getElementById(el); if(!box) return;
+  box.innerHTML = loadingHTML();
+  const [pil, ser] = await Promise.all([api('listar',{tabela:'financeiro_pilates'}), api('listar',{tabela:'financeiro_servicos'})]);
+  if(!pil.ok || !ser.ok) { box.innerHTML = `<div class="pt-nota">Não foi possível carregar: ${esc((pil.erro||ser.erro)||'')}</div>`; return; }
+  _ficha = {alvo, el, itens:itensFinanceiros(pil.dados, ser.dados, alvo)};
+  // Sem o dado no cadastro, vale o que estiver no lançamento mais recente
+  ['cpf','telefone','email'].forEach(k=>{ if(!alvo[k]) { const r=_ficha.itens.find(i=>i.r && i.r[k]); if(r) alvo[k]=r.r[k]; } });
+  desenharFicha();
+}
+
+function desenharFicha() {
+  const box = document.getElementById(_ficha.el); if(!box) return;
+  const {itens, alvo} = _ficha;
+  const aberto = itens.filter(i=>!i.pago);
+  const somaAberto = aberto.reduce((s,i)=>s+i.valor,0);
+  const somaAtras = aberto.filter(i=>i.atrasado).reduce((s,i)=>s+i.valor,0);
+  const umAno = diaISO(somaDias(new Date(), -365));
+  const pagoAno = itens.filter(i=>i.pago && String(i.data_pagamento||i.ref||'')>=umAno).reduce((s,i)=>s+i.valor,0);
+  const tel = String(alvo.telefone || (itens.find(i=>i.telefone)||{}).telefone || '').replace(/\D/g,'');
+  const zap = tel && aberto.length ? `https://wa.me/${tel.length<=11?'55'+tel:tel}?text=${encodeURIComponent(
+    `Olá, ${String(alvo.nome||'').split(' ')[0]}! Tudo bem? Segue o que está em aberto com a Casa Oliveira:\n`+
+    aberto.map(i=>`• ${i.titulo}: ${fmtMoeda(i.valor)}`).join('\n')+`\nTotal: ${fmtMoeda(somaAberto)}. Se já pagou, desconsidere. Obrigada!`)}` : '';
+  // agrupado por mês de referência, do mais recente para o mais antigo
+  const grupos = {};
+  itens.forEach(i=>{ const k=String(i.ref||'').slice(0,7)||'sem-data'; (grupos[k]=grupos[k]||[]).push(i); });
+  const rotMes = k => k==='sem-data' ? 'Sem data' : maiuscula(new Date(k+'-15T12:00:00').toLocaleDateString('pt-BR',{month:'long',year:'numeric'}));
+
+  box.innerHTML = `
+  <div class="ff-dados" id="ffDados">${dadosClienteHTML(alvo)}</div>
+  <div class="ff-topo">
+    <div class="ff-n"><span>Em aberto</span><b style="color:${somaAberto?'var(--amber)':'var(--ink)'}">${fmtMoeda(somaAberto)}</b></div>
+    <div class="ff-n"><span>Atrasado</span><b style="color:${somaAtras?'var(--rose)':'var(--ink)'}">${fmtMoeda(somaAtras)}</b></div>
+    <div class="ff-n"><span>Pago em 12 meses</span><b style="color:var(--teal)">${fmtMoeda(pagoAno)}</b></div>
+  </div>
+  <div class="ff-acoes">
+    <button class="addbtn" onclick="novaCobrancaFicha()">+ Nova cobrança</button>
+    ${zap?`<a class="backbtn" href="${zap}" target="_blank" rel="noopener" style="text-decoration:none">Cobrar no WhatsApp</a>`:''}
+  </div>
+  <div id="ffForm"></div>
+  ${itens.length ? Object.entries(grupos).map(([k,lista])=>`
+    <div class="ff-mes">${esc(rotMes(k))}</div>
+    ${lista.map(i=>`<div class="ff-item${i.pago?' pago':''}">
+      <div class="ff-info"><div class="ff-t">${esc(i.titulo)}</div>
+        <div class="ff-d">${esc(i.detalhe||'')}${i.pago&&i.data_pagamento?' · pago em '+esc(fmtDataBR(String(i.data_pagamento).slice(0,10)))+(i.forma?' ('+esc(i.forma)+')':''):''}${!i.pago&&i.venc&&i.tabela==='financeiro_pilates'?' · vence '+esc(fmtDataBR(String(i.venc).slice(0,10))):''}</div></div>
+      <div class="ff-v">${i.sem_valor?'<span class="ff-d">sem valor</span>':fmtMoeda(i.valor)}</div>
+      <div class="ff-st">${i.pago?'<span class="chip ch-sage">Pago</span>':i.atrasado?'<span class="chip ch-rose">Atrasado</span>':'<span class="chip ch-gray">Em aberto</span>'}</div>
+      <div class="ff-bt">${i.pago
+        ? `<button class="ff-link" onclick="desfazerPagamento('${esc(i.id)}')">desfazer</button>`
+        : `<div class="ff-rec" id="ffr_${esc(i.id)}"><button class="ff-ok" onclick="this.parentNode.classList.add('abre')">Recebi</button>
+            <span class="ff-formas">${['Pix','Cartão','Dinheiro'].map(f=>`<button onclick="registrarPagamento('${esc(i.id)}','${f}')">${f}</button>`).join('')}</span></div>`}</div>
+    </div>`).join('')}`).join('')
+  : `<div class="pt-nota" style="text-align:center;padding:18px 0">Nenhuma cobrança registrada para ${esc(String(alvo.nome||'').split(' ')[0])} ainda.</div>`}`;
+}
+
+
+// ── Dados do cliente na ficha: CPF (recibo e reembolso), telefone (cobrança)
+// e e-mail. Com cadastro de paciente, grava no cadastro; sem cadastro, grava
+// nos lançamentos dessa pessoa no Financeiro.
+const soDigitos = v => String(v||'').replace(/\D/g,'');
+function fmtCPF(v) { const d=soDigitos(v); return d.length===11 ? d.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/,'$1.$2.$3-$4') : String(v||''); }
+function fmtTel(v) { const d=soDigitos(v).replace(/^55(?=\d{10,11}$)/,''); return d.length===11 ? d.replace(/(\d{2})(\d{5})(\d{4})/,'($1) $2-$3') : d.length===10 ? d.replace(/(\d{2})(\d{4})(\d{4})/,'($1) $2-$3') : String(v||''); }
+function cpfValido(v) {
+  const d = soDigitos(v); if(d.length!==11 || /^(\d)\1{10}$/.test(d)) return false;
+  const dv = n => { let s=0; for(let i=0;i<n;i++) s += +d[i]*(n+1-i); const r=(s*10)%11; return r===10?0:r; };
+  return dv(9)===+d[9] && dv(10)===+d[10];
+}
+function dadosClienteHTML(a) {
+  const linha = (rot, val, vazio) => `<div class="ff-dl"><span>${rot}</span>${val?`<b>${esc(val)}</b>`:`<em>${vazio}</em>`}</div>`;
+  return `<div class="ff-dgrid">
+      ${linha('CPF', a.cpf?fmtCPF(a.cpf):'', 'não informado')}
+      ${linha('Telefone', a.telefone?fmtTel(a.telefone):'', 'não informado')}
+      ${linha('E-mail', a.email||'', 'não informado')}
+    </div>
+    <button class="ff-link ff-edit" onclick="editarDadosCliente()">${a.cpf||a.telefone||a.email?'Editar':'Preencher'}</button>`;
+}
+function editarDadosCliente() {
+  const a = _ficha.alvo, box = document.getElementById('ffDados');
+  box.innerHTML = `<div class="ff-dform">
+    <div class="fg"><label class="fl" for="ffCpf">CPF</label><input class="fi" id="ffCpf" inputmode="numeric" placeholder="000.000.000-00" value="${esc(a.cpf?fmtCPF(a.cpf):'')}" oninput="this.value=mascaraCPF(this.value)"></div>
+    <div class="fg"><label class="fl" for="ffTel">Telefone / WhatsApp</label><input class="fi" id="ffTel" type="tel" inputmode="tel" placeholder="(11) 99999-9999" value="${esc(a.telefone?fmtTel(a.telefone):'')}"></div>
+    <div class="fg"><label class="fl" for="ffEmail">E-mail</label><input class="fi" id="ffEmail" type="email" placeholder="nome@email.com" value="${esc(a.email||'')}"></div>
+    <div id="ffDErr" class="errbox" style="grid-column:1/-1"></div>
+    <div class="ff-dbt"><button class="addbtn" id="ffDBtn" onclick="salvarDadosCliente()">Salvar dados</button>
+      <button class="backbtn" onclick="document.getElementById('ffDados').innerHTML=dadosClienteHTML(_ficha.alvo)">Cancelar</button></div>
+    ${a.temCadastro?'':`<div class="pt-nota" style="grid-column:1/-1;margin:0">Esta pessoa não tem cadastro de paciente; os dados ficam guardados nos lançamentos dela no Financeiro.</div>`}
+  </div>`;
+  document.getElementById('ffCpf').focus();
+}
+function mascaraCPF(v) {
+  const d = soDigitos(v).slice(0,11);
+  return d.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})\.(\d{3})(\d)/,'$1.$2.$3').replace(/\.(\d{3})(\d{1,2})$/,'.$1-$2');
+}
+async function salvarDadosCliente() {
+  const a = _ficha.alvo, err = document.getElementById('ffDErr'), btn = document.getElementById('ffDBtn');
+  const erro = m => { err.textContent = m; err.style.display = 'block'; };
+  const cpf = soDigitos(document.getElementById('ffCpf').value);
+  const telefone = soDigitos(document.getElementById('ffTel').value);
+  const email = document.getElementById('ffEmail').value.trim();
+  if(cpf && !cpfValido(cpf)) return erro('Esse CPF não confere. Verifique os números.');
+  if(telefone && (telefone.length<10 || telefone.length>13)) return erro('Telefone incompleto. Use DDD + número.');
+  if(email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return erro('E-mail inválido.');
+  const dados = {cpf:cpf?fmtCPF(cpf):'', telefone:telefone?fmtTel(telefone):'', email};
+  btn.disabled = true; btn.textContent = 'Salvando…';
+  let ok = true, msg = '';
+  if(a.temCadastro && a.id) {
+    const res = await api('atualizar',{tabela:'pacientes', id:a.id, dados});
+    ok = res.ok; msg = res.erro||'';
+    const c = (_todosPacientes||[]).find(x=>String(x.id)===String(a.id)); if(c && ok) Object.assign(c, dados);
+    Object.values(_pacientesCache||{}).forEach(l=>(l||[]).forEach(x=>{ if(ok && String(x.id)===String(a.id)) Object.assign(x, dados); }));
+  }
+  // Também nos lançamentos da pessoa: o Financeiro geral e a cobrança usam o telefone de lá
+  if(ok) for(const i of _ficha.itens) {
+    const d = i.tabela==='financeiro_pilates' ? dados : {cpf:dados.cpf};
+    const r = await api('atualizar',{tabela:i.tabela, id:i.id, dados:d});
+    if(r.ok) Object.assign(i.r, d); else if(!a.temCadastro) { ok=false; msg=r.erro||''; break; }
+  }
+  btn.disabled = false; btn.textContent = 'Salvar dados';
+  if(!ok) return erro('Não foi possível salvar: '+msg);
+  Object.assign(a, dados);
+  if(!a.temCadastro && !_ficha.itens.length) showToast('Dados guardados quando houver a primeira cobrança','ok');
+  else showToast('Dados do cliente salvos','ok');
+  desenharFicha(); atualizarFinanceiroAberto();
+}
+
+async function registrarPagamento(id, forma) {
+  const it = _ficha.itens.find(x=>String(x.id)===String(id)); if(!it) return;
+  if(it.sem_valor) {
+    const v = prompt('Qual foi o valor recebido? (R$)'); if(v===null) return;
+    const n = numDe(String(v).replace('R$','').trim()); if(!n) return showToast('Valor inválido','err');
+    it.valor = n;
+  }
+  const dados = {pago:'Sim', data_pagamento:hojeISO(), forma_pagamento:forma};
+  if(it.sem_valor) dados[it.campoValor] = it.valor;
+  const res = await api('atualizar',{tabela:it.tabela, id, dados});
+  if(!res.ok) { showToast('Erro: '+(res.erro||''),'err'); return; }
+  Object.assign(it, {pago:true, atrasado:false, sem_valor:false, data_pagamento:dados.data_pagamento, forma});
+  desenharFicha(); atualizarFinanceiroAberto();
+  showToast('Pagamento registrado ('+forma+')','ok');
+}
+async function desfazerPagamento(id) {
+  const it = _ficha.itens.find(x=>String(x.id)===String(id)); if(!it) return;
+  if(!confirm('Marcar "'+it.titulo+'" como não pago?')) return;
+  const res = await api('atualizar',{tabela:it.tabela, id, dados:{pago:'Não', data_pagamento:'', forma_pagamento:''}});
+  if(!res.ok) { showToast('Erro: '+(res.erro||''),'err'); return; }
+  Object.assign(it, {pago:false, data_pagamento:'', forma:''});
+  it.atrasado = it.tabela==='financeiro_pilates' ? mensalidadeAtrasada({...it.r, pago:'Não'}) : false;
+  desenharFicha(); atualizarFinanceiroAberto();
+}
+function atualizarFinanceiroAberto() { if(_activePage==='financeiro' && document.getElementById('finBody')) loadFinanceiro(); }
+
+function novaCobrancaFicha() {
+  const f = document.getElementById('ffForm'); if(!f) return;
+  const ultPil = _ficha.itens.find(i=>i.tabela==='financeiro_pilates');
+  f.innerHTML = `<div class="evo-form" style="margin:10px 0 14px">
+    <div class="agx-seg agx-seg-f" id="ffTipo" style="margin-bottom:12px">
+      <button type="button" class="${ultPil?'on':''}" data-v="pilates" onclick="tipoCobranca(this)">Mensalidade do Pilates</button>
+      <button type="button" class="${ultPil?'':'on'}" data-v="servico" onclick="tipoCobranca(this)">Sessão ou serviço</button></div>
+    <div class="f2">
+      <div class="fg" id="ffMesBox"><label class="fl" for="ffMes">Mês</label><input class="fi" type="month" id="ffMes" value="${mesAtualISO()}"></div>
+      <div class="fg" id="ffDataBox"><label class="fl" for="ffData">Data</label><input class="fi" type="date" id="ffData" value="${hojeISO()}"></div>
+      <div class="fg"><label class="fl" for="ffValor">Valor (R$)</label><input class="fi" type="number" step="0.01" inputmode="decimal" id="ffValor" value="${ultPil?esc(ultPil.valor||''):''}"></div>
+      <div class="fg fa" id="ffPlanoBox"><label class="fl" for="ffPlano">Plano</label><input class="fi" id="ffPlano" value="${esc(ultPil?ultPil.detalhe:'')}" placeholder="Ex.: 2x por semana"></div>
+      <div class="fg fa" id="ffServBox"><label class="fl" for="ffServ">Serviço</label><select class="fs" id="ffServ">${FIN_SERVICOS.map(s=>`<option>${esc(s)}</option>`).join('')}</select></div>
+      <div class="fg fa"><label class="agx-op"><input type="checkbox" id="ffPago" style="width:18px;height:18px;accent-color:var(--teal)"> Já foi pago hoje</label></div>
+    </div>
+    <div id="ffErr" class="errbox"></div>
+    <div style="display:flex;gap:8px"><button class="savebtn" id="ffBtn" style="flex:1;margin-top:0" onclick="salvarCobrancaFicha()">Lançar</button>
+      <button class="backbtn" onclick="document.getElementById('ffForm').innerHTML=''">Cancelar</button></div>
+  </div>`;
+  tipoCobranca(f.querySelector('#ffTipo button.on'));
+}
+function tipoCobranca(btn) {
+  btn.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('on')); btn.classList.add('on');
+  const pil = btn.dataset.v==='pilates';
+  ['ffMesBox','ffPlanoBox'].forEach(id=>document.getElementById(id).style.display = pil?'':'none');
+  ['ffDataBox','ffServBox'].forEach(id=>document.getElementById(id).style.display = pil?'none':'');
+}
+async function salvarCobrancaFicha() {
+  const v = id => ((document.getElementById(id)||{}).value||'').trim();
+  const pil = document.querySelector('#ffTipo button.on').dataset.v==='pilates';
+  const valor = v('ffValor'), pago = document.getElementById('ffPago').checked;
+  const err = document.getElementById('ffErr');
+  if(!valor) { err.textContent='Informe o valor.'; err.style.display='block'; return; }
+  const a = _ficha.alvo, ult = _ficha.itens.find(i=>i.tabela==='financeiro_pilates');
+  const pagto = pago ? {pago:'Sim', data_pagamento:hojeISO()} : {pago:'Não'};
+  const dados = pil
+    ? {nome:a.nome, paciente_id:a.id||'', telefone:a.telefone||(ult&&ult.r.telefone)||'', cpf:a.cpf||'', email:a.email||'', plano:v('ffPlano'), valor_plano:valor,
+       dia_vencimento:(ult&&ult.r.dia_vencimento)||'10', mes:v('ffMes'), status:'Ativo', ...pagto}
+    : {paciente:a.nome, paciente_id:a.id||'', cpf:a.cpf||'', servico:v('ffServ'), sessoes:'1', valor, data:v('ffData'), mes:v('ffData').slice(0,7), origem:'ficha', ...pagto};
+  const btn = document.getElementById('ffBtn'); btn.disabled = true; btn.textContent = 'Lançando…';
+  const res = await api('salvar',{tabela:pil?'financeiro_pilates':'financeiro_servicos', dados});
+  btn.disabled = false; btn.textContent = 'Lançar';
+  if(!res.ok) { err.textContent='Erro: '+(res.erro||''); err.style.display='block'; return; }
+  showToast('Lançado no financeiro','ok');
+  atualizarFinanceiroAberto();
+  carregarFichaFinanceira(_ficha.el, _ficha.alvo);
+}
+
+// Aberta a partir do Financeiro geral (clique no nome)
+async function abrirFichaFinanceira(nome, pacienteId) {
+  const pacs = await carregarTodosPacientes();
+  const p = pacs.find(x=>pacienteId && String(x.id)===String(pacienteId)) || pacs.find(x=>normalizar(x.nome)===normalizar(nome));
+  const alvo = p ? {id:p.id, nome:p.nome, telefone:p.telefone||p.whatsapp||'', cpf:p.cpf||'', email:p.email||'', temCadastro:true} : {id:pacienteId||'', nome};
+  document.getElementById('sheetTitle').textContent = alvo.nome;
+  document.getElementById('sheetBody').innerHTML = `
+    ${p?`<div style="margin:-6px 0 14px"><button class="backbtn" onclick="closeSheet(true);abrirPacienteDaAgenda('${esc(linhasDoPaciente(p)[0]||'')}','${esc(p.id)}')">Abrir prontuário ›</button></div>`
+       :`<div class="pt-nota" style="margin:-6px 0 12px">Sem cadastro de paciente com esse nome; a ficha junta os lançamentos pelo nome.</div>`}
+    <div id="ffBox"></div>`;
+  openSheet();
+  carregarFichaFinanceira('ffBox', alvo);
+}
+
+// ═══════════════════════════════════════════════
+// FECHAMENTO POR PACIENTE (Financeiro › Serviços › Por paciente)
+// Conta sozinho, para o mês escolhido, as sessões que estão como "Realizado"
+// na agenda (Pilates fica de fora: é mensalidade), soma o valor de cada
+// sessão e mostra quanto cada paciente tem a pagar no mês seguinte.
+// As sessões viram linhas em FinanceiroServicos (uma por sessão, ligada ao
+// evento da agenda); se alguma realizada ainda não virou linha, dá para
+// lançar daqui. Pagar aqui marca as mesmas linhas, então a ficha do
+// cliente e a área do paciente batem.
+// ═══════════════════════════════════════════════
+const FECH_DIA_VENC = 10;
+let _finVistaServ = (()=>{ try{ return localStorage.getItem('fin_vista_serv')||'paciente'; }catch(e){ return 'paciente'; } })();
+let _fech = {mes:'', grupos:[]};
+
+function vistaServHTML() {
+  return `<div class="agx-seg" style="margin-bottom:2px">${[['paciente','Por paciente'],['lista','Lançamentos']].map(([v,t])=>`<button class="${_finVistaServ===v?'on':''}" onclick="vistaServicos('${v}')">${t}</button>`).join('')}</div>`;
+}
+function vistaServicos(v) { _finVistaServ = v; try{ localStorage.setItem('fin_vista_serv', v); }catch(e){} loadFinanceiro(); }
+function mesSeguinte(mes) { const [y,m] = mes.split('-').map(Number); const d = new Date(y, m, 1); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+function nomeDoMes(mes) { const [y,m] = mes.split('-').map(Number); return new Date(y, m-1, 15).toLocaleDateString('pt-BR',{month:'long'}); }
+// "TO Infantil — sessão individual" no Catálogo vale para o serviço "TO infantil" da agenda
+function precoCatalogo(servico) {
+  const base = n => normalizar(String(n||'').split(/\s+[—–-]\s+/)[0]);
+  const c = (_catalogo||[]).find(x=>normalizar(x.nome)===normalizar(servico||'')) || (_catalogo||[]).find(x=>base(x.nome)===normalizar(servico||''));
+  return c ? numDe(String(c.valor||'').replace(/[^\d,.-]/g,'')) : 0;
+}
+
+async function loadFechamento(el) {
+  const [y,m] = _finMes.split('-').map(Number);
+  const de = new Date(y, m-1, 1), ate = new Date(y, m, 1);
+  const [ag, ser, pacs] = await Promise.all([
+    api('listar_agenda',{de:de.toISOString(), ate:ate.toISOString()}),
+    api('listar',{tabela:'financeiro_servicos'}),
+    carregarTodosPacientes(), carregarCatalogo()]);
+  if(!ser.ok) { el.innerHTML = `<div class="card" style="color:var(--rose)">Não foi possível carregar: ${esc(ser.erro||'')}</div>`; return; }
+  _finTodos = normalizarFin(ser.dados);
+  const linhas = _finTodos.filter(r=>String(r.mes||'')===_finMes);
+  const eventos = ag.ok ? (ag.dados||[]).filter(e=>!e.dia_inteiro && !ehPilates(e.servico) && (e.status==='realizado' || e.status==='falta')) : [];
+  const nomeEv = e => String(e.titulo||'').split(' · ')[0];
+  const chave = (id, nome) => {
+    const p = (pacs||[]).find(x=>id && String(x.id)===String(id)) || (pacs||[]).find(x=>normalizar(x.nome)===normalizar(nome));
+    return p ? 'id:'+p.id : 'nome:'+normalizar(nome);
+  };
+  const G = {};
+  const grupo = (k, id, nome) => G[k] = G[k] || {k, id:'', nome, servicos:new Set(), realizadas:[], faltas:0, linhas:[]};
+  eventos.forEach(e=>{
+    const k = chave(e.paciente_id, nomeEv(e)); const g = grupo(k);
+    const p = (pacs||[]).find(x=>'id:'+x.id===k);
+    g.id = g.id || (p?p.id:e.paciente_id||''); g.nome = p ? p.nome : (g.nome || nomeEv(e)); g.tel = p ? p.telefone : '';
+    if(e.status==='falta') { g.faltas++; return; }
+    g.realizadas.push(e); if(e.servico) g.servicos.add(e.servico);
+  });
+  linhas.forEach(r=>{
+    const k = chave(r.paciente_id, r.paciente); const g = grupo(k);
+    const p = (pacs||[]).find(x=>'id:'+x.id===k);
+    g.id = g.id || (p?p.id:r.paciente_id||''); g.nome = p ? p.nome : (g.nome || r.paciente); g.tel = g.tel || (p?p.telefone:'');
+    g.linhas.push(r); if(r.servico) g.servicos.add(r.servico);
+  });
+  _fech = {mes:_finMes, agendaOk:ag.ok, grupos:Object.values(G).map(g=>{
+    const sessLanc = g.linhas.reduce((s,r)=>s+(numDe(r.sessoes)||1),0);
+    const ligados = new Set(g.linhas.map(r=>String(r.evento_id||'')).filter(Boolean));
+    const faltando = g.realizadas.filter(e=>!ligados.has(String(e.id))).slice(0, Math.max(0, g.realizadas.length - sessLanc));
+    const total = g.linhas.reduce((s,r)=>s+numDe(r.valor),0);
+    const semValor = g.linhas.filter(r=>!numDe(r.valor));
+    const unit = g.linhas.map(r=>numDe(r.valor)/(numDe(r.sessoes)||1)).filter(Boolean);
+    // Valor por sessão: o que já foi cobrado desse paciente (qualquer mês), senão o Catálogo
+    const anteriores = _finTodos.filter(r=>numDe(r.valor) && ((g.id && String(r.paciente_id||'')===String(g.id)) || normalizar(r.paciente||'')===normalizar(g.nome||'')))
+      .sort((a,b)=>String(a.data||a.mes||'').localeCompare(String(b.data||b.mes||'')));
+    const ultAnt = anteriores[anteriores.length-1];
+    const precoSug = unit.length ? unit[unit.length-1] : ultAnt ? numDe(ultAnt.valor)/(numDe(ultAnt.sessoes)||1) : precoCatalogo([...g.servicos][0]);
+    // Cada serviço com o seu preço: o último cobrado desse paciente nesse serviço, senão o Catálogo
+    const precoPara = serv => {
+      const mesmo = anteriores.filter(r=>normalizar(r.servico||'')===normalizar(serv||''));
+      const u = mesmo[mesmo.length-1];
+      return u ? numDe(u.valor)/(numDe(u.sessoes)||1) : (precoCatalogo(serv) || 0);
+    };
+    const pagas = g.linhas.filter(ehPago), abertas = g.linhas.filter(r=>!ehPago(r));
+    const faltandoValor = faltando.reduce((s,e)=>s+precoPara(e.servico),0);
+    const precos = [...new Set([...g.linhas.map(r=>numDe(r.valor)/(numDe(r.sessoes)||1)).filter(Boolean), ...faltando.map(e=>precoPara(e.servico)).filter(Boolean)])];
+    return {...g, servicos:[...g.servicos], sessoes:Math.max(sessLanc, g.realizadas.length), sessLanc, faltando, total, precoPara, precos,
+      faltandoValor, semPreco: faltando.some(e=>!precoPara(e.servico)),
+      previsto: total + faltandoValor, precoSug, semValor,
+      pago: abertas.length===0 && pagas.length>0, parcial: pagas.length>0 && abertas.length>0,
+      aberto: abertas.reduce((s,r)=>s+numDe(r.valor),0)};
+  }).filter(g=>g.sessoes || g.linhas.length).sort((a,b)=>String(a.nome).localeCompare(String(b.nome),'pt-BR'))};
+  desenharFechamento(el);
+}
+
+function desenharFechamento(el) {
+  const F = _fech, prox = mesSeguinte(F.mes);
+  const tot = k => F.grupos.reduce((s,g)=>s+(typeof g[k]==='number'?g[k]:0),0);
+  const faltandoTot = F.grupos.reduce((s,g)=>s+g.faltando.length,0);
+  const semValorTot = F.grupos.reduce((s,g)=>s+g.semValor.length,0);
+  const venc = new Date(Number(prox.slice(0,4)), Number(prox.slice(5))-1, FECH_DIA_VENC);
+  el.innerHTML = `
+    <div class="fe-topo">
+      <div><span>Sessões realizadas</span><b>${tot('sessoes')}</b></div>
+      <div><span>Valor das sessões de ${esc(nomeDoMes(F.mes))}</span><b>${fmtMoeda(F.grupos.reduce((s,g)=>s+g.previsto,0))}</b></div>
+      <div><span>A receber em ${esc(nomeDoMes(prox))}</span><b style="color:var(--amber)">${fmtMoeda(tot('aberto') + F.grupos.reduce((s,g)=>s+g.faltandoValor,0))}</b><small>vencimento ${venc.toLocaleDateString('pt-BR')}</small></div>
+      <div><span>Já recebido</span><b style="color:var(--teal)">${fmtMoeda(tot('total')-tot('aberto'))}</b></div>
+    </div>
+    ${!F.agendaOk?`<div class="pt-nota" style="color:var(--amber)">Não deu para ler a agenda agora; a contagem abaixo usa só o que já está lançado.</div>`:''}
+    ${faltandoTot?`<div class="fe-aviso"><div><b>${faltandoTot} ${faltandoTot===1?'sessão realizada ainda não entrou':'sessões realizadas ainda não entraram'} no financeiro.</b> Elas já estão somadas no "A receber", mas ainda não viraram cobrança.</div>
+      <button class="addbtn" onclick="lancarFaltantes()">Lançar todas</button></div>`:''}
+    ${semValorTot?`<div class="fe-aviso"><div><b>${semValorTot} ${semValorTot===1?'sessão está':'sessões estão'} sem valor.</b> O serviço não tem preço no Catálogo. Informe o valor na linha do paciente.</div></div>`:''}
+    ${F.grupos.length ? `<div style="overflow-x:auto"><table class="fin-tabela fe-tab">
+      <thead><tr><th>Paciente</th><th>Serviço</th><th class="r">Sessões</th><th class="r">Valor/sessão</th><th class="r">Total</th><th>Em ${esc(nomeDoMes(prox))}</th><th></th></tr></thead>
+      <tbody>${F.grupos.map((g,i)=>`<tr>
+        <td><button class="ff-nome" onclick="abrirFichaFinanceira('${esc(String(g.nome||'').replace(/'/g,"\\'"))}','${esc(g.id||'')}')">${esc(g.nome||'—')}</button></td>
+        <td class="fe-serv">${esc(g.servicos.join(', ')||'—')}</td>
+        <td class="r"><b>${g.sessoes}</b>${g.faltas?`<div class="fe-mini">${g.faltas} falta${g.faltas>1?'s':''}</div>`:''}${g.faltando.length?`<div class="fe-mini" style="color:var(--amber)">${g.faltando.length} a lançar</div>`:''}</td>
+        <td class="r">${g.semValor.length || g.semPreco
+          ? `<span class="fe-valor"><input class="fi" type="number" step="0.01" inputmode="decimal" id="feV${i}" value="${g.precoSug||''}" placeholder="R$"><button class="addbtn" onclick="definirValorSessao(${i})">OK</button></span>`
+          : g.precos.length ? g.precos.map(v=>fmtMoeda(v)).join(' / ') : '—'}</td>
+        <td class="r"><b>${fmtMoeda(g.previsto)}</b></td>
+        <td>${g.pago?'<span class="chip ch-sage">Pago</span>':g.parcial?'<span class="chip ch-amber">Parcial</span>':g.previsto?`<span class="chip ch-gray">${fmtMoeda(g.aberto + g.faltandoValor)}</span>`:'—'}</td>
+        <td class="fe-acoes">${!g.pago && g.linhas.length && !g.faltando.length && !g.semValor.length ? `<span class="ff-rec" id="feR${i}"><button class="ff-ok" onclick="this.parentNode.classList.add('abre')">Recebi</button>
+            <span class="ff-formas">${['Pix','Cartão','Dinheiro'].map(f=>`<button onclick="receberFechamento(${i},'${f}')">${f}</button>`).join('')}</span></span>` : ''}
+          ${g.faltando.length?`<button class="backbtn" onclick="lancarFaltantes(${i})">Lançar ${g.faltando.length}</button>`:''}
+          ${!g.pago && g.tel && g.previsto ? `<a class="chip ch-sage" style="text-decoration:none" target="_blank" rel="noopener" href="${linkCobrancaFechamento(g, prox, venc)}">cobrar</a>`:''}</td>
+      </tr>`).join('')}</tbody></table></div>`
+    : `<div class="pt-nota" style="margin:0">Nenhuma sessão realizada em ${esc(nomeDoMes(F.mes))}. As sessões entram aqui quando são marcadas como "Realizado" na agenda.</div>`}
+    <div class="pt-nota">Conta as sessões marcadas como <b>Realizado</b> na agenda em ${esc(nomeDoMes(F.mes))} (Pilates fica na aba de mensalidades). O valor por sessão vem do Catálogo, ou do que já foi lançado para o paciente.</div>`;
+}
+
+function linkCobrancaFechamento(g, prox, venc) {
+  const tel = String(g.tel||'').replace(/\D/g,''); const num = tel.length<=11 ? '55'+tel : tel;
+  const n = g.sessoes, valor = g.aberto + g.faltandoValor;
+  const txt = `Olá, ${String(g.nome||'').split(' ')[0]}! Tudo bem? Segue o fechamento de ${nomeDoMes(_fech.mes)}: ${n} ${n===1?'sessão':'sessões'} de ${g.servicos.join(', ')||'atendimento'}, total ${fmtMoeda(valor)}, com vencimento em ${venc.toLocaleDateString('pt-BR')}. Qualquer dúvida, estamos à disposição. Casa Oliveira`;
+  return `https://wa.me/${num}?text=${encodeURIComponent(txt)}`;
+}
+
+// Cria as linhas que faltam (uma por sessão realizada, ligada ao evento)
+async function lancarFaltantes(i) {
+  const grupos = i===undefined ? _fech.grupos.filter(g=>g.faltando.length) : [_fech.grupos[i]];
+  const total = grupos.reduce((s,g)=>s+g.faltando.length,0);
+  if(!total) return;
+  let ok = 0;
+  showToast('Lançando '+total+' '+(total===1?'sessão':'sessões')+'…','ok');
+  for(const g of grupos) for(const e of g.faltando) {
+    const ini = new Date(e.inicio);
+    const r = await api('salvar',{tabela:'financeiro_servicos', dados:{
+      data:diaISO(ini), mes:diaISO(ini).slice(0,7), paciente:g.nome, paciente_id:g.id||e.paciente_id||'', servico:e.servico||'',
+      profissional:e.profissional||'', sessoes:'1', valor:String((g.valorManual || g.precoPara(e.servico)) || ''), pago:'Não', origem:'agenda', evento_id:e.id}});
+    if(r.ok) ok++;
+  }
+  showToast(ok+' '+(ok===1?'sessão lançada':'sessões lançadas'),'ok');
+  loadFinanceiro();
+}
+async function definirValorSessao(i) {
+  const g = _fech.grupos[i], v = numDe(document.getElementById('feV'+i).value);
+  if(!v) { showToast('Informe o valor da sessão','err'); return; }
+  for(const r of g.semValor) await api('atualizar',{tabela:'financeiro_servicos', id:r.id, dados:{valor:String(v*(numDe(r.sessoes)||1))}});
+  g.valorManual = v;
+  if(g.faltando.length) return lancarFaltantes(i);   // já entra com o valor certo
+  showToast('Valor aplicado a '+g.semValor.length+' '+(g.semValor.length===1?'sessão':'sessões'),'ok');
+  loadFinanceiro();
+}
+async function receberFechamento(i, forma) {
+  const g = _fech.grupos[i], abertas = g.linhas.filter(r=>!ehPago(r));
+  for(const r of abertas) await api('atualizar',{tabela:'financeiro_servicos', id:r.id, dados:{pago:'Sim', data_pagamento:hojeISO(), forma_pagamento:forma}});
+  showToast('Pagamento de '+String(g.nome).split(' ')[0]+' registrado ('+forma+')','ok');
+  loadFinanceiro();
+}
+
 function seletorMesHTML() {
   return `<div class="fg" style="margin:0"><label class="fl">Mês</label>
     <input class="fi" type="month" value="${esc(_finMes)}" onchange="trocarMesFinanceiro(this.value)"></div>`;
@@ -3723,6 +4308,7 @@ function desenharFinanceiro() {
     ${cfg.sub?`<div class="pt-nota" style="margin:0 0 10px">${esc(cfg.sub)}</div>`:''}
     <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:10px">
       ${seletorMesHTML()}
+      ${_finAba==='servicos'?vistaServHTML():''}
       <button class="addbtn" onclick="novoFinLancamento()">+ Novo lançamento</button>
       ${cfg.duplicar||cfg.antigo?`<button class="backbtn" onclick="duplicarMesAnteriorFin()">${cfg.duplicar||'Duplicar mês anterior'}</button>`:''}
     </div>
@@ -4037,6 +4623,41 @@ const AG_CORES = ['#446F27','#C25E14','#3E5C76','#9B3524','#2B7F7A','#7A5313','#
 let _agVista = (()=>{ try{ return localStorage.getItem('ag_vista') || (innerWidth<768?'dia':'semana'); }catch(e){ return innerWidth<768?'dia':'semana'; } })();
 let _agDia = (()=>{ const d=new Date(); d.setHours(0,0,0,0); return d; })();
 let _agArraste = null, _agAcabouDeArrastar = false;
+let _agSalas = null;           // vem da Config (chave "salas"), uma por linha
+let _agColunas = (()=>{ try{ return localStorage.getItem('ag_colunas')||'prof'; }catch(e){ return 'prof'; } })();
+let _agEstendeu = false;
+
+// Sala e repetição viajam na descrição do evento no Google Agenda, em linhas
+// próprias ("Sala: Sala 2" / "Repete: ... [r:id/7]"). Assim aparecem para
+// quem abre o Google e não exigem mudança no Code.gs.
+function prepEvento(e) {
+  const resto = []; e.sala = ''; e.rep = null;
+  String(e.obs||'').split('\n').forEach(l=>{
+    const ms = l.match(/^Sala:\s*(.+)$/), mr = l.match(/^Repete:.*\[r:([\w-]+)\/(\d+)\]/);
+    if(ms && !e.sala) e.sala = ms[1].trim();
+    else if(mr && !e.rep) e.rep = {id:mr[1], passo:+mr[2]};
+    else resto.push(l);
+  });
+  e.nota = resto.join('\n').trim();
+  return e;
+}
+function montaObs(sala, rp, nota) {
+  return [sala ? 'Sala: '+sala : '',
+          rp ? 'Repete: '+(rp.passo===14?'a cada 2 semanas':'toda semana')+', sem data para acabar [r:'+rp.id+'/'+rp.passo+']' : '',
+          nota||''].filter(Boolean).join('\n');
+}
+function agMesmaSala(a,b) { return !!a && !!b && normalizar(a)===normalizar(b); }
+async function carregarSalas(forcar) {
+  if(_agSalas && !forcar) return _agSalas;
+  const res = await api('obter_config',{});
+  _agSalas = res.ok ? String((res.dados||{}).salas||'').split(/\n|;/).map(x=>x.trim()).filter(Boolean) : [];
+  return _agSalas;
+}
+function salasDoDia(dia) {
+  const lista = [...(_agSalas||[])];
+  _ag.eventos.forEach(e=>{ if(e.sala && agMesmoDia(new Date(e.inicio),dia) && !lista.some(x=>agMesmaSala(x,e.sala))) lista.push(e.sala); });
+  return lista;
+}
 
 function agCor(email) {
   const i = (_ag.profissionais||[]).findIndex(p=>p.email===email);
@@ -4062,11 +4683,42 @@ async function loadAgenda() {
     el.innerHTML = `<div class="card" style="color:var(--rose)">Não foi possível carregar a agenda: ${esc(res.erro||'')}</div>`;
     return;
   }
-  _ag = {eventos:res.dados||[], profissionais:res.profissionais||[], sem_acesso:res.sem_acesso||[],
+  _ag = {eventos:(res.dados||[]).map(prepEvento), profissionais:res.profissionais||[], sem_acesso:res.sem_acesso||[],
          pode_criar_agendas:!!res.pode_criar_agendas};
   if(_agFiltro && !_ag.profissionais.some(p=>p.email===_agFiltro)) _agFiltro = '';
   if(_ag.profissionais.length===1) _agFiltro = _ag.profissionais[0].email;
+  await carregarSalas();
   desenharAgenda(true);
+  if(!_agEstendeu) { _agEstendeu = true; estenderRepeticoes(); }
+}
+
+// Repetição sem data para acabar: o sistema mantém cerca de 6 semanas
+// marcadas à frente. Toda vez que alguém abre a agenda, as séries que estão
+// chegando ao fim ganham as próximas datas. Cada sessão continua sendo um
+// evento próprio, com presença e lançamento no Financeiro separados.
+const AG_REP_JANELA = 42, AG_REP_RENOVA = 35;
+async function estenderRepeticoes() {
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const res = await api('listar_agenda',{de:somaDias(hoje,-14).toISOString(), ate:somaDias(hoje,47).toISOString()});
+  if(!res.ok) return;
+  const series = {};
+  (res.dados||[]).map(prepEvento).forEach(e=>{ if(e.rep && e.do_sistema) (series[e.agenda_email+'|'+e.rep.id] = series[e.agenda_email+'|'+e.rep.id] || []).push(e); });
+  let criados = 0;
+  for(const evs of Object.values(series)) {
+    evs.sort((a,b)=>a.inicio.localeCompare(b.inicio));
+    const ult = evs[evs.length-1], passo = ult.rep.passo || 7;
+    if(new Date(ult.inicio) >= somaDias(hoje, AG_REP_RENOVA)) continue;
+    const dur = new Date(ult.fim) - new Date(ult.inicio);
+    const datas = new Set(evs.map(e=>diaISO(new Date(e.inicio))));
+    for(let d = somaDias(new Date(ult.inicio), passo); d < somaDias(hoje, AG_REP_JANELA+1); d = somaDias(d, passo)) {
+      if(datas.has(diaISO(d))) continue;
+      if(ehPilates(ult.servico) && alunasNoHorario(res.dados||[], ult.agenda_email, d, new Date(d.getTime()+dur), '').length >= PILATES_VAGAS) continue;
+      const r = await api('salvar_evento',{agenda_email:ult.agenda_email, paciente_id:ult.paciente_id||'', paciente_nome:String(ult.titulo||'').split(' · ')[0],
+        servico:ult.servico||'', obs:ult.obs||'', inicio:d.toISOString(), fim:new Date(d.getTime()+dur).toISOString(), forcar:true});
+      if(r.ok) criados++;
+    }
+  }
+  if(criados && document.getElementById('agBody')) loadAgenda();
 }
 
 function trocarSemanaAgenda(n) {
@@ -4100,9 +4752,10 @@ function desenharAgenda(rolar) {
       <button class="agx-ic" onclick="trocarSemanaAgenda(1)" aria-label="${_agVista==='dia'?'Próximo dia':'Próxima semana'}">›</button>
       <strong class="agx-rot">${esc(rotulo)}</strong>
     </div>
-    <div class="agx-seg" role="tablist">${[['dia','Dia'],['semana','Semana'],['lista','Lista']].map(([v,t])=>`<button class="${_agVista===v?'on':''}" onclick="vistaAgenda('${v}')">${t}</button>`).join('')}</div>
+    <div class="agx-seg" role="tablist">${[['dia','Dia'],['semana','Semana'],['lista','Lista'],['mapa','Mapa do Pilates']].map(([v,t])=>`<button class="${_agVista===v?'on':''}" onclick="vistaAgenda('${v}')">${t}</button>`).join('')}</div>
     <button class="addbtn agx-add" onclick="novoAtendimento()">+ Agendar</button>
   </div>
+  ${_agVista==='dia' && !_agFiltro && varias ? `<div class="agx-cols"><span>Colunas por</span><div class="agx-seg">${[['prof','Profissional'],['sala','Sala']].map(([v,t])=>`<button class="${_agColunas===v?'on':''}" onclick="colunasPor('${v}')">${t}</button>`).join('')}</div>${currentRole==='admin'?`<button class="agx-link" onclick="editarSalas()">Salas da clínica</button>`:''}</div>` : (currentRole==='admin' && _agVista!=='dia' ? '' : '')}
   ${varias?`<div class="agx-profs">
     <button class="agx-pf${!_agFiltro?' on':''}" onclick="filtrarAgenda('')">Todas <span>${_ag.profissionais.length}</span></button>
     ${_ag.profissionais.map(p=>`<button class="agx-pf${_agFiltro===p.email?' on':''}" onclick="filtrarAgenda('${esc(p.email)}')"><i style="background:${agCor(p.email)}"></i>${esc(p.nome)}${p.tem_agenda?'':' <small>sem agenda</small>'}</button>`).join('')}
@@ -4116,14 +4769,14 @@ function desenharAgenda(rolar) {
   </div>` : ''}
   ${_ag.sem_acesso.length ? `<div class="card" style="margin-bottom:12px;color:var(--rose)">A clínica não tem acesso à agenda de ${esc(_ag.sem_acesso.join(', '))}. Confira o ID da agenda na aba Profissionais e se ela está compartilhada com a conta da clínica.</div>` : ''}
 
-  ${_agVista==='lista' ? listaAgenda(varias) : gradeAgenda(varias)}
-  ${_agVista!=='lista' ? `<div class="agx-leg">
+  ${_agVista==='lista' ? listaAgenda(varias) : _agVista==='mapa' ? mapaPilates() : gradeAgenda(varias)}
+  ${_agVista!=='lista' && _agVista!=='mapa' ? `<div class="agx-leg">
     ${Object.entries(AG_STATUS).map(([k,s])=>`<span><b class="agx-st st-${k||'agendado'}">${AG_ICONE[k]}</b>${s.t}</span>`).join('')}
     ${_agVista==='semana'&&!_agFiltro&&_ag.profissionais.length>2?`<span class="agx-dica" style="margin-left:0">Semana cheia? Escolha uma profissional acima para ver os nomes.</span>`:''}
     <span class="agx-dica">${toque?'Toque num horário vazio para agendar':'Clique num horário vazio para agendar · arraste para remarcar'}</span>
   </div>`:''}`;
 
-  if(_agVista!=='lista') ligarGrade(rolar);
+  if(_agVista!=='lista' && _agVista!=='mapa') ligarGrade(rolar);
 }
 
 const AG_ICONE = {'':'', confirmado:'✓', realizado:'✓', falta:'✕'};
@@ -4147,21 +4800,28 @@ function listaAgenda(varias) {
 // Colunas da grade: no Dia com "Todas", uma por profissional (como lado a lado
 // numa recepção); no resto, uma por dia.
 function colunasAgenda() {
+  if(_agVista==='dia' && !_agFiltro && _agColunas==='sala') {
+    const salas = salasDoDia(_agDia);
+    const cols = salas.map(sl=>({dia:_agDia, email:'', sala:sl, tipo:'sala'}));
+    if(_ag.eventos.some(e=>!e.sala && !e.dia_inteiro && agMesmoDia(new Date(e.inicio),_agDia)) || !cols.length) cols.push({dia:_agDia, email:'', sala:'', semSala:true, tipo:'sala'});
+    return cols;
+  }
   if(_agVista==='dia') {
     const profs = _agFiltro ? _ag.profissionais.filter(p=>p.email===_agFiltro) : _ag.profissionais.filter(p=>p.tem_agenda);
-    if(!_agFiltro && profs.length>1) return profs.map(p=>({dia:_agDia, email:p.email, prof:p}));
-    return [{dia:_agDia, email:_agFiltro||'', prof:profs[0]}];
+    if(!_agFiltro && profs.length>1) return profs.map(p=>({dia:_agDia, email:p.email, prof:p, tipo:'prof'}));
+    return [{dia:_agDia, email:_agFiltro||'', prof:profs[0], tipo:'dia'}];
   }
   const cols = [];
   for(let i=0;i<7;i++) {
     const d = somaDias(_agSemana, i);
     if(i===6 && !_ag.eventos.some(e=>agMesmoDia(new Date(e.inicio),d) && (!_agFiltro||e.agenda_email===_agFiltro))) continue;
-    cols.push({dia:d, email:_agFiltro||''});
+    cols.push({dia:d, email:_agFiltro||'', tipo:'dia'});
   }
   return cols;
 }
 function eventosDaColuna(c) {
-  return _ag.eventos.filter(e=>!e.dia_inteiro && agMesmoDia(new Date(e.inicio), c.dia) && (!c.email || e.agenda_email===c.email))
+  return _ag.eventos.filter(e=>!e.dia_inteiro && agMesmoDia(new Date(e.inicio), c.dia) && (!c.email || e.agenda_email===c.email)
+      && (c.tipo!=='sala' || (c.semSala ? !e.sala : agMesmaSala(e.sala, c.sala))))
     .sort((a,b)=>a.inicio.localeCompare(b.inicio));
 }
 // Quem se sobrepõe divide a largura (faixas), como no Google Agenda
@@ -4184,7 +4844,7 @@ function gradeAgenda(varias) {
   const todos = cols.flatMap(eventosDaColuna);
   let h0 = 7, h1 = 21;
   todos.forEach(e=>{ const a=new Date(e.inicio), b=new Date(e.fim); h0=Math.min(h0,a.getHours()); h1=Math.max(h1, b.getHours()+(b.getMinutes()?1:0)); });
-  const H = (h1-h0)*AG_PX, porProf = cols.length>1 && !!cols[0].prof;
+  const H = (h1-h0)*AG_PX, porProf = cols.length>1 && cols[0].tipo!=='dia', porSala = cols[0].tipo==='sala';
   const hoje = new Date(), agora = agMin(hoje);
   const largura = porProf ? 150 : (_agVista==='dia' ? 260 : 118);
   const tmpl = `52px repeat(${cols.length}, minmax(${largura}px, 1fr))`;
@@ -4192,6 +4852,7 @@ function gradeAgenda(varias) {
 
   const cab = cols.map(c=>{
     const n = eventosDaColuna(c).length, hojeCol = agMesmoDia(c.dia, hoje);
+    if(porSala) return `<div class="agx-hc"><div class="agx-hn">${c.semSala?'<span style="color:var(--ink3)">Sem sala</span>':'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v16M2 21h20M15 12h.01"/></svg>'+esc(c.sala)}</div><div class="agx-hs">${n} ${n===1?'atendimento':'atendimentos'}</div></div>`;
     if(porProf) return `<div class="agx-hc"><div class="agx-hn"><i style="background:${agCor(c.email)}"></i>${esc(c.prof.nome)}</div><div class="agx-hs">${n} ${n===1?'atendimento':'atendimentos'}</div></div>`;
     return `<div class="agx-hc${hojeCol?' hoje':''}"><div class="agx-hd"><span class="agx-dn">${c.dia.getDate()}</span><div><div class="agx-hn">${esc(maiuscula(c.dia.toLocaleDateString('pt-BR',{weekday:_agVista==='dia'?'long':'short'}).replace('.','')))}</div><div class="agx-hs">${n||'Livre'}${n?(n===1?' atendimento':' atendimentos'):''}</div></div></div></div>`;
   }).join('');
@@ -4204,15 +4865,16 @@ function gradeAgenda(varias) {
       const top = (ini-h0*60)/60*AG_PX, alt = Math.max(22,(fim-ini)/60*AG_PX-2);
       const st = e.status||'', cor = agCor(e.agenda_email), curto = alt < 40, estreito = de >= 3 || (de===2 && largura<130);
       const [nome, serv] = String(e.titulo||'(sem título)').split(' · ');
-      const prof = !porProf && !_agFiltro && varias ? esc(e.profissional||agProfNome(e.agenda_email)) : '';
+      const prof = (!porProf || porSala) && !_agFiltro && varias ? esc(e.profissional||agProfNome(e.agenda_email)) : '';
+      const sala = e.sala && !porSala ? esc(e.sala) : '';
       if(estreito) return `<button class="agx-ev agx-mini st-${st||'agendado'}${e.do_sistema?' mov':''}" data-id="${esc(e.id)}" data-ag="${esc(e.agenda_email)}"
         style="--c:${cor};top:${top}px;height:${alt}px;left:calc(${faixa*100/de}% + 1px);width:calc(${100/de}% - 2px)"
-        title="${esc(e.titulo)} · ${horaDe(e.inicio)}–${horaDe(e.fim)}${prof?' · '+prof:''}">${st?`<b class="agx-st st-${st}">${AG_ICONE[st]}</b>`:''}<span class="agx-ini">${esc(nome.split(' ').map(x=>x[0]).join('').slice(0,2))}</span></button>`;
+        title="${esc(e.titulo)} · ${horaDe(e.inicio)}–${horaDe(e.fim)}${prof?' · '+prof:''}${sala?' · '+sala:''}">${st?`<b class="agx-st st-${st}">${AG_ICONE[st]}</b>`:''}<span class="agx-ini">${esc(nome.split(' ').map(x=>x[0]).join('').slice(0,2))}</span></button>`;
       return `<button class="agx-ev st-${st||'agendado'}${e.do_sistema?' mov':''}" data-id="${esc(e.id)}" data-ag="${esc(e.agenda_email)}"
         style="--c:${cor};top:${top}px;height:${alt}px;left:calc(${faixa*100/de}% + 2px);width:calc(${100/de}% - 4px)"
-        title="${esc(e.titulo)} · ${horaDe(e.inicio)}–${horaDe(e.fim)}${prof?' · '+prof:''}">
-        <span class="agx-et">${st?`<b class="agx-st st-${st}">${AG_ICONE[st]}</b>`:''}<span class="agx-en">${esc(nome)}</span>${curto?`<span class="agx-eh">${horaDe(e.inicio)}</span>`:''}</span>
-        ${curto?'':`<span class="agx-es">${horaDe(e.inicio)}–${horaDe(e.fim)}${serv?' · '+esc(serv):''}</span>${prof && alt>=58?`<span class="agx-es agx-ep">${prof}</span>`:''}`}
+        title="${esc(e.titulo)} · ${horaDe(e.inicio)}–${horaDe(e.fim)}${prof?' · '+prof:''}${sala?' · '+sala:''}${e.rep?' · repete sem data para acabar':''}">
+        <span class="agx-et">${st?`<b class="agx-st st-${st}">${AG_ICONE[st]}</b>`:''}<span class="agx-en">${esc(nome)}</span>${e.rep?'<span class="agx-rep" aria-label="Repete">↻</span>':''}${curto?`<span class="agx-eh">${horaDe(e.inicio)}</span>`:''}</span>
+        ${curto?'':`<span class="agx-es">${horaDe(e.inicio)}–${horaDe(e.fim)}${serv?' · '+esc(serv):''}</span>${(prof||sala) && alt>=58?`<span class="agx-es agx-ep">${[prof,sala].filter(Boolean).join(' · ')}</span>`:''}`}
       </button>`;
     }).join('');
     const linhaAgora = agMesmoDia(c.dia, hoje) && agora>=h0*60 && agora<=h1*60 ? `<div class="agx-agora" style="top:${(agora-h0*60)/60*AG_PX}px"></div>` : '';
@@ -4269,7 +4931,7 @@ function ligarGrade(rolar) {
     const c = _agGrade.cols[+col.dataset.col];
     const m = Math.floor(minutoDoPonteiro(col, ev.clientY)/30)*30;
     const ini = new Date(c.dia); ini.setHours(0, m, 0, 0);
-    novoAtendimento(null, null, {inicio:ini, email:c.email});
+    novoAtendimento(null, null, {inicio:ini, email:c.email, sala:c.sala||''});
   });
 
   // Arrastar para remarcar (mouse). No celular o toque rola a grade.
@@ -4289,7 +4951,7 @@ function ligarGrade(rolar) {
     if(!a.ativo) { a.ativo = true; a.b.classList.add('arrastando'); document.body.classList.add('agx-movendo'); }
     // Trocar de coluna só faz sentido entre dias; entre profissionais, não (cada uma tem a sua agenda)
     let colEl = a.b.closest('.agx-col');
-    if(!(_agGrade.cols[0]||{}).prof) {
+    if((_agGrade.cols[0]||{}).tipo==='dia') {
       const sob = document.elementsFromPoint(ev.clientX, ev.clientY).find(x=>x.classList && x.classList.contains('agx-col'));
       if(sob && sob!==colEl) { sob.appendChild(a.b); colEl = sob; a.col = +sob.dataset.col; }
     }
@@ -4313,14 +4975,20 @@ function ligarGrade(rolar) {
 async function moverAtendimento(e, ini, dur, forcar) {
   const antes = {inicio:e.inicio, fim:e.fim};
   const fim = new Date(ini.getTime()+dur*60000);
+  if(ehPilates(e.servico)) {
+    if(alunasNoHorario(_ag.eventos, e.agenda_email, ini, fim, e.id).length >= PILATES_VAGAS) {
+      desenharAgenda(); showToast('Turma cheia: já há '+PILATES_VAGAS+' alunas nesse horário com '+(agProfNome(e.agenda_email)||'essa profissional'),'err'); return;
+    }
+    forcar = true;
+  }
   e.inicio = ini.toISOString(); e.fim = fim.toISOString();
   desenharAgenda();
   const nome = String(e.titulo||'').split(' · ')[0];
   const res = await api('salvar_evento', {agenda_email:e.agenda_email, evento_id:e.id, paciente_id:e.paciente_id||'', paciente_nome:nome,
     servico:e.servico||'', obs:e.obs||'', inicio:e.inicio, fim:e.fim, forcar:!!forcar});
   if(!res.ok && res.conflito && confirm(res.erro+'.\n\nRemarcar assim mesmo?')) return moverAtendimento(e, ini, dur, true);
-  if(!res.ok) { Object.assign(e, antes); desenharAgenda(); if(!res.conflito) showToast('Não foi possível remarcar: '+(res.erro||''),'err'); return; }
-  Object.assign(e, res.dados||{});
+  if(!res.ok) { Object.assign(e, antes); desenharAgenda(); if(res.lotado) showToast(res.erro,'err'); else if(!res.conflito) showToast('Não foi possível remarcar: '+(res.erro||''),'err'); return; }
+  Object.assign(e, res.dados||{}); prepEvento(e);
   desenharAgenda();
   showToast('Remarcado para '+ini.toLocaleDateString('pt-BR',{weekday:'short',day:'numeric'})+' às '+horaDe(e.inicio),'ok');
 }
@@ -4340,7 +5008,9 @@ function detalheAtendimento(agendaEmail, eventoId) {
       <div class="agx-det-l"><span>Quando</span><b>${esc(maiuscula(ini.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'})))} · ${horaDe(e.inicio)} às ${horaDe(e.fim)}</b></div>
       <div class="agx-det-l"><span>Profissional</span><b><i style="background:${agCor(e.agenda_email)}"></i>${esc(e.profissional||agProfNome(e.agenda_email))}</b></div>
       ${e.servico?`<div class="agx-det-l"><span>Serviço</span><b>${esc(e.servico)}</b></div>`:''}
-      ${e.obs?`<div class="agx-det-l"><span>Observação</span><b style="font-weight:500">${esc(e.obs)}</b></div>`:''}
+      ${e.sala?`<div class="agx-det-l"><span>Sala</span><b>${esc(e.sala)}</b></div>`:''}
+      ${e.rep?`<div class="agx-det-l"><span>Repetição</span><b>↻ ${e.rep.passo===14?'A cada 2 semanas':'Toda semana'}, sem data para acabar</b></div>`:''}
+      ${e.nota?`<div class="agx-det-l"><span>Observação</span><b style="font-weight:500;white-space:pre-line">${esc(e.nota)}</b></div>`:''}
       <div class="agx-det-l"><span>Situação</span><b><span class="chip ${st.c}">${st.t}</span></b></div>
     </div>
     <div class="fl" style="margin-top:18px">Presença</div>
@@ -4353,7 +5023,9 @@ function detalheAtendimento(agendaEmail, eventoId) {
     <div class="agx-acoes" style="margin-top:12px">
       ${e.do_sistema ? `<button class="backbtn" onclick="novoAtendimento(${ref})">Remarcar</button>` : `<span class="pt-nota" style="margin:0">Criado direto no Google Agenda. Para mudar o horário, altere por lá.</span>`}
       <button class="backbtn" style="color:var(--rose);margin-left:auto" onclick="cancelarAtendimento(${ref})">Cancelar atendimento</button>
-    </div>`;
+    </div>
+    ${e.rep && e.do_sistema ? `<div class="agx-encerrar"><div><b>Encerrar a repetição</b><div class="pt-nota" style="margin:2px 0 0">Cancela este e os próximos atendimentos da série. Os anteriores ficam como estão.</div></div>
+      <button class="backbtn" style="color:var(--rose)" onclick="encerrarRepeticao(${ref})">Encerrar a partir de ${new Date(e.inicio).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})}</button></div>` : ''}`;
   openSheet();
 }
 
@@ -4368,7 +5040,7 @@ function cartaoAtendimento(e, mostrarProf) {
         ${e.dia_inteiro?'':`<div style="font-size:11px;font-weight:400;color:var(--ink3)">até ${esc(horaDe(e.fim))}</div>`}</div>
       <div style="flex:1;min-width:0">
         <div style="font-weight:600">${esc(e.titulo||'(sem título)')}</div>
-        <div style="font-size:12.5px;color:var(--ink3)">${mostrarProf?esc(e.profissional):''}${mostrarProf&&e.obs?' · ':''}${e.obs?esc(e.obs):''}</div>
+        <div style="font-size:12.5px;color:var(--ink3)">${[mostrarProf?esc(e.profissional):'', e.sala?esc(e.sala):'', e.rep?'↻ repete':'', e.nota?esc(e.nota):''].filter(Boolean).join(' · ')}</div>
       </div>
       <span class="chip ${st.c}">${st.t}</span>
     </div>
@@ -4397,38 +5069,53 @@ async function novoAtendimento(agendaEmail, eventoId, pre) {
   document.getElementById('sheetTitle').textContent = e ? 'Remarcar' : 'Novo atendimento';
   document.getElementById('sheetBody').innerHTML = loadingHTML();
   openSheet();
-  const pacs = await carregarTodosPacientes();
+  const [pacs] = await Promise.all([carregarTodosPacientes(), carregarSalas()]);
   const eu = (currentUser.email||'').toLowerCase();
   const profPadrao = e ? e.agenda_email : ((pre&&pre.email) || _agFiltro || (profs.find(p=>p.email===eu)||profs[0]).email);
   let ini = e ? new Date(e.inicio) : (pre&&pre.inicio) || null;
   if(!ini) { ini = new Date(_agVista==='dia'?_agDia:new Date()); const ag=new Date(); ini.setHours(Math.min(19,Math.max(8,ag.getHours()+1)),0,0,0); }
-  const dur = e ? Math.round((new Date(e.fim)-new Date(e.inicio))/60000) : 50;
+  const dur = e ? Math.round((new Date(e.fim)-new Date(e.inicio))/60000) : ((pre&&pre.dur) || 50);
+  const servAtual = e ? (e.servico||'') : ((pre&&pre.servico) || '');
   const pacAtual = e && e.paciente_id ? pacs.find(p=>String(p.id)===String(e.paciente_id)) : null;
   const nomeAtual = pacAtual ? pacAtual.nome : (e ? String(e.titulo||'').split(' · ')[0] : '');
+  const salaAtual = e ? e.sala : ((pre&&pre.sala) || '');
   const durs = [30,40,50,60,90,120]; if(!durs.includes(dur)) durs.push(dur);
+  const salas = [...(_agSalas||[])]; if(salaAtual && !salas.some(x=>agMesmaSala(x,salaAtual))) salas.push(salaAtual);
+  const marca = (grupo, btn) => { btn.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); };
   document.getElementById('sheetBody').innerHTML = `
-    ${pre&&pre.inicio?`<div class="agx-pre"><i style="background:${agCor(profPadrao)}"></i>${esc(maiuscula(ini.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'short'})))} · ${horaDe(ini)}${!_agFiltro&&pre.email?' · '+esc(agProfNome(pre.email)):''}</div>`:''}
+    ${pre&&pre.inicio?`<div class="agx-pre">${pre.email?`<i style="background:${agCor(profPadrao)}"></i>`:''}${esc(maiuscula(ini.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'short'})))} · ${horaDe(ini)}${!_agFiltro&&pre.email?' · '+esc(agProfNome(pre.email)):''}${pre.sala?' · '+esc(pre.sala):''}</div>`:''}
     <div class="f2">
       <div class="fg fa"><label class="fl" for="agPac">Paciente</label>
-        <input class="fi" id="agPac" list="agPacs" value="${esc(nomeAtual)}" placeholder="Comece a digitar o nome" autocomplete="off" ${e?'':'autofocus'}>
+        <input class="fi" id="agPac" list="agPacs" value="${esc(nomeAtual)}" placeholder="Comece a digitar o nome" autocomplete="off">
         <datalist id="agPacs">${pacs.map(p=>`<option value="${esc(p.nome)}">`).join('')}</datalist></div>
       <div class="fg fa"><label class="fl" for="agProf">Profissional</label>
         <select class="fs" id="agProf" ${e?'disabled':''}>${profs.map(p=>`<option value="${esc(p.email)}"${p.email===profPadrao?' selected':''}>${esc(p.nome)}</option>`).join('')}</select></div>
       <div class="fg fa"><label class="fl" for="agServ">Serviço</label>
-        <div class="agx-chips" id="agServChips">${FIN_SERVICOS.filter(s=>s!=='Parceiro'&&s!=='Outro').map(s=>`<button type="button" class="agx-chip${(e?e.servico:'')===s?' on':''}" onclick="escolherServico(this,'${esc(s)}')">${esc(s)}</button>`).join('')}</div>
-        <input class="fi" id="agServ" list="agServs" value="${esc(e?e.servico:'')}" placeholder="Ou escreva outro serviço" style="margin-top:8px" oninput="document.querySelectorAll('#agServChips .agx-chip').forEach(c=>c.classList.toggle('on',c.textContent===this.value))">
+        <div class="agx-chips" id="agServChips">${['Pilates',...FIN_SERVICOS.filter(s=>s!=='Parceiro'&&s!=='Outro')].map(s=>`<button type="button" class="agx-chip${normalizar(servAtual)===normalizar(s)?' on':''}" onclick="escolherChip(this,'agServ')">${esc(s)}</button>`).join('')}</div>
+        <div class="pt-nota" style="margin:6px 0 0">No Pilates, cada profissional recebe até ${PILATES_VAGAS} alunas por horário.</div>
+        <input class="fi" id="agServ" list="agServs" value="${esc(servAtual)}" placeholder="Ou escreva outro serviço" style="margin-top:8px" oninput="sincronizarChips('agServChips',this.value)">
         <datalist id="agServs">${FIN_SERVICOS.map(s=>`<option value="${esc(s)}">`).join('')}</datalist></div>
+      <div class="fg fa"><label class="fl" for="agSala">Sala</label>
+        ${salas.length?`<div class="agx-chips" id="agSalaChips">${salas.map(s=>`<button type="button" class="agx-chip${agMesmaSala(s,salaAtual)?' on':''}" onclick="escolherChip(this,'agSala')">${esc(s)}</button>`).join('')}</div>`:''}
+        <input class="fi" id="agSala" value="${esc(salaAtual)}" placeholder="${salas.length?'Ou escreva outra sala':'Ex.: Sala 2, Ateliê, Domicílio'}" style="${salas.length?'margin-top:8px':''}" oninput="sincronizarChips('agSalaChips',this.value)">
+        ${!salas.length?`<div class="pt-nota" style="margin-top:6px">${currentRole==='admin'?'Cadastre as salas da clínica em Agenda › Dia › Salas da clínica para elas aparecerem aqui como botões.':'A gestão pode cadastrar as salas para elas aparecerem aqui como botões.'}</div>`:''}</div>
       <div class="fg"><label class="fl" for="agData">Data</label><input class="fi" type="date" id="agData" value="${diaISO(ini)}" oninput="previaRepeticao()"></div>
       <div class="fg"><label class="fl" for="agHora">Horário</label><input class="fi" type="time" id="agHora" step="300" value="${ini.toTimeString().slice(0,5)}"></div>
       <div class="fg fa"><label class="fl">Duração</label>
         <div class="agx-chips" id="agDurChips">${durs.map(m=>`<button type="button" class="agx-chip${m===dur?' on':''}" data-min="${m}" onclick="this.parentNode.querySelectorAll('.agx-chip').forEach(c=>c.classList.remove('on'));this.classList.add('on')">${m} min</button>`).join('')}</div></div>
       ${e?'':`<div class="fg fa"><label class="fl">Repetir</label>
         <div class="agx-seg agx-seg-f" id="agRep">${[['0','Não repete'],['7','Toda semana'],['14','A cada 2 semanas']].map(([v,t])=>`<button type="button" class="${v==='0'?'on':''}" data-v="${v}" onclick="this.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('on'));this.classList.add('on');previaRepeticao()">${t}</button>`).join('')}</div>
-        <div id="agRepQtd" hidden style="margin-top:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-          <select class="fs" id="agVezes" style="width:auto" onchange="previaRepeticao()">${[4,8,12,16,24].map(n=>`<option value="${n}"${n===8?' selected':''}>${n} vezes</option>`).join('')}</select>
-          <span class="pt-nota" id="agRepPrev" style="margin:0"></span></div></div>`}
+        <div id="agRepFim" class="agx-repfim" style="display:none">
+          <label class="agx-op"><input type="radio" name="agFim" id="agFimVezes" value="vezes" checked onchange="previaRepeticao()">
+            <span>Termina depois de</span>
+            <input class="fi agx-num" type="number" id="agVezes" min="2" max="52" value="8" inputmode="numeric" oninput="document.getElementById('agFimVezes').checked=true;previaRepeticao()" onfocus="this.select()">
+            <span>vezes</span></label>
+          <label class="agx-op"><input type="radio" name="agFim" id="agFimNunca" value="nunca" onchange="previaRepeticao()">
+            <span>Sem data para acabar</span></label>
+          <div class="pt-nota" id="agRepPrev" style="margin:2px 0 0"></div>
+        </div></div>`}
       <div class="fg fa"><label class="fl" for="agObs">Observação (aparece no Google Agenda)</label>
-        <input class="fi" id="agObs" value="${esc(e?e.obs:'')}" placeholder="Ex.: trazer exames"></div>
+        <input class="fi" id="agObs" value="${esc(e?e.nota:'')}" placeholder="Ex.: trazer exames"></div>
     </div>
     <div id="agErr" class="errbox"></div>
     <button class="savebtn" id="agBtn" onclick="salvarAtendimento(${e?`'${esc(e.id)}'`:''})">${e?'Salvar novo horário':'Agendar'}</button>`;
@@ -4436,33 +5123,55 @@ async function novoAtendimento(agendaEmail, eventoId, pre) {
   if(!e) setTimeout(()=>{ const i=document.getElementById('agPac'); if(i && matchMedia('(hover:hover)').matches) i.focus(); }, 60);
 }
 
-function escolherServico(btn, s) {
+function escolherChip(btn, campo) {
   const on = !btn.classList.contains('on');
   btn.parentNode.querySelectorAll('.agx-chip').forEach(c=>c.classList.remove('on'));
   if(on) btn.classList.add('on');
-  document.getElementById('agServ').value = on ? s : '';
+  document.getElementById(campo).value = on ? btn.textContent : '';
+}
+function escolherServico(btn) { escolherChip(btn,'agServ'); }
+function sincronizarChips(grupo, valor) {
+  document.querySelectorAll('#'+grupo+' .agx-chip').forEach(c=>c.classList.toggle('on', normalizar(c.textContent)===normalizar(valor)));
 }
 
-function datasRepeticao() {
+// Datas a criar agora. Sem data para acabar: as primeiras ~6 semanas; as
+// seguintes o sistema vai criando sozinho (estenderRepeticoes).
+function repeticaoEscolhida() {
   const rep = document.querySelector('#agRep button.on');
   const passo = rep ? +rep.dataset.v : 0;
-  const base = document.getElementById('agData').value;
+  const nunca = !!(document.getElementById('agFimNunca')||{}).checked;
+  let vezes = Math.round(+((document.getElementById('agVezes')||{}).value) || 0);
+  return {passo, nunca, vezes};
+}
+function datasRepeticao() {
+  const base = (document.getElementById('agData')||{}).value;
   if(!base) return [];
+  const {passo, nunca, vezes} = repeticaoEscolhida();
   if(!passo) return [base];
-  const n = +(document.getElementById('agVezes')||{}).value || 1;
   const d0 = new Date(base+'T12:00:00');
+  const n = nunca ? Math.max(2, Math.floor(AG_REP_JANELA/passo)+1) : Math.max(1, Math.min(52, vezes||1));
   return Array.from({length:n}, (_,i)=>diaISO(somaDias(d0, i*passo)));
 }
 function previaRepeticao() {
-  const box = document.getElementById('agRepQtd'); if(!box) return;
-  const ds = datasRepeticao(), repete = ds.length>1 || (document.querySelector('#agRep button.on')||{}).dataset?.v!=='0';
-  box.hidden = !repete; box.style.display = repete?'flex':'none';
-  const btn = document.getElementById('agBtn');
-  if(repete && ds.length) {
+  const box = document.getElementById('agRepFim'); if(!box) return;
+  const {passo, nunca, vezes} = repeticaoEscolhida();
+  box.style.display = passo ? 'flex' : 'none';
+  const btn = document.getElementById('agBtn'), prev = document.getElementById('agRepPrev');
+  if(!passo) { if(btn) btn.textContent = 'Agendar'; return; }
+  const ds = datasRepeticao();
+  const base = new Date(((document.getElementById('agData')||{}).value||'')+'T12:00:00');
+  const dia = isNaN(base) ? '' : base.toLocaleDateString('pt-BR',{weekday:'long'});
+  if(nunca) {
+    prev.textContent = 'Toda '+dia+(passo===14?', a cada 2 semanas,':'')+' até alguém encerrar. O sistema deixa as próximas semanas sempre marcadas.';
+    btn.textContent = 'Agendar sem data para acabar';
+  } else if(vezes>52 || vezes<2) {
+    prev.textContent = 'Escolha entre 2 e 52 vezes.';
+    btn.textContent = 'Agendar';
+  } else {
     const ult = new Date(ds[ds.length-1]+'T12:00:00');
-    document.getElementById('agRepPrev').textContent = 'Até '+ult.toLocaleDateString('pt-BR',{day:'numeric',month:'long'});
-    if(btn) btn.textContent = 'Agendar '+ds.length+' atendimentos';
-  } else if(btn && btn.textContent.startsWith('Agendar')) btn.textContent = 'Agendar';
+    prev.textContent = 'Último atendimento em '+ult.toLocaleDateString('pt-BR',{day:'numeric',month:'long',year:ult.getFullYear()!==new Date().getFullYear()?'numeric':undefined})+'.';
+    btn.textContent = 'Agendar '+ds.length+' atendimentos';
+  }
 }
 
 async function salvarAtendimento(eventoId, forcar) {
@@ -4473,12 +5182,54 @@ async function salvarAtendimento(eventoId, forcar) {
   const pac = (_todosPacientes||[]).find(p=>normalizar(p.nome)===normalizar(nomePac));
   if(!nomePac) return erro('Informe o paciente.');
   if(!v('agData') || !v('agHora')) return erro('Informe data e horário.');
+  const r = eventoId ? {passo:0} : repeticaoEscolhida();
+  if(r.passo && !r.nunca && (r.vezes<2 || r.vezes>52)) return erro('Escolha entre 2 e 52 vezes, ou "Sem data para acabar".');
   err.style.display = 'none';
   const durEl = document.querySelector('#agDurChips .agx-chip.on');
   const dur = durEl ? +durEl.dataset.min : 50;
   const e = eventoId ? _ag.eventos.find(x=>x.id===eventoId) : null;
   const email = e ? e.agenda_email : v('agProf');
-  const datas = eventoId ? [v('agData')] : datasRepeticao();
+  const sala = v('agSala');
+  const rp = e ? e.rep : (r.passo && r.nunca ? {id:Date.now().toString(36)+Math.random().toString(36).slice(2,5), passo:r.passo} : null);
+  const obs = montaObs(sala, rp, v('agObs'));
+  let datas = eventoId ? [v('agData')] : datasRepeticao();
+  const servico = v('agServ');
+  let forcarGrupo = false;
+
+  // Pilates: confere as vagas da turma em todas as datas antes de gravar
+  if(ehPilates(servico)) {
+    const txt0 = btn.textContent; btn.disabled = true; btn.textContent = 'Conferindo vagas da turma…';
+    const periodo = await agendaDoPeriodo(datas);
+    btn.disabled = false; btn.textContent = txt0;
+    const cheias = [], outros = [];
+    datas.forEach(dt=>{
+      const a = new Date(dt+'T'+v('agHora')+':00'), b = new Date(a.getTime()+dur*60000);
+      if(alunasNoHorario(periodo, email, a, b, eventoId).length >= PILATES_VAGAS) cheias.push(dt);
+      const o = outroAtendimentoNoHorario(periodo, email, a, b, eventoId);
+      if(o) outros.push(a.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})+' ('+String(o.titulo||'')+')');
+    });
+    const fmt = dt=>dt.split('-').reverse().slice(0,2).join('/');
+    const quem = agProfNome(email) || 'Essa profissional';
+    if(cheias.length===datas.length) return erro('Turma cheia: '+quem+' já tem '+PILATES_VAGAS+' alunas às '+v('agHora')+(datas.length===1?' em '+fmt(datas[0]):' em todas as datas')+'. Escolha outro horário ou outra profissional.');
+    if(cheias.length) {
+      if(!confirm('A turma das '+v('agHora')+' com '+quem+' está cheia em '+cheias.map(fmt).join(', ')+'.\n\nAgendar só nas outras '+(datas.length-cheias.length)+' datas?')) return;
+      datas = datas.filter(dt=>!cheias.includes(dt));
+    }
+    if(outros.length && !forcar && !confirm(quem+' tem outro atendimento nesse horário: '+outros.join('; ')+'.\n\nMarcar assim mesmo?')) return;
+    forcarGrupo = true;   // alunas da mesma turma se sobrepõem por natureza
+  }
+
+  // Sala ocupada por outra pessoa no mesmo horário (dentro da semana carregada)
+  if(sala && !forcar) {
+    const ocup = [];
+    datas.forEach(dt=>{
+      const a = new Date(dt+'T'+v('agHora')+':00'), b = new Date(a.getTime()+dur*60000);
+      const x = _ag.eventos.find(o=>o.id!==eventoId && agMesmaSala(o.sala,sala) && new Date(o.inicio)<b && new Date(o.fim)>a);
+      if(x) ocup.push(a.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})+' com '+String(x.titulo||'').split(' · ')[0]+' ('+(x.profissional||agProfNome(x.agenda_email))+')');
+    });
+    if(ocup.length && !confirm(sala+' já está ocupada: '+ocup.join('; ')+'.\n\nMarcar assim mesmo?')) return;
+  }
+
   const textoBtn = btn.textContent;
   btn.disabled = true;
   let feitos = 0, primeiro = null; const choques = [];
@@ -4487,9 +5238,13 @@ async function salvarAtendimento(eventoId, forcar) {
     const inicio = new Date(datas[i]+'T'+v('agHora')+':00');
     const fim = new Date(inicio.getTime() + dur*60000);
     const body = {agenda_email:email, paciente_id: pac?pac.id:'', paciente_nome:nomePac,
-                  servico:v('agServ'), inicio:inicio.toISOString(), fim:fim.toISOString(), obs:v('agObs'),
-                  evento_id: eventoId||'', forcar: !!forcar};
+                  servico, inicio:inicio.toISOString(), fim:fim.toISOString(), obs,
+                  evento_id: eventoId||'', forcar: !!forcar || forcarGrupo};
     const res = await api('salvar_evento', body);
+    if(!res.ok && res.lotado) {
+      if(datas.length===1) { btn.disabled = false; btn.textContent = textoBtn; return erro(res.erro); }
+      choques.push(inicio.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})); continue;
+    }
     if(!res.ok && res.conflito) {
       if(datas.length===1) {
         btn.disabled = false; btn.textContent = textoBtn;
@@ -4505,8 +5260,50 @@ async function salvarAtendimento(eventoId, forcar) {
   closeSheet(true);
   if(primeiro) { _agDia = new Date(primeiro); _agDia.setHours(0,0,0,0); _agSemana = inicioDaSemana(primeiro); }
   await loadAgenda();
-  if(choques.length) showToast(feitos+' agendados. Ficaram de fora por choque de horário: '+choques.join(', '),'err');
-  else showToast(eventoId?'Remarcado':(feitos>1?feitos+' atendimentos agendados':'Agendado'),'ok');
+  const msg = eventoId ? 'Remarcado' : rp ? 'Agendado sem data para acabar. As próximas semanas já estão marcadas' : (feitos>1?feitos+' atendimentos agendados':'Agendado');
+  if(choques.length) showToast(feitos+' agendados. Ficaram de fora por choque de horário ou turma cheia: '+choques.join(', '),'err');
+  else showToast(msg,'ok');
+}
+
+async function encerrarRepeticao(agendaEmail, eventoId) {
+  const e = _ag.eventos.find(x=>x.id===eventoId && x.agenda_email===agendaEmail);
+  if(!e || !e.rep) return;
+  const desde = new Date(e.inicio);
+  const res = await api('listar_agenda',{de:somaDias(desde,-1).toISOString(), ate:somaDias(desde,60).toISOString()});
+  if(!res.ok) { showToast('Erro: '+(res.erro||''),'err'); return; }
+  const alvo = (res.dados||[]).map(prepEvento).filter(x=>x.agenda_email===agendaEmail && x.rep && x.rep.id===e.rep.id && new Date(x.inicio)>=desde);
+  if(!confirm('Encerrar a repetição de '+String(e.titulo||'').split(' · ')[0]+'?\n\n'+alvo.length+' atendimento(s) a partir de '+desde.toLocaleDateString('pt-BR')+' serão cancelados e tirados do Google Agenda.')) return;
+  let ok = 0;
+  for(const x of alvo) { const r = await api('excluir_evento',{agenda_email:agendaEmail, evento_id:x.id}); if(r.ok) ok++; }
+  closeSheet(true);
+  await loadAgenda();
+  showToast('Repetição encerrada. '+ok+' atendimento(s) cancelado(s)','ok');
+}
+
+function colunasPor(v) { _agColunas = v; try{ localStorage.setItem('ag_colunas', v); }catch(e){} desenharAgenda(); }
+
+async function editarSalas() {
+  if(currentRole!=='admin') return;
+  await carregarSalas(true);
+  document.getElementById('sheetTitle').textContent = 'Salas da clínica';
+  document.getElementById('sheetBody').innerHTML = `
+    <div class="pt-nota" style="margin-top:0">Uma sala por linha, na ordem em que devem aparecer na agenda e no agendamento.</div>
+    <div class="fg" style="margin-top:12px"><textarea class="ft" id="cfgSalas" rows="7" placeholder="Sala 1&#10;Sala 2&#10;Ateliê&#10;Pilates&#10;Domicílio">${esc((_agSalas||[]).join('\n'))}</textarea></div>
+    <div id="salasErr" class="errbox"></div>
+    <button class="savebtn" id="salasBtn" onclick="salvarSalas()">Salvar salas</button>`;
+  openSheet();
+}
+async function salvarSalas() {
+  const btn = document.getElementById('salasBtn');
+  const lista = document.getElementById('cfgSalas').value.split('\n').map(x=>x.trim()).filter(Boolean);
+  btn.disabled = true; btn.textContent = 'Salvando…';
+  const res = await api('salvar_config',{dados:{salas:lista.join('\n')}});
+  btn.disabled = false; btn.textContent = 'Salvar salas';
+  if(!res.ok) { const er=document.getElementById('salasErr'); er.textContent='Erro: '+(res.erro||''); er.style.display='block'; return; }
+  _agSalas = lista;
+  closeSheet(true);
+  desenharAgenda();
+  showToast('Salas salvas','ok');
 }
 
 async function statusAtendimento(agendaEmail, eventoId, status, doDetalhe) {
@@ -4530,6 +5327,98 @@ async function cancelarAtendimento(agendaEmail, eventoId) {
   closeSheet(true);
   desenharAgenda();
   showToast('Atendimento cancelado','ok');
+}
+
+// ═══════════════════════════════════════════════
+// PILATES — trava de vagas e mapa de ocupação
+// Cada profissional atende até PILATES_VAGAS alunas no mesmo horário.
+// A trava vale aqui (resposta rápida, também antes de atualizar o Code.gs)
+// e no salvar_evento do servidor (vale para duas recepções ao mesmo tempo).
+// ═══════════════════════════════════════════════
+const PILATES_VAGAS = 3;
+const ehPilates = s => /pilates/i.test(String(s||''));
+function alunasNoHorario(lista, email, ini, fim, ignorarId) {
+  return lista.filter(o=>o.agenda_email===email && o.id!==ignorarId && ehPilates(o.servico) && o.status!=='falta'
+    && new Date(o.inicio)<fim && new Date(o.fim)>ini);
+}
+function outroAtendimentoNoHorario(lista, email, ini, fim, ignorarId) {
+  return lista.find(o=>o.agenda_email===email && o.id!==ignorarId && !ehPilates(o.servico) && !o.dia_inteiro
+    && new Date(o.inicio)<fim && new Date(o.fim)>ini);
+}
+// Busca a agenda do período das datas (o servidor limita a 2 meses por vez)
+async function agendaDoPeriodo(datas) {
+  if(!datas.length) return [];
+  const ord = [...datas].sort(), out = [];
+  let de = new Date(ord[0]+'T00:00:00'); const fim = somaDias(new Date(ord[ord.length-1]+'T00:00:00'), 1);
+  while(de < fim) {
+    const ate = new Date(Math.min(+somaDias(de, 60), +fim));
+    const r = await api('listar_agenda',{de:de.toISOString(), ate:ate.toISOString()});
+    if(r.ok) out.push(...(r.dados||[]).map(prepEvento));
+    de = ate;
+  }
+  return out;
+}
+
+// ── Mapa de ocupação: semana × hora, como o mapa de turmas em papel ──
+function professorasPilates() {
+  const comAula = new Set(_ag.eventos.filter(e=>ehPilates(e.servico)).map(e=>e.agenda_email));
+  return _ag.profissionais.filter(p=>p.tem_agenda && (comAula.has(p.email) || (p.linhas||[]).includes('pilates')));
+}
+function mapaPilates() {
+  const profs = professorasPilates().filter(p=>!_agFiltro || p.email===_agFiltro);
+  const dias = [0,1,2,3,4,5].map(i=>somaDias(_agSemana, i));
+  const evs = _ag.eventos.filter(e=>ehPilates(e.servico) && !e.dia_inteiro && (!_agFiltro || e.agenda_email===_agFiltro));
+  let h0 = 7, h1 = 20;
+  evs.forEach(e=>{ const h=new Date(e.inicio).getHours(); h0=Math.min(h0,h); h1=Math.max(h1,h); });
+  const hoje = new Date();
+  let vagasLivres = 0, turmasCheias = 0;
+  const alunas = new Set(evs.filter(e=>e.status!=='falta').map(e=>e.paciente_id||normalizar(String(e.titulo||'').split(' · ')[0])));
+
+  const linhas = [];
+  for(let h=h0; h<=h1; h++) {
+    const celulas = dias.map((d,di)=>{
+      const doHorario = evs.filter(e=>{ const a=new Date(e.inicio); return agMesmoDia(a,d) && a.getHours()===h; })
+        .sort((a,b)=>a.inicio.localeCompare(b.inicio));
+      const grupos = profs.map(p=>({p, evs:doHorario.filter(e=>e.agenda_email===p.email)})).filter(g=>g.evs.length);
+      let estado = 'vazio';
+      if(grupos.length) {
+        const ocupadas = g => g.evs.filter(e=>e.status!=='falta').length;
+        const livres = grupos.reduce((s,g)=>s+Math.max(0, PILATES_VAGAS-ocupadas(g)),0);
+        vagasLivres += livres;
+        estado = livres ? 'vaga' : 'cheio';
+        if(!livres) turmasCheias++;
+      }
+      const ini = new Date(d); ini.setHours(h,0,0,0);
+      const passou = ini < hoje && !agMesmoDia(ini,hoje);
+      return `<td class="mp-c mp-${estado}${passou?' mp-passou':''}" onclick="cliqueMapaPilates(${di},${h})" title="${esc(maiuscula(d.toLocaleDateString('pt-BR',{weekday:'long'})))} às ${String(h).padStart(2,'0')}h">
+        ${grupos.map(g=>{
+          const n = g.evs.filter(e=>e.status!=='falta').length;
+          return `<div class="mp-g">
+            ${profs.length>1?`<div class="mp-gh"><i style="background:${agCor(g.p.email)}"></i>${esc(g.p.nome.split(' ').slice(-1)[0])}<b class="${n>=PILATES_VAGAS?'cheio':''}">${n}/${PILATES_VAGAS}</b></div>`:`<div class="mp-gh mp-gh1"><b class="${n>=PILATES_VAGAS?'cheio':''}">${n}/${PILATES_VAGAS}</b></div>`}
+            ${g.evs.map(e=>`<button class="mp-n st-${e.status||'agendado'}" onclick="event.stopPropagation();detalheAtendimento('${esc(e.agenda_email)}','${esc(e.id)}')">${esc(String(e.titulo||'').split(' · ')[0])}${new Date(e.inicio).getMinutes()?` <small>${horaDe(e.inicio)}</small>`:''}${e.rep?' <small>↻</small>':''}</button>`).join('')}
+          </div>`;}).join('')}
+        ${estado!=='cheio'?`<span class="mp-mais">+ aluna</span>`:''}
+      </td>`;
+    }).join('');
+    linhas.push(`<tr><th class="mp-h">${String(h).padStart(2,'0')}h</th>${celulas}</tr>`);
+  }
+  return `<div class="mp-resumo">
+      <div><b>${alunas.size}</b><span>alunas na semana</span></div>
+      <div><b style="color:var(--teal)">${vagasLivres}</b><span>vagas livres nas turmas abertas</span></div>
+      <div><b style="color:${turmasCheias?'var(--rose)':'var(--ink)'}">${turmasCheias}</b><span>${turmasCheias===1?'horário cheio':'horários cheios'}</span></div>
+      <div class="mp-leg"><span><i class="mp-sw mp-vaga"></i>Tem vaga</span><span><i class="mp-sw mp-cheio"></i>Cheio (${PILATES_VAGAS} por profissional)</span><span><i class="mp-sw mp-vazio"></i>Sem turma</span></div>
+    </div>
+    ${profs.length?'':`<div class="card" style="color:var(--ink3)">Nenhuma aula de Pilates nesta semana. Clique num horário para marcar a primeira aluna.</div>`}
+    <div class="agx"><div class="mp-scroll"><table class="mp">
+      <thead><tr><th class="mp-h"></th>${dias.map(d=>`<th class="${agMesmoDia(d,hoje)?'hoje':''}">${esc(maiuscula(d.toLocaleDateString('pt-BR',{weekday:'short'}).replace('.','')))} <span>${d.getDate()}</span></th>`).join('')}</tr></thead>
+      <tbody>${linhas.join('')}</tbody>
+    </table></div></div>`;
+}
+function cliqueMapaPilates(di, h) {
+  const ini = somaDias(_agSemana, di); ini.setHours(h,0,0,0);
+  const profs = professorasPilates();
+  const email = _agFiltro || (profs.length===1 ? profs[0].email : '');
+  novoAtendimento(null, null, {inicio:ini, email, servico:'Pilates', dur:50});
 }
 
 async function criarAgendasEquipe() {
@@ -6507,7 +7396,8 @@ async function abrirConfigClinica() {
     ${[['nome','Nome da clínica'],['razao_social','Razão social'],['cnpj','CNPJ'],
        ['endereco','Endereço'],['telefone','Telefone'],['email','E-mail'],
        ['cidade','Cidade (para a data dos documentos)'],
-       ['assinatura','Nome na assinatura'],['lema','Lema']].map(([k,l])=>`
+       ['assinatura','Nome na assinatura'],['lema','Lema'],
+       ['pix_chave','Chave Pix (aparece para o paciente pagar)'],['pix_nome','Nome do recebedor do Pix']].map(([k,l])=>`
       <div class="fg"><label class="fl">${l}</label>
         <input class="fi" id="cfg_${k}" value="${esc(c[k])}"></div>`).join('')}
     <div class="fg"><label class="fl">Rodapé</label>
@@ -6542,7 +7432,7 @@ async function salvarConfigClinica() {
   const btn = document.getElementById('cfgBtn');
   const err = document.getElementById('cfgErr');
   const dados = {};
-  ['nome','razao_social','cnpj','endereco','telefone','email','cidade','assinatura','lema','rodape','logo'].forEach(k=>{
+  ['nome','razao_social','cnpj','endereco','telefone','email','cidade','assinatura','lema','pix_chave','pix_nome','rodape','logo'].forEach(k=>{
     dados[k] = (document.getElementById('cfg_'+k)||{}).value || '';
   });
   btn.disabled=true; btn.textContent='Salvando...';
@@ -7465,6 +8355,7 @@ async function openPaciente(linha, id) {
   };
   const tabs = [...(tabsDef[linha]||['Dados']), 'Evoluções', 'Exercícios', 'Documentos', 'Mensagens'];
   if(currentRole==='admin') tabs.push('Orçamento');
+  if(podeVerFinanceiro()) tabs.push('Financeiro');
   if(currentRole!=='profissional') tabs.push('Área do paciente');
   const iEvo = tabs.indexOf('Evoluções');
   const iPac = tabs.indexOf('Área do paciente');
@@ -7472,6 +8363,7 @@ async function openPaciente(linha, id) {
   const iDoc = tabs.indexOf('Documentos');
   const iMsg = tabs.indexOf('Mensagens');
   const iOrc = tabs.indexOf('Orçamento');
+  const iFin = tabs.indexOf('Financeiro');
   // Evoluções aparece primeiro (é o que mais se usa), mas a numeração interna
   // das abas não muda: as fichas são gravadas pela posição (aba '0', '1'...)
   const ordemAbas = [iEvo, ...tabs.map((_,i)=>i).filter(i=>i!==iEvo)];
@@ -7502,6 +8394,8 @@ async function openPaciente(linha, id) {
         ? `<div id="msgPainel">${loadingHTML()}</div>`
         : i===iOrc
         ? orcamentoHTML(p)
+        : i===iFin
+        ? `<div id="ffPac"></div>`
         : i===iPac
         ? areaPacienteHTML(p, i)
         : (()=>{ const c = renderTabContent(linha, p, i);
@@ -7512,6 +8406,7 @@ async function openPaciente(linha, id) {
     </div>`).join('')}`;
 
   carregarEvolucoes(id);
+  if(iFin>=0) carregarFichaFinanceira('ffPac', {id:p.id, nome:p.nome, telefone:p.telefone||'', cpf:p.cpf||'', email:p.email||'', temCadastro:true});
   carregarDocumentos(id);
   carregarMensagens(id);
   carregarPrescricao(id);
@@ -7883,15 +8778,15 @@ async function salvarEvolucao(linha, id, tabIdx) {
 // EQUIPE
 // ═══════════════════════════════════════════════
 async function loadEquipe() {
-  const res = await api('listar_profs',{});
-  if(res.ok) _profsCache = res.dados||[];
+  const res = await api('listar_profs',{incluir_inativos:true});
+  if(res.ok) { _equipeLista = res.dados||[]; _profsCache = _equipeLista.filter(x=>String(x.status||'Ativo').toLowerCase()!=='inativo'); }
   const el = document.getElementById('listaProfs');
   if(!el) return;
   if(!res.ok){el.innerHTML=`<div style="color:var(--rose);padding:16px">${res.erro}</div>`;return;}
-  const profs = res.dados||[];
+  const profs = (res.dados||[]).slice().sort((a,b)=>(String(a.status||'Ativo').toLowerCase()==='inativo')-(String(b.status||'Ativo').toLowerCase()==='inativo') || String(a.nome||'').localeCompare(String(b.nome||''),'pt-BR'));
   const cores = ['#1d6b58','#5b21b6','#1355a0','#c4600a','#3d6b3a','#b81a3a','#92700a'];
   el.innerHTML = `<div id="profForm"></div>` + profs.map((p,i)=>`
-  <div class="prof-card">
+  <div class="prof-card${String(p.status||'Ativo').toLowerCase()==='inativo'?' inativo':''}">
     <div class="prof-av" style="background:${cores[i%cores.length]}">${esc((p.nome||'?')[0])}</div>
     <div style="flex:1;min-width:0">
       <div class="prof-nm">${esc(p.nome)}</div>
@@ -7902,16 +8797,21 @@ async function loadEquipe() {
         ${String(p.status||'Ativo').toLowerCase()==='inativo'?`<span class="chip ch-gray">Inativo</span>`:''}
       </div>
     </div>
-    ${currentRole==='admin'?`<button class="backbtn" onclick="editarProf('${esc(p.id)}')"><svg class="ico" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4-1L19 8l-3-3L5 16z"/></svg></button>`:''}
+    ${currentRole==='admin'?`<div class="prof-acoes">
+      <button class="backbtn" onclick="editarProf('${esc(p.id)}')"><svg class="ico" aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4-1L19 8l-3-3L5 16z"/></svg> Editar</button>
+      ${String(p.email||'').toLowerCase()!==String(currentUser.email||'').toLowerCase()?`<button class="backbtn" style="color:var(--rose)" onclick="excluirProf('${esc(p.id)}')" aria-label="Remover ${esc(p.nome)}">Remover</button>`:''}
+    </div>`:''}
   </div>`).join('');
 }
 
 function editarProf(id) {
   if(currentRole!=='admin'){ showToast('Só a gestão pode editar a equipe.','err'); return; }
-  const p = (_profsCache||[]).find(x=>String(x.id)===String(id));
+  const p = (_equipeLista||_profsCache||[]).find(x=>String(x.id)===String(id));
   if(!p) return;
-  const f = document.getElementById('profForm');
-  if(!f) return;
+  document.getElementById('sheetTitle').textContent = 'Editar profissional';
+  document.getElementById('sheetBody').innerHTML = '<div id="profFormSheet"></div>';
+  const f = document.getElementById('profFormSheet');
+  openSheet();
 
   const funcoesAtuais = String(p.funcao||'').split(',').map(s=>s.trim()).filter(Boolean);
   const conhecidas = funcoesAtuais.filter(x=>FUNCOES.includes(x));
@@ -7919,14 +8819,18 @@ function editarProf(id) {
   const linhasAtuais = String(p.linhas||'').split(',').map(s=>s.trim()).filter(Boolean);
   const euMesma = (currentUser.email||'').toLowerCase() === String(p.email||'').toLowerCase();
 
-  f.innerHTML = `<div class="evo-form">
-    <div class="hist-tit" style="margin-bottom:10px">Editar ${esc(p.nome)}</div>
+  f.innerHTML = `<div>
     <div class="f2">
       <div class="fg fa"><label class="fl">Nome *</label>
         <input class="fi" id="epNome" value="${esc(p.nome)}"></div>
-      <div class="fg fa"><label class="fl">E-mail</label>
+      <div class="fg fa"><label class="fl">E-mail de acesso</label>
         <input class="fi" value="${esc(p.email)}" disabled
-               style="opacity:.6;cursor:not-allowed"></div>
+               style="opacity:.6;cursor:not-allowed">
+        <div class="pt-nota" style="margin-top:4px">O e-mail é o login e liga a agenda do Google. Para trocar, remova e convide de novo.</div></div>
+      <div class="fg"><label class="fl">Telefone / WhatsApp</label>
+        <input class="fi" id="epTel" type="tel" value="${esc(p.telefone||'')}" placeholder="(11) 99999-9999"></div>
+      <div class="fg"><label class="fl">CPF ou CNPJ</label>
+        <input class="fi" id="epDoc" value="${esc(p.documento||'')}" placeholder="Para os repasses"></div>
       <div class="fg fa"><label class="fl">Registro profissional
         <span style="font-weight:400;color:var(--ink3)">(sai na assinatura dos documentos)</span></label>
         <input class="fi" id="epRegistro" value="${esc(p.registro)}"
@@ -7959,27 +8863,29 @@ function editarProf(id) {
     <div id="epErr" class="errbox"></div>
     <div style="display:flex;gap:8px;margin-top:10px">
       <button class="savebtn" id="epBtn" style="flex:1" onclick="salvarProf('${esc(p.id)}')">Salvar alterações</button>
-      <button class="backbtn" onclick="document.getElementById('profForm').innerHTML=''">Cancelar</button>
+      <button class="backbtn" onclick="closeSheet(true)">Cancelar</button>
     </div>
-    ${(p.email||'').toLowerCase()!==(currentUser.email||'').toLowerCase()?`<button class="savebtn" id="epDel"
-      style="background:var(--rose);margin-top:8px" onclick="excluirProf('${esc(p.id)}')">Remover da equipe</button>`:''}
+    ${(p.email||'').toLowerCase()!==(currentUser.email||'').toLowerCase()?`<div class="prof-sair">
+      <div><b>Saiu da Casa?</b><div class="pt-nota" style="margin:2px 0 0">Mude a Situação para <b>Inativo</b> para guardar o histórico, ou remova de vez.</div></div>
+      <button class="backbtn" id="epDel" style="color:var(--rose)" onclick="excluirProf('${esc(p.id)}')">Remover da equipe</button></div>`:''}
   </div>`;
-  f.scrollIntoView({behavior:'smooth', block:'nearest'});
 }
 
 // A pessoa sai do cadastro e perde o acesso na hora. O que ela registrou
 // continua no prontuário, com o nome gravado em cada evolução.
 async function excluirProf(id) {
-  const p = (_profsCache||[]).find(x=>String(x.id)===String(id));
+  const p = (_equipeLista||_profsCache||[]).find(x=>String(x.id)===String(id));
   if(!p) return;
   const vinculados = (await carregarTodosPacientes()).filter(x=>(x.terapeuta_nome||'').trim()===String(p.nome||'').trim());
-  if(!confirm('Remover '+p.nome+' da equipe?\n\nEla perde o acesso ao sistema na hora. As evoluções e registros que ela fez continuam nos prontuários.'+
+  if(!confirm('Remover '+p.nome+' da equipe?\n\nEla perde o acesso ao sistema na hora e sai da lista. As evoluções e registros que ela fez continuam nos prontuários.\n\nSe quiser só bloquear o acesso e manter o nome na lista, cancele e use Editar › Situação: Inativo.'+
     (vinculados.length?'\n\n'+vinculados.length+' paciente(s) têm '+p.nome+' como terapeuta de referência — troque a referência deles depois.':''))) return;
   const btn = document.getElementById('epDel');
   if(btn){ btn.disabled=true; btn.textContent='Removendo...'; }
   const res = await api('excluir_prof',{id});
-  if(!res.ok){ showToast('Erro: '+(res.erro||''),'err'); if(btn){btn.disabled=false;btn.textContent='Remover da equipe';} return; }
-  document.getElementById('profForm').innerHTML='';
+  if(!res.ok){
+    const msg = /desconhecida/i.test(res.erro||'') ? 'O Apps Script ainda não tem a função de remover. Atualize o Code.gs e faça uma nova versão da implantação.' : (res.erro||'');
+    showToast('Não foi possível remover: '+msg,'err'); if(btn){btn.disabled=false;btn.textContent='Remover da equipe';} return; }
+  closeSheet(true);
   _profsCache = null;
   if(typeof loadEquipe==='function') await loadEquipe();
   showToast(p.nome+' saiu da equipe','ok');
@@ -7987,7 +8893,7 @@ async function excluirProf(id) {
 
 async function salvarProf(id) {
   if(currentRole!=='admin'){ showToast('Só a gestão pode editar a equipe.','err'); return; }
-  const p = (_profsCache||[]).find(x=>String(x.id)===String(id));
+  const p = (_equipeLista||_profsCache||[]).find(x=>String(x.id)===String(id));
   if(!p) return;
   const err = document.getElementById('epErr');
   const btn = document.getElementById('epBtn');
@@ -8014,6 +8920,8 @@ async function salvarProf(id) {
     registro: (document.getElementById('epRegistro').value||'').trim(),
     funcao: coletarFuncoes('epFuncoes','epFuncaoOutra'),
     linhas: [...document.querySelectorAll('#epLinhas input:checked')].map(x=>x.value).join(', '),
+    telefone: (document.getElementById('epTel').value||'').trim(),
+    documento: (document.getElementById('epDoc').value||'').trim(),
   };
   const nivelEl = document.getElementById('epNivel');
   const statusEl = document.getElementById('epStatus');
@@ -8034,7 +8942,7 @@ async function salvarProf(id) {
   }
 
   btn.textContent='Salvar alterações'; btn.disabled=false;
-  document.getElementById('profForm').innerHTML='';
+  closeSheet(true);
   _todosPacientes = null; limparCaches();
   await loadEquipe();
   showToast('Perfil atualizado'+(pacientesParaAjustar.length?' e '+pacientesParaAjustar.length+' paciente(s) revinculado(s)':''),'ok');
