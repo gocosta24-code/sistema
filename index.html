@@ -594,6 +594,23 @@ body.agx-movendo{cursor:grabbing;user-select:none;}
 .mp-mais{display:none;font-size:11.5px;font-weight:700;color:var(--teal);}
 .mp-c:hover .mp-mais{display:block;}
 /* FICHA FINANCEIRA */
+.pc-res{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;}
+.pc-n{background:var(--bg);border:1px solid var(--bor);border-radius:var(--r-sm);padding:8px 12px;}
+.pc-n b{display:block;font-family:'Fraunces',serif;font-weight:500;font-size:24px;line-height:1.2;}
+.pc-n span{font-size:11.5px;color:var(--ink3);}
+.pc-n.risco b{color:var(--rose);} .pc-n.atencao b{color:var(--amber);} .pc-n.ok b{color:var(--teal);}
+.pc-tab td{vertical-align:middle;}
+.pc-tab .r{text-align:right;}
+.pc-chip{font-size:11px;font-weight:700;border-radius:20px;padding:2px 9px;white-space:nowrap;}
+.pc-chip.pc-risco{background:var(--rose-lt);color:var(--rose);}
+.pc-chip.pc-atencao{background:var(--amber-lt);color:var(--amber);}
+.pc-chip.pc-ok{background:var(--teal-lt);color:var(--teal);}
+tr.pc-risco td:first-child{box-shadow:inset 3px 0 0 var(--rose);}
+tr.pc-atencao td:first-child{box-shadow:inset 3px 0 0 var(--amber);}
+.pc-bar{display:inline-block;width:46px;height:6px;border-radius:3px;background:var(--sur2);vertical-align:middle;overflow:hidden;margin-right:4px;}
+.pc-bar i{display:block;height:100%;background:var(--teal);}
+.sheet .pc-res{grid-template-columns:repeat(3,minmax(0,1fr));}
+@media(max-width:700px){.pc-res{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .aprov-card{background:var(--amber-lt);border:1px solid #f0c9a6;border-radius:var(--r);padding:14px 16px;margin-bottom:12px;}
 .aprov-h{font-weight:800;color:var(--amber);margin-bottom:8px;}
 .aprov-item{display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:var(--sur);border-radius:var(--r-sm);padding:10px 12px;margin-top:8px;}
@@ -1770,9 +1787,10 @@ function demoAgenda(action, body) {
       DEMO_DB.agenda.push(e); }); });
     // Turmas de Pilates (Dra. Paula): 1 a 3 alunas por horário
     const alunasPil = ['p5','p3','p4','p2','p6','p7'];
-    for(let d=0; d<5; d++) [8,9,10,17,18].forEach(h=>{ const n=(d+h)%3+1; for(let k=0;k<n;k++){
-      const e = ev(d,h,0,50,'paula@casaoliveira.com', alunasPil[(d+h+k)%alunasPil.length], 'Pilates');
-      e.obs = 'Sala: Pilates'; e.status = new Date(e.fim)<new Date() ? 'realizado' : 'confirmado';
+    for(let w=-5; w<=1; w++) for(let d=0; d<5; d++) [8,9,10,17,18].forEach(h=>{ const n=(d+h)%3+1; for(let k=0;k<n;k++){
+      const e = ev(d+7*w,h,0,50,'paula@casaoliveira.com', alunasPil[(d+h+k)%alunasPil.length], 'Pilates');
+      const pid = alunasPil[(d+h+k)%alunasPil.length], faltosa = pid==='p4' ? (w>=-2) : pid==='p2' ? ((w+d)%3===0) : ((w*7+d+h+k)%11===0);
+      e.obs = 'Sala: Pilates'; e.status = new Date(e.fim)<new Date() ? (faltosa?'falta':'realizado') : 'confirmado';
       DEMO_DB.agenda.push(e); } });
     equipe.forEach(p=>{ if(!['clinicaoliveira20@gmail.com','recepcao@casaoliveira.com'].includes(p.email)) p.agenda_id = 'demo-'+p.id; });
   }
@@ -2346,7 +2364,7 @@ async function carregarPacientes(linha) {
   if(lcEl) lcEl.textContent = pacs.length+' pacientes';
 
   document.getElementById('sheetBody').innerHTML = `
-    ${linha==='pilates' && currentRole!=='profissional' ? '<div id="ckLinha"></div>' : ''}
+    ${linha==='pilates' && currentRole!=='profissional' ? '<div id="ckLinha"></div><div id="placarPil"></div>' : ''}
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
       <span style="font-size:13px;color:var(--ink3)" id="pcCount">${pacs.length} paciente${pacs.length!==1?'s':''}</span>
       <button class="addbtn" onclick="openFormNovoPaciente('${linha}')">+ Novo</button>
@@ -2362,7 +2380,7 @@ async function carregarPacientes(linha) {
         </div>`
       : pacs.map(p=>renderPC(p,linha)).join('')
     }</div>`;
-  if(linha==='pilates' && currentRole!=='profissional') carregarPainelPilatesLinha();
+  if(linha==='pilates' && currentRole!=='profissional') { carregarPainelPilatesLinha(); carregarPlacarPilates('placarPil'); }
 }
 
 // Busca local: a lista da linha já está carregada, não precisa ir na planilha
@@ -5784,6 +5802,7 @@ function mapaPilates() {
       <div><b>${alunas.size}</b><span>alunas na semana</span></div>
       <div><b style="color:var(--teal)">${vagasLivres}</b><span>vagas livres nas turmas abertas</span></div>
       <div><b style="color:${turmasCheias?'var(--rose)':'var(--ink)'}">${turmasCheias}</b><span>${turmasCheias===1?'horário cheio':'horários cheios'}</span></div>
+      <button class="backbtn" onclick="abrirPlacarPilates()">Placar de faltas</button>
       <div class="mp-leg"><span><i class="mp-sw mp-vaga"></i>Tem vaga</span><span><i class="mp-sw mp-cheio"></i>Cheio (${PILATES_VAGAS} por profissional)</span><span><i class="mp-sw mp-vazio"></i>Sem turma</span></div>
     </div>
     ${profs.length?'':`<div class="card" style="color:var(--ink3)">Nenhuma aula de Pilates nesta semana. Clique num horário para marcar a primeira aluna.</div>`}
@@ -5943,6 +5962,113 @@ async function abrirPlanoPaciente(pacId, nome) {
   const pacs = await carregarTodosPacientes();
   const p = pacs.find(x=>String(x.id)===String(pacId)) || {id:pacId, nome};
   carregarPlano('plSheet', {id:p.id, nome:p.nome});
+}
+
+// ═══════════════════════════════════════════════
+// PLACAR DE ENGAJAMENTO DO PILATES
+// Lê as aulas de Pilates da agenda (presença = "Realizado", falta = "Faltou")
+// e mostra, por aluno, presença, faltas recentes, faltas seguidas e há
+// quanto tempo não vem. Serve para a coordenação agir antes de o aluno
+// sair: quem está em risco aparece primeiro.
+// ═══════════════════════════════════════════════
+let _placarSemanas = 6;
+let _placar = [];
+
+async function carregarPlacarPilates(el) {
+  const box = document.getElementById(el||'placarPil'); if(!box) return;
+  box.innerHTML = `<div class="ck">${loadingHTML()}</div>`;
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const de = somaDias(hoje, -_placarSemanas*7), ate = somaDias(hoje, Math.min(14, 61 - _placarSemanas*7));
+  const [ag, pacs] = await Promise.all([api('listar_agenda',{de:de.toISOString(), ate:ate.toISOString()}), carregarTodosPacientes()]);
+  if(!ag.ok) { box.innerHTML = `<div class="ck"><div class="pt-nota">Não deu para ler a agenda: ${esc(ag.erro||'')}</div></div>`; return; }
+  const agora = new Date();
+  const aulas = (ag.dados||[]).map(prepEvento).filter(e=>ehPilates(e.servico) && !e.dia_inteiro);
+  const G = {};
+  aulas.forEach(e=>{
+    const nomeEv = String(e.titulo||'').replace(/^\[Não vem\] /,'').split(' · ')[0];
+    const p = (pacs||[]).find(x=>e.paciente_id && String(x.id)===String(e.paciente_id));
+    const k = p ? 'id:'+p.id : 'nome:'+normalizar(nomeEv);
+    const g = G[k] = G[k] || {k, id:p?p.id:'', nome:p?p.nome:nomeEv, tel:p?(p.telefone||''):'', passadas:[], futuras:[]};
+    (new Date(e.inicio) < agora ? g.passadas : g.futuras).push(e);
+  });
+  const quatroSem = somaDias(hoje, -28), duasSem = somaDias(hoje, -14);
+  _placar = Object.values(G).filter(g=>g.passadas.length).map(g=>{
+    g.passadas.sort((a,b)=>a.inicio.localeCompare(b.inicio));
+    const pres = g.passadas.filter(e=>e.status==='realizado');
+    const falt = g.passadas.filter(e=>e.status==='falta');
+    const semReg = g.passadas.filter(e=>e.status!=='realizado' && e.status!=='falta');
+    const avisos = g.passadas.filter(e=>e.aviso).length + g.futuras.filter(e=>e.aviso).length;
+    let seguidas = 0;
+    for(let i=g.passadas.length-1;i>=0;i--) { const st=g.passadas[i].status; if(st==='falta') seguidas++; else if(st==='realizado') break; }
+    const ult = pres.length ? new Date(pres[pres.length-1].inicio) : null;
+    const diasSem = ult ? Math.floor((agora-ult)/86400000) : null;
+    const marcadas = pres.length + falt.length;
+    const taxa = marcadas ? Math.round(pres.length/marcadas*100) : null;
+    const falt4 = falt.filter(e=>new Date(e.inicio)>=quatroSem).length;
+    const falt2 = falt.filter(e=>new Date(e.inicio)>=duasSem).length;
+    const proxima = g.futuras.filter(e=>!e.aviso).sort((a,b)=>a.inicio.localeCompare(b.inicio))[0];
+    const motivos = [];
+    if(seguidas>=2) motivos.push(seguidas+' faltas seguidas');
+    if(taxa!==null && taxa<60) motivos.push('presença de '+taxa+'%');
+    if(diasSem!==null && diasSem>21) motivos.push(diasSem+' dias sem vir');
+    if(!proxima) motivos.push('sem aula marcada');
+    let nivel = motivos.length ? 'risco' : 'ok';
+    if(nivel==='ok' && (falt2>=1 || (taxa!==null && taxa<80) || avisos>=2)) {
+      nivel = 'atencao';
+      if(falt2) motivos.push(falt2===1?'faltou nas últimas 2 semanas':falt2+' faltas nas últimas 2 semanas');
+      else if(taxa!==null && taxa<80) motivos.push('presença de '+taxa+'%');
+      else motivos.push(avisos+' avisos de ausência');
+    }
+    return {...g, pres:pres.length, falt:falt.length, semReg:semReg.length, avisos, seguidas, diasSem, taxa, falt4, proxima, nivel, motivos};
+  }).sort((a,b)=>({risco:0,atencao:1,ok:2}[a.nivel]-{risco:0,atencao:1,ok:2}[b.nivel]) || (a.taxa??101)-(b.taxa??101) || String(a.nome).localeCompare(String(b.nome),'pt-BR'));
+  desenharPlacar(box);
+}
+
+function desenharPlacar(box) {
+  const P = _placar;
+  const n = k => P.filter(x=>x.nivel===k).length;
+  const pres = P.reduce((s,x)=>s+x.pres,0), falt = P.reduce((s,x)=>s+x.falt,0), semReg = P.reduce((s,x)=>s+x.semReg,0);
+  const taxa = pres+falt ? Math.round(pres/(pres+falt)*100) : null;
+  const rot = {risco:'Em risco', atencao:'Atenção', ok:'Engajado'};
+  const zap = x => {
+    const tel = String(x.tel||'').replace(/\D/g,''); if(!tel) return '';
+    const txt = `Oi, ${String(x.nome||'').split(' ')[0]}! Tudo bem? Sentimos sua falta no Pilates. Está tudo certo por aí? Se quiser, a gente encontra um horário que funcione melhor para você. Um abraço da Casa Oliveira`;
+    return `<a class="chip ch-sage" style="text-decoration:none" target="_blank" rel="noopener" href="https://wa.me/${tel.length<=11?'55'+tel:tel}?text=${encodeURIComponent(txt)}">mensagem</a>`;
+  };
+  box.innerHTML = `<div class="ck">
+    <div class="ck-h"><b>Placar de faltas · engajamento</b>
+      <div class="agx-seg">${[4,6].map(w=>`<button class="${_placarSemanas===w?'on':''}" onclick="_placarSemanas=${w};carregarPlacarPilates('${box.id}')">${w} semanas</button>`).join('')}</div></div>
+    <div class="pc-res">
+      <div class="pc-n risco"><b>${n('risco')}</b><span>em risco</span></div>
+      <div class="pc-n atencao"><b>${n('atencao')}</b><span>atenção</span></div>
+      <div class="pc-n ok"><b>${n('ok')}</b><span>engajados</span></div>
+      <div class="pc-n"><b>${taxa==null?'—':taxa+'%'}</b><span>presença média</span></div>
+      <div class="pc-n"><b>${falt}</b><span>faltas no período</span></div>
+    </div>
+    ${semReg?`<div class="fe-aviso" style="margin:10px 0 0"><div><b>${semReg} ${semReg===1?'aula já passou':'aulas já passaram'} sem presença marcada.</b> Marque "Realizado" ou "Faltou" na agenda para o placar ficar certo.</div></div>`:''}
+    ${P.length ? `<div style="overflow-x:auto;margin-top:10px"><table class="fin-tabela pc-tab">
+      <thead><tr><th>Aluno</th><th>Situação</th><th class="r">Presença</th><th class="r">Faltas</th><th class="r">Últimas 4 sem.</th><th class="r">Seguidas</th><th>Última aula</th><th>Próxima</th><th></th></tr></thead>
+      <tbody>${P.map(x=>`<tr class="pc-${x.nivel}">
+        <td><b>${esc(x.nome)}</b>${x.motivos.length?`<div class="fe-mini">${esc(x.motivos.join(' · '))}</div>`:''}</td>
+        <td><span class="pc-chip pc-${x.nivel}">${rot[x.nivel]}</span></td>
+        <td class="r">${x.taxa==null?'—':`<span class="pc-bar"><i style="width:${x.taxa}%"></i></span> ${x.taxa}%`}</td>
+        <td class="r">${x.falt}<span class="fe-mini"> de ${x.pres+x.falt}</span></td>
+        <td class="r">${x.falt4}</td>
+        <td class="r">${x.seguidas?`<b style="color:${x.seguidas>=2?'var(--rose)':'inherit'}">${x.seguidas}</b>`:'0'}</td>
+        <td>${x.diasSem==null?'—':x.diasSem===0?'hoje':x.diasSem===1?'ontem':'há '+x.diasSem+' dias'}</td>
+        <td>${x.proxima?esc(new Date(x.proxima.inicio).toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit'}))+' '+horaDe(x.proxima.inicio):'<span style="color:var(--rose)">nenhuma</span>'}</td>
+        <td>${x.nivel!=='ok'?zap(x):''}</td>
+      </tr>`).join('')}</tbody></table></div>`
+    : `<div class="pt-nota">Nenhuma aula de Pilates nas últimas ${_placarSemanas} semanas.</div>`}
+    <div class="pt-nota">Em risco: 2 faltas seguidas, presença abaixo de 60%, mais de 21 dias sem vir ou sem aula marcada. Atenção: faltou nas últimas 2 semanas, presença abaixo de 80% ou avisou ausência mais de uma vez.</div>
+  </div>`;
+}
+
+function abrirPlacarPilates() {
+  document.getElementById('sheetTitle').textContent = 'Placar do Pilates';
+  document.getElementById('sheetBody').innerHTML = '<div id="placarSheet"></div>';
+  openSheet();
+  carregarPlacarPilates('placarSheet');
 }
 
 async function criarAgendasEquipe() {
