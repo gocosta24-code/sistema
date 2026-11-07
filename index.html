@@ -598,6 +598,12 @@ body.agx-movendo{cursor:grabbing;user-select:none;}
 .mp-n.st-realizado::before{content:"✓ ";color:var(--sage);font-weight:800;}
 .mp-mais{display:none;font-size:11.5px;font-weight:700;color:var(--teal);}
 .mp-c:hover .mp-mais{display:block;}
+/* PLANO: atendimentos fora do plano */
+.pl-av{border:1px solid var(--bor);border-radius:var(--r-sm);padding:10px 12px;margin-top:8px;background:var(--sur);}
+.pl-av-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.pl-av-h>div{flex:1;min-width:160px;} .pl-av-h b{display:block;font-size:14px;} .pl-av-h span{font-size:12.5px;color:var(--ink3);}
+.pl-exc{color:var(--rose)!important;padding:6px 12px!important;font-size:12.5px!important;}
+.pl-av .pt-linha{margin-top:6px;}
 /* VISÃO GERAL DO PACIENTE */
 .vg-top{display:grid;grid-template-columns:1.2fr 1fr;gap:12px;margin-bottom:12px;}
 .vg-meio{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:12px 0;}
@@ -5485,8 +5491,10 @@ function detalheAtendimento(agendaEmail, eventoId) {
     ${pac && e.status==='realizado' ? `<button class="savebtn" onclick="closeSheet(true);abrirPacienteDaAgenda('${esc(linhasDoPaciente(pac)[0]||'')}','${esc(pac.id)}')">Registrar evolução</button>` : ''}
     <div class="agx-acoes" style="margin-top:12px">
       ${e.do_sistema ? `<button class="backbtn" onclick="novoAtendimento(${ref})">Remarcar</button>` : `<span class="pt-nota" style="margin:0">Criado direto no Google Agenda. Para mudar o horário, altere por lá.</span>`}
-      <button class="backbtn" style="color:var(--rose);margin-left:auto" onclick="cancelarAtendimento(${ref})">Cancelar atendimento</button>
+      <button class="backbtn" style="color:var(--rose);margin-left:auto" onclick="cancelarAtendimento(${ref})">Excluir agendamento</button>
     </div>
+    ${!e.rep && !passou ? `<div class="agx-encerrar"><div><b>Excluir este e os próximos iguais</b><div class="pt-nota" style="margin:2px 0 0">Tira da agenda todas as sessões de ${esc(String(e.titulo||'').split(' · ')[0])} ${esc(DIAS_SEMANA[new Date(e.inicio).getDay()].toLowerCase())} às ${horaDe(e.inicio)} com esta profissional, a partir desta.</div></div>
+      <button class="backbtn" style="color:var(--rose)" onclick="excluirProximosIguais(${ref})">Excluir a partir de ${new Date(e.inicio).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})}</button></div>` : ''}
     ${e.paciente_id ? `<button class="backbtn" style="margin-top:12px" onclick="abrirPlanoPaciente('${esc(e.paciente_id)}','${esc(String(e.titulo||'').split(' · ')[0].replace(/'/g,''))}')">Ver ou mudar o plano de horários do paciente</button>` : ''}
     ${e.rep && e.do_sistema ? `<div class="agx-encerrar"><div><b>Encerrar a repetição</b><div class="pt-nota" style="margin:2px 0 0">Cancela este e os próximos atendimentos da série. Os anteriores ficam como estão.</div></div>
       <button class="backbtn" style="color:var(--rose)" onclick="encerrarRepeticao(${ref})">Encerrar a partir de ${new Date(e.inicio).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})}</button></div>` : ''}`;
@@ -5514,7 +5522,7 @@ function cartaoAtendimento(e, mostrarProf) {
       ${passou && e.status!=='falta' ? `<button class="backbtn" style="padding:5px 10px;font-size:12px" onclick="statusAtendimento(${ref},'falta')">Faltou</button>` : ''}
       ${pac && e.status==='realizado' ? `<button class="backbtn" style="padding:5px 10px;font-size:12px" onclick="abrirPacienteDaAgenda('${esc(linhasDoPaciente(pac)[0]||'')}','${esc(pac.id)}')">Registrar evolução</button>` : ''}
       ${e.do_sistema ? `<button class="backbtn" style="padding:5px 10px;font-size:12px" onclick="novoAtendimento(${ref})">Remarcar</button>` : ''}
-      <button class="backbtn" style="padding:5px 10px;font-size:12px;color:var(--rose)" onclick="cancelarAtendimento(${ref})">Cancelar</button>
+      <button class="backbtn" style="padding:5px 10px;font-size:12px;color:var(--rose)" onclick="cancelarAtendimento(${ref})">Excluir</button>
     </div>
   </div>`;
 }
@@ -5840,13 +5848,47 @@ async function statusAtendimento(agendaEmail, eventoId, status, doDetalhe) {
 
 async function cancelarAtendimento(agendaEmail, eventoId) {
   const e = _ag.eventos.find(x=>x.id===eventoId && x.agenda_email===agendaEmail);
-  if(!confirm('Cancelar '+(e?'"'+e.titulo+'" ':'')+'e tirar do Google Agenda?')) return;
+  if(!confirm('Excluir '+(e?'"'+e.titulo+'" ':'este agendamento ')+(e?'de '+new Date(e.inicio).toLocaleDateString('pt-BR')+' às '+horaDe(e.inicio)+' ':'')+'e tirar do Google Agenda?')) return;
   const res = await api('excluir_evento',{agenda_email:agendaEmail, evento_id:eventoId});
   if(!res.ok) { showToast('Erro: '+(res.erro||''),'err'); return; }
   _ag.eventos = _ag.eventos.filter(x=>!(x.id===eventoId && x.agenda_email===agendaEmail));
   closeSheet(true);
   desenharAgenda();
-  showToast('Atendimento cancelado','ok');
+  showToast('Agendamento excluído','ok');
+}
+
+// Sessões futuras "iguais" a uma: mesmo paciente, mesma profissional, mesmo
+// dia da semana, horário e serviço. Serve para séries com número de vezes ou
+// período (que não são horário fixo do plano) e para limpar marcações em lote.
+async function sessoesIguais(ref, desde) {
+  const res = await api('listar_agenda',{de:somaDias(desde,-1).toISOString(), ate:somaDias(desde,400).toISOString()});
+  if(!res.ok) { showToast('Erro: '+(res.erro||''),'err'); return null; }
+  const ini = new Date(ref.inicio), nome = normalizar(String(ref.titulo||'').split(' · ')[0]);
+  return (res.dados||[]).map(prepEvento).filter(x=>x.agenda_email===ref.agenda_email && !x.dia_inteiro
+    && (ref.paciente_id ? String(x.paciente_id||'')===String(ref.paciente_id) : normalizar(String(x.titulo||'').split(' · ')[0])===nome)
+    && normalizar(x.servico||'')===normalizar(ref.servico||'')
+    && new Date(x.inicio).getDay()===ini.getDay() && horaDe(x.inicio)===horaDe(ref.inicio) && new Date(x.inicio)>=desde)
+    .sort((a,b)=>a.inicio.localeCompare(b.inicio));
+}
+async function excluirEmLote(lista, rotulo, btn) {
+  const fmt = d => new Date(d).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+  if(!lista.length) { showToast('Nada para excluir','err'); return 0; }
+  if(!confirm('Excluir '+lista.length+(lista.length===1?' agendamento':' agendamentos')+' de '+rotulo+'?\n\nDe '+fmt(lista[0].inicio)+' a '+fmt(lista[lista.length-1].inicio)+'. Saem também do Google Agenda. Não tem volta.')) return 0;
+  let ok = 0, i = 0;
+  for(const x of lista) {
+    if(btn) { btn.disabled = true; btn.textContent = 'Excluindo… '+(++i)+'/'+lista.length; }
+    const r = await api('excluir_evento',{agenda_email:x.agenda_email, evento_id:x.id}); if(r.ok) ok++;
+  }
+  return ok;
+}
+async function excluirProximosIguais(agendaEmail, eventoId) {
+  const e = _ag.eventos.find(x=>x.id===eventoId && x.agenda_email===agendaEmail); if(!e) return;
+  const lista = await sessoesIguais(e, new Date(e.inicio)); if(!lista) return;
+  const n = await excluirEmLote(lista, String(e.titulo||'').split(' · ')[0]+' ('+DIAS_SEMANA[new Date(e.inicio).getDay()].toLowerCase()+' '+horaDe(e.inicio)+')', document.activeElement);
+  if(!n) return;
+  closeSheet(true);
+  await loadAgenda();
+  showToast(n+(n===1?' agendamento excluído':' agendamentos excluídos'),'ok');
 }
 
 // ═══════════════════════════════════════════════
@@ -6012,7 +6054,45 @@ function desenharPlano() {
       <button class="savebtn" id="plBtn" style="margin:0;flex:1" onclick="salvarPlano()" ${planoMudou()?'':'disabled'}>${planoMudou()?'Salvar plano e ajustar agenda':'Nada alterado'}</button>
     </div>
     <div id="plErr" class="errbox" style="margin-top:10px"></div>
-    ${P.avulsos.length?`<div class="ff-mes">Outros atendimentos marcados (fora do plano)</div>${P.avulsos.slice(0,8).map(e=>`<div class="pt-linha"><span>${esc(maiuscula(new Date(e.inicio).toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit'})))} · ${horaDe(e.inicio)}</span><span>${esc(e.servico||'')} · ${esc(e.profissional||agProfNome(e.agenda_email))}</span></div>`).join('')}`:''}`;
+    ${P.avulsos.length?`<div class="ff-mes">Outros atendimentos marcados (fora do plano)</div>${gruposAvulsos(P.avulsos).map((g,gi)=>`<div class="pl-av">
+      <div class="pl-av-h"><div><b>${esc(g.lista.length>1?DIAS_SEMANA[g.dow]+' · '+g.hora:maiuscula(new Date(g.lista[0].inicio).toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit'}))+' · '+g.hora)}</b>
+        <span>${esc([g.servico, agProfNome(g.email)].filter(Boolean).join(' · '))}${g.lista.length>1?' · '+g.lista.length+' marcadas':''}</span></div>
+        ${g.lista.length>1?`<button class="ff-link" onclick="_plAberto[${gi}]=!_plAberto[${gi}];desenharPlano()">${_plAberto[gi]?'ocultar datas':'ver datas'}</button>
+          <button class="backbtn pl-exc" onclick="excluirGrupoAvulso(${gi},this)">Excluir todas</button>`
+        :`<button class="backbtn pl-exc" onclick="excluirAvulso('${esc(g.lista[0].agenda_email)}','${esc(g.lista[0].id)}',this)">Excluir</button>`}</div>
+      ${g.lista.length>1 && _plAberto[gi] ? g.lista.map(e=>`<div class="pt-linha"><span>${esc(maiuscula(new Date(e.inicio).toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit'})))} · ${horaDe(e.inicio)}</span>
+        <button class="ff-link" style="color:var(--rose)" onclick="excluirAvulso('${esc(e.agenda_email)}','${esc(e.id)}',this)">excluir</button></div>`).join('') : ''}
+    </div>`).join('')}`:''}`;
+}
+
+let _plAberto = {};
+function gruposAvulsos(lista) {
+  const G = {};
+  lista.forEach(e=>{ const d=new Date(e.inicio), k=[e.agenda_email, d.getDay(), horaDe(e.inicio), normalizar(e.servico||'')].join('|');
+    (G[k] = G[k] || {email:e.agenda_email, dow:d.getDay(), hora:horaDe(e.inicio), servico:e.servico||'', lista:[]}).lista.push(e); });
+  return Object.values(G).sort((a,b)=>a.lista[0].inicio.localeCompare(b.lista[0].inicio));
+}
+async function excluirAvulso(email, id, btn) {
+  const e = _plano.avulsos.find(x=>x.id===id && x.agenda_email===email); if(!e) return;
+  if(!confirm('Excluir '+(e.servico||'o atendimento')+' de '+new Date(e.inicio).toLocaleDateString('pt-BR')+' às '+horaDe(e.inicio)+'?\n\nSai também do Google Agenda.')) return;
+  if(btn) { btn.disabled = true; btn.textContent = 'Excluindo…'; }
+  const r = await api('excluir_evento',{agenda_email:email, evento_id:id});
+  if(!r.ok) { if(btn){ btn.disabled=false; btn.textContent='Excluir'; } showToast('Erro: '+(r.erro||''),'err'); return; }
+  _plano.avulsos = _plano.avulsos.filter(x=>!(x.id===id && x.agenda_email===email));
+  if(_ag && _ag.eventos) _ag.eventos = _ag.eventos.filter(x=>!(x.id===id && x.agenda_email===email));
+  desenharPlano(); showToast('Agendamento excluído','ok');
+}
+async function excluirGrupoAvulso(gi, btn) {
+  const g = gruposAvulsos(_plano.avulsos)[gi]; if(!g) return;
+  // Vai além das semanas carregadas na tela: pega a série inteira daqui para frente
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const lista = (await sessoesIguais({...g.lista[0], paciente_id:_plano.pac.id}, hoje) || []).filter(x=>!x.rep);
+  const n = await excluirEmLote(lista, DIAS_SEMANA[g.dow].toLowerCase()+' '+g.hora+(g.servico?' ('+g.servico+')':''), btn);
+  if(!n) { if(btn){ btn.disabled=false; btn.textContent='Excluir todas'; } return; }
+  showToast(n+' agendamentos excluídos','ok');
+  _plAberto = {};
+  if(document.getElementById('agBody')) loadAgenda();
+  carregarPlano(_plano.el, _plano.pac);
 }
 
 function slotMudou(s) {
