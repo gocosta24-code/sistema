@@ -594,6 +594,30 @@ body.agx-movendo{cursor:grabbing;user-select:none;}
 .mp-mais{display:none;font-size:11.5px;font-weight:700;color:var(--teal);}
 .mp-c:hover .mp-mais{display:block;}
 /* FICHA FINANCEIRA */
+.aprov-card{background:var(--amber-lt);border:1px solid #f0c9a6;border-radius:var(--r);padding:14px 16px;margin-bottom:12px;}
+.aprov-h{font-weight:800;color:var(--amber);margin-bottom:8px;}
+.aprov-item{display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:var(--sur);border-radius:var(--r-sm);padding:10px 12px;margin-top:8px;}
+.aprov-t{font-weight:700;font-size:13.5px;}
+.aprov-m{font-size:13px;color:var(--ink2);font-style:italic;margin:2px 0;}
+.aprov-d{font-size:11.5px;color:var(--ink3);}
+.aprov-bts{display:flex;gap:6px;}
+.aprov-alvo{font-weight:700;background:var(--sur);border:1px solid var(--bor);border-radius:var(--r-sm);padding:10px 12px;margin-bottom:14px;}
+.ck{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);padding:14px 16px;margin-bottom:12px;box-shadow:var(--sh);}
+.ck-h{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
+.ck-h b{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--ink2);}
+.ck-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;}
+.ck-t{background:var(--bg);border:1px solid var(--bor);border-radius:var(--r-sm);padding:10px 12px;min-width:0;}
+.ck-t span{display:block;font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink3);}
+.ck-t b{font-family:'Fraunces',serif;font-weight:500;font-size:26px;line-height:1.2;}
+.ck-t small{display:block;font-size:11px;color:var(--ink3);}
+.ck-auto{background:var(--teal-lt);border-color:transparent;}
+.ck-planos{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:12.5px;color:var(--ink2);margin-top:10px;}
+.sheet .ck-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+.sheet .ck-auto{grid-column:span 2;}
+.ck-form{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-top:12px;}
+.ck-form .fl{margin:0;display:flex;flex-direction:column;gap:4px;}
+.ck-form .fi{width:180px;}
+@media(max-width:900px){.ck-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ck-auto{grid-column:span 2}}
 .agx-nv{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;background:var(--amber);color:#fff;border-radius:4px;padding:1px 5px;flex-shrink:0;}
 .agx-ev.avisou{background:repeating-linear-gradient(135deg,#fff 0 6px,var(--amber-lt) 6px 12px);box-shadow:inset 3px 0 0 var(--amber),0 0 0 1.5px var(--sur);}
 .agx-det-aviso b{color:var(--amber);}
@@ -1406,6 +1430,19 @@ function demoApi(action, body) {
     case 'excluir_documento': {
       const i=(DEMO_DB.documentos||[]).findIndex(x=>String(x.id)===String(body.id));
       if(i>=0) DEMO_DB.documentos.splice(i,1);
+      return {ok:true};
+    }
+    case 'resumo_pilates': {
+      if(!(['admin','coordenador'].includes(currentRole) || ehAdministracao())) return {ok:false, erro:'Sem permissão'};
+      const rows=(DEMO_DB.financeiro_pilates||[]); const mes=new Date().toISOString().slice(0,7);
+      const doMes=rows.filter(r=>String(r.mes)===mes); const base=doMes.length?doMes:rows;
+      const res=resumoCheckins(base); const cfg=DEMO_DB.config||{};
+      return {ok:true, dados:{alunos:res.alunos, checkins:res.checkins, por_plano:res.porPlano, sem_plano:res.semPlano,
+        capacidade:cfg.pilates_capacidade??'', vagas_abertas:cfg.pilates_vagas_abertas??'', pode_editar:true,
+        mes_texto:maiuscula(new Date().toLocaleDateString('pt-BR',{month:'long'}))}};
+    }
+    case 'salvar_capacidade_pilates': {
+      DEMO_DB.config={...(DEMO_DB.config||{}), pilates_capacidade:body.capacidade, pilates_vagas_abertas:body.vagas_abertas};
       return {ok:true};
     }
     case 'minha_agenda': {
@@ -2309,6 +2346,7 @@ async function carregarPacientes(linha) {
   if(lcEl) lcEl.textContent = pacs.length+' pacientes';
 
   document.getElementById('sheetBody').innerHTML = `
+    ${linha==='pilates' && currentRole!=='profissional' ? '<div id="ckLinha"></div>' : ''}
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
       <span style="font-size:13px;color:var(--ink3)" id="pcCount">${pacs.length} paciente${pacs.length!==1?'s':''}</span>
       <button class="addbtn" onclick="openFormNovoPaciente('${linha}')">+ Novo</button>
@@ -2324,6 +2362,7 @@ async function carregarPacientes(linha) {
         </div>`
       : pacs.map(p=>renderPC(p,linha)).join('')
     }</div>`;
+  if(linha==='pilates' && currentRole!=='profissional') carregarPainelPilatesLinha();
 }
 
 // Busca local: a lista da linha já está carregada, não precisa ir na planilha
@@ -3769,6 +3808,7 @@ async function excluirTarefa(id) {
 // ═══════════════════════════════════════════════
 // Serviços com regra de repasse. "Fisioterapia" paga por hora e cada sessão
 // conta como 1 hora; as demais pagam um valor fixo por sessão atendida.
+const PLANOS_PILATES = ['1x por semana','2x por semana','3x por semana','4x por semana','5x por semana'];
 const FIN_SERVICOS = ['Fisioterapia','Fisioterapia pélvica','TO infantil','TO mão','Avaliação','Parceiro','Outro'];
 
 // Regras de repasse combinadas com a gestão (out/2026). Mudou o combinado,
@@ -3794,7 +3834,7 @@ const FIN_CONFIG = {
       {k:'telefone', label:'Telefone / WhatsApp', tipo:'texto', placeholder:'Para cobrar pelo WhatsApp'},
       {k:'cpf', label:'CPF', tipo:'texto', placeholder:'Para recibo e reembolso'},
       {k:'email', label:'E-mail', tipo:'texto'},
-      {k:'plano', label:'Plano', tipo:'texto', placeholder:'Ex.: 2x por semana, mensal', lista:true},
+      {k:'plano', label:'Plano (vira os check-ins da semana: 1x = 1, 2x = 2...)', tipo:'select', opcoes:['', ...PLANOS_PILATES]},
       {k:'valor_plano', label:'Valor da mensalidade (R$)', tipo:'numero'},
       {k:'dia_vencimento', label:'Dia de vencimento', tipo:'numero'},
       {k:'pago', label:'Pago?', tipo:'select', opcoes:['Não','Sim'], padrao:'Não'},
@@ -3940,12 +3980,14 @@ async function loadFinanceiro() {
   if(cfg.especial) return loadRepasses();
   if(_finAba==='servicos' && _finVistaServ==='paciente') {
     el.innerHTML = `${abasFinHTML()}
+    <div id="aprovBox"></div>
     <div class="card" style="margin-bottom:12px">
       <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:12px">
         ${seletorMesHTML()}${vistaServHTML()}
       </div>
       <div id="feBody">${loadingHTML()}</div>
     </div><div id="finForm"></div>`;
+    carregarAprovacoes();
     return loadFechamento(document.getElementById('feBody'));
   }
   // Filtra aqui no navegador em vez de mandar filtros:{mes} pro Apps Script:
@@ -3958,6 +4000,7 @@ async function loadFinanceiro() {
   }
   _finTodos = normalizarFin(res.dados);
   _finLista = _finTodos.filter(r=>String(r.mes||'')===_finMes);
+  if(_finAba==='pilates') { const rp = await api('resumo_pilates',{}); if(rp.ok) _ckCfg = {cap:rp.dados.capacidade??'', abertas:rp.dados.vagas_abertas??''}; }
   if(_finAba==='servicos') _finLista.sort((a,b)=>String(a.data||'').localeCompare(String(b.data||'')));
   if(_finAba==='pilates') _finLista.sort((a,b)=>String(a.nome||'').localeCompare(String(b.nome||''),'pt-BR'));
   desenharFinanceiro();
@@ -4023,7 +4066,7 @@ function celulaFin(r, k) {
   if(k==='cobrar') return linkCobranca(r);
   if(['valor_plano','faturamento_previsto','faturamento_real','valor'].includes(k)) return fmtMoeda(v);
   if(k==='data_pagamento' || k==='data') return v?esc(fmtDataBR(String(v).slice(0,10))):'—';
-  if((k==='nome'&&_finAba==='pilates') || (k==='paciente'&&_finAba==='servicos')) return `<button class="ff-nome" title="Abrir a ficha financeira" onclick="event.stopPropagation();abrirFichaFinanceira('${esc(String(v||'').replace(/'/g,"\\'"))}','${esc(r.paciente_id||'')}')">${esc(v||'—')}</button>`+(String(r.status||'')==='Inativo'?' <span class="chip ch-gray">inativo</span>':'');
+  if((k==='nome'&&_finAba==='pilates') || (k==='paciente'&&_finAba==='servicos')) return `<button class="ff-nome" title="Abrir a ficha financeira" onclick="event.stopPropagation();abrirFichaFinanceira('${esc(String(v||'').replace(/'/g,"\\'"))}','${esc(r.paciente_id||'')}')">${esc(v||'—')}</button>`+(String(r.status||'')==='Inativo'?' <span class="chip ch-gray">inativo</span>':'')+(r.pendente?' '+chipPendente(r):'');
   return v?esc(v):'—';
 }
 
@@ -4117,8 +4160,8 @@ function desenharFicha() {
       <div class="ff-info"><div class="ff-t">${esc(i.titulo)}</div>
         <div class="ff-d">${esc(i.detalhe||'')}${i.pago&&i.data_pagamento?' · pago em '+esc(fmtDataBR(String(i.data_pagamento).slice(0,10)))+(i.forma?' ('+esc(i.forma)+')':''):''}${!i.pago&&i.venc&&i.tabela==='financeiro_pilates'?' · vence '+esc(fmtDataBR(String(i.venc).slice(0,10))):''}</div></div>
       <div class="ff-v">${i.sem_valor?'<span class="ff-d">sem valor</span>':fmtMoeda(i.valor)}</div>
-      <div class="ff-st">${i.pago?'<span class="chip ch-sage">Pago</span>':i.atrasado?'<span class="chip ch-rose">Atrasado</span>':'<span class="chip ch-gray">Em aberto</span>'}</div>
-      <div class="ff-bt">${i.pago
+      <div class="ff-st">${i.r.pendente?chipPendente(i.r):i.pago?'<span class="chip ch-sage">Pago</span>':i.atrasado?'<span class="chip ch-rose">Atrasado</span>':'<span class="chip ch-gray">Em aberto</span>'}</div>
+      <div class="ff-bt">${i.r.pendente?'':`<button class="ff-link" style="margin-right:8px" onclick="pedirAprovacao('exclusao','${i.tabela}',_ficha.itens.find(x=>String(x.id)==='${esc(i.id)}').r,()=>carregarFichaFinanceira(_ficha.el,_ficha.alvo))">excluir</button>`}${i.pago
         ? `<button class="ff-link" onclick="desfazerPagamento('${esc(i.id)}')">desfazer</button>`
         : `<div class="ff-rec" id="ffr_${esc(i.id)}"><button class="ff-ok" onclick="this.parentNode.classList.add('abre')">Recebi</button>
             <span class="ff-formas">${['Pix','Cartão','Dinheiro'].map(f=>`<button onclick="registrarPagamento('${esc(i.id)}','${f}')">${f}</button>`).join('')}</span></div>`}</div>
@@ -4449,6 +4492,166 @@ async function receberFechamento(i, forma) {
   loadFinanceiro();
 }
 
+// ═══════════════════════════════════════════════
+// APROVAÇÕES DA GESTÃO (financeiro)
+// Excluir uma cobrança e inativar um aluno do Pilates pedem justificativa e
+// só valem depois que a gestão aprova. Até lá a linha continua na planilha,
+// marcada como pendente. Toda decisão fica registrada na aba Aprovacoes.
+// ═══════════════════════════════════════════════
+const APROV_TIPO = {exclusao:'Excluir cobrança', inativacao:'Inativar aluno'};
+const ehGestao = () => currentRole==='admin';
+function chipPendente(r) {
+  if(r.pendente==='exclusao') return '<span class="chip ch-amber" title="'+esc(r.pendente_motivo||'')+'">exclusão aguardando gestão</span>';
+  if(r.pendente==='inativacao') return '<span class="chip ch-amber" title="'+esc(r.pendente_motivo||'')+'">inativação aguardando gestão</span>';
+  return '';
+}
+function descCobranca(tabela, r) {
+  if(tabela==='financeiro_pilates') return 'Pilates '+(r.mes||'')+' · '+(r.nome||'')+' · '+fmtMoeda(r.valor_plano);
+  return (r.servico||'Serviço')+' '+(r.data?fmtDataBR(String(r.data).slice(0,10)):r.mes||'')+' · '+(r.paciente||'')+' · '+fmtMoeda(r.valor);
+}
+
+// Pedido (ou, para a gestão, decisão imediata) com justificativa obrigatória
+function pedirAprovacao(tipo, tabela, r, depois) {
+  _aprovPedido = {tipo, tabela, r, depois};
+  document.getElementById('sheetTitle').textContent = APROV_TIPO[tipo];
+  document.getElementById('sheetBody').innerHTML = `
+    <div class="aprov-alvo">${esc(tipo==='inativacao' ? (r.nome||'')+' · '+(r.plano||'Pilates') : descCobranca(tabela, r))}</div>
+    <div class="fg"><label class="fl" for="aprMotivo">Justificativa *</label>
+      <textarea class="ft" id="aprMotivo" rows="3" placeholder="${tipo==='inativacao'?'Ex.: mudou de cidade; pediu cancelamento em 03/11 pelo WhatsApp':'Ex.: lançada em duplicidade; sessão foi cortesia'}"></textarea></div>
+    <div class="pt-nota" style="margin-top:-4px">${ehGestao()
+      ? 'Você é da gestão: a mudança vale agora e fica registrada com a justificativa.'
+      : 'A gestão recebe o pedido e aprova ou recusa. Até lá, '+(tipo==='inativacao'?'o aluno continua ativo.':'a cobrança continua na planilha.')}</div>
+    <div id="aprErr" class="errbox"></div>
+    <button class="savebtn" id="aprBtn" style="${tipo==='exclusao'?'background:var(--rose)':''}" onclick="enviarPedidoAprovacao()">${ehGestao()?(tipo==='inativacao'?'Inativar aluno':'Excluir cobrança'):'Enviar para aprovação da gestão'}</button>`;
+  openSheet();
+  setTimeout(()=>{ const t=document.getElementById('aprMotivo'); if(t) t.focus(); }, 60);
+}
+let _aprovPedido = null;
+
+async function enviarPedidoAprovacao() {
+  const {tipo, tabela, r, depois} = _aprovPedido || {};
+  const motivo = (document.getElementById('aprMotivo').value||'').trim();
+  const err = document.getElementById('aprErr'), btn = document.getElementById('aprBtn');
+  if(motivo.length < 5) { err.textContent = 'Escreva a justificativa (é o que a gestão vai ler).'; err.style.display='block'; return; }
+  btn.disabled = true; btn.textContent = 'Enviando…';
+  const quem = currentUser.nome || currentUser.email || '';
+  let res;
+  if(ehGestao()) res = await decidirAprovacao({...r, pendente:tipo, pendente_motivo:motivo, pendente_por:quem}, tabela, true, true);
+  else res = await api('atualizar',{tabela, id:r.id, dados:{pendente:tipo, pendente_motivo:motivo, pendente_por:quem, pendente_em:new Date().toISOString()}});
+  btn.disabled = false;
+  if(!res.ok) { err.textContent = 'Erro: '+(res.erro||''); err.style.display='block'; btn.textContent = 'Tentar de novo'; return; }
+  closeSheet(true);
+  showToast(ehGestao() ? (tipo==='inativacao'?'Aluno inativado':'Cobrança excluída') : 'Pedido enviado para a gestão','ok');
+  atualizarFinanceiroAberto();
+  if(typeof depois==='function') depois();
+}
+
+// Aprovar ou recusar. Exclusão aprovada apaga a linha; inativação aprovada
+// muda a situação para Inativo. Recusa só limpa o pedido.
+async function decidirAprovacao(r, tabela, aprovar, direto) {
+  const log = {data:new Date().toISOString(), tipo:r.pendente, tabela, registro_id:r.id, descricao:descCobranca(tabela, r),
+    justificativa:r.pendente_motivo||'', pedido_por:r.pendente_por||'', pedido_em:r.pendente_em||'',
+    decisao: aprovar ? 'Aprovado' : 'Recusado', decidido_por: currentUser.nome||currentUser.email||'', direto: direto?'Sim':''};
+  let res;
+  if(aprovar && r.pendente==='exclusao') res = await api('deletar',{tabela, id:r.id});
+  else if(aprovar && r.pendente==='inativacao') res = await api('atualizar',{tabela, id:r.id, dados:{status:'Inativo', pendente:'', pendente_motivo:'', pendente_por:'', pendente_em:'', inativado_motivo:r.pendente_motivo||''}});
+  else res = await api('atualizar',{tabela, id:r.id, dados:{pendente:'', pendente_motivo:'', pendente_por:'', pendente_em:''}});
+  if(res.ok) await api('salvar',{tabela:'aprovacoes', dados:log});
+  return res;
+}
+
+async function carregarAprovacoes() {
+  const box = document.getElementById('aprovBox'); if(!box || !ehGestao()) return;
+  const [pil, ser] = await Promise.all([api('listar',{tabela:'financeiro_pilates'}), api('listar',{tabela:'financeiro_servicos'})]);
+  const itens = [...(pil.ok?pil.dados:[]).filter(r=>r.pendente).map(r=>({r, tabela:'financeiro_pilates'})),
+                 ...(ser.ok?ser.dados:[]).filter(r=>r.pendente).map(r=>({r, tabela:'financeiro_servicos'}))];
+  _aprovItens = itens;
+  if(!itens.length) { box.innerHTML = ''; return; }
+  box.innerHTML = `<div class="aprov-card">
+    <div class="aprov-h">${itens.length} ${itens.length===1?'pedido aguardando':'pedidos aguardando'} a sua aprovação</div>
+    ${itens.map(({r, tabela},i)=>`<div class="aprov-item">
+      <div style="min-width:0;flex:1"><div class="aprov-t">${APROV_TIPO[r.pendente]||r.pendente} · ${esc(r.pendente==='inativacao'?(r.nome||''):descCobranca(tabela, normalizarFin([r])[0]))}</div>
+        <div class="aprov-m">"${esc(r.pendente_motivo||'')}"</div>
+        <div class="aprov-d">Pedido por ${esc(r.pendente_por||'—')}${r.pendente_em?' em '+esc(new Date(r.pendente_em).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})):''}</div></div>
+      <div class="aprov-bts"><button class="addbtn" onclick="responderAprovacao(${i},true)">Aprovar</button>
+        <button class="backbtn" onclick="responderAprovacao(${i},false)">Recusar</button></div>
+    </div>`).join('')}
+  </div>`;
+}
+let _aprovItens = [];
+async function responderAprovacao(i, aprovar) {
+  const it = _aprovItens[i]; if(!it) return;
+  if(aprovar && it.r.pendente==='exclusao' && !confirm('Aprovar a exclusão? A cobrança sai da planilha.')) return;
+  const res = await decidirAprovacao(it.r, it.tabela, aprovar, false);
+  if(!res.ok) { showToast('Erro: '+(res.erro||''),'err'); return; }
+  showToast(aprovar ? 'Aprovado' : 'Recusado','ok');
+  loadFinanceiro();
+}
+
+// ═══════════════════════════════════════════════
+// PILATES — CHECK-INS E VAGAS
+// Check-ins semanais vêm do plano de cada aluno ativo: 1x = 1, 2x = 2...
+// Capacidade do estúdio e vagas abertas são preenchidas à mão (Config).
+// Ociosas = vagas abertas − check-ins ativos; fechadas = capacidade − abertas.
+// ═══════════════════════════════════════════════
+function checkinsDoPlano(plano) { const m = String(plano||'').match(/(\d+)\s*x/i); return m ? +m[1] : 0; }
+
+function resumoCheckins(linhas) {
+  const ativos = linhas.filter(r=>String(r.status||'Ativo')!=='Inativo');
+  const porPlano = {}; let checkins = 0, semPlano = 0;
+  ativos.forEach(r=>{ const n = checkinsDoPlano(r.plano); if(!n) { semPlano++; return; } checkins += n; porPlano[n] = (porPlano[n]||0)+1; });
+  return {alunos:ativos.length, checkins, porPlano, semPlano};
+}
+
+function painelCheckinsHTML(res, cap, abertas, podeEditar, mesTxt) {
+  const temCap = cap!=='' && cap!=null, temAb = abertas!=='' && abertas!=null;
+  const ociosas = temAb ? numDe(abertas) - res.checkins : null;
+  const fechadas = temCap && temAb ? numDe(cap) - numDe(abertas) : null;
+  const tile = (rot, val, sub, cor, extra) => `<div class="ck-t${extra||''}"><span>${rot}</span><b style="${cor?'color:'+cor:''}">${val}</b>${sub?`<small>${sub}</small>`:''}</div>`;
+  return `<div class="ck">
+    <div class="ck-h"><b>Check-ins semanais${mesTxt?' · '+esc(mesTxt):''}</b>${podeEditar?`<button class="ff-link" onclick="editarCapacidadePilates()">Editar capacidade e vagas</button>`:''}</div>
+    <div class="ck-grid">
+      ${tile('Check-ins ativos', res.checkins, res.alunos+' '+(res.alunos===1?'aluno ativo':'alunos ativos')+(res.semPlano?' · '+res.semPlano+' sem plano':''), 'var(--teal)', ' ck-auto')}
+      ${tile('Capacidade do estúdio', temCap?numDe(cap):'—', 'check-ins por semana')}
+      ${tile('Vagas abertas', temAb?numDe(abertas):'—', 'disponíveis para venda')}
+      ${tile('Vagas ociosas', ociosas==null?'—':ociosas, ociosas==null?'preencha as vagas abertas':ociosas<0?'acima das vagas abertas':'abertas e sem aluno', ociosas==null?'':ociosas<0?'var(--rose)':ociosas>0?'var(--amber)':'var(--teal)')}
+      ${tile('Vagas fechadas', fechadas==null?'—':fechadas, fechadas==null?'preencha capacidade e vagas':'ainda não abertas')}
+    </div>
+    ${Object.keys(res.porPlano).length?`<div class="ck-planos">${Object.entries(res.porPlano).sort((a,b)=>a[0]-b[0]).map(([n,q])=>`<span>${n}x por semana: <b>${q}</b> ${q===1?'aluno':'alunos'} = ${n*q} check-ins</span>`).join('')}</div>`:''}
+    <div id="ckEdit"></div>
+  </div>`;
+}
+let _ckCfg = {cap:'', abertas:''};
+function editarCapacidadePilates() {
+  const box = document.getElementById('ckEdit'); if(!box) return;
+  box.innerHTML = `<div class="ck-form">
+    <label class="fl">Capacidade do estúdio (check-ins por semana)<input class="fi" type="number" min="0" id="ckCap" value="${esc(_ckCfg.cap)}"></label>
+    <label class="fl">Vagas abertas<input class="fi" type="number" min="0" id="ckAb" value="${esc(_ckCfg.abertas)}"></label>
+    <button class="addbtn" onclick="salvarCapacidadePilates()">Salvar</button>
+    <button class="backbtn" onclick="document.getElementById('ckEdit').innerHTML=''">Cancelar</button></div>`;
+  document.getElementById('ckCap').focus();
+}
+async function salvarCapacidadePilates() {
+  const cap = document.getElementById('ckCap').value, ab = document.getElementById('ckAb').value;
+  if(cap!=='' && ab!=='' && +ab > +cap) { showToast('Vagas abertas não podem passar da capacidade','err'); return; }
+  const r = await api('salvar_capacidade_pilates',{capacidade:cap, vagas_abertas:ab});
+  if(!r.ok) { showToast('Erro: '+(r.erro||''),'err'); return; }
+  _ckCfg = {cap, abertas:ab};
+  showToast('Capacidade e vagas salvas','ok');
+  if(document.getElementById('finBody') && _finAba==='pilates') loadFinanceiro();
+  if(document.getElementById('ckLinha')) carregarPainelPilatesLinha();
+}
+// Na lista de alunos (Linhas › Pilates): vem do servidor, que libera também
+// para a coordenação, sem abrir o restante do financeiro
+async function carregarPainelPilatesLinha() {
+  const box = document.getElementById('ckLinha'); if(!box) return;
+  const r = await api('resumo_pilates',{});
+  if(!r.ok) { box.innerHTML = ''; return; }
+  const d = r.dados;
+  _ckCfg = {cap:d.capacidade??'', abertas:d.vagas_abertas??''};
+  box.innerHTML = painelCheckinsHTML({alunos:d.alunos, checkins:d.checkins, porPlano:d.por_plano||{}, semPlano:d.sem_plano||0}, d.capacidade, d.vagas_abertas, !!d.pode_editar, d.mes_texto||'');
+}
+
 function seletorMesHTML() {
   return `<div class="fg" style="margin:0"><label class="fl">Mês</label>
     <input class="fi" type="month" value="${esc(_finMes)}" onchange="trocarMesFinanceiro(this.value)"></div>`;
@@ -4460,6 +4663,8 @@ function desenharFinanceiro() {
   const cfg = FIN_CONFIG[_finAba];
 
   el.innerHTML = `${abasFinHTML()}
+  <div id="aprovBox"></div>
+  ${_finAba==='pilates' ? painelCheckinsHTML(resumoCheckins(_finLista), _ckCfg.cap, _ckCfg.abertas, true, maiuscula(nomeDoMes(_finMes))) : ''}
   <div class="card" style="margin-bottom:12px">
     ${cfg.sub?`<div class="pt-nota" style="margin:0 0 10px">${esc(cfg.sub)}</div>`:''}
     <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-bottom:10px">
@@ -4477,6 +4682,7 @@ function desenharFinanceiro() {
     </table></div>` : `<div class="pt-nota" style="margin:0">Nada lançado neste mês ainda.${cfg.duplicar?' Use “'+esc(cfg.duplicar.replace(/^\S+\s/,''))+'” para trazer os alunos do mês anterior.':''}</div>`}
   </div>
   <div id="finForm"></div>`;
+  carregarAprovacoes();
 }
 
 function novoFinLancamento(existente) {
@@ -4492,7 +4698,7 @@ function novoFinLancamento(existente) {
     ${cfg.campos.map(c=>{
       const v = r[c.k]!==undefined ? r[c.k] : (c.padraoHoje ? hojeISO() : (c.padrao||''));
       if(c.tipo==='select') return `<div class="fg"><label class="fl">${esc(c.label)}</label>
-        <select class="fs" id="fin_${c.k}">${c.opcoes.map(o=>
+        <select class="fs" id="fin_${c.k}">${(v && !c.opcoes.includes(String(v)) ? [...c.opcoes, String(v)] : c.opcoes).map(o=>
           `<option value="${esc(o)}"${String(v)===o?' selected':''}>${o||'—'}</option>`).join('')}</select></div>`;
       if(c.tipo==='numero') return `<div class="fg"><label class="fl">${esc(c.label)}</label>
         <input class="fi" id="fin_${c.k}" type="number" step="0.01" inputmode="decimal" value="${esc(v)}"></div>`;
@@ -4508,8 +4714,9 @@ function novoFinLancamento(existente) {
         onclick="salvarFinLancamento(${existente?`'${esc(r.id)}'`:''})">${existente?'Salvar':'Adicionar'}</button>
       <button class="backbtn" onclick="document.getElementById('finForm').innerHTML=''">Cancelar</button>
     </div>
-    ${existente?`<button class="savebtn" style="background:var(--rose);margin-top:8px"
-      onclick="excluirFinLancamento('${esc(r.id)}')">Excluir lançamento</button>`:''}
+    ${existente?(r.pendente?`<div class="pt-nota" style="margin-top:10px">${chipPendente(r)} Justificativa: ${esc(r.pendente_motivo||'')}</div>`
+      :`<button class="savebtn" style="background:var(--rose);margin-top:8px"
+      onclick="excluirFinLancamento('${esc(r.id)}')">${cfg.antigo||ehGestao()?'Excluir lançamento':'Pedir exclusão à gestão'}</button>`):''}
   </div>`;
   // Marcou "pago" sem data: a data de pagamento vira hoje, que é o caso comum
   const pg = document.getElementById('fin_pago'), dp = document.getElementById('fin_data_pagamento');
@@ -4538,6 +4745,11 @@ async function salvarFinLancamento(id) {
   if(_finAba==='servicos' && dados.data) dados.mes = dados.data.slice(0,7);
   else if(!id) dados.mes = _finMes;
 
+  // Inativar aluno do Pilates passa pela gestão, com justificativa
+  const antes = id ? (_finLista.find(x=>String(x.id)===String(id)) || {}) : null;
+  const pedeInativar = _finAba==='pilates' && antes && String(antes.status||'Ativo')!=='Inativo' && dados.status==='Inativo';
+  if(pedeInativar) dados.status = antes.status || 'Ativo';
+
   btn.disabled=true; btn.textContent='Salvando...';
   const res = id
     ? await api('atualizar',{tabela:cfg.tabela, id, dados})
@@ -4547,11 +4759,17 @@ async function salvarFinLancamento(id) {
   if(!res.ok) { err.textContent='Erro ao salvar: '+(res.erro||''); err.style.display='block'; return; }
   document.getElementById('finForm').innerHTML='';
   await loadFinanceiro();
+  if(pedeInativar) { pedirAprovacao('inativacao', cfg.tabela, {...antes, ...dados, id}); return; }
   showToast('Salvo','ok');
 }
 
 async function excluirFinLancamento(id) {
   const cfg = FIN_CONFIG[_finAba];
+  if(!cfg.antigo) {
+    const r = _finLista.find(x=>String(x.id)===String(id)) || _finTodos.find(x=>String(x.id)===String(id));
+    if(r) { document.getElementById('finForm').innerHTML=''; pedirAprovacao('exclusao', cfg.tabela, r); }
+    return;
+  }
   if(!confirm('Excluir este lançamento?')) return;
   const res = await api('deletar',{tabela:cfg.tabela, id});
   if(!res.ok) { showToast('Erro ao excluir: '+(res.erro||''),'err'); return; }

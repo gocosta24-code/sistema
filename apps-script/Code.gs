@@ -55,6 +55,7 @@ const ABAS = {
   mural:          'Mural',
   financeiro_servicos:  'FinanceiroServicos',
   financeiro_jornadas:  'FinanceiroJornadas',
+  aprovacoes:     'Aprovacoes',
 };
 
 // Onde os anexos ficam guardados no Drive da clinica. A pasta e criada
@@ -143,6 +144,17 @@ function handle(e) {
       if (!perfil || (perfil.role !== 'admin' && !ehAdministracao(perfil))) {
         return resp({ok:false, erro:'S\u00f3 a gest\u00e3o e o administrativo t\u00eam acesso ao financeiro'});
       }
+    }
+
+    // Excluir cobranca e inativar aluno do Pilates: o administrativo pede,
+    // so a gestao executa (depois de aprovar o pedido na tela). O historico
+    // de aprovacoes nao se apaga nem se altera.
+    if (ABAS_SO_ADMIN_TUDO.indexOf(body.tabela) !== -1 &&
+        ((action === 'deletar' && (body.tabela === 'financeiro_pilates' || body.tabela === 'financeiro_servicos')) ||
+         (action === 'atualizar' && body.tabela === 'financeiro_pilates' && body.dados && String(body.dados.status||'') === 'Inativo') ||
+         (body.tabela === 'aprovacoes' && action !== 'listar' && action !== 'salvar'))) {
+      const perfil = perfilDaEquipe(token);
+      if (!perfil || perfil.role !== 'admin') return resp({ok:false, erro:'Isso precisa da aprova\u00e7\u00e3o da gest\u00e3o'});
     }
 
     // Cadastro da equipe (inclusive nivel de acesso) e exclusao de paciente:
@@ -256,6 +268,8 @@ function handle(e) {
       case 'gerar_orcamento':   return resp(gerarOrcamento(body, token));
       case 'meus_exercicios':   return resp(meusExercicios(token));
       case 'meu_financeiro':    return resp(meuFinanceiro(token));
+      case 'resumo_pilates':    return resp(resumoPilates(token));
+      case 'salvar_capacidade_pilates': return resp(salvarCapacidadePilates(body, token));
       case 'minha_agenda':      return resp(minhaAgenda(token));
       case 'responder_presenca':return resp(responderPresenca(body, token));
       case 'listar_agenda':     return resp(listarAgenda(body, token));
@@ -873,6 +887,63 @@ function enviarLembretesDeAmanha() {
     } catch (e) {}
   });
   return enviados;
+}
+
+// --- PILATES: CHECK-INS E VAGAS --------------------------------
+// Resumo para o topo do financeiro e da lista de alunos (Linhas > Pilates).
+// Coordenacao de Pilates tambem ve, sem acesso ao resto do financeiro.
+// Check-ins semanais = soma do plano dos alunos ativos (1x = 1, 2x = 2...).
+function podeVerPilates(perfil) {
+  if (!perfil) return false;
+  if (perfil.role === 'admin' || ehAdministracao(perfil)) return true;
+  return perfil.role === 'coordenador' && (!perfil.linhas.length || perfil.linhas.indexOf('todos') !== -1 || perfil.linhas.indexOf('pilates') !== -1);
+}
+function gravarConfig(chave, valor) {
+  const sheet = getOuCria(getSpreadsheet(), 'Config');
+  if (sheet.getLastRow() === 0) sheet.appendRow(['chave','valor']);
+  const dados = sheet.getDataRange().getValues();
+  for (let i=1;i<dados.length;i++) if (String(dados[i][0]) === chave) { sheet.getRange(i+1, 2).setValue(valor); return; }
+  sheet.appendRow([chave, valor]);
+}
+function resumoPilates(token) {
+  const perfil = perfilDaEquipe(token);
+  if (!podeVerPilates(perfil)) return {ok:false, erro:'Sem permissão'};
+  const tz = Session.getScriptTimeZone();
+  const mes = Utilities.formatDate(new Date(), tz, 'yyyy-MM');
+  const linhas = lerAba(getOuCria(getSpreadsheet(), ABAS.financeiro_pilates)).map(function(r){
+    const m = String(r.mes||''); r.mes = /^\d{4}-\d{2}-\d{2}T/.test(m) ? Utilities.formatDate(new Date(m), tz, 'yyyy-MM') : m.slice(0,7); return r; });
+  let doMes = linhas.filter(function(r){ return r.mes === mes; });
+  let mesUsado = mes;
+  if (!doMes.length && linhas.length) {   // mes ainda nao gerado: vale o ultimo lancado
+    mesUsado = linhas.map(function(r){ return r.mes; }).sort().pop();
+    doMes = linhas.filter(function(r){ return r.mes === mesUsado; });
+  }
+  const porPlano = {}; let checkins = 0, alunos = 0, semPlano = 0;
+  doMes.forEach(function(r) {
+    if (String(r.status||'Ativo') === 'Inativo') return;
+    alunos++;
+    const m = String(r.plano||'').match(/(\d+)\s*x/i);
+    if (!m) { semPlano++; return; }
+    const n = Number(m[1]); checkins += n; porPlano[n] = (porPlano[n]||0) + 1;
+  });
+  const cfg = lerConfig();
+  const nomes = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  return {ok:true, dados:{alunos:alunos, checkins:checkins, por_plano:porPlano, sem_plano:semPlano,
+    capacidade: cfg.pilates_capacidade === undefined ? '' : cfg.pilates_capacidade,
+    vagas_abertas: cfg.pilates_vagas_abertas === undefined ? '' : cfg.pilates_vagas_abertas,
+    mes: mesUsado, mes_texto: mesUsado ? (function(t){ return t.charAt(0).toUpperCase()+t.slice(1); })(nomes[Number(mesUsado.slice(5,7))-1]||'') : '',
+    pode_editar: true}};
+}
+function salvarCapacidadePilates(body, token) {
+  const perfil = perfilDaEquipe(token);
+  if (!podeVerPilates(perfil)) return {ok:false, erro:'Sem permissão'};
+  const num = function(v){ const s = String(v==null?'':v).trim(); if (!s) return ''; const n = Number(s); return isFinite(n) && n >= 0 ? Math.round(n) : null; };
+  const cap = num(body.capacidade), ab = num(body.vagas_abertas);
+  if (cap === null || ab === null) return {ok:false, erro:'Use números inteiros'};
+  if (cap !== '' && ab !== '' && ab > cap) return {ok:false, erro:'Vagas abertas não podem passar da capacidade'};
+  gravarConfig('pilates_capacidade', cap);
+  gravarConfig('pilates_vagas_abertas', ab);
+  return {ok:true};
 }
 
 // Resultados da avaliacao fisica (avaliacao/) para o painel do paciente.
@@ -1563,7 +1634,7 @@ const TABELAS_CLINICAS = ['pts','avaliacoes','reunioes','monitoramentos','checkl
                           'servicos','myscore','atelie','documentos','orcamentos','prescricoes'];
 
 const ABAS_SO_ADMIN_TUDO = ['financeiro_pilates','financeiro_terapias','financeiro_parceiros',
-                            'financeiro_servicos','financeiro_jornadas'];
+                            'financeiro_servicos','financeiro_jornadas','aprovacoes'];
 const ACOES_TABELA = ['listar','salvar','atualizar','deletar'];
 
 const CATALOGO_CABECALHO = ['id','nome','linha','descricao','valor','ativo','criado_em'];
