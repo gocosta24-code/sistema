@@ -55,6 +55,7 @@ const ABAS = {
   mural:          'Mural',
   financeiro_servicos:  'FinanceiroServicos',
   financeiro_jornadas:  'FinanceiroJornadas',
+  aprovacoes:     'Aprovacoes',
 };
 
 // Onde os anexos ficam guardados no Drive da clinica. A pasta e criada
@@ -143,6 +144,17 @@ function handle(e) {
       if (!perfil || (perfil.role !== 'admin' && !ehAdministracao(perfil))) {
         return resp({ok:false, erro:'S\u00f3 a gest\u00e3o e o administrativo t\u00eam acesso ao financeiro'});
       }
+    }
+
+    // Excluir cobranca e inativar aluno do Pilates: o administrativo pede,
+    // so a gestao executa (depois de aprovar o pedido na tela). O historico
+    // de aprovacoes nao se apaga nem se altera.
+    if (ABAS_SO_ADMIN_TUDO.indexOf(body.tabela) !== -1 &&
+        ((action === 'deletar' && (body.tabela === 'financeiro_pilates' || body.tabela === 'financeiro_servicos')) ||
+         (action === 'atualizar' && body.tabela === 'financeiro_pilates' && body.dados && String(body.dados.status||'') === 'Inativo') ||
+         (body.tabela === 'aprovacoes' && action !== 'listar' && action !== 'salvar'))) {
+      const perfil = perfilDaEquipe(token);
+      if (!perfil || perfil.role !== 'admin') return resp({ok:false, erro:'Isso precisa da aprova\u00e7\u00e3o da gest\u00e3o'});
     }
 
     // Cadastro da equipe (inclusive nivel de acesso) e exclusao de paciente:
@@ -256,6 +268,10 @@ function handle(e) {
       case 'gerar_orcamento':   return resp(gerarOrcamento(body, token));
       case 'meus_exercicios':   return resp(meusExercicios(token));
       case 'meu_financeiro':    return resp(meuFinanceiro(token));
+      case 'resumo_pilates':    return resp(resumoPilates(token));
+      case 'salvar_capacidade_pilates': return resp(salvarCapacidadePilates(body, token));
+      case 'minha_agenda':      return resp(minhaAgenda(token));
+      case 'responder_presenca':return resp(responderPresenca(body, token));
       case 'listar_agenda':     return resp(listarAgenda(body, token));
       case 'salvar_evento':     return resp(salvarEvento(body, token));
       case 'status_evento':     return resp(statusEvento(body, token));
@@ -747,6 +763,187 @@ function meuFinanceiro(token) {
   lerAba(getOuCria(ss, ABAS.financeiro_servicos)).filter(meu).forEach(function(r){ itens.push(enxuto(r,'servicos')); });
   const cfg = lerConfig();
   return {ok:true, dados:{paciente_id:p.id, nome:p.nome, pix_chave:cfg.pix_chave||'', pix_nome:cfg.pix_nome||'', itens:itens}};
+}
+
+// --- AGENDA NA AREA DO PACIENTE --------------------------------
+// O paciente ve so as proprias sessoes (tag paciente_id), confirma presenca
+// ou avisa que nao vem. O aviso vira mensagem em aberto na central, marca o
+// evento (titulo com "[Nao vem]") e manda e-mail para a profissional.
+function salaDaDescricao(desc) {
+  const m = String(desc||'').match(/^Sala:\s*(.+)$/m);
+  return m ? m[1].trim() : '';
+}
+function sessoesDoPaciente(pacienteId, de, ate) {
+  const out = [];
+  equipeComAgenda().forEach(function(prof) {
+    if (!prof.agenda_id) return;
+    const cal = agendaDe(prof);
+    if (!cal) return;
+    cal.getEvents(de, ate).forEach(function(ev) {
+      if (String(ev.getTag('paciente_id')||'') !== String(pacienteId) || ev.isAllDayEvent()) return;
+      out.push({ev: ev, prof: prof});
+    });
+  });
+  out.sort(function(a,b){ return a.ev.getStartTime() - b.ev.getStartTime(); });
+  return out;
+}
+function minhaAgenda(token) {
+  const info = getInfoToken(token);
+  if (!info || info.role !== 'paciente' || !info.refId) return {ok:false, erro:'Sessão inválida'};
+  const agora = new Date(), ate = new Date(agora.getTime() + 35*86400000);
+  const dados = sessoesDoPaciente(info.refId, agora, ate).map(function(x) {
+    const ev = x.ev;
+    return {id: ev.getId(), agenda_email: x.prof.email, profissional: x.prof.nome,
+      inicio: ev.getStartTime().toISOString(), fim: ev.getEndTime().toISOString(),
+      servico: ev.getTag('servico') || '', sala: salaDaDescricao(ev.getDescription()),
+      status: ev.getTag('status') || '', aviso: ev.getTag('aviso_paciente') || '',
+      confirmado_paciente: ev.getTag('confirmado_paciente') || ''};
+  }).filter(function(e){ return e.status !== 'falta'; });
+  return {ok:true, dados: dados};
+}
+function responderPresenca(body, token) {
+  const info = getInfoToken(token);
+  if (!info || info.role !== 'paciente' || !info.refId) return {ok:false, erro:'Sessão inválida'};
+  const prof = equipeComAgenda().filter(function(p){ return p.email === String(body.agenda_email||'').toLowerCase(); })[0];
+  const cal = prof ? agendaDe(prof) : null;
+  const ev = cal ? cal.getEventById(body.evento_id) : null;
+  // So mexe em sessao que e do proprio paciente
+  if (!ev || String(ev.getTag('paciente_id')||'') !== String(info.refId)) return {ok:false, erro:'Sessão não encontrada'};
+  if (ev.getStartTime() < new Date()) return {ok:false, erro:'Esse horário já passou'};
+  const agora = new Date().toISOString();
+  const tz = Session.getScriptTimeZone();
+  const quando = Utilities.formatDate(ev.getStartTime(), tz, "EEE dd/MM 'às' HH:mm");
+  const pac = (acharPacientePorId(info.refId) || {}).obj || {};
+  if (body.resposta === 'confirmar') {
+    ev.setTag('confirmado_paciente', agora);
+    ev.setTag('aviso_paciente', '');
+    if (!ev.getTag('status')) ev.setTag('status', 'confirmado');
+    if (/^\[Não vem\] /.test(ev.getTitle())) ev.setTitle(ev.getTitle().replace(/^\[Não vem\] /, ''));
+    return {ok:true};
+  }
+  if (body.resposta !== 'nao_vou') return {ok:false, erro:'Resposta inválida'};
+  const motivo = String(body.motivo||'').trim().slice(0, 500);
+  ev.setTag('aviso_paciente', agora + (motivo ? ' | ' + motivo : ''));
+  ev.setTag('confirmado_paciente', '');
+  if (ev.getTag('status') === 'confirmado') ev.setTag('status', '');
+  if (!/^\[Não vem\] /.test(ev.getTitle())) ev.setTitle('[Não vem] ' + ev.getTitle());
+  // Vira mensagem em aberto na central, para a recepção remarcar
+  const sheet = abaMensagens(), h = cabecalhoMensagens(sheet);
+  const texto = 'Aviso: não poderei comparecer na sessão de ' + quando + ' com ' + prof.nome + '.' + (motivo ? '\nMotivo: ' + motivo : '');
+  const valores = {id:'msg_' + Date.now() + '_' + Math.floor(Math.random()*9999), paciente_id: info.refId, de:'paciente',
+    autor_email: info.email, autor_nome: pac.nome || '', texto: texto, criado_em: agora, status:'aberta'};
+  sheet.appendRow(h.map(function(k){ return valores[k] === undefined ? '' : valores[k]; }));
+  try {
+    MailApp.sendEmail(prof.email, (pac.nome||'Paciente') + ' avisou que não vem (' + quando + ')',
+      (pac.nome||'O paciente') + ' avisou pela área do paciente que não poderá comparecer na sessão de ' + quando + '.' +
+      (motivo ? '\n\nMotivo: ' + motivo : '') + '\n\nO horário continua na agenda marcado como "[Não vem]". Remarque ou libere a vaga pelo sistema.');
+  } catch (e) { /* e-mail e extra; o aviso ja esta na central */ }
+  return {ok:true};
+}
+
+// --- LEMBRETE POR E-MAIL ---------------------------------------
+// Roda sozinho todo dia (gatilho criado por instalarLembretes): manda para
+// cada paciente com e-mail as sessoes do dia seguinte, com o link para
+// confirmar ou avisar que nao vem. Rode instalarLembretes() uma vez no
+// editor do Apps Script para ligar.
+function instalarLembretes() {
+  ScriptApp.getProjectTriggers().forEach(function(t){ if (t.getHandlerFunction() === 'enviarLembretesDeAmanha') ScriptApp.deleteTrigger(t); });
+  ScriptApp.newTrigger('enviarLembretesDeAmanha').timeBased().everyDays(1).atHour(9).create();
+  return 'Lembretes ligados: todo dia por volta das 9h.';
+}
+function enviarLembretesDeAmanha() {
+  const tz = Session.getScriptTimeZone();
+  const amanha = new Date(); amanha.setDate(amanha.getDate()+1); amanha.setHours(0,0,0,0);
+  const depois = new Date(amanha.getTime() + 86400000);
+  const cfg = lerConfig();
+  const link = String(cfg.link_portal || 'https://gocosta24-code.github.io/sistema/?area=paciente');
+  const porPaciente = {};
+  equipeComAgenda().forEach(function(prof) {
+    const cal = prof.agenda_id ? agendaDe(prof) : null;
+    if (!cal) return;
+    cal.getEvents(amanha, depois).forEach(function(ev) {
+      const pid = String(ev.getTag('paciente_id')||'');
+      if (!pid || ev.isAllDayEvent() || ev.getTag('lembrete_enviado') || ev.getTag('aviso_paciente')) return;
+      (porPaciente[pid] = porPaciente[pid] || []).push({ev: ev, prof: prof});
+    });
+  });
+  let enviados = 0;
+  Object.keys(porPaciente).forEach(function(pid) {
+    const pac = (acharPacientePorId(pid) || {}).obj;
+    const email = pac && String(pac.email||'').trim();
+    if (!email || email.indexOf('@') === -1) return;
+    const linhas = porPaciente[pid].sort(function(a,b){ return a.ev.getStartTime() - b.ev.getStartTime(); }).map(function(x) {
+      const sala = salaDaDescricao(x.ev.getDescription());
+      return '• ' + Utilities.formatDate(x.ev.getStartTime(), tz, 'HH:mm') + ' — ' + (x.ev.getTag('servico')||'Atendimento') + ' com ' + x.prof.nome + (sala ? ' (' + sala + ')' : '');
+    });
+    try {
+      MailApp.sendEmail(email, 'Lembrete: sua sessão amanhã na ' + (cfg.nome || 'Casa Oliveira'),
+        'Olá, ' + String(pac.nome||'').split(' ')[0] + '!\n\nLembrando do seu atendimento amanhã, ' +
+        Utilities.formatDate(amanha, tz, 'dd/MM') + ':\n' + linhas.join('\n') +
+        '\n\nPara confirmar ou avisar que não poderá vir, entre na sua área do paciente:\n' + link +
+        '\n\nAté amanhã!\n' + (cfg.nome || 'Casa Oliveira'));
+      porPaciente[pid].forEach(function(x){ x.ev.setTag('lembrete_enviado', new Date().toISOString()); });
+      enviados++;
+    } catch (e) {}
+  });
+  return enviados;
+}
+
+// --- PILATES: CHECK-INS E VAGAS --------------------------------
+// Resumo para o topo do financeiro e da lista de alunos (Linhas > Pilates).
+// Coordenacao de Pilates tambem ve, sem acesso ao resto do financeiro.
+// Check-ins semanais = soma do plano dos alunos ativos (1x = 1, 2x = 2...).
+function podeVerPilates(perfil) {
+  if (!perfil) return false;
+  if (perfil.role === 'admin' || ehAdministracao(perfil)) return true;
+  return perfil.role === 'coordenador' && (!perfil.linhas.length || perfil.linhas.indexOf('todos') !== -1 || perfil.linhas.indexOf('pilates') !== -1);
+}
+function gravarConfig(chave, valor) {
+  const sheet = getOuCria(getSpreadsheet(), 'Config');
+  if (sheet.getLastRow() === 0) sheet.appendRow(['chave','valor']);
+  const dados = sheet.getDataRange().getValues();
+  for (let i=1;i<dados.length;i++) if (String(dados[i][0]) === chave) { sheet.getRange(i+1, 2).setValue(valor); return; }
+  sheet.appendRow([chave, valor]);
+}
+function resumoPilates(token) {
+  const perfil = perfilDaEquipe(token);
+  if (!podeVerPilates(perfil)) return {ok:false, erro:'Sem permissão'};
+  const tz = Session.getScriptTimeZone();
+  const mes = Utilities.formatDate(new Date(), tz, 'yyyy-MM');
+  const linhas = lerAba(getOuCria(getSpreadsheet(), ABAS.financeiro_pilates)).map(function(r){
+    const m = String(r.mes||''); r.mes = /^\d{4}-\d{2}-\d{2}T/.test(m) ? Utilities.formatDate(new Date(m), tz, 'yyyy-MM') : m.slice(0,7); return r; });
+  let doMes = linhas.filter(function(r){ return r.mes === mes; });
+  let mesUsado = mes;
+  if (!doMes.length && linhas.length) {   // mes ainda nao gerado: vale o ultimo lancado
+    mesUsado = linhas.map(function(r){ return r.mes; }).sort().pop();
+    doMes = linhas.filter(function(r){ return r.mes === mesUsado; });
+  }
+  const porPlano = {}; let checkins = 0, alunos = 0, semPlano = 0;
+  doMes.forEach(function(r) {
+    if (String(r.status||'Ativo') === 'Inativo') return;
+    alunos++;
+    const m = String(r.plano||'').match(/(\d+)\s*x/i);
+    if (!m) { semPlano++; return; }
+    const n = Number(m[1]); checkins += n; porPlano[n] = (porPlano[n]||0) + 1;
+  });
+  const cfg = lerConfig();
+  const nomes = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  return {ok:true, dados:{alunos:alunos, checkins:checkins, por_plano:porPlano, sem_plano:semPlano,
+    capacidade: cfg.pilates_capacidade === undefined ? '' : cfg.pilates_capacidade,
+    vagas_abertas: cfg.pilates_vagas_abertas === undefined ? '' : cfg.pilates_vagas_abertas,
+    mes: mesUsado, mes_texto: mesUsado ? (function(t){ return t.charAt(0).toUpperCase()+t.slice(1); })(nomes[Number(mesUsado.slice(5,7))-1]||'') : '',
+    pode_editar: true}};
+}
+function salvarCapacidadePilates(body, token) {
+  const perfil = perfilDaEquipe(token);
+  if (!podeVerPilates(perfil)) return {ok:false, erro:'Sem permissão'};
+  const num = function(v){ const s = String(v==null?'':v).trim(); if (!s) return ''; const n = Number(s); return isFinite(n) && n >= 0 ? Math.round(n) : null; };
+  const cap = num(body.capacidade), ab = num(body.vagas_abertas);
+  if (cap === null || ab === null) return {ok:false, erro:'Use números inteiros'};
+  if (cap !== '' && ab !== '' && ab > cap) return {ok:false, erro:'Vagas abertas não podem passar da capacidade'};
+  gravarConfig('pilates_capacidade', cap);
+  gravarConfig('pilates_vagas_abertas', ab);
+  return {ok:true};
 }
 
 // Resultados da avaliacao fisica (avaliacao/) para o painel do paciente.
@@ -1437,7 +1634,7 @@ const TABELAS_CLINICAS = ['pts','avaliacoes','reunioes','monitoramentos','checkl
                           'servicos','myscore','atelie','documentos','orcamentos','prescricoes'];
 
 const ABAS_SO_ADMIN_TUDO = ['financeiro_pilates','financeiro_terapias','financeiro_parceiros',
-                            'financeiro_servicos','financeiro_jornadas'];
+                            'financeiro_servicos','financeiro_jornadas','aprovacoes'];
 const ACOES_TABELA = ['listar','salvar','atualizar','deletar'];
 
 const CATALOGO_CABECALHO = ['id','nome','linha','descricao','valor','ativo','criado_em'];
@@ -1504,7 +1701,8 @@ const MOTIVOS_PERDA = ['N\u00e3o respondeu','N\u00e3o tinha or\u00e7amento','Des
 
 const LEAD_CABECALHO = ['id','nome','telefone','email','data_contato','origem','campanha',
                         'indicado_por','linha','responsavel','estagio','motivo_perda',
-                        'paciente_id','criado_em','atualizado_em'];
+                        'paciente_id','criado_em','atualizado_em','observacoes',
+                        'para_quem','paciente_nome','parentesco','data_nascimento'];
 const LEADLOG_CABECALHO = ['id','lead_id','em','de_estagio','para_estagio','obs','por'];
 
 function abaComCabecalho(nome, cabecalho) {
@@ -1635,9 +1833,12 @@ function salvarLead(body, token) {
   if (email && email.indexOf('@') === -1) return {ok:false, erro:'Confira o e-mail, ou deixe em branco'};
   if (email && acharPacientePorEmail(email)) return {ok:false, erro:'Este e-mail já tem cadastro de paciente'};
 
+  const outraPessoa = d.para_quem === 'outra' && String(d.paciente_nome||'').trim();
   const pacId = email ? criarPacienteLead({
-    nome: nome, email: email, telefone: d.telefone||'',
+    nome: outraPessoa ? String(d.paciente_nome).trim() : nome, email: email, telefone: d.telefone||'',
+    responsavel: outraPessoa ? nome + (d.parentesco ? ' (' + String(d.parentesco).toLowerCase() + ')' : '') : '',
     data_nascimento: d.data_nascimento||'', linha: d.linha||'',
+    observacoes: d.observacoes||'',
     criado_por: perfil.nome || perfil.email
   }) : '';
 
@@ -1648,6 +1849,9 @@ function salvarLead(body, token) {
     data_contato: d.data_contato || agora.slice(0,10),
     origem: d.origem||'', campanha: d.campanha||'', indicado_por: d.indicado_por||'',
     linha: d.linha||'', responsavel: d.responsavel || perfil.nome,
+    observacoes: d.observacoes||'',
+    para_quem: d.para_quem||'', paciente_nome: d.paciente_nome||'', parentesco: d.parentesco||'',
+    data_nascimento: d.data_nascimento||'',
     estagio: estagio, motivo_perda: '', paciente_id: pacId,
     criado_em: agora, atualizado_em: agora
   };
@@ -2526,7 +2730,9 @@ function eventoParaTela(ev, prof) {
     servico: ev.getTag('servico') || '',
     status: ev.getTag('status') || '',
     obs: ev.getDescription() || '',
-    do_sistema: ev.getTag('origem') === 'sistema'
+    do_sistema: ev.getTag('origem') === 'sistema',
+    aviso: ev.getTag('aviso_paciente') || '',
+    confirmado_paciente: ev.getTag('confirmado_paciente') || ''
   };
 }
 

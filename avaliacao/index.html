@@ -360,7 +360,7 @@ input[type=date]{width:100%;min-height:48px;font:inherit;color:var(--ink);backgr
   <section class="panel" id="tab-proto">
     <div class="row">
       <div><label for="prSel">Protocolo</label><select id="prSel"></select></div>
-      <div style="flex:0 0 130px"><label for="prSide">Lado afetado</label><select id="prSide"><option value="D">Direito</option><option value="E">Esquerdo</option></select></div>
+      <div style="flex:0 0 130px"><label for="prSide">Lado afetado</label><select id="prSide"><option value="D">Direito</option><option value="E">Esquerdo</option><option value="N">Não se aplica</option></select></div>
     </div>
     <p class="how" id="prHow"></p>
     <div class="list" id="prList"></div>
@@ -1335,14 +1335,22 @@ function protoGo(it,side){
   else if(it.k==='geri'){goTab('ger');$('#qSel').value=it.i;qPrefill();$('#qObs').value='';qRender()}
   else{goTab('esc');$('#eSel').value=it.id;eOnSel();if(it.id==='preensao'){$('#eGSide').value=it.s||side;const pp=cur();if(pp&&pp.sexo)$('#eGSex').value=pp.sexo}}
 }
+// Lado afetado "Não se aplica" (sem limitação em um lado): o que depende de
+// lado é feito dos dois, para comparar direito com esquerdo
+const precisaLado=it=>(it.k==='gonio'&&MOVES[it.j].side!=='none'&&!it.s)||(it.k==='equi'&&it.p==='u')||(it.k==='escala'&&it.id==='preensao'&&!it.s);
+function itensDoLado(P,side){
+  if(side!=='N')return P.items.map(it=>({it,side}));
+  return P.items.flatMap(it=>precisaLado(it)?['D','E'].map(sd=>({it:it.k==='escala'?{...it,s:sd}:it,side:sd})):[{it,side:'D'}]);
+}
 function renderProto(){
-  const P=PRS[$('#prSel').value],side=$('#prSide').value,p=cur();$('#prHow').textContent=P.how;
+  const P=PRS[$('#prSel').value],sideSel=$('#prSide').value,p=cur();$('#prHow').textContent=P.how;
+  const lista=itensDoLado(P,sideSel);
   const today=new Date().toDateString();const recs=p?p.records.filter(r=>new Date(r.date).toDateString()===today):[];
   let n=0;
-  $('#prList').innerHTML=P.items.map((it,i)=>{const done=recs.some(r=>itMatch(it,side,r));if(done)n++;return `<div class="it"><span class="${done?'done':''}">${done?'✓ ':''}${esc(itDesc(it,side))}</span><button type="button" data-i="${i}">${done?'Refazer':'Fazer'}</button></div>`}).join('')
-   +`<div class="it"><span class="hint">${n} de ${P.items.length} itens feitos hoje${p?'':'. Escolha um paciente'}</span></div>`
+  $('#prList').innerHTML=lista.map(({it,side},i)=>{const done=recs.some(r=>itMatch(it,side,r));if(done)n++;return `<div class="it"><span class="${done?'done':''}">${done?'✓ ':''}${esc(itDesc(it,side))}</span><button type="button" data-i="${i}">${done?'Refazer':'Fazer'}</button></div>`}).join('')
+   +`<div class="it"><span class="hint">${n} de ${lista.length} itens feitos hoje${p?'':'. Escolha um paciente'}</span></div>`
    +(P.nivel&&p?`<div class="it"><span${p.nivel===P.nivel?' class="done"':''}>${p.nivel===P.nivel?'✓ Aluno no '+LEVELS[P.nivel].n:p.nivel?'Aluno hoje no '+LEVELS[p.nivel].n:'Aluno ainda sem nível'}</span>${p.nivel===P.nivel?'':`<button type="button" data-nv="${P.nivel}">Mudar para Nível ${P.nivel}</button>`}</div>`:'');
-  $('#prList').querySelectorAll('button[data-i]').forEach(bt=>bt.onclick=()=>protoGo(P.items[+bt.dataset.i],side));
+  $('#prList').querySelectorAll('button[data-i]').forEach(bt=>bt.onclick=()=>protoGo(lista[+bt.dataset.i].it,lista[+bt.dataset.i].side));
   $('#prList').querySelectorAll('button[data-nv]').forEach(bt=>bt.onclick=()=>setNivel(bt.dataset.nv));
 }
 $('#prSel').addEventListener('change',renderProto);$('#prSide').addEventListener('change',renderProto);
