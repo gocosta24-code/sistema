@@ -129,6 +129,23 @@ oferece abrir o prontuário para registrar a evolução.
 código novo rode uma função qualquer no editor (ex.: `equipeComAgenda`) e
 aceite a permissão de acesso às agendas com a conta da clínica.
 
+**Programa com fim:** série marcada com fim (N sessões, período ou data) grava
+em cada evento a linha `Programa: sessão k de N [p:id/k/N]`. A grade mostra
+`6/10` e o detalhe "Sessão 6 de 10". Remarcar mantém a posição.
+
+**Lembretes de amanhã** (gestão e recepção): lista os atendimentos do dia
+seguinte com o WhatsApp do paciente já com a mensagem pronta (`wa.me`, sem API
+paga). O "enviado" fica marcado no aparelho (`localStorage`); *confirmou* grava o
+status na agenda.
+
+### Backup
+
+`fazerBackup()` copia a planilha inteira para a pasta *Backups do Sistema Casa
+Oliveira* no Drive da clínica e deixa as 12 cópias mais recentes. Rode
+`instalarBackup()` uma vez no editor: liga o gatilho de toda segunda às 3h e já
+faz a primeira cópia. A cópia tem tudo, inclusive a parte reservada: a pasta é
+só da gestão.
+
 ### Nossa Casa (mural da equipe)
 
 Tela aberta a toda a equipe, para pertencimento: **mural** (aba `Mural`) com

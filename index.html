@@ -551,6 +551,12 @@ body.agx-movendo{cursor:grabbing;user-select:none;}
 .agx-ac.falta.on{background:var(--rose);border-color:var(--rose);}
 .agx-ac:disabled{opacity:.4;cursor:not-allowed;}
 .agx-rep{font-size:11px;color:var(--ink3);flex-shrink:0;}
+.lz-l{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--bor);}
+.lz-l.ok{opacity:.6;}
+.lz-h{font-weight:600;min-width:44px;font-variant-numeric:tabular-nums;}
+.lz-n{flex:1;min-width:0;display:flex;flex-direction:column;}
+.lz-n small{color:var(--ink3);font-size:12px;}
+.lz-a{display:flex;align-items:center;gap:8px;flex-shrink:0;}
 .agx-cols{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;font-size:12.5px;color:var(--ink3);font-weight:600;}
 .agx-cols .agx-seg button{padding:4px 12px;font-size:12.5px;}
 .agx-link{background:none;color:var(--teal);font-weight:700;font-size:12.5px;text-decoration:underline;text-underline-offset:3px;padding:4px 6px;}
@@ -5028,19 +5034,24 @@ let _agEstendeu = false;
 // próprias ("Sala: Sala 2" / "Repete: ... [r:id/7]"). Assim aparecem para
 // quem abre o Google e não exigem mudança no Code.gs.
 function prepEvento(e) {
-  const resto = []; e.sala = ''; e.rep = null;
+  const resto = []; e.sala = ''; e.rep = null; e.prog = null;
   String(e.obs||'').split('\n').forEach(l=>{
-    const ms = l.match(/^Sala:\s*(.+)$/), mr = l.match(/^Repete:.*\[r:([\w-]+)\/(\d+)\]/);
+    const ms = l.match(/^Sala:\s*(.+)$/), mr = l.match(/^Repete:.*\[r:([\w-]+)\/(\d+)\]/),
+          mp = l.match(/^Programa:.*\[p:([\w-]+)\/(\d+)\/(\d+)\]/);
     if(ms && !e.sala) e.sala = ms[1].trim();
     else if(mr && !e.rep) e.rep = {id:mr[1], passo:+mr[2]};
+    else if(mp && !e.prog) e.prog = {id:mp[1], k:+mp[2], n:+mp[3]};
     else resto.push(l);
   });
   e.nota = resto.join('\n').trim();
   return e;
 }
-function montaObs(sala, rp, nota) {
+// Programa com fim (N sessões, período ou data): cada sessão leva a sua
+// posição ("sessão 6 de 10") numa linha própria, para a agenda mostrar 6/10
+function montaObs(sala, rp, nota, pg) {
   return [sala ? 'Sala: '+sala : '',
           rp ? 'Repete: '+(rp.passo===14?'a cada 2 semanas':'toda semana')+', sem data para acabar [r:'+rp.id+'/'+rp.passo+']' : '',
+          pg ? 'Programa: sessão '+pg.k+' de '+pg.n+' [p:'+pg.id+'/'+pg.k+'/'+pg.n+']' : '',
           nota||''].filter(Boolean).join('\n');
 }
 function agMesmaSala(a,b) { return !!a && !!b && normalizar(a)===normalizar(b); }
@@ -5150,6 +5161,7 @@ function desenharAgenda(rolar) {
       <strong class="agx-rot">${esc(rotulo)}</strong>
     </div>
     <div class="agx-seg" role="tablist">${[['dia','Dia'],['semana','Semana'],['lista','Lista'],['mapa','Mapa do Pilates']].map(([v,t])=>`<button class="${_agVista===v?'on':''}" onclick="vistaAgenda('${v}')">${t}</button>`).join('')}</div>
+    ${currentRole==='admin' || ehRecepcao() ? `<button class="backbtn" onclick="lembretesWhats(1)" title="Mensagem pronta para cada paciente de amanhã">Lembretes de amanhã</button>` : ''}
     <button class="addbtn agx-add" onclick="novoAtendimento()">+ Agendar</button>
   </div>
   ${_agVista==='dia' && !_agFiltro && varias ? `<div class="agx-cols"><span>Colunas por</span><div class="agx-seg">${[['prof','Profissional'],['sala','Sala']].map(([v,t])=>`<button class="${_agColunas===v?'on':''}" onclick="colunasPor('${v}')">${t}</button>`).join('')}</div>${currentRole==='admin'?`<button class="agx-link" onclick="editarSalas()">Salas da clínica</button>`:''}</div>` : (currentRole==='admin' && _agVista!=='dia' ? '' : '')}
@@ -5271,7 +5283,7 @@ function gradeAgenda(varias) {
       return `<button class="agx-ev st-${st||'agendado'}${e.do_sistema?' mov':''}${e.aviso?' avisou':''}" data-id="${esc(e.id)}" data-ag="${esc(e.agenda_email)}"
         style="--c:${cor};top:${top}px;height:${alt}px;left:calc(${faixa*100/de}% + 2px);width:calc(${100/de}% - 4px)"
         title="${esc(e.titulo)} · ${horaDe(e.inicio)}–${horaDe(e.fim)}${prof?' · '+prof:''}${sala?' · '+sala:''}${e.rep?' · repete sem data para acabar':''}">
-        <span class="agx-et">${st?`<b class="agx-st st-${st}">${AG_ICONE[st]}</b>`:''}<span class="agx-en">${esc(nome.replace(/^\[Não vem\] /,''))}</span>${e.aviso?'<span class="agx-nv">não vem</span>':''}${e.rep?'<span class="agx-rep" aria-label="Repete">↻</span>':''}${curto?`<span class="agx-eh">${horaDe(e.inicio)}</span>`:''}</span>
+        <span class="agx-et">${st?`<b class="agx-st st-${st}">${AG_ICONE[st]}</b>`:''}<span class="agx-en">${esc(nome.replace(/^\[Não vem\] /,''))}</span>${e.aviso?'<span class="agx-nv">não vem</span>':''}${e.rep?'<span class="agx-rep" aria-label="Repete">↻</span>':''}${e.prog?`<span class="agx-rep" title="Sessão ${e.prog.k} de ${e.prog.n} do programa">${e.prog.k}/${e.prog.n}</span>`:''}${curto?`<span class="agx-eh">${horaDe(e.inicio)}</span>`:''}</span>
         ${curto?'':`<span class="agx-es">${horaDe(e.inicio)}–${horaDe(e.fim)}${serv?' · '+esc(serv):''}</span>${(prof||sala) && alt>=58?`<span class="agx-es agx-ep">${[prof,sala].filter(Boolean).join(' · ')}</span>`:''}`}
       </button>`;
     }).join('');
@@ -5409,6 +5421,7 @@ function detalheAtendimento(agendaEmail, eventoId) {
       ${e.sala?`<div class="agx-det-l"><span>Sala</span><b>${esc(e.sala)}</b></div>`:''}
       ${e.aviso?`<div class="agx-det-l agx-det-aviso"><span>Paciente avisou</span><b>Não vem${(()=>{const [q,m]=String(e.aviso).split(' | ');const d=new Date(q);return (isNaN(d)?'':' · avisou em '+d.toLocaleDateString('pt-BR')+' '+horaDe(q))+(m?'<div style="font-weight:500;margin-top:2px">Motivo: '+esc(m)+'</div>':'');})()}</b></div>`:''}
       ${!e.aviso&&e.confirmado_paciente?`<div class="agx-det-l"><span>Paciente</span><b>Confirmou pela área do paciente</b></div>`:''}
+      ${e.prog?`<div class="agx-det-l"><span>Programa</span><b>Sessão ${e.prog.k} de ${e.prog.n}${e.prog.k===e.prog.n?' · última do programa':e.prog.n-e.prog.k<=2?' · faltam '+(e.prog.n-e.prog.k):''}</b></div>`:''}
       ${e.rep?`<div class="agx-det-l"><span>Repetição</span><b>↻ ${e.rep.passo===14?'A cada 2 semanas':'Toda semana'}, sem data para acabar</b></div>`:''}
       ${e.nota?`<div class="agx-det-l"><span>Observação</span><b style="font-weight:500;white-space:pre-line">${esc(e.nota)}</b></div>`:''}
       <div class="agx-det-l"><span>Situação</span><b><span class="chip ${st.c}">${st.t}</span></b></div>
@@ -5647,8 +5660,11 @@ async function salvarAtendimento(eventoId, forcar) {
   // Sem data para acabar: cada dia da semana vira uma série própria
   const novoRep = () => ({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6), passo:r.passo});
   const reps = {}; const rp = e ? e.rep : (r.passo && r.nunca ? true : null);
-  const obsDe = o => montaObs(sala, e ? e.rep : (r.passo && r.nunca ? (reps[o.slot] = reps[o.slot] || novoRep()) : null), v('agObs'));
   let datas = eventoId ? [{dt:v('agData'), hora:v('agHora'), slot:0}] : ocorrenciasRepeticao();
+  // Remarcar mantém a posição no programa; série nova com fim ganha numeração
+  const progId = !e && r.passo && !r.nunca ? Date.now().toString(36)+'p' : '';
+  const obsDe = (o, i) => montaObs(sala, e ? e.rep : (r.passo && r.nunca ? (reps[o.slot] = reps[o.slot] || novoRep()) : null), v('agObs'),
+                                   e ? e.prog : (progId && datas.length>1 ? {id:progId, k:i+1, n:datas.length} : null));
   if(!datas.length) return erro('Nenhuma data para agendar com essas opções.');
   const servico = v('agServ');
   let forcarGrupo = false;
@@ -5695,7 +5711,7 @@ async function salvarAtendimento(eventoId, forcar) {
     const inicio = new Date(datas[i].dt+'T'+datas[i].hora+':00');
     const fim = new Date(inicio.getTime() + dur*60000);
     const body = {agenda_email:email, paciente_id: pac?pac.id:'', paciente_nome:nomePac,
-                  servico, inicio:inicio.toISOString(), fim:fim.toISOString(), obs:obsDe(datas[i]),
+                  servico, inicio:inicio.toISOString(), fim:fim.toISOString(), obs:obsDe(datas[i], i),
                   evento_id: eventoId||'', forcar: !!forcar || forcarGrupo};
     const res = await api('salvar_evento', body);
     if(!res.ok && res.lotado) {
@@ -5773,6 +5789,49 @@ async function statusAtendimento(agendaEmail, eventoId, status, doDetalhe) {
   const aviso = {lancado:'Lançado em Financeiro › Serviços', retirado:'Lançamento retirado do Financeiro',
                  pago_mantido:'O lançamento já estava pago e continua no Financeiro'}[res.lancamento];
   showToast(aviso || (AG_STATUS[status]||{}).t || 'Atualizado','ok');
+}
+
+// ── Lembretes pelo WhatsApp ──
+// O paciente responde WhatsApp, não e-mail. Sem API paga: a recepção abre a
+// lista do dia seguinte e toca em cada nome; o WhatsApp abre com a mensagem
+// pronta. O "enviado" fica marcado neste aparelho; "Confirmou" grava na agenda.
+let _lzDias = 1;
+function lzEnviado(id) { try { return !!localStorage.getItem('lz:'+id); } catch(e) { return false; } }
+function lzMarcar(id)  { try { localStorage.setItem('lz:'+id, '1'); } catch(e) {} }
+async function lembretesWhats(dias) {
+  _lzDias = Math.max(1, dias);
+  const d = somaDias(new Date(new Date().setHours(0,0,0,0)), _lzDias);
+  const iso = diaISO(d);
+  const nomeDia = _lzDias===1 ? 'amanhã' : d.toLocaleDateString('pt-BR',{weekday:'long'});
+  document.getElementById('sheetTitle').textContent = 'Lembretes · '+maiuscula(d.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit'}));
+  document.getElementById('sheetBody').innerHTML = loadingHTML();
+  openSheet();
+  const evs = (await agendaDoPeriodo([iso])).filter(e=>e.paciente_id && diaISO(new Date(e.inicio))===iso && !e.aviso)
+    .sort((a,b)=>a.inicio.localeCompare(b.inicio));
+  const linhas = evs.map(e=>{
+    const p = (_todosPacientes||[]).find(x=>String(x.id)===String(e.paciente_id)) || {};
+    const tel = String(p.telefone||p.whatsapp||'').replace(/\D/g,'');
+    const nome = String(p.nome||String(e.titulo||'').split(' · ')[0]).split(' ')[0];
+    const ref = `'${esc(e.agenda_email)}','${esc(e.id)}'`;
+    const quando = nomeDia+' ('+d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})+'), às '+horaDe(e.inicio);
+    const txt = `Oi, ${nome}! Passando para lembrar do seu atendimento${e.servico?' de '+e.servico:''} ${quando}, aqui na Casa Oliveira. Podemos confirmar?`;
+    const link = tel ? `https://wa.me/${tel.length<=11?'55'+tel:tel}?text=${encodeURIComponent(txt)}` : '';
+    const env = lzEnviado(e.id), conf = e.status==='confirmado' || e.confirmado_paciente;
+    return `<div class="lz-l${env||conf?' ok':''}">
+      <div class="lz-h">${horaDe(e.inicio)}</div>
+      <div class="lz-n"><b>${esc(p.nome||String(e.titulo||'').split(' · ')[0])}</b><small>${esc([e.servico, e.profissional||agProfNome(e.agenda_email)].filter(Boolean).join(' · '))}</small></div>
+      <div class="lz-a">${conf ? '<span class="chip ch-sage">confirmado</span>'
+        : `${link ? `<a class="chip ${env?'':'ch-sage'}" style="text-decoration:none" target="_blank" rel="noopener" href="${link}" onclick="lzMarcar('${esc(e.id)}');this.closest('.lz-l').classList.add('ok');this.textContent='enviado'">${env?'enviado':'WhatsApp'}</a>` : '<small style="color:var(--rose)">sem telefone</small>'}
+           <button class="ff-link" onclick="statusAtendimento(${ref},'confirmado');this.outerHTML='<span class=&quot;chip ch-sage&quot;>confirmado</span>'">confirmou</button>`}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('sheetBody').innerHTML = `
+    <div class="pt-nota" style="margin-top:0">Toque em <b>WhatsApp</b> para abrir a conversa com a mensagem pronta. Quando a pessoa responder, marque <b>confirmou</b>.</div>
+    ${linhas || `<div class="pt-nota">Nenhum atendimento ${esc(nomeDia)}.</div>`}
+    <div class="agx-acoes" style="margin-top:14px">
+      ${_lzDias>1?`<button class="backbtn" onclick="lembretesWhats(${_lzDias-1})">‹ Dia anterior</button>`:''}
+      <button class="backbtn" style="margin-left:auto" onclick="lembretesWhats(${_lzDias+1})">Dia seguinte ›</button>
+    </div>`;
 }
 
 async function cancelarAtendimento(agendaEmail, eventoId) {
@@ -7475,7 +7534,10 @@ async function excluirRegistroHist(tipo, id) {
 // ═══════════════════════════════════════════════
 let _documentos = [];
 // A ordem aqui é a ordem dos grupos na tela
-const CATEGORIAS_DOC = ['Nota fiscal','Orçamento','Proposta','Declaração',
+// "Prontuário anterior" guarda o histórico trazido do SeuFisio (PDF), no topo
+// para ser a primeira coisa que a terapeuta acha ao abrir os documentos
+const DOC_PRONT_ANTERIOR = 'Prontuário anterior (SeuFisio)';
+const CATEGORIAS_DOC = [DOC_PRONT_ANTERIOR,'Nota fiscal','Orçamento','Proposta','Declaração',
                         'Relatório de atendimento','Laudo','Recibo','Outro'];
 
 // Agrupa por tipo, mantendo a ordem acima e jogando para o fim o que não
@@ -7578,7 +7640,8 @@ function prepararUpload(pacienteId, ev) {
   }
 
   const f = document.getElementById('docForm');
-  const categoriaChutada = /nota|nf/i.test(arq.name) ? 'Nota fiscal'
+  const categoriaChutada = /seufisio|prontu/i.test(arq.name) ? DOC_PRONT_ANTERIOR
+                         : /nota|nf/i.test(arq.name) ? 'Nota fiscal'
                          : /relat/i.test(arq.name) ? 'Relatório de atendimento'
                          : /laudo/i.test(arq.name) ? 'Laudo'
                          : /orc|orç/i.test(arq.name) ? 'Orçamento' : 'Outro';
@@ -7586,11 +7649,11 @@ function prepararUpload(pacienteId, ev) {
     <div class="doc-previa">${iconeArquivo(arq.type, arq.name)} <strong>${esc(arq.name)}</strong>
       <span style="color:var(--ink3)"> · ${tamanhoLegivel(arq.size)}</span></div>
     <div class="fg"><label class="fl">Tipo de documento</label>
-      <select class="fs" id="docCategoria">
+      <select class="fs" id="docCategoria" onchange="document.getElementById('docVisivel').checked = this.value!==DOC_PRONT_ANTERIOR">
         ${CATEGORIAS_DOC.map(c=>`<option${c===categoriaChutada?' selected':''}>${c}</option>`).join('')}
       </select></div>
     <label class="pill-chk" style="margin-bottom:10px">
-      <input type="checkbox" id="docVisivel" checked style="accent-color:var(--teal)">
+      <input type="checkbox" id="docVisivel" ${categoriaChutada===DOC_PRONT_ANTERIOR?'':'checked'} style="accent-color:var(--teal)">
       O paciente pode ver e baixar
     </label>
     <div class="pt-nota" style="margin-top:0">Desmarque para guardar o arquivo só na clínica.</div>
