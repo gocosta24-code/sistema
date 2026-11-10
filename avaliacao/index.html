@@ -627,6 +627,7 @@ input[type=date]{width:100%;min-height:48px;font:inherit;color:var(--ink);backgr
       <div><label for="dQueixa">Queixa e diagnóstico</label><textarea class="in" id="dQueixa"></textarea></div>
       <div><label for="dConduta">Conduta e plano</label><textarea class="in" id="dConduta"></textarea></div>
       <button class="btn full" id="docPrint" type="button">Gerar PDF</button>
+      <button class="btn ghost full" id="docSalvar" type="button">Salvar no perfil do paciente</button>
       <p class="hint">Na tela de impressão, escolha Salvar como PDF. Envie ao médico só com a autorização do paciente.</p>
     </div>
     <div class="paper" id="docPaper"></div>
@@ -640,6 +641,7 @@ input[type=date]{width:100%;min-height:48px;font:inherit;color:var(--ink);backgr
       <div><label for="ptMsg">Mensagem para o paciente e a família</label><textarea class="in" id="ptMsg" placeholder="O que os resultados mostram e o que vamos fazer juntos"></textarea></div>
       <div><label for="ptPlano">Plano de cuidado proposto</label><textarea class="in" id="ptPlano" placeholder="Ex.: fisioterapia 2x/semana com treino de força e equilíbrio; reavaliação em 3 meses"></textarea></div>
       <button class="btn full" id="ptPrint" type="button">Baixar relatório</button>
+      <button class="btn ghost full" id="ptSalvar" type="button">Salvar no perfil do paciente</button>
       <p class="hint" id="ptHint">Baixa o relatório como página. Abra no navegador e use Imprimir, Salvar como PDF, ou envie o arquivo para a família. As comparações usam o sexo e a idade cadastrados em Dados do paciente.</p>
     </div>
     <div class="ptpaper" id="ptPaper"></div>
@@ -1907,11 +1909,22 @@ $('#ptClose').addEventListener('click',()=>{$('#ptView').hidden=true});
 function ptCss(){let t='';document.querySelectorAll('style').forEach(st=>{const x=st.textContent;const a=x.indexOf('/*PT-START*/'),b=x.indexOf('/*PT-END*/');if(a>=0&&b>a)t=x.slice(a,b)});return t}
 $('#ptPrint').addEventListener('click',async()=>{ptSave();const p=cur();if(!p)return;ptRender();
   const nm=(p.name||'paciente').replace(/[^\wÀ-ú-]+/g,'_');const day=new Date().toISOString().slice(0,10);
-  const html=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Retrato de saúde · ${esc(p.name)}</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,500&family=Instrument+Sans:wght@400;500;600;700&display=swap"><style>body{margin:0;background:#EFE8DC;padding:24px 16px}.ptpaper{max-width:860px;margin:0 auto}.tip{max-width:860px;margin:0 auto 12px;font:14px system-ui,sans-serif;color:#6B5A4C}@media print{body{background:#fff;padding:0}.tip{display:none}@page{margin:12mm}}${ptCss()}</style></head><body><p class="tip">Para gerar o PDF: Imprimir (Ctrl+P ou Compartilhar › Imprimir no celular) e escolha Salvar como PDF.</p><div class="ptpaper">${$('#ptPaper').innerHTML}</div></body></html>`;
+  const html=ptHtmlArquivo(p);
   let dl=null;try{dl=window.claude&&window.claude.use?await window.claude.use('downloads'):null}catch(e){dl=null}
   if(dl){try{await dl.save({filename:`retrato-de-saude_${nm}_${day}.html`,data:html});toast('Relatório baixado. Abra e salve como PDF.')}catch(e){if(e&&e.code==='declined')return;toast(e&&e.code==='rate_limited'?'Já existe um download aguardando confirmação.':'Não foi possível baixar aqui.')}return}
   try{window.print()}catch(e){toast('O download não está disponível nesta visualização.')}
 });
+/* ---------- relatórios guardados no perfil do paciente (Documentos do sistema) ---------- */
+function ptHtmlArquivo(p){return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Retrato de saúde · ${esc(p.name)}</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,500&family=Instrument+Sans:wght@400;500;600;700&display=swap"><style>body{margin:0;background:#EFE8DC;padding:24px 16px}.ptpaper{max-width:860px;margin:0 auto}.tip{max-width:860px;margin:0 auto 12px;font:14px system-ui,sans-serif;color:#6B5A4C}@media print{body{background:#fff;padding:0}.tip{display:none}@page{margin:12mm}}${ptCss()}</style></head><body><p class="tip">Para gerar o PDF: Imprimir (Ctrl+P ou Compartilhar › Imprimir no celular) e escolha Salvar como PDF.</p><div class="ptpaper">${$('#ptPaper').innerHTML}</div></body></html>`}
+function docHtmlArquivo(p){const css=[...document.querySelectorAll('style')].map(s=>s.textContent).join('\n');
+  return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Relatório para o médico · ${esc(p.name)}</title><style>${css}body{background:#fff;padding:20px}.paper{max-width:820px;margin:0 auto}</style></head><body><div class="paper">${$('#docPaper').innerHTML}</div></body></html>`}
+async function salvarNoPerfil(html,nome,btn){const p=cur();if(!p||!p.id){toast('Escolha o paciente.');return}
+  const txt=btn.textContent;btn.disabled=true;btn.textContent='Salvando…';
+  const r=await api('enviar_documento',{paciente_id:p.id,nome,tipo:'text/html',categoria:'Relatório de avaliação',visivel_paciente:false,enviado_nome:S.user.nome,arquivo:btoa(unescape(encodeURIComponent(html)))});
+  btn.disabled=false;btn.textContent=txt;
+  toast(r.ok?'Relatório salvo no perfil de '+p.name+' (Documentos)':'Não foi possível salvar: '+(r.erro||''))}
+$('#ptSalvar').addEventListener('click',e=>{ptSave();const p=cur();if(!p)return;ptRender();salvarNoPerfil(ptHtmlArquivo(p),`Relatório de avaliação física (paciente) ${hojeISO()}.html`,e.currentTarget)});
+$('#docSalvar').addEventListener('click',e=>{docSave();const p=cur();if(!p)return;docRender();salvarNoPerfil(docHtmlArquivo(p),`Relatório de avaliação física (médico) ${hojeISO()}.html`,e.currentTarget)});
 function chgLine(a,fmt,better,unit){if(a.length<2)return'';const d=a[a.length-1].v-a[0].v;if(Math.abs(d)<1e-9)return `<p class="chg" style="color:#6B5A4C">Igual à primeira avaliação (${dShort(a[0].d)}).</p>`;
   const good=better==='high'?d>0:better==='low'?d<0:null;const c=good==null?'#6B5A4C':good?'#4D7A3A':'#A8432F';
   return `<p class="chg" style="color:${c}">${d>0?'+':'−'}${fmt(Math.abs(d))}${unit?' '+unit:''} desde a 1ª avaliação (${dShort(a[0].d)})${good==null?'':good?' · melhorou':' · piorou'}</p>`}

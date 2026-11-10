@@ -613,6 +613,31 @@ body.agx-movendo{cursor:grabbing;user-select:none;}
 .pl-av-h>div{flex:1;min-width:160px;} .pl-av-h b{display:block;font-size:14px;} .pl-av-h span{font-size:12.5px;color:var(--ink3);}
 .pl-exc{color:var(--rose)!important;padding:6px 12px!important;font-size:12.5px!important;}
 .pl-av .pt-linha{margin-top:6px;}
+.ep-com{display:flex;gap:8px;flex-wrap:wrap;align-items:center;} .ep-com .fs{flex:1;min-width:220px;}
+.ep-com #epComValor{width:110px;display:inline-block;} .ep-com small{color:var(--ink3);}
+/* FECHAMENTO: perda */
+.fe-perda{color:var(--rose);background:rgba(184,70,60,.05);} .fe-perda-h{color:var(--rose)!important;}
+/* CLIENTES e RELATÓRIO */
+.cli-filtros{display:grid;grid-template-columns:1fr 200px 150px;gap:8px;margin-bottom:12px;}
+.cli-lista{display:flex;flex-direction:column;gap:6px;}
+.cli-item{display:flex;align-items:center;gap:12px;background:var(--sur);border:1px solid var(--bor);border-radius:var(--r-sm);padding:8px 12px;flex-wrap:wrap;}
+.cli-nome{display:flex;align-items:center;gap:10px;background:none;border:0;padding:0;font:inherit;text-align:left;cursor:pointer;flex:1;min-width:200px;color:var(--ink);}
+.cli-nome b{display:block;font-size:14.5px;} .cli-nome small{display:block;font-size:12px;color:var(--ink3);}
+.cli-linhas{display:flex;gap:5px;flex-wrap:wrap;} .cli-bts{display:flex;gap:6px;}
+.cli-bts .backbtn{padding:6px 12px;font-size:12.5px;}
+.np-sug{background:var(--teal-lt);border:1px solid var(--teal);border-radius:var(--r-sm);padding:10px 12px;margin-top:8px;}
+.np-sug-t{font-size:12.5px;font-weight:700;color:var(--teal);margin-bottom:6px;}
+.np-sug-i{display:flex;align-items:center;gap:10px;padding:6px 0;border-top:1px solid rgba(0,0,0,.06);}
+.np-sug-i>div{flex:1;min-width:0;} .np-sug-i b{display:block;font-size:13.5px;} .np-sug-i small{display:block;font-size:12px;color:var(--ink2);}
+.np-sug-i .addbtn,.np-sug-i .backbtn{white-space:nowrap;font-size:12.5px;padding:6px 12px;}
+.rel-filtros{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;align-items:end;}
+.rel-filtros .fl{margin:0;} .rel-filtros .addbtn{height:40px;}
+.rel-atalhos{display:flex;gap:14px;flex-wrap:wrap;margin:8px 0 14px;}
+.rel-cab{display:flex;flex-direction:column;margin-bottom:10px;} .rel-cab b{font-size:17px;} .rel-cab span{font-size:13px;color:var(--ink3);}
+.rel-grid{display:grid;grid-template-columns:1.6fr 1fr;gap:12px;margin-bottom:12px;}
+.rel-det{margin-bottom:12px;} .rel-det summary{cursor:pointer;margin-bottom:8px;}
+.rel-acoes{display:flex;gap:8px;flex-wrap:wrap;}
+@media(max-width:767px){.cli-filtros,.rel-grid{grid-template-columns:1fr;}}
 /* PAINEL DA GESTÃO */
 .gs-abas{margin-bottom:14px;flex-wrap:wrap;}
 .gs-badge:not(:empty){background:var(--rose);color:#fff;border-radius:10px;padding:0 7px;font-size:11px;margin-left:6px;}
@@ -678,6 +703,9 @@ body.agx-movendo{cursor:grabbing;user-select:none;}
 .vg-col i{display:block;width:100%;} .vg-col i.r,.vg-leg i.r{background:var(--teal);} .vg-col i.f,.vg-leg i.f{background:var(--rose);opacity:.75;}
 .vg-leg{display:flex;gap:14px;font-size:11.5px;color:var(--ink3);margin-top:8px;} .vg-leg i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;}
 .vg-filtros{margin-bottom:10px;flex-wrap:wrap;}
+.vg-av{display:flex;gap:12px;align-items:center;padding:8px 0;border-bottom:1px solid var(--bor);} .vg-av:last-child{border-bottom:0;}
+.vg-av>div{flex:1;min-width:0;} .vg-av b{font-size:13.5px;margin-right:8px;} .vg-av span{font-size:12px;color:var(--ink3);}
+.vg-av small{display:block;font-size:12.5px;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .vg-ev{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--bor);}
 .vg-ev:last-of-type{border-bottom:0;}
 .vg-ev-ico{width:28px;height:28px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;flex:none;color:var(--ink2);}
@@ -769,7 +797,7 @@ tr.pc-atencao td:first-child{box-shadow:inset 3px 0 0 var(--amber);}
 .lead-para{font-size:13.5px;color:var(--ink2);background:var(--sur);border:1px solid var(--bor);border-radius:var(--r-sm);padding:8px 12px;margin:6px 0 10px;}
 .kb-obs{font-size:12px;color:var(--ink2);margin-top:6px;font-style:italic;line-height:1.4;white-space:pre-line;}
 .lead-obs{background:var(--sur);border:1px solid var(--bor);border-left:3px solid var(--amber);border-radius:var(--r-sm);padding:10px 12px;margin-bottom:12px;font-size:14px;line-height:1.5;white-space:pre-line;}
-.fe-topo{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:12px;}
+.fe-topo{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;margin-bottom:12px;}
 .fe-topo>div{background:var(--bg);border:1px solid var(--bor);border-radius:var(--r-sm);padding:10px 12px;}
 .fe-topo span{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink3);}
 .fe-topo b{font-family:'Fraunces',serif;font-weight:500;font-size:22px;}
@@ -1099,6 +1127,7 @@ button .ico{vertical-align:-3px}
     <div id="pgTarefas"   class="page"></div>
     <div id="pgFinanceiro" class="page"></div>
     <div id="pgGestao" class="page"></div>
+    <div id="pgClientes" class="page"></div>
     <div id="pgAgenda" class="page"></div>
     <div id="pgCasa" class="page"></div>
     <div id="pgLeads"     class="page"></div>
@@ -2138,6 +2167,7 @@ const ICONES = {
   megafone:   '<path d="M3 10v4h3l7 4V6L6 10z"/><path d="M16.5 9a4 4 0 0 1 0 6"/>',
   grade:      '<rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/>',
   tarefa:     '<rect x="3.5" y="3.5" width="17" height="17" rx="3"/><path d="M8 12.5l3 3 5.5-6"/>',
+  cliente:    '<circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c.8-3.8 3.8-6 7.5-6s6.7 2.2 7.5 6"/>',
   painel:     '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
   carteira:   '<rect x="3" y="6" width="18" height="14" rx="2.5"/><path d="M3 10h18M16 15h2"/>',
   relogio:    '<circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/>',
@@ -2180,8 +2210,8 @@ function icone(nome, tam) {
 }
 
 const NAVS = {
-  admin:        [{id:'home',icon:'casa',label:'Início'},{id:'agenda',icon:'agenda',label:'Agenda'},{id:'gestao',icon:'painel',label:'Painel da gestão',barra:false},{id:'linhas',icon:'folha',label:'Linhas'},{id:'casa',icon:'coracao',label:'Nossa Casa',barra:false},{id:'mensagens',icon:'mensagem',label:'Mensagens',num:true},{id:'leads',icon:'megafone',label:'Leads'},{id:'servicos',icon:'grade',label:'Serviços',barra:false},{id:'tarefas',icon:'tarefa',label:'Tarefas',barra:false},{id:'financeiro',icon:'carteira',label:'Financeiro',barra:false},{id:'espera',icon:'cadeira',label:'Espera',barra:false},{id:'equipe',icon:'equipe',label:'Cadastro da equipe',barra:false},{id:'alertas',icon:'sino',label:'Alertas',badge:true}],
-  coordenador:  [{id:'home',icon:'casa',label:'Início'},{id:'agenda',icon:'agenda',label:'Agenda'},{id:'casa',icon:'coracao',label:'Nossa Casa',barra:false},{id:'linhas',icon:'folha',label:'Pacientes'},{id:'mensagens',icon:'mensagem',label:'Mensagens',num:true},{id:'leads',icon:'megafone',label:'Leads'},{id:'servicos',icon:'grade',label:'Serviços',barra:false},{id:'tarefas',icon:'tarefa',label:'Tarefas',barra:false},{id:'espera',icon:'cadeira',label:'Espera',barra:false},{id:'alertas',icon:'sino',label:'Alertas',badge:true}],
+  admin:        [{id:'home',icon:'casa',label:'Início'},{id:'agenda',icon:'agenda',label:'Agenda'},{id:'gestao',icon:'painel',label:'Painel da gestão',barra:false},{id:'linhas',icon:'folha',label:'Linhas'},{id:'clientes',icon:'cliente',label:'Clientes',barra:false},{id:'casa',icon:'coracao',label:'Nossa Casa',barra:false},{id:'mensagens',icon:'mensagem',label:'Mensagens',num:true},{id:'leads',icon:'megafone',label:'Leads'},{id:'servicos',icon:'grade',label:'Serviços',barra:false},{id:'tarefas',icon:'tarefa',label:'Tarefas',barra:false},{id:'financeiro',icon:'carteira',label:'Financeiro',barra:false},{id:'espera',icon:'cadeira',label:'Espera',barra:false},{id:'equipe',icon:'equipe',label:'Cadastro da equipe',barra:false},{id:'alertas',icon:'sino',label:'Alertas',badge:true}],
+  coordenador:  [{id:'home',icon:'casa',label:'Início'},{id:'agenda',icon:'agenda',label:'Agenda'},{id:'casa',icon:'coracao',label:'Nossa Casa',barra:false},{id:'linhas',icon:'folha',label:'Pacientes'},{id:'clientes',icon:'cliente',label:'Clientes',barra:false},{id:'mensagens',icon:'mensagem',label:'Mensagens',num:true},{id:'leads',icon:'megafone',label:'Leads'},{id:'servicos',icon:'grade',label:'Serviços',barra:false},{id:'tarefas',icon:'tarefa',label:'Tarefas',barra:false},{id:'espera',icon:'cadeira',label:'Espera',barra:false},{id:'alertas',icon:'sino',label:'Alertas',badge:true}],
   profissional: [{id:'home',icon:'casa',label:'Hoje'},{id:'agenda',icon:'agenda',label:'Agenda'},{id:'linhas',icon:'folha',label:'Meus Pcts'},{id:'casa',icon:'coracao',label:'Nossa Casa'},{id:'mensagens',icon:'mensagem',label:'Mensagens',num:true},{id:'servicos',icon:'grade',label:'Serviços',barra:false},{id:'alertas',icon:'sino',label:'Pendências',badge:true}],
 };
 
@@ -2208,6 +2238,9 @@ function navDoUsuario() {
   }
   if(!itens.some(i=>i.id==='financeiro') && ehAdministracao()) {
     itens.push({id:'financeiro',icon:'carteira',label:'Financeiro',barra:false});
+  }
+  if(!itens.some(i=>i.id==='clientes') && (ehRecepcao() || ehAdministracao())) {
+    itens.splice(3, 0, {id:'clientes',icon:'cliente',label:'Clientes',barra:false});
   }
   if(!itens.some(i=>i.id==='gestao') && ehAdministracao()) {
     itens.push({id:'gestao',icon:'painel',label:'Painel da gestão',barra:false});
@@ -2316,11 +2349,11 @@ let _activePage = '';
 function loadPage(id) {
   _activePage = id;
   marcarAtivo(id);
-  const map={casa:'pgCasa',agenda:'pgAgenda',home:'pgHome',linhas:'pgLinhas',equipe:'pgEquipe',alertas:'pgAlertas',mensagens:'pgMensagens',servicos:'pgServicos',tarefas:'pgTarefas',financeiro:'pgFinanceiro',gestao:'pgGestao',leads:'pgLeads',espera:'pgEspera',programas:'pgProgramas',biblioteca:'pgBiblioteca'};
+  const map={casa:'pgCasa',agenda:'pgAgenda',home:'pgHome',linhas:'pgLinhas',equipe:'pgEquipe',alertas:'pgAlertas',mensagens:'pgMensagens',servicos:'pgServicos',tarefas:'pgTarefas',financeiro:'pgFinanceiro',gestao:'pgGestao',clientes:'pgClientes',leads:'pgLeads',espera:'pgEspera',programas:'pgProgramas',biblioteca:'pgBiblioteca'};
   document.querySelectorAll('.page').forEach(e=>{e.classList.remove('active');e.innerHTML='';});
   const el = document.getElementById(map[id]);
   if(!el) return;
-  const renders={casa:renderCasa,agenda:renderAgenda,home:renderHome,linhas:renderLinhas,equipe:renderEquipe,alertas:renderAlertas,mensagens:renderMensagensCentral,servicos:renderServicos,tarefas:renderTarefas,financeiro:renderFinanceiro,gestao:renderGestao,leads:renderLeads,espera:renderEspera,programas:renderProgramas,biblioteca:renderBiblioteca};
+  const renders={casa:renderCasa,agenda:renderAgenda,home:renderHome,linhas:renderLinhas,equipe:renderEquipe,alertas:renderAlertas,mensagens:renderMensagensCentral,servicos:renderServicos,tarefas:renderTarefas,financeiro:renderFinanceiro,gestao:renderGestao,clientes:renderClientes,leads:renderLeads,espera:renderEspera,programas:renderProgramas,biblioteca:renderBiblioteca};
   if(renders[id]){el.innerHTML=renders[id]();el.classList.add('active');}
 }
 
@@ -2545,7 +2578,7 @@ async function openFormNovoPaciente(linha, existente) {
   limparSujo();
   const cfg = LINHAS[linha];
   // Carregar profissionais
-  const [resProfs] = await Promise.all([api('listar_profs',{}), carregarCatalogo()]);
+  const [resProfs] = await Promise.all([api('listar_profs',{}), carregarCatalogo(), carregarTodosPacientes()]);
   const profs = resProfs.ok ? resProfs.dados : [];
   if(resProfs.ok) _profsCache = profs;
   const p = existente || {};
@@ -2559,15 +2592,16 @@ async function openFormNovoPaciente(linha, existente) {
   document.getElementById('sheetTitle').textContent = editando ? 'Editar Paciente' : '+ Novo Paciente';
   document.getElementById('sheetBody').innerHTML = `
     <div style="margin-bottom:14px;">
-      <button class="backbtn" onclick="${editando?`openPaciente('${linha}','${p.id}')`:`openLinha('${linha}')`}">‹ Voltar</button>
+      <button class="backbtn" onclick="${editando?`openPaciente('${linha}','${p.id}')`:linha?`openLinha('${linha}')`:'closeSheet()'}">‹ Voltar</button>
     </div>
     <div class="f2">
-      <div class="fg fa"><label class="fl">Nome completo *</label><input class="fi" id="np_nome" placeholder="Nome do paciente" autocomplete="off" value="${esc(p.nome)}"></div>
+      <div class="fg fa"><label class="fl">Nome completo *</label><input class="fi" id="np_nome" placeholder="Nome do paciente" autocomplete="off" value="${esc(p.nome)}"${editando?'':` oninput="sugerirExistente('${linha}')"`}>
+        ${editando?'':'<div id="np_sug"></div>'}</div>
       <div class="fg"><label class="fl">Data de nascimento</label><input class="fi" id="np_nasc" type="date" value="${nascVal?nascVal[1]:''}"></div>
-      <div class="fg"><label class="fl">Telefone</label><input class="fi" id="np_tel" type="tel" placeholder="(11) 99999-9999" value="${esc(p.telefone)}"></div>
+      <div class="fg"><label class="fl">Telefone</label><input class="fi" id="np_tel" type="tel" placeholder="(11) 99999-9999" value="${esc(p.telefone)}"${editando?'':` oninput="sugerirExistente('${linha}')"`}></div>
       <div class="fg"><label class="fl">E-mail</label><input class="fi" id="np_email" type="email" autocomplete="off" placeholder="email@exemplo.com" value="${esc(p.email)}"${emailTravado?' readonly':''}>
         ${emailTravado?'<div class="pt-nota">É o login da área do paciente. Para trocar, use "Área do paciente".</div>':''}</div>
-      <div class="fg"><label class="fl">CPF</label><input class="fi" id="np_cpf" inputmode="numeric" placeholder="000.000.000-00" value="${esc(fmtCPF(p.cpf))}"></div>
+      <div class="fg"><label class="fl">CPF</label><input class="fi" id="np_cpf" inputmode="numeric" placeholder="000.000.000-00" value="${esc(fmtCPF(p.cpf))}"${editando?'':` oninput="sugerirExistente('${linha}')"`}></div>
       <div class="fg fa"><label class="fl">Linhas de cuidado * <span style="font-weight:400;color:var(--ink3)">(pode marcar mais de uma)</span></label>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;" id="np_linhas">
           ${Object.entries(LINHAS).map(([k,c])=>`
@@ -2611,6 +2645,24 @@ async function openFormNovoPaciente(linha, existente) {
 // digitado. Para encerrar um acompanhamento, o caminho é o status Inativo.
 // Exclusão de paciente passa sempre pela gestão (ver pedirExclusaoPaciente)
 async function excluirPaciente(linha, id) { return pedirExclusaoPaciente(linha, id); }
+
+// Chips de serviço do formulário de paciente; mudam quando as linhas marcadas mudam
+function chipsServicosForm(opcoes, marcados) {
+  return opcoes.map((o,i)=>`
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;background:var(--sur2);padding:6px 12px;border-radius:20px;border:1px solid var(--bor);${o.fora?'opacity:.65;':''}"
+                 ${o.fora?'title="Não é mais oferecido — desmarcar apaga o vínculo"':''}>
+            <input type="checkbox" value="${esc(o.nome)}" id="srv_${i}" style="accent-color:var(--teal)"${
+              marcados.some(n=>normalizar(n)===normalizar(o.nome))?' checked':''}> ${esc(o.nome)}${o.fora?' ⋯':''}
+          </label>`).join('');
+}
+function linhasDoFormMudaram() {
+  const linhas = [...document.querySelectorAll('#np_linhas input:checked')].map(x=>x.value);
+  const marcados = [...document.querySelectorAll('#np_srvs input:checked')].map(x=>x.value);
+  const box = document.getElementById('np_srvs'); if(box) box.innerHTML = chipsServicosForm(opcoesServicos(linhas, marcados), marcados);
+  const mostra = (id, sim) => { const el = document.getElementById(id); if(el && (sim || !(el.querySelector('input').value||'').trim())) el.style.display = sim ? '' : 'none'; };
+  mostra('np_resp_g', linhas.includes('infantil') || linhas.includes('geriatria'));
+  mostra('np_escola_g', linhas.includes('infantil'));
+}
 
 async function salvarPaciente(linha, idExistente) {
   const nome      = (document.getElementById('np_nome')?.value||'').trim();
@@ -4484,20 +4536,22 @@ async function loadFechamento(el) {
   if(!ser.ok) { el.innerHTML = `<div class="card" style="color:var(--rose)">Não foi possível carregar: ${esc(ser.erro||'')}</div>`; return; }
   _finTodos = normalizarFin(ser.dados);
   const linhas = _finTodos.filter(r=>String(r.mes||'')===_finMes);
-  const eventos = ag.ok ? (ag.dados||[]).filter(e=>!e.dia_inteiro && !ehPilates(e.servico) && (e.status==='realizado' || e.status==='falta')) : [];
+  // Todas as sessões do mês (agendadas); realizadas e faltas saem do status marcado na agenda
+  const eventos = ag.ok ? (ag.dados||[]).filter(e=>!e.dia_inteiro && !ehPilates(e.servico)) : [];
   const nomeEv = e => String(e.titulo||'').split(' · ')[0];
   const chave = (id, nome) => {
     const p = (pacs||[]).find(x=>id && String(x.id)===String(id)) || (pacs||[]).find(x=>normalizar(x.nome)===normalizar(nome));
     return p ? 'id:'+p.id : 'nome:'+normalizar(nome);
   };
   const G = {};
-  const grupo = (k, id, nome) => G[k] = G[k] || {k, id:'', nome, servicos:new Set(), realizadas:[], faltas:0, linhas:[]};
+  const grupo = (k, id, nome) => G[k] = G[k] || {k, id:'', nome, servicos:new Set(), realizadas:[], faltas:0, faltasEv:[], agendadas:[], linhas:[]};
   eventos.forEach(e=>{
     const k = chave(e.paciente_id, nomeEv(e)); const g = grupo(k);
     const p = (pacs||[]).find(x=>'id:'+x.id===k);
     g.id = g.id || (p?p.id:e.paciente_id||''); g.nome = p ? p.nome : (g.nome || nomeEv(e)); g.tel = p ? p.telefone : '';
-    if(e.status==='falta') { g.faltas++; return; }
-    g.realizadas.push(e); if(e.servico) g.servicos.add(e.servico);
+    g.agendadas.push(e); if(e.servico) g.servicos.add(e.servico);
+    if(e.status==='falta') { g.faltas++; g.faltasEv.push(e); return; }
+    if(e.status==='realizado') g.realizadas.push(e);
   });
   linhas.forEach(r=>{
     const k = chave(r.paciente_id, r.paciente); const g = grupo(k);
@@ -4526,12 +4580,18 @@ async function loadFechamento(el) {
     const pagas = g.linhas.filter(ehPago), abertas = g.linhas.filter(r=>!ehPago(r));
     const faltandoValor = faltando.reduce((s,e)=>s+precoPara(e.servico),0);
     const precos = [...new Set([...g.linhas.map(r=>numDe(r.valor)/(numDe(r.sessoes)||1)).filter(Boolean), ...faltando.map(e=>precoPara(e.servico)).filter(Boolean)])];
+    const agora = new Date();
+    const esperado = g.agendadas.reduce((s,e)=>s+precoPara(e.servico),0);
+    const perda = g.faltasEv.reduce((s,e)=>s+precoPara(e.servico),0);
+    const semMarcar = g.agendadas.filter(e=>new Date(e.fim)<agora && e.status!=='realizado' && e.status!=='falta').length;
+    const aRealizar = g.agendadas.filter(e=>new Date(e.inicio)>=agora).length;
     return {...g, servicos:[...g.servicos], sessoes:Math.max(sessLanc, g.realizadas.length), sessLanc, faltando, total, precoPara, precos,
+      esperado, perda, semMarcar, aRealizar,
       faltandoValor, semPreco: faltando.some(e=>!precoPara(e.servico)),
       previsto: total + faltandoValor, precoSug, semValor,
       pago: abertas.length===0 && pagas.length>0, parcial: pagas.length>0 && abertas.length>0,
       aberto: abertas.reduce((s,r)=>s+numDe(r.valor),0)};
-  }).filter(g=>g.sessoes || g.linhas.length).sort((a,b)=>String(a.nome).localeCompare(String(b.nome),'pt-BR'))};
+  }).filter(g=>g.sessoes || g.linhas.length || g.agendadas.length).sort((a,b)=>String(a.nome).localeCompare(String(b.nome),'pt-BR'))};
   desenharFechamento(el);
 }
 
@@ -4541,27 +4601,37 @@ function desenharFechamento(el) {
   const faltandoTot = F.grupos.reduce((s,g)=>s+g.faltando.length,0);
   const semValorTot = F.grupos.reduce((s,g)=>s+g.semValor.length,0);
   const venc = new Date(Number(prox.slice(0,4)), Number(prox.slice(5))-1, FECH_DIA_VENC);
+  const agTot = F.grupos.reduce((s,g)=>s+g.agendadas.length,0), faltTot = F.grupos.reduce((s,g)=>s+g.faltasEv.length,0);
+  const semMarcarTot = F.grupos.reduce((s,g)=>s+g.semMarcar,0);
+  const espTot = tot('esperado'), realTot = F.grupos.reduce((s,g)=>s+g.previsto,0), perdaTot = tot('perda');
   el.innerHTML = `
     <div class="fe-topo">
-      <div><span>Sessões realizadas</span><b>${tot('sessoes')}</b></div>
-      <div><span>Valor das sessões de ${esc(nomeDoMes(F.mes))}</span><b>${fmtMoeda(F.grupos.reduce((s,g)=>s+g.previsto,0))}</b></div>
+      <div><span>Sessões agendadas no mês</span><b>${agTot}</b><small>${F.grupos.reduce((s,g)=>s+g.aRealizar,0)} ainda por vir</small></div>
+      <div><span>Faturamento esperado</span><b>${fmtMoeda(espTot)}</b><small>todas as agendadas × valor do serviço</small></div>
+      <div><span>Realizadas (somando)</span><b style="color:var(--teal)">${tot('sessoes')} · ${fmtMoeda(realTot)}</b><small>${espTot?Math.round(realTot/espTot*100)+'% do esperado':''}</small></div>
+      <div><span>Não realizadas (faltas)</span><b style="color:var(--rose)">${faltTot} · −${fmtMoeda(perdaTot)}</b><small>perda financeira do mês</small></div>
       <div><span>A receber em ${esc(nomeDoMes(prox))}</span><b style="color:var(--amber)">${fmtMoeda(tot('aberto') + F.grupos.reduce((s,g)=>s+g.faltandoValor,0))}</b><small>vencimento ${venc.toLocaleDateString('pt-BR')}</small></div>
       <div><span>Já recebido</span><b style="color:var(--teal)">${fmtMoeda(tot('total')-tot('aberto'))}</b></div>
     </div>
+    ${semMarcarTot?`<div class="fe-aviso"><div><b>${semMarcarTot} ${semMarcarTot===1?'sessão já passou':'sessões já passaram'} sem presença marcada.</b> Marque "Realizado" ou "Faltou" na agenda para somar aqui e calcular a perda certa.</div></div>`:''}
     ${!F.agendaOk?`<div class="pt-nota" style="color:var(--amber)">Não deu para ler a agenda agora; a contagem abaixo usa só o que já está lançado.</div>`:''}
     ${faltandoTot?`<div class="fe-aviso"><div><b>${faltandoTot} ${faltandoTot===1?'sessão realizada ainda não entrou':'sessões realizadas ainda não entraram'} no financeiro.</b> Elas já estão somadas no "A receber", mas ainda não viraram cobrança.</div>
       <button class="addbtn" onclick="lancarFaltantes()">Lançar todas</button></div>`:''}
     ${semValorTot?`<div class="fe-aviso"><div><b>${semValorTot} ${semValorTot===1?'sessão está':'sessões estão'} sem valor.</b> O serviço não tem preço no Catálogo. Informe o valor na linha do paciente.</div></div>`:''}
     ${F.grupos.length ? `<div style="overflow-x:auto"><table class="fin-tabela fe-tab">
-      <thead><tr><th>Paciente</th><th>Serviço</th><th class="r">Sessões</th><th class="r">Valor/sessão</th><th class="r">Total</th><th>Em ${esc(nomeDoMes(prox))}</th><th></th></tr></thead>
+      <thead><tr><th>Paciente</th><th>Serviço</th><th class="r">Agendadas</th><th class="r">Esperado</th><th class="r">Realizadas</th><th class="r">Valor/sessão</th><th class="r">Valor realizado</th><th class="r fe-perda-h">Não realizadas</th><th class="r fe-perda-h">Perda</th><th>Em ${esc(nomeDoMes(prox))}</th><th></th></tr></thead>
       <tbody>${F.grupos.map((g,i)=>`<tr>
         <td><button class="ff-nome" onclick="abrirFichaFinanceira('${esc(String(g.nome||'').replace(/'/g,"\\'"))}','${esc(g.id||'')}')">${esc(g.nome||'—')}</button></td>
         <td class="fe-serv">${esc(g.servicos.join(', ')||'—')}</td>
-        <td class="r"><b>${g.sessoes}</b>${g.faltas?`<div class="fe-mini">${g.faltas} falta${g.faltas>1?'s':''}</div>`:''}${g.faltando.length?`<div class="fe-mini" style="color:var(--amber)">${g.faltando.length} a lançar</div>`:''}</td>
+        <td class="r"><b>${g.agendadas.length}</b>${g.aRealizar?`<div class="fe-mini">${g.aRealizar} por vir</div>`:''}${g.semMarcar?`<div class="fe-mini" style="color:var(--amber)">${g.semMarcar} sem marcar</div>`:''}</td>
+        <td class="r">${g.esperado?fmtMoeda(g.esperado):'—'}</td>
+        <td class="r"><b>${g.sessoes}</b>${g.faltando.length?`<div class="fe-mini" style="color:var(--amber)">${g.faltando.length} a lançar</div>`:''}</td>
         <td class="r">${g.semValor.length || g.semPreco
           ? `<span class="fe-valor"><input class="fi" type="number" step="0.01" inputmode="decimal" id="feV${i}" value="${g.precoSug||''}" placeholder="R$"><button class="addbtn" onclick="definirValorSessao(${i})">OK</button></span>`
           : g.precos.length ? g.precos.map(v=>fmtMoeda(v)).join(' / ') : '—'}</td>
         <td class="r"><b>${fmtMoeda(g.previsto)}</b></td>
+        <td class="r fe-perda">${g.faltasEv.length||'—'}</td>
+        <td class="r fe-perda">${g.perda?'−'+fmtMoeda(g.perda):'—'}</td>
         <td>${g.pago?'<span class="chip ch-sage">Pago</span>':g.parcial?'<span class="chip ch-amber">Parcial</span>':g.previsto?`<span class="chip ch-gray">${fmtMoeda(g.aberto + g.faltandoValor)}</span>`:'—'}</td>
         <td class="fe-acoes">${!g.pago && g.linhas.length && !g.faltando.length && !g.semValor.length ? `<span class="ff-rec" id="feR${i}"><button class="ff-ok" onclick="this.parentNode.classList.add('abre')">Recebi</button>
             <span class="ff-formas">${['Pix','Cartão','Dinheiro'].map(f=>`<button onclick="receberFechamento(${i},'${f}')">${f}</button>`).join('')}</span></span>` : ''}
@@ -4569,7 +4639,7 @@ function desenharFechamento(el) {
           ${!g.pago && g.tel && g.previsto ? `<a class="chip ch-sage" style="text-decoration:none" target="_blank" rel="noopener" href="${linkCobrancaFechamento(g, prox, venc)}">cobrar</a>`:''}</td>
       </tr>`).join('')}</tbody></table></div>`
     : `<div class="pt-nota" style="margin:0">Nenhuma sessão realizada em ${esc(nomeDoMes(F.mes))}. As sessões entram aqui quando são marcadas como "Realizado" na agenda.</div>`}
-    <div class="pt-nota">Conta as sessões marcadas como <b>Realizado</b> na agenda em ${esc(nomeDoMes(F.mes))} (Pilates fica na aba de mensalidades). O valor por sessão vem do Catálogo, ou do que já foi lançado para o paciente.</div>`;
+    <div class="pt-nota"><b>Agendadas</b>: todas as sessões do mês na agenda. <b>Esperado</b>: agendadas × valor do serviço. <b>Realizadas</b> vão somando conforme a sessão é marcada como "Realizado"; <b>não realizadas</b> são as marcadas como "Faltou", e a <b>perda</b> é o valor delas. Pilates fica na aba de mensalidades. O valor por sessão vem da tela Serviços, ou do que já foi cobrado do paciente.</div>`;
 }
 
 function linkCobrancaFechamento(g, prox, venc) {
@@ -4946,17 +5016,18 @@ let _repDados = null;
 
 async function loadRepasses() {
   const el = document.getElementById('finBody');
-  const [pil, ser, jor] = await Promise.all([
+  const [pil, ser, jor, profs] = await Promise.all([
     api('listar',{tabela:'financeiro_pilates'}),
     api('listar',{tabela:'financeiro_servicos'}),
     api('listar',{tabela:'financeiro_jornadas'}),
+    api('listar_profs',{incluir_inativos:true}),
   ]);
   const falha = [pil,ser,jor].find(r=>!r.ok);
   if(falha) {
     el.innerHTML = abasFinHTML()+`<div class="card" style="color:var(--rose)">Não foi possível carregar: ${esc(falha.erro||'')}</div>`;
     return;
   }
-  _repDados = {pilates:normalizarFin(pil.dados), servicos:normalizarFin(ser.dados), jornadas:normalizarFin(jor.dados)};
+  _repDados = {pilates:normalizarFin(pil.dados), servicos:normalizarFin(ser.dados), jornadas:normalizarFin(jor.dados), profs:profs.ok?profs.dados||[]:[]};
   desenharRepasses();
 }
 
@@ -4970,9 +5041,25 @@ function calcularRepasses(D, mes) {
   };
   const ser = D.servicos.filter(r=>String(r.mes||'')===mes);
 
-  // Sessões atendidas no mês, por profissional e serviço
+  // Comissão combinada no cadastro da profissional vale antes da tabela padrão
+  const comissaoDe = nome => { const p = (D.profs||[]).find(x=>chave(x.nome)===chave(nome)); return p && p.comissao_tipo && numDe(p.comissao_valor) ? {tipo:p.comissao_tipo, v:numDe(p.comissao_valor)} : null; };
+  const porCom = {};
+  ser.forEach(r=>{
+    const c = comissaoDe(r.profissional); if(!c) return;
+    const k = chave(r.profissional)+'|'+r.servico, n = numDe(r.sessoes)||1;
+    const g = porCom[k] = porCom[k] || {nome:r.profissional, servico:r.servico||'Serviço', sessoes:0, valor:0, c};
+    g.sessoes += n; g.valor += numDe(r.valor);
+  });
+  Object.values(porCom).forEach(g=>{
+    const unid = g.sessoes===1?'sessão':'sessões';
+    if(g.c.tipo==='pct') somar(g.nome, `${g.servico}: ${g.sessoes} ${unid}, ${fmtMoeda(g.valor)} × ${String(g.c.v).replace('.',',')}%`, g.valor*g.c.v/100);
+    else somar(g.nome, `${g.servico}: ${g.sessoes} ${unid} × ${fmtMoeda(g.c.v)}`, g.sessoes*g.c.v);
+  });
+
+  // Sessões atendidas no mês, por profissional e serviço (tabela padrão)
   const porProfServ = {};
   ser.forEach(r=>{
+    if(comissaoDe(r.profissional)) return;
     const valor = REPASSE.porSessao[r.servico];
     if(valor==null) return;
     const k = chave(r.profissional)+'|'+r.servico;
@@ -5577,6 +5664,52 @@ async function abrirPacienteDaAgenda(linha, id) {
 }
 
 // ── Agendar e remarcar ──
+// ── Serviço no agendamento: exatamente o que está cadastrado em Serviços ──
+// As linhas do paciente aparecem primeiro. O preço do catálogo é o que o
+// Financeiro usa para o faturamento esperado e para a perda das faltas.
+function servicosAgendaHTML(atual, pac) {
+  const cat = (_catalogo||[]).filter(s=>!inativoServico(s));
+  const doPac = pac ? linhasDoPaciente(pac) : [];
+  const ordem = [...doPac, ...Object.keys(LINHAS).filter(k=>!doPac.includes(k))];
+  const grupos = ordem.map(k=>({k, lista:cat.filter(s=>String(s.linha)===k)})).filter(g=>g.lista.length);
+  const outras = cat.filter(s=>!LINHAS[s.linha]);
+  const temAtual = !atual || cat.some(s=>normalizar(s.nome)===normalizar(atual));
+  if(!cat.length) return `<input class="fi" id="agServ" value="${esc(atual)}" placeholder="Cadastre os serviços na tela Serviços">`;
+  return `<select class="fs" id="agServ" onchange="document.getElementById('agServNota').innerHTML=servicoInfo(this.value);sugerirDuracaoServico(this.value)">
+    <option value="">Escolha o serviço…</option>
+    ${grupos.map(g=>`<optgroup label="${esc(LINHAS[g.k].label)}${doPac.includes(g.k)?' · do paciente':''}">${g.lista.map(s=>`<option value="${esc(s.nome)}"${normalizar(s.nome)===normalizar(atual)?' selected':''}>${esc(s.nome)}${_veValorCatalogo&&s.valor?' · R$ '+esc(s.valor):''}</option>`).join('')}</optgroup>`).join('')}
+    ${outras.length?`<optgroup label="Outros">${outras.map(s=>`<option value="${esc(s.nome)}"${normalizar(s.nome)===normalizar(atual)?' selected':''}>${esc(s.nome)}</option>`).join('')}</optgroup>`:''}
+    ${temAtual?'':`<option value="${esc(atual)}" selected>${esc(atual)} (fora do catálogo)</option>`}
+  </select>`;
+}
+function servicoInfo(nome) {
+  if(!nome) return 'A lista vem da tela Serviços. Falta algum? Cadastre lá e ele aparece aqui.';
+  const c = (_catalogo||[]).find(s=>normalizar(s.nome)===normalizar(nome));
+  const partes = [];
+  if(c && c.descricao) partes.push(esc(c.descricao));
+  if(c && _veValorCatalogo && c.valor) partes.push('Valor da sessão: <b>R$ '+esc(c.valor)+'</b>');
+  if(ehPilates(nome)) partes.push('No Pilates, cada profissional recebe até '+PILATES_VAGAS+' alunas por horário.');
+  if(!c) partes.push('<span style="color:var(--amber)">Este serviço não está no catálogo: o Financeiro não terá o preço dele.</span>');
+  return partes.join(' · ');
+}
+// "50 min de ..." na descrição do serviço vira a duração sugerida
+function sugerirDuracaoServico(nome) {
+  const c = (_catalogo||[]).find(s=>normalizar(s.nome)===normalizar(nome)); if(!c) return;
+  const m = String(c.duracao||c.descricao||'').match(/(\d{2,3})\s*min/i); if(!m) return;
+  const b = [...document.querySelectorAll('#agDurChips button')].find(x=>String(x.dataset.min||'')===m[1]);
+  if(b) b.click();
+}
+async function servicosDoPacienteAgenda(nome) {
+  const sel = document.getElementById('agServ'); if(!sel || sel.tagName!=='SELECT') return;
+  const pac = (await carregarTodosPacientes()).find(p=>normalizar(p.nome)===normalizar(nome));
+  if(!pac) return;
+  const atual = sel.value;
+  sel.outerHTML = servicosAgendaHTML(atual, pac);
+  const novo = document.getElementById('agServ');
+  // paciente com um serviço só no cadastro: já vem escolhido
+  const seus = servicosDoPaciente(pac).filter(n=>(_catalogo||[]).some(s=>normalizar(s.nome)===normalizar(n)));
+  if(!atual && seus.length===1) { novo.value = (_catalogo.find(s=>normalizar(s.nome)===normalizar(seus[0]))||{}).nome || ''; novo.dispatchEvent(new Event('change')); }
+}
 // novoAtendimento(agendaEmail, eventoId) remarca; novoAtendimento(null,null,{inicio,email}) vem do clique na grade
 async function novoAtendimento(agendaEmail, eventoId, pre) {
   const e = eventoId ? _ag.eventos.find(x=>x.id===eventoId && x.agenda_email===agendaEmail) : null;
@@ -5585,7 +5718,7 @@ async function novoAtendimento(agendaEmail, eventoId, pre) {
   document.getElementById('sheetTitle').textContent = e ? 'Remarcar' : 'Novo atendimento';
   document.getElementById('sheetBody').innerHTML = loadingHTML();
   openSheet();
-  const [pacs] = await Promise.all([carregarTodosPacientes(), carregarSalas()]);
+  const [pacs] = await Promise.all([carregarTodosPacientes(), carregarSalas(), carregarCatalogo()]);
   const eu = (currentUser.email||'').toLowerCase();
   const profPadrao = e ? e.agenda_email : ((pre&&pre.email) || _agFiltro || (profs.find(p=>p.email===eu)||profs[0]).email);
   let ini = e ? new Date(e.inicio) : (pre&&pre.inicio) || null;
@@ -5602,15 +5735,13 @@ async function novoAtendimento(agendaEmail, eventoId, pre) {
     ${pre&&pre.inicio?`<div class="agx-pre">${pre.email?`<i style="background:${agCor(profPadrao)}"></i>`:''}${esc(maiuscula(ini.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'short'})))} · ${horaDe(ini)}${!_agFiltro&&pre.email?' · '+esc(agProfNome(pre.email)):''}${pre.sala?' · '+esc(pre.sala):''}</div>`:''}
     <div class="f2">
       <div class="fg fa"><label class="fl" for="agPac">Paciente</label>
-        <input class="fi" id="agPac" list="agPacs" value="${esc(nomeAtual)}" placeholder="Comece a digitar o nome" autocomplete="off">
+        <input class="fi" id="agPac" list="agPacs" value="${esc(nomeAtual)}" placeholder="Comece a digitar o nome" autocomplete="off" onchange="servicosDoPacienteAgenda(this.value)">
         <datalist id="agPacs">${pacs.map(p=>`<option value="${esc(p.nome)}">`).join('')}</datalist></div>
       <div class="fg fa"><label class="fl" for="agProf">Profissional</label>
         <select class="fs" id="agProf" ${e?'disabled':''}>${profs.map(p=>`<option value="${esc(p.email)}"${p.email===profPadrao?' selected':''}>${esc(p.nome)}</option>`).join('')}</select></div>
       <div class="fg fa"><label class="fl" for="agServ">Serviço</label>
-        <div class="agx-chips" id="agServChips">${['Pilates',...FIN_SERVICOS.filter(s=>s!=='Parceiro'&&s!=='Outro')].map(s=>`<button type="button" class="agx-chip${normalizar(servAtual)===normalizar(s)?' on':''}" onclick="escolherChip(this,'agServ')">${esc(s)}</button>`).join('')}</div>
-        <div class="pt-nota" style="margin:6px 0 0">No Pilates, cada profissional recebe até ${PILATES_VAGAS} alunas por horário.</div>
-        <input class="fi" id="agServ" list="agServs" value="${esc(servAtual)}" placeholder="Ou escreva outro serviço" style="margin-top:8px" oninput="sincronizarChips('agServChips',this.value)">
-        <datalist id="agServs">${FIN_SERVICOS.map(s=>`<option value="${esc(s)}">`).join('')}</datalist></div>
+        ${servicosAgendaHTML(servAtual, pacAtual)}
+        <div class="pt-nota" style="margin:6px 0 0" id="agServNota">${servicoInfo(servAtual)}</div></div>
       <div class="fg fa"><label class="fl" for="agSala">Sala</label>
         ${salas.length?`<div class="agx-chips" id="agSalaChips">${salas.map(s=>`<button type="button" class="agx-chip${agMesmaSala(s,salaAtual)?' on':''}" onclick="escolherChip(this,'agSala')">${esc(s)}</button>`).join('')}</div>`:''}
         <input class="fi" id="agSala" value="${esc(salaAtual)}" placeholder="${salas.length?'Ou escreva outra sala':'Ex.: Sala 2, Ateliê, Domicílio'}" style="${salas.length?'margin-top:8px':''}" oninput="sincronizarChips('agSalaChips',this.value)">
@@ -5769,6 +5900,7 @@ async function salvarAtendimento(eventoId, forcar) {
                                    e ? e.prog : (progId && datas.length>1 ? {id:progId, k:i+1, n:datas.length} : null));
   if(!datas.length) return erro('Nenhuma data para agendar com essas opções.');
   const servico = v('agServ');
+  if(!servico && !eventoId) return erro('Escolha o serviço (a lista vem da tela Serviços).');
   let forcarGrupo = false;
 
   // Pilates: confere as vagas da turma em todas as datas antes de gravar
@@ -7715,7 +7847,7 @@ let _documentos = [];
 // para ser a primeira coisa que a terapeuta acha ao abrir os documentos
 const DOC_PRONT_ANTERIOR = 'Prontuário anterior (SeuFisio)';
 const CATEGORIAS_DOC = [DOC_PRONT_ANTERIOR,'Nota fiscal','Orçamento','Proposta','Declaração',
-                        'Relatório de atendimento','Laudo','Recibo','Outro'];
+                        'Relatório de atendimento','Relatório de avaliação','Laudo','Recibo','Outro'];
 
 // Agrupa por tipo, mantendo a ordem acima e jogando para o fim o que não
 // estiver previsto — uma lista corrida de 30 anexos não se navega
@@ -9426,7 +9558,7 @@ async function carregarVisaoGeral(p) {
   const box = document.getElementById('vgPac'); if(!box) return;
   const fin = podeVerFinanceiro();
   const nada = Promise.resolve({ok:false});
-  const [hist, pil, ser, msgs, leads, evo, alertas] = await Promise.all([
+  const [hist, pil, ser, msgs, leads, evo, alertas, docs] = await Promise.all([
     api('historico_paciente',{paciente_id:p.id}),
     fin ? api('listar',{tabela:'financeiro_pilates'}) : nada,
     fin ? api('listar',{tabela:'financeiro_servicos'}) : nada,
@@ -9434,6 +9566,7 @@ async function carregarVisaoGeral(p) {
     currentRole!=='profissional' ? api('listar_leads',{}) : nada,
     api('listar',{tabela:'evolucoes', filtros:{paciente_id:p.id}}),
     calcularAlertas().catch(()=>({criticos:[], altos:[], proximos:[]})),
+    api('listar',{tabela:'documentos', filtros:{paciente_id:p.id}}),
   ]);
   if(String(_pacienteAberto)!==String(p.id) || !document.getElementById('vgPac')) return;
   const agora = new Date();
@@ -9443,7 +9576,9 @@ async function carregarVisaoGeral(p) {
   const lead = leads.ok ? (leads.dados||[]).find(l=>String(l.paciente_id||'')===String(p.id)) : null;
   const evos = (evo.ok ? evo.dados||[] : []).filter(e=>e.origem!=='infantil' && !(e.origem==='sensor' && /"type"\s*:\s*"(perfil|publicado)"/.test(String(e.sensor||''))));
   const ms = msgs.ok ? msgs.dados||[] : [];
-  _vg = {p, sess, passadas, futuras, itensFin, lead, evos, ms, alertas, histOk:hist.ok, histErro:hist.erro};
+  const todasEvo = evo.ok ? evo.dados||[] : [];
+  _vg = {p, sess, passadas, futuras, itensFin, lead, evos, ms, alertas, histOk:hist.ok, histErro:hist.erro,
+         avals: avaliacoesDoPaciente(todasEvo, docs.ok ? docs.dados||[] : [])};
   desenharVisaoGeral();
 }
 
@@ -9564,6 +9699,8 @@ function desenharVisaoGeral() {
     </div>
   </div>
 
+  ${avaliacoesCardHTML(_vg.avals)}
+
   <div class="vg-card vg-tl">
     <div class="vg-k">Linha do tempo</div>
     <div class="agx-seg vg-filtros">${filtros.map(([k,r])=>`<button class="${_vgFiltro===k?'on':''}" onclick="_vgFiltro='${k}';_vgTodos=false;desenharVisaoGeral()">${r}</button>`).join('')}</div>
@@ -9576,6 +9713,27 @@ function desenharVisaoGeral() {
   </div>`;
 }
 
+// Avaliações do paciente: testes da Avaliação física (por data), avaliações
+// infantis registradas e relatórios salvos em Documentos
+function avaliacoesDoPaciente(evos, docs) {
+  const out = [];
+  const fis = {};
+  evos.filter(e=>e.origem==='sensor' && !/"type"\s*:\s*"(perfil|publicado)"/.test(String(e.sensor||''))).forEach(e=>{
+    const d = String(e.data||'').slice(0,10); (fis[d] = fis[d] || {tipo:'fisica', data:d, autor:e.autor_nome, itens:[]}).itens.push(String(e.texto||'').split(/[,:]/)[0]); });
+  Object.values(fis).forEach(x=>out.push({tipo:'Avaliação física', data:x.data, autor:x.autor, desc:x.itens.length+' '+(x.itens.length===1?'medida':'medidas')+': '+[...new Set(x.itens)].slice(0,4).join(', '), abrir:"location.href='avaliacao/'"}));
+  evos.filter(e=>e.origem==='infantil_resumo').forEach(e=>out.push({tipo:'Avaliação infantil', data:String(e.data||'').slice(0,10), autor:e.autor_nome, desc:String(e.texto||'').slice(0,140), abrir:"location.href='avaliacao-infantil/'"}));
+  docs.filter(d=>/avalia|laudo|relat/i.test(String(d.categoria||'')+' '+String(d.nome||''))).forEach(d=>out.push({tipo:d.categoria||'Relatório', data:String(d.criado_em||'').slice(0,10), autor:d.enviado_nome, desc:d.nome, doc:d.id}));
+  return out.sort((a,b)=>String(b.data).localeCompare(String(a.data)));
+}
+function avaliacoesCardHTML(lista) {
+  return `<div class="vg-card" style="margin-bottom:12px">
+    <div class="vg-k">Avaliações e relatórios ${lista.length?`<span class="vg-n" style="background:var(--teal)">${lista.length}</span>`:''}</div>
+    ${lista.length ? lista.slice(0,12).map(a=>`<div class="vg-av">
+      <div><b>${esc(a.tipo)}</b><span>${esc(a.data?fmtDataBR(a.data):'')}${a.autor?' · '+esc(a.autor):''}</span><small>${esc(a.desc||'')}</small></div>
+      ${a.doc?`<button class="backbtn" onclick="baixarDoc('${esc(a.doc)}')">Abrir</button>`:`<button class="ff-link" onclick="${a.abrir}">ver na avaliação</button>`}</div>`).join('')
+      : '<div class="vg-tudo">Nenhuma avaliação registrada ainda. Os relatórios da Avaliação física e da infantil ficam aqui quando você toca em "Salvar no perfil do paciente".</div>'}
+  </div>`;
+}
 function nomeDoEmail(em) {
   const x = (_profsCache||[]).find(q=>String(q.email||'').toLowerCase()===String(em||'').toLowerCase());
   return x ? x.nome : String(em||'');
@@ -10008,6 +10166,16 @@ function editarProf(id) {
         <input class="fi" id="epTel" type="tel" value="${esc(p.telefone||'')}" placeholder="(11) 99999-9999"></div>
       <div class="fg"><label class="fl">CPF ou CNPJ</label>
         <input class="fi" id="epDoc" value="${esc(p.documento||'')}" placeholder="Para os repasses"></div>
+      ${currentRole==='admin'?`<div class="fg fa"><label class="fl">Comissionamento (repasse)</label>
+        <div class="ep-com">
+          <select class="fs" id="epComTipo" onchange="document.getElementById('epComV').style.display=this.value?'':'none';document.getElementById('epComU').textContent=this.value==='pct'?'% do valor da sessão':this.value==='hora'?'R$ por hora':'R$ por sessão'">
+            <option value=""${!p.comissao_tipo?' selected':''}>Regra padrão da Casa (tabela por serviço)</option>
+            <option value="pct"${p.comissao_tipo==='pct'?' selected':''}>Porcentagem do valor da sessão</option>
+            <option value="sessao"${p.comissao_tipo==='sessao'?' selected':''}>Valor fixo por sessão</option>
+          </select>
+          <span id="epComV" style="${p.comissao_tipo?'':'display:none'}"><input class="fi" id="epComValor" type="number" step="0.01" min="0" inputmode="decimal" value="${esc(p.comissao_valor||'')}" placeholder="0"> <small id="epComU">${p.comissao_tipo==='pct'?'% do valor da sessão':'R$ por sessão'}</small></span>
+        </div>
+        <div class="pt-nota">Vale para as sessões dela lançadas no Financeiro › Serviços. A aba Repasses usa este combinado; sem ele, segue a tabela padrão por serviço. Só a gestão vê.</div></div>`:''}
       <div class="fg fa"><label class="fl">Registro profissional
         <span style="font-weight:400;color:var(--ink3)">(sai na assinatura dos documentos)</span></label>
         <input class="fi" id="epRegistro" value="${esc(p.registro)}"
@@ -10099,6 +10267,8 @@ async function salvarProf(id) {
     linhas: [...document.querySelectorAll('#epLinhas input:checked')].map(x=>x.value).join(', '),
     telefone: (document.getElementById('epTel').value||'').trim(),
     documento: (document.getElementById('epDoc').value||'').trim(),
+    ...(document.getElementById('epComTipo') ? {comissao_tipo: document.getElementById('epComTipo').value,
+        comissao_valor: document.getElementById('epComTipo').value ? String(numDe(document.getElementById('epComValor').value)||'') : ''} : {}),
   };
   const nivelEl = document.getElementById('epNivel');
   const statusEl = document.getElementById('epStatus');
@@ -10460,13 +10630,13 @@ const podeVerGestao = () => currentRole==='admin' || ehAdministracao();
 function renderGestao() {
   if(!podeVerGestao()) return `<div class="ph"><div class="ph-title">Acesso restrito</div></div>`;
   return `<div class="ph"><div class="ph-title">Painel da gestão</div><div class="ph-sub">Salas, ocupação da equipe e pedidos de aprovação</div></div>
-  <div class="agx-seg gs-abas" id="gsAbas">${[['salas','Salas'],['equipe','Equipe e ocupação'],['aprov','Aprovações']].map(([k,r])=>
+  <div class="agx-seg gs-abas" id="gsAbas">${[['salas','Salas'],['equipe','Equipe e ocupação'],['relatorio','Relatório de atendimentos'],['aprov','Aprovações']].map(([k,r])=>
     `<button class="${_gs.aba===k?'on':''}" onclick="abaGestao('${k}')">${r}<span class="gs-badge" id="gsBadge_${k}"></span></button>`).join('')}</div>
   <div id="gsBody">${loadingHTML()}</div>`;
 }
 function abaGestao(k) {
   _gs.aba = k;
-  document.querySelectorAll('#gsAbas button').forEach((b,i)=>b.classList.toggle('on', ['salas','equipe','aprov'][i]===k));
+  document.querySelectorAll('#gsAbas button').forEach((b,i)=>b.classList.toggle('on', ['salas','equipe','relatorio','aprov'][i]===k));
   carregarGestao();
 }
 async function carregarGestao() {
@@ -10475,6 +10645,7 @@ async function carregarGestao() {
   contarAprovacoesGestao();
   if(_gs.aba==='salas') return painelSalas();
   if(_gs.aba==='equipe') return painelEquipe();
+  if(_gs.aba==='relatorio') return painelRelatorio();
   box.innerHTML = '<div id="aprovBox"></div><div id="aprovVazio"></div>';
   await carregarAprovacoes();
   if(!document.querySelector('#aprovBox .aprov-item')) document.getElementById('aprovVazio').innerHTML = '<div class="card" style="text-align:center;color:var(--ink3);padding:30px">Nenhum pedido esperando a sua decisão.</div>';
@@ -10756,6 +10927,228 @@ async function confirmarExclusaoPaciente(linha, id) {
   openLinha(linha);
 }
 
+// ═══════════════════════════════════════════════
+// CLIENTES — todos os pacientes num lugar só, para achar, abrir e editar
+// sem passar pelas linhas
+// ═══════════════════════════════════════════════
+let _cli = {busca:'', linha:'', status:'ativos'};
+function renderClientes() {
+  return `<div class="ph" style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap">
+    <div><div class="ph-title">Clientes</div><div class="ph-sub">Cadastro único: cada cliente aparece uma vez, com todas as linhas em que está</div></div>
+    <button class="addbtn" onclick="novoClienteGeral()">+ Novo cliente</button></div>
+  <div class="cli-filtros">
+    <input class="fi" id="cliBusca" type="search" autocomplete="off" placeholder="Buscar por nome, telefone, e-mail, CPF, terapeuta…" value="${esc(_cli.busca)}" oninput="_cli.busca=this.value;desenharClientes()">
+    <select class="fs" onchange="_cli.linha=this.value;desenharClientes()"><option value="">Todas as linhas</option>${Object.entries(LINHAS).map(([k,c])=>`<option value="${k}"${_cli.linha===k?' selected':''}>${esc(c.label)}</option>`).join('')}</select>
+    <select class="fs" onchange="_cli.status=this.value;desenharClientes()">${[['ativos','Ativos'],['todos','Todos'],['Em alta','Em alta'],['Inativo','Inativos'],['Lead','Leads']].map(([v,r])=>`<option value="${v}"${_cli.status===v?' selected':''}>${r}</option>`).join('')}</select>
+  </div>
+  <div id="cliLista">${loadingHTML()}</div>`;
+}
+async function loadClientes() { await carregarTodosPacientes(); desenharClientes(); }
+function desenharClientes() {
+  const box = document.getElementById('cliLista'); if(!box) return;
+  const t = normalizar(_cli.busca), td = soDigitos(_cli.busca);
+  const lista = (_todosPacientes||[]).filter(p=>{
+    const st = String(p.status||'Ativo');
+    if(_cli.status==='ativos' && (st==='Inativo' || st==='Lead')) return false;
+    if(!['ativos','todos'].includes(_cli.status) && st!==_cli.status) return false;
+    if(_cli.linha && !linhasDoPaciente(p).includes(_cli.linha)) return false;
+    if(!t) return true;
+    return normalizar([p.nome, p.email, p.terapeuta_nome, p.responsavel, p.servicos].join(' ')).includes(t)
+      || (td.length>=3 && (soDigitos(p.telefone).includes(td) || soDigitos(p.cpf).includes(td)));
+  }).sort((a,b)=>String(a.nome).localeCompare(String(b.nome),'pt-BR'));
+  box.innerHTML = `<div class="pt-nota" style="margin:0 0 8px">${lista.length} ${lista.length===1?'cliente':'clientes'}</div>
+    ${lista.length ? `<div class="cli-lista">${lista.map(p=>{ const idade = calcIdade(p.data_nascimento);
+      return `<div class="cli-item">
+        <button class="cli-nome" onclick="abrirCliente('${esc(p.id)}')">${avatarHTML(p.nome,34)}<span><b>${esc(p.nome)}</b>
+          <small>${[idade!=null?idade+' anos':'', terapeutasDe(p).join(', '), p.telefone||''].filter(Boolean).map(esc).join(' · ')||'—'}</small></span></button>
+        <div class="cli-linhas">${linhasDoPaciente(p).map(l=>`<span class="chip ch-${(LINHAS[l]||{}).color||'gray'}">${esc((LINHAS[l]||{label:l}).label)}</span>`).join('')}
+          ${p.status&&p.status!=='Ativo'?`<span class="chip ch-gray">${esc(p.status)}</span>`:''}${p.pendente?chipPendente(p):''}</div>
+        <div class="cli-bts"><button class="backbtn" onclick="abrirCliente('${esc(p.id)}')">Abrir</button><button class="backbtn" onclick="abrirCliente('${esc(p.id)}',true)">Editar</button></div>
+      </div>`; }).join('')}</div>`
+    : `<div class="card" style="text-align:center;color:var(--ink3);padding:30px">Ninguém encontrado.</div>`}`;
+}
+async function abrirCliente(id, editar) {
+  const p = (await carregarTodosPacientes()).find(x=>String(x.id)===String(id)); if(!p) return;
+  const linha = linhasDoPaciente(p).find(l=>LINHAS[l]) || Object.keys(LINHAS)[0];
+  _pacientesCache[linha] = (_pacientesCache[linha]||[]).filter(x=>String(x.id)!==String(id)).concat([p]);
+  document.getElementById('sheetTitle').textContent = p.nome;
+  document.getElementById('sheetBody').innerHTML = loadingHTML();
+  openSheet();
+  if(editar) openFormNovoPaciente(linha, p); else openPaciente(linha, id);
+}
+function novoClienteGeral() {
+  document.getElementById('sheetBody').innerHTML = loadingHTML();
+  openSheet();
+  openFormNovoPaciente(_cli.linha || '');
+}
+
+// ── Cadastro novo: sugere quem já existe em outra linha ──
+// Mesmo nome (ou parecido), telefone ou CPF: em vez de criar outro cadastro,
+// a pessoa entra nesta linha também, com o mesmo prontuário e financeiro.
+function sugerirExistente(linha) {
+  const box = document.getElementById('np_sug'); if(!box) return;
+  const nome = normalizar((document.getElementById('np_nome')||{}).value||'').trim();
+  const tel = soDigitos((document.getElementById('np_tel')||{}).value), cpf = soDigitos((document.getElementById('np_cpf')||{}).value);
+  if(nome.length<3 && tel.length<8 && cpf.length<11) { box.innerHTML=''; return; }
+  const partes = nome.split(/\s+/).filter(x=>x.length>1);
+  const achados = (_todosPacientes||[]).filter(p=>{
+    const n = normalizar(p.nome);
+    return (partes.length && partes.every(x=>n.includes(x))) || (tel.length>=8 && soDigitos(p.telefone).endsWith(tel.slice(-8))) || (cpf.length===11 && soDigitos(p.cpf)===cpf);
+  }).slice(0,5);
+  box.innerHTML = achados.length ? `<div class="np-sug">
+    <div class="np-sug-t">Já está cadastrado? Toque para usar o mesmo cadastro</div>
+    ${achados.map(p=>{ const ja = linha && linhasDoPaciente(p).includes(linha);
+      return `<div class="np-sug-i">${avatarHTML(p.nome,30)}<div><b>${esc(p.nome)}</b><small>${esc([rotuloLinhas(p.linha), terapeutasDe(p).join(', '), p.telefone].filter(Boolean).join(' · '))}</small></div>
+        ${ja ? `<button class="backbtn" onclick="limparSujo();abrirCliente('${esc(p.id)}')">Já está aqui · abrir</button>`
+             : `<button class="addbtn" onclick="vincularNaLinha('${esc(p.id)}','${esc(linha)}',this)">${linha?'Incluir em '+esc((LINHAS[linha]||{label:linha}).label):'Abrir cadastro'}</button>`}</div>`; }).join('')}
+    <div class="pt-nota" style="margin:4px 0 0">É uma pessoa diferente com nome parecido? Continue preenchendo normalmente.</div></div>` : '';
+}
+async function vincularNaLinha(id, linha, btn) {
+  const p = (await carregarTodosPacientes()).find(x=>String(x.id)===String(id)); if(!p) return;
+  if(!linha) { limparSujo(); return abrirCliente(id, true); }
+  btn.disabled = true; btn.textContent = 'Incluindo…';
+  const linhas = [...new Set([...linhasDoPaciente(p), linha])];
+  const res = await api('atualizar',{tabela:'pacientes', id, dados:{linha:linhas.join(', '), atualizado_por:currentUser.email}});
+  if(!res.ok) { btn.disabled=false; btn.textContent='Tentar de novo'; showToast('Erro: '+(res.erro||''),'err'); return; }
+  p.linha = linhas.join(', ');
+  _pacientesCache = {};
+  limparSujo();
+  showToast(p.nome+' agora está também em '+(LINHAS[linha]||{label:linha}).label+'. Confira terapeutas e serviços desta linha.','ok');
+  _pacientesCache[linha] = [p];
+  openFormNovoPaciente(linha, p);
+}
+
+// ═══════════════════════════════════════════════
+// RELATÓRIO DE ATENDIMENTOS (Painel da gestão)
+// Período livre: quantos e quais atendimentos, com quem, evoluções e
+// avaliações registradas. A agenda é lida em pedaços de até 2 meses.
+// ═══════════════════════════════════════════════
+let _rel = {de:'', ate:'', prof:'', linha:'', busca:'', dados:null};
+function relatorioFiltrosHTML() {
+  const hoje = new Date();
+  if(!_rel.de) { _rel.de = diaISO(new Date(hoje.getFullYear(), hoje.getMonth(), 1)); _rel.ate = diaISO(hoje); }
+  const profs = (_ag.profissionais||[]);
+  return `<div class="rel-filtros">
+    <label class="fl">De<input class="fi" type="date" id="relDe" value="${_rel.de}"></label>
+    <label class="fl">Até<input class="fi" type="date" id="relAte" value="${_rel.ate}"></label>
+    <label class="fl">Profissional<select class="fs" id="relProf"><option value="">Todas</option>${profs.map(p=>`<option value="${esc(p.email)}"${_rel.prof===p.email?' selected':''}>${esc(p.nome)}</option>`).join('')}</select></label>
+    <label class="fl">Linha<select class="fs" id="relLinha"><option value="">Todas</option>${Object.entries(LINHAS).map(([k,c])=>`<option value="${k}"${_rel.linha===k?' selected':''}>${esc(c.label)}</option>`).join('')}</select></label>
+    <label class="fl">Paciente<input class="fi" id="relBusca" placeholder="Todos" value="${esc(_rel.busca)}"></label>
+    <button class="addbtn" onclick="gerarRelatorio()">Gerar relatório</button>
+  </div>
+  <div class="rel-atalhos">${[['Este mês',0],['Mês passado',1],['Últimos 3 meses',3],['Este ano',12]].map(([r,n])=>`<button class="ff-link" onclick="periodoRelatorio(${n})">${r}</button>`).join('')}</div>`;
+}
+function periodoRelatorio(n) {
+  const h = new Date();
+  if(n===0) { _rel.de = diaISO(new Date(h.getFullYear(), h.getMonth(), 1)); _rel.ate = diaISO(h); }
+  else if(n===1) { _rel.de = diaISO(new Date(h.getFullYear(), h.getMonth()-1, 1)); _rel.ate = diaISO(new Date(h.getFullYear(), h.getMonth(), 0)); }
+  else if(n===3) { _rel.de = diaISO(new Date(h.getFullYear(), h.getMonth()-2, 1)); _rel.ate = diaISO(h); }
+  else { _rel.de = diaISO(new Date(h.getFullYear(), 0, 1)); _rel.ate = diaISO(h); }
+  document.getElementById('relDe').value = _rel.de; document.getElementById('relAte').value = _rel.ate;
+  gerarRelatorio();
+}
+async function painelRelatorio() {
+  const box = document.getElementById('gsBody'); if(!box) return;
+  if(!(_ag.profissionais||[]).length) await agendaGestao(new Date(), somaDias(new Date(),1));
+  box.innerHTML = relatorioFiltrosHTML()+'<div id="relOut"></div>';
+  if(_rel.dados) desenharRelatorio(); else gerarRelatorio();
+}
+async function gerarRelatorio() {
+  const g = id => (document.getElementById(id)||{}).value||'';
+  _rel = {..._rel, de:g('relDe'), ate:g('relAte'), prof:g('relProf'), linha:g('relLinha'), busca:g('relBusca').trim()};
+  const out = document.getElementById('relOut'); if(!out) return;
+  if(!_rel.de || !_rel.ate || _rel.ate < _rel.de) { out.innerHTML = '<div class="errbox" style="display:block">Escolha o período (a data final depois da inicial).</div>'; return; }
+  out.innerHTML = loadingHTML();
+  const de = new Date(_rel.de+'T00:00:00'), ate = somaDias(new Date(_rel.ate+'T00:00:00'), 1);
+  const pedacos = []; for(let d=new Date(de); d<ate; d=somaDias(d,60)) pedacos.push([d, new Date(Math.min(+somaDias(d,60), +ate))]);
+  const [ags, evo, pacs] = await Promise.all([
+    Promise.all(pedacos.map(([a,b])=>agendaGestao(a,b))),
+    api('listar',{tabela:'evolucoes'}), carregarTodosPacientes()]);
+  const falhou = ags.find(r=>!r.ok);
+  const evs = ags.flatMap(r=>r.ok?r.dados||[]:[]).map(prepEvento).filter(e=>!e.dia_inteiro && (e.paciente_id || e.servico));
+  _rel.dados = {evs, evos:evo.ok?evo.dados||[]:[], pacs:pacs||[], erro:falhou?falhou.erro:''};
+  desenharRelatorio();
+}
+function desenharRelatorio() {
+  const out = document.getElementById('relOut'); if(!out || !_rel.dados) return;
+  const {evs, evos, pacs, erro} = _rel.dados;
+  const pacDe = e => pacs.find(p=>e.paciente_id && String(p.id)===String(e.paciente_id));
+  const nomeP = e => (pacDe(e)||{}).nome || nomePacEv(e);
+  const busca = normalizar(_rel.busca);
+  const okPac = (pid, nome) => { const p = pacs.find(x=>String(x.id)===String(pid));
+    if(_rel.linha && !(p && linhasDoPaciente(p).includes(_rel.linha))) return false;
+    return !busca || normalizar(p?p.nome:nome).includes(busca); };
+  const A = evs.filter(e=>(!_rel.prof || e.agenda_email===_rel.prof) && okPac(e.paciente_id, nomePacEv(e))).sort((a,b)=>a.inicio.localeCompare(b.inicio));
+  const real = A.filter(e=>e.status==='realizado'), falt = A.filter(e=>e.status==='falta');
+  const agora = new Date(), semMarcar = A.filter(e=>new Date(e.fim)<agora && e.status!=='realizado' && e.status!=='falta');
+  const profNome = em => agProfNome(em) || em;
+  const nomeProfSel = _rel.prof ? normalizar(profNome(_rel.prof)) : '';
+  const noPeriodo = d => { const x = String(d||'').slice(0,10); return x>=_rel.de && x<=_rel.ate; };
+  const E = evos.filter(e=>noPeriodo(e.data) && e.origem!=='infantil' && !(e.origem==='sensor') && okPac(e.paciente_id,'') && (!nomeProfSel || normalizar(e.autor_nome)===nomeProfSel));
+  const AV = evos.filter(e=>noPeriodo(e.data) && (e.origem==='infantil_resumo' || (e.origem==='sensor' && !/"type"\s*:\s*"(perfil|publicado)"/.test(String(e.sensor||'')))) && okPac(e.paciente_id,'') && (!nomeProfSel || normalizar(e.autor_nome)===nomeProfSel));
+  // avaliação física: um registro por paciente e dia
+  const avKeys = {}; AV.forEach(e=>{ const k=e.paciente_id+'|'+String(e.data).slice(0,10)+'|'+e.origem; (avKeys[k]=avKeys[k]||{...e, n:0}).n++; });
+  const avals = Object.values(avKeys).sort((a,b)=>String(b.data).localeCompare(String(a.data)));
+  const evoDoAtend = e => evos.some(x=>String(x.paciente_id)===String(e.paciente_id) && String(x.data||'').slice(0,10)===diaISO(new Date(e.inicio)) && x.origem!=='infantil');
+  const comEvo = real.filter(evoDoAtend).length;
+  const pacientesAtendidos = new Set(real.map(e=>e.paciente_id||nomePacEv(e))).size;
+  const porProf = {};
+  A.forEach(e=>{ const k=e.agenda_email; const g=porProf[k]=porProf[k]||{nome:profNome(k), r:0, f:0, s:0, pacs:new Set(), evo:0, av:0};
+    if(e.status==='realizado'){ g.r++; g.pacs.add(e.paciente_id||nomePacEv(e)); if(evoDoAtend(e)) g.evo++; } else if(e.status==='falta') g.f++; else if(new Date(e.fim)<agora) g.s++; });
+  avals.forEach(a=>{ const g = Object.values(porProf).find(x=>normalizar(x.nome)===normalizar(a.autor_nome)); if(g) g.av++; });
+  const porServ = {};
+  A.forEach(e=>{ const k=e.servico||'Sem serviço'; const g=porServ[k]=porServ[k]||{r:0,f:0,t:0}; g.t++; if(e.status==='realizado') g.r++; else if(e.status==='falta') g.f++; });
+  const fmtD = iso => new Date(iso).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'});
+  const per = fmtDataBR(_rel.de)+' a '+fmtDataBR(_rel.ate);
+  _rel.linhasCsv = [['Data','Hora','Paciente','Profissional','Serviço','Sala','Situação','Evolução registrada'],
+    ...A.map(e=>[diaISO(new Date(e.inicio)), horaDe(e.inicio), nomeP(e), profNome(e.agenda_email), e.servico||'', e.sala||'',
+      e.status==='realizado'?'Realizado':e.status==='falta'?'Faltou':new Date(e.fim)<agora?'Sem presença marcada':'Agendado', e.status==='realizado'?(evoDoAtend(e)?'Sim':'Não'):''])];
+  out.innerHTML = `<div id="relDoc">
+  <div class="rel-cab"><b>Relatório de atendimentos</b><span>${esc(per)}${_rel.prof?' · '+esc(profNome(_rel.prof)):''}${_rel.linha?' · '+esc(LINHAS[_rel.linha].label):''}${_rel.busca?' · '+esc(_rel.busca):''}</span></div>
+  ${erro?`<div class="fe-aviso"><div>Parte da agenda não pôde ser lida: ${esc(erro)}</div></div>`:''}
+  <div class="vg-nums" style="margin-bottom:12px">
+    <div class="vg-num"><b style="color:var(--teal)">${real.length}</b><span>atendimentos realizados</span></div>
+    <div class="vg-num"><b style="color:var(--rose)">${falt.length}</b><span>faltas</span></div>
+    <div class="vg-num"><b>${A.length}</b><span>agendados no período</span></div>
+    <div class="vg-num"><b>${pacientesAtendidos}</b><span>pacientes atendidos</span></div>
+    <div class="vg-num"><b>${E.length}</b><span>evoluções registradas${real.length?' · '+Math.round(comEvo/real.length*100)+'% dos atendimentos':''}</span></div>
+    <div class="vg-num"><b>${avals.length}</b><span>avaliações</span></div>
+  </div>
+  ${semMarcar.length?`<div class="fe-aviso" style="margin-bottom:12px"><div><b>${semMarcar.length} ${semMarcar.length===1?'atendimento passou':'atendimentos passaram'} sem presença marcada</b> e não entram como realizados.</div></div>`:''}
+  <div class="rel-grid">
+    <div class="vg-card"><div class="vg-k">Por profissional</div>
+      <div style="overflow-x:auto"><table class="fin-tabela"><thead><tr><th>Profissional</th><th class="r">Realizados</th><th class="r">Faltas</th><th class="r">Sem marcar</th><th class="r">Pacientes</th><th class="r">Com evolução</th><th class="r">Avaliações</th></tr></thead>
+      <tbody>${Object.values(porProf).sort((a,b)=>b.r-a.r).map(g=>`<tr style="cursor:default"><td><b>${esc(g.nome)}</b></td><td class="r">${g.r}</td><td class="r">${g.f}</td><td class="r">${g.s||'—'}</td><td class="r">${g.pacs.size}</td><td class="r">${g.r?g.evo+' <small>('+Math.round(g.evo/g.r*100)+'%)</small>':'—'}</td><td class="r">${g.av||'—'}</td></tr>`).join('')||'<tr><td colspan="7">Nenhum atendimento.</td></tr>'}</tbody></table></div></div>
+    <div class="vg-card"><div class="vg-k">Por serviço</div>
+      ${Object.entries(porServ).sort((a,b)=>b[1].r-a[1].r).map(([n,g])=>`<div class="vg-l"><span>${esc(n)}</span><b>${g.r} <small>realizados${g.f?' · '+g.f+' faltas':''}</small></b></div>`).join('')||'<div class="vg-tudo">—</div>'}</div>
+  </div>
+  <details class="vg-card rel-det" open><summary class="vg-k">Atendimentos (${A.length})</summary>
+    <div style="overflow-x:auto"><table class="fin-tabela"><thead><tr><th>Data</th><th>Paciente</th><th>Profissional</th><th>Serviço</th><th>Situação</th><th>Evolução</th></tr></thead>
+    <tbody>${A.map(e=>`<tr style="cursor:default"><td>${esc(fmtD(e.inicio))} ${horaDe(e.inicio)}</td><td>${esc(nomeP(e))}</td><td>${esc(profNome(e.agenda_email))}</td><td>${esc(e.servico||'—')}</td>
+      <td>${e.status==='realizado'?'<span class="chip ch-sage">Realizado</span>':e.status==='falta'?'<span class="chip ch-rose">Faltou</span>':new Date(e.fim)<agora?'<span class="chip ch-amber">Sem marcar</span>':'<span class="chip ch-gray">Agendado</span>'}</td>
+      <td>${e.status==='realizado'?(evoDoAtend(e)?'✓':'<span style="color:var(--amber)">falta</span>'):''}</td></tr>`).join('')||'<tr><td colspan="6">Nenhum atendimento no período.</td></tr>'}</tbody></table></div></details>
+  <details class="vg-card rel-det"><summary class="vg-k">Evoluções (${E.length})</summary>
+    ${E.sort((a,b)=>String(b.data).localeCompare(String(a.data))).map(e=>{ const p=pacs.find(x=>String(x.id)===String(e.paciente_id)); return `<div class="vg-ev"><div class="vg-ev-txt"><b>${esc(p?p.nome:'Paciente')} · ${esc(e.autor_nome||'')}</b><span>${esc(String(e.texto||'').slice(0,220))}</span></div><time>${esc(fmtDataBR(String(e.data).slice(0,10)))}</time></div>`; }).join('')||'<div class="vg-tudo">Nenhuma evolução no período.</div>'}</details>
+  <details class="vg-card rel-det"><summary class="vg-k">Avaliações (${avals.length})</summary>
+    ${avals.map(e=>{ const p=pacs.find(x=>String(x.id)===String(e.paciente_id)); return `<div class="vg-ev"><div class="vg-ev-txt"><b>${esc(p?p.nome:'Paciente')} · ${e.origem==='sensor'?'Avaliação física ('+e.n+' '+(e.n===1?'medida':'medidas')+')':'Avaliação infantil'}</b><span>${esc(e.autor_nome||'')}</span></div><time>${esc(fmtDataBR(String(e.data).slice(0,10)))}</time></div>`; }).join('')||'<div class="vg-tudo">Nenhuma avaliação no período.</div>'}</details>
+  </div>
+  <div class="rel-acoes"><button class="backbtn" onclick="baixarRelatorioCsv()">Baixar planilha (CSV)</button><button class="backbtn" onclick="imprimirRelatorio()">Imprimir / PDF</button></div>`;
+}
+function baixarRelatorioCsv() {
+  const cel = v => { const t = String(v==null?'':v); return /[;"\n]/.test(t) ? '"'+t.replace(/"/g,'""')+'"' : t; };
+  const csv = '﻿'+(_rel.linhasCsv||[]).map(r=>r.map(cel).join(';')).join('\r\n');
+  const b = new Blob([csv], {type:'text/csv;charset=utf-8'}); const u = URL.createObjectURL(b);
+  const a = document.createElement('a'); a.href = u; a.download = `atendimentos_${_rel.de}_a_${_rel.ate}.csv`; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(u), 4000);
+}
+function imprimirRelatorio() {
+  document.querySelectorAll('#relDoc details').forEach(d=>d.open=true);
+  const w = window.open('', '_blank'); if(!w) { window.print(); return; }
+  const css = [...document.querySelectorAll('style')].map(s=>s.textContent).join('\n');
+  w.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Relatório de atendimentos</title><style>${css}body{background:#fff;padding:20px}</style></head><body>${document.getElementById('relDoc').outerHTML}<script>setTimeout(()=>print(),300)<\/script></body></html>`);
+  w.document.close();
+}
+
 function blocoAlertas(titulo, cor, itens, classe, ic) {
   if(!itens.length) return '';
   return `<div class="card">
@@ -10879,6 +11272,7 @@ const _afterRender = {
   tarefas: ()=>setTimeout(loadTarefas,50),
   financeiro: ()=>setTimeout(loadFinanceiro,50),
   gestao: ()=>setTimeout(carregarGestao,50),
+  clientes: ()=>setTimeout(loadClientes,50),
   agenda: ()=>setTimeout(loadAgenda,50),
   casa: ()=>setTimeout(loadCasa,50),
   leads: ()=>setTimeout(loadLeads,50),
