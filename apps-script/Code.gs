@@ -841,6 +841,37 @@ function responderPresenca(body, token) {
   return {ok:true};
 }
 
+// --- BACKUP SEMANAL DA PLANILHA ---------------------------------
+// A planilha e o banco de dados do sistema: prontuarios, agenda, financeiro.
+// Toda segunda de madrugada uma copia inteira vai para a pasta
+// "Backups do Sistema Casa Oliveira" no Drive da clinica, e ficam as 12 mais
+// recentes (cerca de 3 meses). Rode instalarBackup() uma vez no editor para
+// ligar; fazerBackup() pode ser rodada a mao a qualquer momento.
+// Atencao: a copia tem tudo, inclusive a parte reservada das evolucoes.
+// A pasta deve ficar so com a gestao.
+const PASTA_BACKUP = 'Backups do Sistema Casa Oliveira';
+const BACKUPS_MANTIDOS = 12;
+function instalarBackup() {
+  ScriptApp.getProjectTriggers().forEach(function(t){ if (t.getHandlerFunction() === 'fazerBackup') ScriptApp.deleteTrigger(t); });
+  ScriptApp.newTrigger('fazerBackup').timeBased().onWeekDay(ScriptApp.WeekDay.MONDAY).atHour(3).create();
+  const r = fazerBackup();
+  return 'Backup ligado: toda segunda por volta das 3h. Primeira copia feita agora: ' + r;
+}
+function fazerBackup() {
+  const achadas = DriveApp.getFoldersByName(PASTA_BACKUP);
+  const pasta = achadas.hasNext() ? achadas.next() : DriveApp.createFolder(PASTA_BACKUP);
+  const hoje = Utilities.formatDate(new Date(), 'America/Sao_Paulo', 'yyyy-MM-dd');
+  const nome = 'Backup sistema ' + hoje;
+  DriveApp.getFileById(getSpreadsheet().getId()).makeCopy(nome, pasta);
+  // Mantem so as mais recentes; as antigas vao para a lixeira (30 dias para voltar)
+  const copias = [];
+  const it = pasta.getFiles();
+  while (it.hasNext()) { const f = it.next(); if (/^Backup sistema /.test(f.getName())) copias.push(f); }
+  copias.sort(function(a,b){ return b.getDateCreated() - a.getDateCreated(); });
+  copias.slice(BACKUPS_MANTIDOS).forEach(function(f){ f.setTrashed(true); });
+  return nome;
+}
+
 // --- LEMBRETE POR E-MAIL ---------------------------------------
 // Roda sozinho todo dia (gatilho criado por instalarLembretes): manda para
 // cada paciente com e-mail as sessoes do dia seguinte, com o link para
