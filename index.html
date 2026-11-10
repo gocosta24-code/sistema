@@ -1477,7 +1477,7 @@ function demoApi(action, body) {
       if(body.tabela==='pacientes') {
         let pacs = [...DEMO_DB.pacientes];
         if(body.filtros) Object.entries(body.filtros).forEach(([k,v])=>{pacs=pacs.filter(p=>(p[k]||'').toLowerCase()===(v||'').toLowerCase());});
-        if(body.role==='profissional' && body.nome_usuario) {
+        if(body.role==='profissional' && body.nome_usuario && !/recep|comercial|administra/i.test(String((currentUser||{}).funcao||''))) {
           pacs = pacs.filter(p=>ehTerapeutaDe(p, body.nome_usuario));
         }
         return {ok:true, dados:pacs};

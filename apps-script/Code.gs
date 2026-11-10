@@ -2382,7 +2382,10 @@ function listar(body, token) {
     if (!perfil) return {ok:false, erro:'Sem permiss\u00e3o'};
     if (perfil.role !== 'admin') {
       if (body.tabela==='pacientes') {
-        rows = rows.filter(r => podeVerPaciente(perfil, r));
+        // Recepção e administrativo trabalham com o cadastro de todos (agendar,
+        // cobrar, atender o telefone); o prontuário continua restrito abaixo
+        const cadastroTodo = /recep|comercial|administra/i.test(String(perfil.funcao||''));
+        rows = rows.filter(r => cadastroTodo || podeVerPaciente(perfil, r));
       } else {
         const pacs = mapaPacientes(), vis = {};
         rows = rows.filter(r => {
