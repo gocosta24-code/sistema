@@ -3094,7 +3094,7 @@ function excluirProf(body, token) {
 // linhas dele (a coordenadora sem linha preenchida ve tudo, entao recebe
 // todos). Quem cadastrou nao recebe o proprio aviso.
 const ROTULO_LINHAS = {infantil:'Desenvolvimento Infantil', mulher:'Saúde da Mulher', reabilitacao:'Reabilitação Física',
-  pilates:'Pilates', geriatria:'Gerontologia', mental:'Saúde Mental'};
+  pilates:'Pilates', geriatria:'Gerontologia', mental:'Saúde Mental', integrativas:'Práticas Integrativas'};
 function avisarNovoPaciente(pac, quem) {
   try {
     const sheet = getSpreadsheet().getSheetByName('Profissionais');

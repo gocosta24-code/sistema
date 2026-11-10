@@ -23,6 +23,7 @@
   --rose:#9B3524;--rose-lt:#FBE9E5;
   --violet:#7A5313;--violet-lt:#FEF5E7;
   --sky:#3E5C76;--sky-lt:#EAF0F5;
+  --plum:#6E4766;--plum-lt:#F5EDF3;
   --sage:#3B6322;--sage-lt:#EEF3E7;
   --r:16px;--r-sm:10px;--r-lg:22px;
   --sh:0 1px 3px rgba(43,42,32,.05),0 4px 14px rgba(43,42,32,.05);
@@ -150,6 +151,7 @@ input,select,textarea{outline:none;}
 .stat.rose::before{background:var(--rose);}
 .stat.violet::before{background:var(--violet);}
 .stat.sky::before{background:var(--sky);}
+.stat.plum::before{background:var(--plum);}
 .stat.sage::before{background:var(--sage);}
 .stat-e{font-size:22px;margin-bottom:8px;}
 .stat-n{font-family:'Fraunces',serif;font-size:32px;line-height:1;}
@@ -162,6 +164,7 @@ input,select,textarea{outline:none;}
 .ch-rose{background:var(--rose-lt);color:var(--rose);}
 .ch-violet{background:var(--violet-lt);color:var(--violet);}
 .ch-sky{background:var(--sky-lt);color:var(--sky);}
+.ch-plum{background:var(--plum-lt);color:var(--plum);}
 .ch-sage{background:var(--sage-lt);color:var(--sage);}
 .ch-gray{background:var(--sur2);color:var(--ink3);}
 
@@ -2067,6 +2070,7 @@ const LINHAS = {
   pilates:      {ico:'equilibrio',emoji:'',label:'Pilates',        color:'sage',   servicos:'Pilates'},
   geriatria:    {ico:'apoio',emoji:'',label:'Geriatria',       color:'sky',    servicos:'TO Individual · Convivência · Casa Segura'},
   mental:       {ico:'cerebro',emoji:'',label:'Saúde Mental',   color:'teal',   servicos:'TO · Acupuntura · Terapia Floral · Ateliê'},
+  integrativas: {ico:'folha',emoji:'',label:'Práticas Integrativas', color:'plum', servicos:'Acupuntura · Auriculoterapia · Terapia Floral · Aromaterapia · Ventosaterapia'},
 };
 
 // Funcoes clinicas mais comuns. "Outra" cobre o que nao estiver aqui sem
@@ -2522,14 +2526,12 @@ async function openFormNovoPaciente(linha, existente) {
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;" id="np_linhas">
           ${Object.entries(LINHAS).map(([k,c])=>`
           <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;background:var(--sur2);padding:6px 12px;border-radius:20px;border:1px solid var(--bor)">
-            <input type="checkbox" value="${k}" style="accent-color:var(--teal)"${linhasAtuais.includes(k)?' checked':''}> ${esc(c.label)}</label>`).join('')}
+            <input type="checkbox" value="${k}" style="accent-color:var(--teal)"${linhasAtuais.includes(k)?' checked':''} onchange="linhasDoFormMudaram()"> ${esc(c.label)}</label>`).join('')}
         </div>
-        <div class="pt-nota">É um prontuário só: o paciente aparece em cada linha marcada, com as evoluções, documentos e mensagens em comum.</div>
+        <div class="pt-nota">É um prontuário só: o paciente aparece em cada linha marcada, com a mesma Visão geral, evoluções, agenda, financeiro, documentos e mensagens. Cada linha guarda só a sua ficha específica (checklist, PTS da linha).</div>
       </div>
-      ${linhasAtuais.includes('infantil')||linhasAtuais.includes('geriatria')?`
-      <div class="fg fa"><label class="fl">Responsável</label><input class="fi" id="np_resp" placeholder="Nome e parentesco" value="${esc(p.responsavel)}"></div>`:``}
-      ${linhasAtuais.includes('infantil')?`
-      <div class="fg fa"><label class="fl">Escola</label><input class="fi" id="np_escola" placeholder="Nome da escola" value="${esc(p.escola)}"></div>`:``}
+      <div class="fg fa" id="np_resp_g" style="${linhasAtuais.includes('infantil')||linhasAtuais.includes('geriatria')||p.responsavel?'':'display:none'}"><label class="fl">Responsável</label><input class="fi" id="np_resp" placeholder="Nome e parentesco" value="${esc(p.responsavel)}"></div>
+      <div class="fg fa" id="np_escola_g" style="${linhasAtuais.includes('infantil')||p.escola?'':'display:none'}"><label class="fl">Escola</label><input class="fi" id="np_escola" placeholder="Nome da escola" value="${esc(p.escola)}"></div>
       <div class="fg fa"><label class="fl">Terapeutas de referência * <span style="font-weight:400;color:var(--ink3)">(pode marcar mais de uma)</span></label>
         <div class="np-ters" id="np_ters">
           ${[...profs.map(x=>({nome:x.nome, fun:x.funcao||x.nivel_acesso||''})),
@@ -2548,14 +2550,7 @@ async function openFormNovoPaciente(linha, existente) {
           em Leads (isso também dispara a mensagem de boas-vindas).</div>`:''}
       </div>`:''}
       <div class="fg fa"><label class="fl">Serviços</label>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
-          ${opcoesDoForm.map((o,i)=>`
-          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;background:var(--sur2);padding:6px 12px;border-radius:20px;border:1px solid var(--bor);${o.fora?'opacity:.65;':''}"
-                 ${o.fora?'title="Não é mais oferecido — desmarcar apaga o vínculo"':''}>
-            <input type="checkbox" value="${esc(o.nome)}" id="srv_${i}" style="accent-color:var(--teal)"${
-              servicosAtuais.some(n=>normalizar(n)===normalizar(o.nome))?' checked':''}> ${esc(o.nome)}${o.fora?' ⋯':''}
-          </label>`).join('')}
-        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;" id="np_srvs">${chipsServicosForm(opcoesDoForm, servicosAtuais)}</div>
         <div class="pt-nota">Vem da tela Serviços, só os ativos da linha. Os marcados com ⋯ não são mais oferecidos, mas seguem vinculados enquanto ficarem marcados.</div>
       </div>
       <div class="fg fa"><label class="fl">Observações</label><textarea class="ft" id="np_obs" placeholder="Queixa principal, motivo do encaminhamento...">${esc(p.observacoes)}</textarea></div>
@@ -2588,6 +2583,24 @@ async function excluirPaciente(linha, id) {
   _pacientesCache = {};
   _todosPacientes = null;
   openLinha(linha);
+}
+
+// Chips de serviço do formulário de paciente; mudam quando as linhas marcadas mudam
+function chipsServicosForm(opcoes, marcados) {
+  return opcoes.map((o,i)=>`
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;background:var(--sur2);padding:6px 12px;border-radius:20px;border:1px solid var(--bor);${o.fora?'opacity:.65;':''}"
+                 ${o.fora?'title="Não é mais oferecido — desmarcar apaga o vínculo"':''}>
+            <input type="checkbox" value="${esc(o.nome)}" id="srv_${i}" style="accent-color:var(--teal)"${
+              marcados.some(n=>normalizar(n)===normalizar(o.nome))?' checked':''}> ${esc(o.nome)}${o.fora?' ⋯':''}
+          </label>`).join('');
+}
+function linhasDoFormMudaram() {
+  const linhas = [...document.querySelectorAll('#np_linhas input:checked')].map(x=>x.value);
+  const marcados = [...document.querySelectorAll('#np_srvs input:checked')].map(x=>x.value);
+  const box = document.getElementById('np_srvs'); if(box) box.innerHTML = chipsServicosForm(opcoesServicos(linhas, marcados), marcados);
+  const mostra = (id, sim) => { const el = document.getElementById(id); if(el && (sim || !(el.querySelector('input').value||'').trim())) el.style.display = sim ? '' : 'none'; };
+  mostra('np_resp_g', linhas.includes('infantil') || linhas.includes('geriatria'));
+  mostra('np_escola_g', linhas.includes('infantil'));
 }
 
 async function salvarPaciente(linha, idExistente) {
@@ -9301,6 +9314,7 @@ async function openPaciente(linha, id) {
     pilates:      ['My Score','Dados','Indicações'],
     geriatria:    ['Checklist','PTS','Casa Segura','Reuniões'],
     mental:       ['Checklist','PTS','Ateliê'],
+    integrativas: ['Checklist','PTS'],
   };
   const tabs = [...(tabsDef[linha]||['Dados']), 'Evoluções', 'Exercícios', 'Documentos', 'Mensagens', 'Plano e horários'];
   if(currentRole==='admin') tabs.push('Orçamento');
@@ -9728,6 +9742,10 @@ function renderTabContent(linha, p, idx) {
     if(idx===1) return histPainelHTML('pts', idx);
     if(idx===2) return histPainelHTML('atelie', idx);
   }
+  if(linha==='integrativas') {
+    if(idx===0) return checklistIntegrativas(p);
+    if(idx===1) return histPainelHTML('pts', idx);
+  }
   return '<p style="color:var(--ink3)">Em construção</p>';
 }
 
@@ -9802,6 +9820,18 @@ function checklistMental(p) {
     ['pts_aprovado','PTS aprovado pelo coordenador'],
     ['servicos_sugeridos','Sugestão de serviços'],
   ])+campoTexto('sugestao_servicos','Sugestão de serviços','Ex: Indicar ateliê expressivo...');
+}
+
+function checklistIntegrativas(p) {
+  return checkRows([
+    ['acolhimento','Acolhimento e anamnese integrativa'],
+    ['avaliacao_energetica','Avaliação (pulso, língua, pontos, floral) registrada'],
+    ['termo_assinado','Termo de consentimento assinado'],
+    ['pts_elaborado','PTS elaborado'],
+    ['pts_aprovado','PTS aprovado pelo coordenador'],
+    ['reavaliacao','Reavaliação agendada'],
+  ])+campoTexto('praticas_indicadas','Práticas indicadas','Ex.: acupuntura 1x por semana, auriculoterapia, floral manipulado...')
+   +campoTexto('contraindicacoes','Cuidados e contraindicações','Ex.: gestante, uso de anticoagulante, medo de agulha...');
 }
 
 // ── PTS ──────────────────────────────────────────
