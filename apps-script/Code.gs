@@ -241,7 +241,14 @@ function handle(e) {
       case 'alterar_senha_paciente': return resp(alterarSenhaPaciente(body, token));
       case 'meus_resultados': return resp(meusResultados(token));
       case 'listar':        return resp(listar(body, token));
-      case 'salvar':        return resp(salvar(body));
+      case 'salvar': {
+        const r = salvar(body);
+        // Paciente novo (nao lead): gestao e coordenacao da linha ficam sabendo
+        if (r.ok && body.tabela === 'pacientes' && String(body.dados.status||'').toLowerCase() !== 'lead')
+          avisarNovoPaciente(r.dados, perfilDaEquipe(token));
+        return resp(r);
+      }
+      case 'historico_paciente': return resp(historicoPaciente(body, token));
       case 'atualizar':     return resp(atualizar(body));
       case 'deletar':       return resp(deletar(body));
       case 'listar_profs':  return resp(listarProfs(token, body));
@@ -716,7 +723,7 @@ function meuProntuario(token) {
       const dp = sp.getDataRange().getValues();
       const hp = dp[0];
       const iNome = hp.indexOf('nome'), iFun = hp.indexOf('funcao'), iReg = hp.indexOf('registro');
-      const alvo = String(p.terapeuta_nome).trim().toLowerCase();
+      const alvo = terapeutasDoPaciente(p)[0] || '';
       for (let i=1;i<dp.length;i++) {
         if (String(dp[i][iNome]||'').trim().toLowerCase() === alvo) {
           terapeutaFuncao  = iFun >= 0 ? (dp[i][iFun]||'') : '';
@@ -1537,8 +1544,13 @@ function podeVerPaciente(perfil, pac) {
     // O paciente pode estar em mais de uma linha ("infantil, mental"): basta uma em comum
     return linhasDoPaciente(pac).some(function(l){ return perfil.linhas.indexOf(l) !== -1; });
   }
-  const meu = String(pac.terapeuta_nome||'').trim().toLowerCase();
-  return !!meu && meu === String(perfil.nome||'').trim().toLowerCase();
+  // O paciente pode ter mais de uma terapeuta de referencia ("Ana, Bia")
+  const eu = String(perfil.nome||'').trim().toLowerCase();
+  return !!eu && terapeutasDoPaciente(pac).indexOf(eu) !== -1;
+}
+
+function terapeutasDoPaciente(pac) {
+  return String((pac && pac.terapeuta_nome) || '').toLowerCase().split(',').map(function(x){ return x.trim(); }).filter(Boolean);
 }
 
 // Nome, linha e terapeuta saem sempre da ficha do paciente. Copiar isso para
@@ -1962,6 +1974,7 @@ function converterLead(body, token) {
     enviarMensagemDaClinica(pacienteId,
       'Boas-vindas ao seu programa de acompanhamento personalizado na Casa Oliveira! \ud83c\udf89',
       perfil);
+    avisarNovoPaciente(pac, perfil);
   }
 
   gravarLead(sheet, achado.h, achado.linha, {
@@ -3074,3 +3087,69 @@ function excluirProf(body, token) {
   return {ok:false, erro:'Profissional não encontrado'};
 }
 
+
+
+// --- PACIENTE NOVO E HISTORICO --------------------------------
+// Todo paciente novo gera um e-mail para a gestao e para a coordenacao das
+// linhas dele (a coordenadora sem linha preenchida ve tudo, entao recebe
+// todos). Quem cadastrou nao recebe o proprio aviso.
+const ROTULO_LINHAS = {infantil:'Desenvolvimento Infantil', mulher:'Saúde da Mulher', reabilitacao:'Reabilitação Física',
+  pilates:'Pilates', geriatria:'Gerontologia', mental:'Saúde Mental'};
+function avisarNovoPaciente(pac, quem) {
+  try {
+    const sheet = getSpreadsheet().getSheetByName('Profissionais');
+    if (!sheet || sheet.getLastRow() < 2) return;
+    const linhasPac = linhasDoPaciente(pac);
+    const eu = String((quem && quem.email) || '').toLowerCase();
+    const dados = sheet.getDataRange().getValues(), h = dados[0];
+    const col = function(row, k){ const i = h.indexOf(k); return i === -1 ? '' : String(row[i]||'').trim(); };
+    const dest = [];
+    for (let i=1;i<dados.length;i++) {
+      const email = col(dados[i],'email').toLowerCase();
+      if (!email || email === eu || col(dados[i],'status') === 'Inativo') continue;
+      const nivel = col(dados[i],'nivel_acesso');
+      const linhas = col(dados[i],'linhas').toLowerCase().split(',').map(function(x){ return x.trim(); }).filter(Boolean);
+      const coordDaLinha = nivel === 'coordenador' && (!linhas.length || linhas.indexOf('todos') !== -1 ||
+        linhasPac.some(function(l){ return linhas.indexOf(l) !== -1; }));
+      if (nivel === 'admin' || coordDaLinha) dest.push(email);
+    }
+    if (!dest.length) return;
+    const linhasTxt = linhasPac.map(function(l){ return ROTULO_LINHAS[l] || l; }).join(', ');
+    const linha = function(r, v){ return v ? '<tr><td style="color:#6b6560;padding:3px 12px 3px 0">'+r+'</td><td style="padding:3px 0"><b>'+v+'</b></td></tr>' : ''; };
+    MailApp.sendEmail({
+      to: dest.join(','),
+      subject: 'Novo paciente: ' + (pac.nome || '') + (linhasTxt ? ' (' + linhasTxt + ')' : ''),
+      htmlBody: '<div style="font-family:Arial,sans-serif;max-width:520px">' +
+        '<h2 style="color:#1d6b58;margin-bottom:4px">Novo paciente na Casa</h2>' +
+        '<table style="font-size:14px">' +
+        linha('Nome', pac.nome) + linha('Linhas de cuidado', linhasTxt) +
+        linha('Terapeutas de referência', pac.terapeuta_nome) + linha('Serviços', pac.servicos) +
+        linha('Telefone', pac.telefone) + linha('E-mail', pac.email) + linha('Responsável', pac.responsavel) +
+        linha('Cadastrado por', (quem && (quem.nome || quem.email)) || '') +
+        '</table>' +
+        (pac.observacoes ? '<p style="font-size:14px"><b>Observações:</b> ' + String(pac.observacoes) + '</p>' : '') +
+        '<p style="margin:22px 0"><a href="' + URL_SISTEMA + '" style="background:#1d6b58;color:#fff;padding:11px 20px;border-radius:8px;text-decoration:none">Abrir o sistema</a></p>' +
+        '</div>'
+    });
+  } catch(e) { /* sem cota de e-mail: o aviso tambem aparece em Alertas */ }
+}
+
+// Todos os atendimentos do paciente na agenda, de 18 meses para tras ate 4
+// meses para frente, em todas as profissionais - base do perfil do cliente
+function historicoPaciente(body, token) {
+  const perfil = perfilDaEquipe(token);
+  if (!perfil) return {ok:false, erro:'Sem permissão'};
+  const ac = acharPacientePorId(body.paciente_id);
+  if (!ac || !podeVerPaciente(perfil, ac.obj)) return {ok:false, erro:'Sem permissão'};
+  const agora = new Date();
+  const de = new Date(agora.getTime() - 548*86400000), ate = new Date(agora.getTime() + 120*86400000);
+  const dados = sessoesDoPaciente(body.paciente_id, de, ate).map(function(x) {
+    const ev = x.ev;
+    return {id: ev.getId(), agenda_email: x.prof.email, profissional: x.prof.nome, titulo: ev.getTitle(),
+      inicio: ev.getStartTime().toISOString(), fim: ev.getEndTime().toISOString(),
+      servico: ev.getTag('servico') || '', sala: salaDaDescricao(ev.getDescription()),
+      status: ev.getTag('status') || '', aviso: ev.getTag('aviso_paciente') || '',
+      confirmado_paciente: ev.getTag('confirmado_paciente') || ''};
+  });
+  return {ok:true, dados: dados};
+}

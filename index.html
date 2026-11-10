@@ -604,6 +604,49 @@ body.agx-movendo{cursor:grabbing;user-select:none;}
 .mp-n.st-realizado::before{content:"✓ ";color:var(--sage);font-weight:800;}
 .mp-mais{display:none;font-size:11.5px;font-weight:700;color:var(--teal);}
 .mp-c:hover .mp-mais{display:block;}
+/* PLANO: atendimentos fora do plano */
+.pl-av{border:1px solid var(--bor);border-radius:var(--r-sm);padding:10px 12px;margin-top:8px;background:var(--sur);}
+.pl-av-h{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.pl-av-h>div{flex:1;min-width:160px;} .pl-av-h b{display:block;font-size:14px;} .pl-av-h span{font-size:12.5px;color:var(--ink3);}
+.pl-exc{color:var(--rose)!important;padding:6px 12px!important;font-size:12.5px!important;}
+.pl-av .pt-linha{margin-top:6px;}
+/* VISÃO GERAL DO PACIENTE */
+.vg-top{display:grid;grid-template-columns:1.2fr 1fr;gap:12px;margin-bottom:12px;}
+.vg-meio{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:12px 0;}
+.vg-card{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);padding:14px 16px;min-width:0;}
+.vg-k{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.vg-n{background:var(--rose);color:#fff;border-radius:10px;padding:0 7px;font-size:11px;letter-spacing:0;}
+.vg-l{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid var(--bor);font-size:13.5px;}
+.vg-l:last-child{border-bottom:0;} .vg-l>span{color:var(--ink2);} .vg-l>b{text-align:right;font-weight:600;display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;align-items:center;}
+.vg-l small{font-weight:400;color:var(--ink3);}
+.vg-ter{display:inline-flex;align-items:center;gap:5px;}
+.vg-pend{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--bor);font-size:13.5px;}
+.vg-pend:last-child{border-bottom:0;} .vg-pend span{flex:1;} .vg-pend i{width:8px;height:8px;border-radius:50%;flex:none;background:var(--sky);}
+.vg-pend.crit i{background:var(--rose);} .vg-pend.warn i{background:var(--amber);}
+.vg-tudo{font-size:13.5px;color:var(--ink3);padding:4px 0;}
+.vg-nums{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:10px;}
+.vg-num{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r-sm);padding:10px 12px;}
+.vg-num b{display:block;font-size:19px;font-weight:700;line-height:1.2;} .vg-num span{font-size:11.5px;color:var(--ink3);}
+.vg-barras{display:flex;gap:8px;align-items:flex-end;height:120px;}
+.vg-bar{flex:1;display:flex;flex-direction:column;align-items:center;height:100%;font-size:11px;color:var(--ink3);}
+.vg-bar b{font-size:11.5px;color:var(--ink);font-weight:600;min-height:15px;}
+.vg-col{flex:1;width:100%;max-width:26px;display:flex;flex-direction:column-reverse;border-radius:5px 5px 2px 2px;overflow:hidden;background:var(--bg);}
+.vg-col i{display:block;width:100%;} .vg-col i.r,.vg-leg i.r{background:var(--teal);} .vg-col i.f,.vg-leg i.f{background:var(--rose);opacity:.75;}
+.vg-leg{display:flex;gap:14px;font-size:11.5px;color:var(--ink3);margin-top:8px;} .vg-leg i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;}
+.vg-filtros{margin-bottom:10px;flex-wrap:wrap;}
+.vg-ev{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--bor);}
+.vg-ev:last-of-type{border-bottom:0;}
+.vg-ev-ico{width:28px;height:28px;border-radius:50%;background:var(--bg);display:flex;align-items:center;justify-content:center;flex:none;color:var(--ink2);}
+.vg-ev.ok .vg-ev-ico{background:var(--teal-lt);color:var(--teal);} .vg-ev.falta .vg-ev-ico{background:rgba(200,80,80,.12);color:var(--rose);}
+.vg-ev-txt{flex:1;min-width:0;font-size:13.5px;} .vg-ev-txt b{display:block;font-weight:600;}
+.vg-ev-txt span{display:block;color:var(--ink3);font-size:12.5px;overflow:hidden;text-overflow:ellipsis;}
+.vg-ev time{font-size:12px;color:var(--ink3);white-space:nowrap;}
+.np-ters{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:8px;margin-top:4px;}
+.np-ter{display:flex;align-items:center;gap:9px;background:var(--sur2);border:1px solid var(--bor);border-radius:var(--r-sm);padding:8px 11px;cursor:pointer;font-size:13.5px;}
+.np-ter input{accent-color:var(--teal);} .np-ter span{display:flex;flex-direction:column;line-height:1.25;} .np-ter small{color:var(--ink3);font-size:11.5px;}
+.np-ter:has(input:checked){border-color:var(--teal);background:var(--teal-lt);}
+.astrip.novo{background:var(--sur);border-left-color:var(--teal);}
+@media(max-width:767px){.vg-top,.vg-meio{grid-template-columns:1fr;}}
 /* FICHA FINANCEIRA */
 .pc-res{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;}
 .pc-n{background:var(--bg);border:1px solid var(--bor);border-radius:var(--r-sm);padding:8px 12px;}
@@ -1361,7 +1404,7 @@ function demoApi(action, body) {
         let pacs = [...DEMO_DB.pacientes];
         if(body.filtros) Object.entries(body.filtros).forEach(([k,v])=>{pacs=pacs.filter(p=>(p[k]||'').toLowerCase()===(v||'').toLowerCase());});
         if(body.role==='profissional' && body.nome_usuario) {
-          pacs = pacs.filter(p=>(p.terapeuta_nome||'').toLowerCase()===(body.nome_usuario||'').toLowerCase());
+          pacs = pacs.filter(p=>ehTerapeutaDe(p, body.nome_usuario));
         }
         return {ok:true, dados:pacs};
       }
@@ -1472,6 +1515,12 @@ function demoApi(action, body) {
     case 'salvar_capacidade_pilates': {
       DEMO_DB.config={...(DEMO_DB.config||{}), pilates_capacidade:body.capacidade, pilates_vagas_abertas:body.vagas_abertas};
       return {ok:true};
+    }
+    case 'historico_paciente': {
+      if(!DEMO_DB.agenda) demoAgenda('listar_agenda',{de:new Date().toISOString(), ate:new Date().toISOString()});
+      const profs=DEMO_DB.profissionais||[];
+      return {ok:true, dados:(DEMO_DB.agenda||[]).filter(e=>String(e.paciente_id)===String(body.paciente_id)).sort((a,b)=>a.inicio.localeCompare(b.inicio))
+        .map(e=>({...e, profissional:(profs.find(p=>p.email===e.agenda_email)||{}).nome||'', sala:(String(e.obs||'').match(/^Sala:\s*(.+)$/m)||[])[1]||''}))};
     }
     case 'minha_agenda': {
       if(!DEMO_DB.agenda) demoAgenda('listar_agenda',{de:new Date().toISOString(), ate:new Date().toISOString()});
@@ -1634,7 +1683,7 @@ function demoApi(action, body) {
         if(currentRole==='admin') return true;
         if(currentRole==='coordenador')
           return !minhas.length || minhas.includes('todos') || minhas.includes(String(pac.linha||'').toLowerCase());
-        return String(pac.terapeuta_nome||'').toLowerCase()===String(currentUser.nome||'').toLowerCase();
+        return ehTerapeutaDe(pac, currentUser.nome);
       };
       const dados = (DEMO_DB.mensagens||[])
         .filter(m=>demoStatusMsg(m)==='aberta')
@@ -1760,7 +1809,7 @@ function demoOcultarReservado(rows) {
     const pac = (DEMO_DB.pacientes||[]).find(p=>String(p.id)===String(r.paciente_id))||{};
     const pode = currentRole==='admin'
       || (currentRole==='coordenador' && (!minhas.length || minhas.includes('todos') || minhas.includes(String(pac.linha||'').toLowerCase())))
-      || (String(pac.terapeuta_nome||'').trim().toLowerCase()===String(currentUser.nome||'').trim().toLowerCase())
+      || ehTerapeutaDe(pac, currentUser.nome)
       || (String(r.autor_email||'').toLowerCase()===String(currentUser.email||'').toLowerCase());
     if(pode) return r;
     const {texto_restrito, historico_restrito, ...resto} = r;
@@ -2455,6 +2504,7 @@ async function openFormNovoPaciente(linha, existente) {
   const linhasAtuais = editando ? linhasDoPaciente(p) : [linha];
   const opcoesDoForm = opcoesServicos(linhasAtuais, servicosAtuais);
   const nascVal = /^(\d{4}-\d{2}-\d{2})/.exec(String(p.data_nascimento||''));
+  const emailTravado = editando && !!p.email && String(p.acesso||'').toLowerCase()==='liberado';
 
   document.getElementById('sheetTitle').textContent = editando ? 'Editar Paciente' : '+ Novo Paciente';
   document.getElementById('sheetBody').innerHTML = `
@@ -2465,6 +2515,9 @@ async function openFormNovoPaciente(linha, existente) {
       <div class="fg fa"><label class="fl">Nome completo *</label><input class="fi" id="np_nome" placeholder="Nome do paciente" autocomplete="off" value="${esc(p.nome)}"></div>
       <div class="fg"><label class="fl">Data de nascimento</label><input class="fi" id="np_nasc" type="date" value="${nascVal?nascVal[1]:''}"></div>
       <div class="fg"><label class="fl">Telefone</label><input class="fi" id="np_tel" type="tel" placeholder="(11) 99999-9999" value="${esc(p.telefone)}"></div>
+      <div class="fg"><label class="fl">E-mail</label><input class="fi" id="np_email" type="email" autocomplete="off" placeholder="email@exemplo.com" value="${esc(p.email)}"${emailTravado?' readonly':''}>
+        ${emailTravado?'<div class="pt-nota">É o login da área do paciente. Para trocar, use "Área do paciente".</div>':''}</div>
+      <div class="fg"><label class="fl">CPF</label><input class="fi" id="np_cpf" inputmode="numeric" placeholder="000.000.000-00" value="${esc(fmtCPF(p.cpf))}"></div>
       <div class="fg fa"><label class="fl">Linhas de cuidado * <span style="font-weight:400;color:var(--ink3)">(pode marcar mais de uma)</span></label>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;" id="np_linhas">
           ${Object.entries(LINHAS).map(([k,c])=>`
@@ -2477,11 +2530,14 @@ async function openFormNovoPaciente(linha, existente) {
       <div class="fg fa"><label class="fl">Responsável</label><input class="fi" id="np_resp" placeholder="Nome e parentesco" value="${esc(p.responsavel)}"></div>`:``}
       ${linhasAtuais.includes('infantil')?`
       <div class="fg fa"><label class="fl">Escola</label><input class="fi" id="np_escola" placeholder="Nome da escola" value="${esc(p.escola)}"></div>`:``}
-      <div class="fg fa"><label class="fl">Terapeuta responsável *</label>
-        <select class="fs" id="np_terapeuta">
-          <option value="">Selecione...</option>
-          ${profs.map(x=>`<option value="${esc(x.nome)}"${x.nome===p.terapeuta_nome?' selected':''}>${esc(x.nome)} (${esc(x.funcao||x.nivel_acesso)})</option>`).join('')}
-        </select>
+      <div class="fg fa"><label class="fl">Terapeutas de referência * <span style="font-weight:400;color:var(--ink3)">(pode marcar mais de uma)</span></label>
+        <div class="np-ters" id="np_ters">
+          ${[...profs.map(x=>({nome:x.nome, fun:x.funcao||x.nivel_acesso||''})),
+             ...terapeutasDe(p).filter(t=>!profs.some(x=>normalizar(x.nome)===normalizar(t))).map(t=>({nome:t, fun:'fora da equipe'}))]
+            .map(x=>`<label class="np-ter"><input type="checkbox" value="${esc(x.nome)}"${ehTerapeutaDe(p,x.nome)?' checked':''}>
+              <span><b>${esc(x.nome)}</b><small>${esc(x.fun)}</small></span></label>`).join('')}
+        </div>
+        <div class="pt-nota">Todas as marcadas veem o prontuário e recebem o paciente em "Meus pacientes".</div>
       </div>
       ${editando?`<div class="fg"><label class="fl">Status</label>
         <select class="fs" id="np_status">
@@ -2536,12 +2592,23 @@ async function excluirPaciente(linha, id) {
 
 async function salvarPaciente(linha, idExistente) {
   const nome      = (document.getElementById('np_nome')?.value||'').trim();
-  const terapeuta = document.getElementById('np_terapeuta')?.value||'';
+  const terapeutas = [...document.querySelectorAll('#np_ters input:checked')].map(x=>x.value);
+  const terapeuta = terapeutas.join(', ');
   const errEl     = document.getElementById('np_err');
   const btn       = document.getElementById('np_btn');
 
   if(!nome){ errEl.textContent='Nome é obrigatório.'; errEl.style.display='block'; return; }
-  if(!terapeuta){ errEl.textContent='Selecione o terapeuta.'; errEl.style.display='block'; return; }
+  if(!terapeuta){ errEl.textContent='Marque ao menos uma terapeuta de referência.'; errEl.style.display='block'; return; }
+  const emailNovo = (document.getElementById('np_email')?.value||'').trim().toLowerCase();
+  if(emailNovo && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailNovo)){ errEl.textContent='Confira o e-mail.'; errEl.style.display='block'; return; }
+  const cpfNovo = soDigitos(document.getElementById('np_cpf')?.value);
+  if(cpfNovo && cpfNovo.length!==11){ errEl.textContent='O CPF precisa ter 11 números.'; errEl.style.display='block'; return; }
+  // Evita cadastro em dobro: mesmo nome, e-mail ou CPF de alguém que já está no sistema
+  if(!idExistente) {
+    const ja = (await carregarTodosPacientes()).find(x=>normalizar(x.nome)===normalizar(nome)
+      || (emailNovo && String(x.email||'').toLowerCase()===emailNovo) || (cpfNovo && soDigitos(x.cpf)===cpfNovo));
+    if(ja && !confirm('Já existe '+ja.nome+(ja.status?' ('+ja.status+')':'')+' cadastrado com esse nome, e-mail ou CPF.\n\nCadastrar outra pessoa mesmo assim?')) return;
+  }
   const linhas = [...document.querySelectorAll('#np_linhas input:checked')].map(x=>x.value);
   if(!linhas.length){ errEl.textContent='Marque ao menos uma linha de cuidado.'; errEl.style.display='block'; return; }
   errEl.style.display='none';
@@ -2563,6 +2630,8 @@ async function salvarPaciente(linha, idExistente) {
     nome, linha: linhas.join(', '),
     data_nascimento: nasc,
     telefone: tel,
+    ...(document.getElementById('np_email')?.readOnly ? {} : {email: emailNovo||null}),
+    cpf: cpfNovo ? fmtCPF(cpfNovo) : null,
     responsavel: resp,
     escola: escola,
     terapeuta_nome: terapeuta,
@@ -2585,7 +2654,7 @@ async function salvarPaciente(linha, idExistente) {
   }
 
   limparSujo();
-  showToast(nome+(idExistente?' atualizado':' cadastrado'),'ok');
+  showToast(idExistente ? nome+' atualizado' : nome+' cadastrado. Gestão e coordenação foram avisadas','ok');
   _pacientesCache = {};
   _todosPacientes = null;
   openLinha(linhas.includes(linha) ? linha : linhas[0]);
@@ -5435,8 +5504,10 @@ function detalheAtendimento(agendaEmail, eventoId) {
     ${pac && e.status==='realizado' ? `<button class="savebtn" onclick="closeSheet(true);abrirPacienteDaAgenda('${esc(linhasDoPaciente(pac)[0]||'')}','${esc(pac.id)}')">Registrar evolução</button>` : ''}
     <div class="agx-acoes" style="margin-top:12px">
       ${e.do_sistema ? `<button class="backbtn" onclick="novoAtendimento(${ref})">Remarcar</button>` : `<span class="pt-nota" style="margin:0">Criado direto no Google Agenda. Para mudar o horário, altere por lá.</span>`}
-      <button class="backbtn" style="color:var(--rose);margin-left:auto" onclick="cancelarAtendimento(${ref})">Cancelar atendimento</button>
+      <button class="backbtn" style="color:var(--rose);margin-left:auto" onclick="cancelarAtendimento(${ref})">Excluir agendamento</button>
     </div>
+    ${!e.rep && !passou ? `<div class="agx-encerrar"><div><b>Excluir este e os próximos iguais</b><div class="pt-nota" style="margin:2px 0 0">Tira da agenda todas as sessões de ${esc(String(e.titulo||'').split(' · ')[0])} ${esc(DIAS_SEMANA[new Date(e.inicio).getDay()].toLowerCase())} às ${horaDe(e.inicio)} com esta profissional, a partir desta.</div></div>
+      <button class="backbtn" style="color:var(--rose)" onclick="excluirProximosIguais(${ref})">Excluir a partir de ${new Date(e.inicio).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})}</button></div>` : ''}
     ${e.paciente_id ? `<button class="backbtn" style="margin-top:12px" onclick="abrirPlanoPaciente('${esc(e.paciente_id)}','${esc(String(e.titulo||'').split(' · ')[0].replace(/'/g,''))}')">Ver ou mudar o plano de horários do paciente</button>` : ''}
     ${e.rep && e.do_sistema ? `<div class="agx-encerrar"><div><b>Encerrar a repetição</b><div class="pt-nota" style="margin:2px 0 0">Cancela este e os próximos atendimentos da série. Os anteriores ficam como estão.</div></div>
       <button class="backbtn" style="color:var(--rose)" onclick="encerrarRepeticao(${ref})">Encerrar a partir de ${new Date(e.inicio).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})}</button></div>` : ''}`;
@@ -5464,7 +5535,7 @@ function cartaoAtendimento(e, mostrarProf) {
       ${passou && e.status!=='falta' ? `<button class="backbtn" style="padding:5px 10px;font-size:12px" onclick="statusAtendimento(${ref},'falta')">Faltou</button>` : ''}
       ${pac && e.status==='realizado' ? `<button class="backbtn" style="padding:5px 10px;font-size:12px" onclick="abrirPacienteDaAgenda('${esc(linhasDoPaciente(pac)[0]||'')}','${esc(pac.id)}')">Registrar evolução</button>` : ''}
       ${e.do_sistema ? `<button class="backbtn" style="padding:5px 10px;font-size:12px" onclick="novoAtendimento(${ref})">Remarcar</button>` : ''}
-      <button class="backbtn" style="padding:5px 10px;font-size:12px;color:var(--rose)" onclick="cancelarAtendimento(${ref})">Cancelar</button>
+      <button class="backbtn" style="padding:5px 10px;font-size:12px;color:var(--rose)" onclick="cancelarAtendimento(${ref})">Excluir</button>
     </div>
   </div>`;
 }
@@ -5836,13 +5907,47 @@ async function lembretesWhats(dias) {
 
 async function cancelarAtendimento(agendaEmail, eventoId) {
   const e = _ag.eventos.find(x=>x.id===eventoId && x.agenda_email===agendaEmail);
-  if(!confirm('Cancelar '+(e?'"'+e.titulo+'" ':'')+'e tirar do Google Agenda?')) return;
+  if(!confirm('Excluir '+(e?'"'+e.titulo+'" ':'este agendamento ')+(e?'de '+new Date(e.inicio).toLocaleDateString('pt-BR')+' às '+horaDe(e.inicio)+' ':'')+'e tirar do Google Agenda?')) return;
   const res = await api('excluir_evento',{agenda_email:agendaEmail, evento_id:eventoId});
   if(!res.ok) { showToast('Erro: '+(res.erro||''),'err'); return; }
   _ag.eventos = _ag.eventos.filter(x=>!(x.id===eventoId && x.agenda_email===agendaEmail));
   closeSheet(true);
   desenharAgenda();
-  showToast('Atendimento cancelado','ok');
+  showToast('Agendamento excluído','ok');
+}
+
+// Sessões futuras "iguais" a uma: mesmo paciente, mesma profissional, mesmo
+// dia da semana, horário e serviço. Serve para séries com número de vezes ou
+// período (que não são horário fixo do plano) e para limpar marcações em lote.
+async function sessoesIguais(ref, desde) {
+  const res = await api('listar_agenda',{de:somaDias(desde,-1).toISOString(), ate:somaDias(desde,400).toISOString()});
+  if(!res.ok) { showToast('Erro: '+(res.erro||''),'err'); return null; }
+  const ini = new Date(ref.inicio), nome = normalizar(String(ref.titulo||'').split(' · ')[0]);
+  return (res.dados||[]).map(prepEvento).filter(x=>x.agenda_email===ref.agenda_email && !x.dia_inteiro
+    && (ref.paciente_id ? String(x.paciente_id||'')===String(ref.paciente_id) : normalizar(String(x.titulo||'').split(' · ')[0])===nome)
+    && normalizar(x.servico||'')===normalizar(ref.servico||'')
+    && new Date(x.inicio).getDay()===ini.getDay() && horaDe(x.inicio)===horaDe(ref.inicio) && new Date(x.inicio)>=desde)
+    .sort((a,b)=>a.inicio.localeCompare(b.inicio));
+}
+async function excluirEmLote(lista, rotulo, btn) {
+  const fmt = d => new Date(d).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+  if(!lista.length) { showToast('Nada para excluir','err'); return 0; }
+  if(!confirm('Excluir '+lista.length+(lista.length===1?' agendamento':' agendamentos')+' de '+rotulo+'?\n\nDe '+fmt(lista[0].inicio)+' a '+fmt(lista[lista.length-1].inicio)+'. Saem também do Google Agenda. Não tem volta.')) return 0;
+  let ok = 0, i = 0;
+  for(const x of lista) {
+    if(btn) { btn.disabled = true; btn.textContent = 'Excluindo… '+(++i)+'/'+lista.length; }
+    const r = await api('excluir_evento',{agenda_email:x.agenda_email, evento_id:x.id}); if(r.ok) ok++;
+  }
+  return ok;
+}
+async function excluirProximosIguais(agendaEmail, eventoId) {
+  const e = _ag.eventos.find(x=>x.id===eventoId && x.agenda_email===agendaEmail); if(!e) return;
+  const lista = await sessoesIguais(e, new Date(e.inicio)); if(!lista) return;
+  const n = await excluirEmLote(lista, String(e.titulo||'').split(' · ')[0]+' ('+DIAS_SEMANA[new Date(e.inicio).getDay()].toLowerCase()+' '+horaDe(e.inicio)+')', document.activeElement);
+  if(!n) return;
+  closeSheet(true);
+  await loadAgenda();
+  showToast(n+(n===1?' agendamento excluído':' agendamentos excluídos'),'ok');
 }
 
 // ═══════════════════════════════════════════════
@@ -6008,7 +6113,45 @@ function desenharPlano() {
       <button class="savebtn" id="plBtn" style="margin:0;flex:1" onclick="salvarPlano()" ${planoMudou()?'':'disabled'}>${planoMudou()?'Salvar plano e ajustar agenda':'Nada alterado'}</button>
     </div>
     <div id="plErr" class="errbox" style="margin-top:10px"></div>
-    ${P.avulsos.length?`<div class="ff-mes">Outros atendimentos marcados (fora do plano)</div>${P.avulsos.slice(0,8).map(e=>`<div class="pt-linha"><span>${esc(maiuscula(new Date(e.inicio).toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit'})))} · ${horaDe(e.inicio)}</span><span>${esc(e.servico||'')} · ${esc(e.profissional||agProfNome(e.agenda_email))}</span></div>`).join('')}`:''}`;
+    ${P.avulsos.length?`<div class="ff-mes">Outros atendimentos marcados (fora do plano)</div>${gruposAvulsos(P.avulsos).map((g,gi)=>`<div class="pl-av">
+      <div class="pl-av-h"><div><b>${esc(g.lista.length>1?DIAS_SEMANA[g.dow]+' · '+g.hora:maiuscula(new Date(g.lista[0].inicio).toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit'}))+' · '+g.hora)}</b>
+        <span>${esc([g.servico, agProfNome(g.email)].filter(Boolean).join(' · '))}${g.lista.length>1?' · '+g.lista.length+' marcadas':''}</span></div>
+        ${g.lista.length>1?`<button class="ff-link" onclick="_plAberto[${gi}]=!_plAberto[${gi}];desenharPlano()">${_plAberto[gi]?'ocultar datas':'ver datas'}</button>
+          <button class="backbtn pl-exc" onclick="excluirGrupoAvulso(${gi},this)">Excluir todas</button>`
+        :`<button class="backbtn pl-exc" onclick="excluirAvulso('${esc(g.lista[0].agenda_email)}','${esc(g.lista[0].id)}',this)">Excluir</button>`}</div>
+      ${g.lista.length>1 && _plAberto[gi] ? g.lista.map(e=>`<div class="pt-linha"><span>${esc(maiuscula(new Date(e.inicio).toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit'})))} · ${horaDe(e.inicio)}</span>
+        <button class="ff-link" style="color:var(--rose)" onclick="excluirAvulso('${esc(e.agenda_email)}','${esc(e.id)}',this)">excluir</button></div>`).join('') : ''}
+    </div>`).join('')}`:''}`;
+}
+
+let _plAberto = {};
+function gruposAvulsos(lista) {
+  const G = {};
+  lista.forEach(e=>{ const d=new Date(e.inicio), k=[e.agenda_email, d.getDay(), horaDe(e.inicio), normalizar(e.servico||'')].join('|');
+    (G[k] = G[k] || {email:e.agenda_email, dow:d.getDay(), hora:horaDe(e.inicio), servico:e.servico||'', lista:[]}).lista.push(e); });
+  return Object.values(G).sort((a,b)=>a.lista[0].inicio.localeCompare(b.lista[0].inicio));
+}
+async function excluirAvulso(email, id, btn) {
+  const e = _plano.avulsos.find(x=>x.id===id && x.agenda_email===email); if(!e) return;
+  if(!confirm('Excluir '+(e.servico||'o atendimento')+' de '+new Date(e.inicio).toLocaleDateString('pt-BR')+' às '+horaDe(e.inicio)+'?\n\nSai também do Google Agenda.')) return;
+  if(btn) { btn.disabled = true; btn.textContent = 'Excluindo…'; }
+  const r = await api('excluir_evento',{agenda_email:email, evento_id:id});
+  if(!r.ok) { if(btn){ btn.disabled=false; btn.textContent='Excluir'; } showToast('Erro: '+(r.erro||''),'err'); return; }
+  _plano.avulsos = _plano.avulsos.filter(x=>!(x.id===id && x.agenda_email===email));
+  if(_ag && _ag.eventos) _ag.eventos = _ag.eventos.filter(x=>!(x.id===id && x.agenda_email===email));
+  desenharPlano(); showToast('Agendamento excluído','ok');
+}
+async function excluirGrupoAvulso(gi, btn) {
+  const g = gruposAvulsos(_plano.avulsos)[gi]; if(!g) return;
+  // Vai além das semanas carregadas na tela: pega a série inteira daqui para frente
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const lista = (await sessoesIguais({...g.lista[0], paciente_id:_plano.pac.id}, hoje) || []).filter(x=>!x.rep);
+  const n = await excluirEmLote(lista, DIAS_SEMANA[g.dow].toLowerCase()+' '+g.hora+(g.servico?' ('+g.servico+')':''), btn);
+  if(!n) { if(btn){ btn.disabled=false; btn.textContent='Excluir todas'; } return; }
+  showToast(n+' agendamentos excluídos','ok');
+  _plAberto = {};
+  if(document.getElementById('agBody')) loadAgenda();
+  carregarPlano(_plano.el, _plano.pac);
 }
 
 function slotMudou(s) {
@@ -6962,6 +7105,9 @@ function cardEspera(e, pos, linhaDoGrupo) {
 // um prontuário só, que aparece em cada linha. Lead ainda não é paciente.
 const ehLead = p => String((p||{}).status||'').toLowerCase()==='lead';
 function linhasDoPaciente(p) { return linhasDe((p||{}).linha); }
+// Terapeutas de referência: pode ser mais de uma ("Ana, Bia"); a primeira é a principal
+function terapeutasDe(p) { return String((p||{}).terapeuta_nome||'').split(',').map(x=>x.trim()).filter(Boolean); }
+function ehTerapeutaDe(p, nome) { const n = normalizar(nome); return !!n && terapeutasDe(p).some(t=>normalizar(t)===n); }
 function cfgLinha(valor) { return LINHAS[linhasDe(valor)[0]] || {label:String(valor||''), color:'sky', ico:'folha', emoji:''}; }
 function rotuloLinhas(valor) { return linhasDe(valor).map(l=>(LINHAS[l]||{label:l}).label).join(' · '); }
 
@@ -8431,7 +8577,7 @@ function corpoDocumentoHTML(p) {
       <input class="fi" id="dcTitulo" value="${esc(t.titulo)}"></div>`;
 
   if(_tipoDoc==='declaracao') {
-    const prof = (_profsCache||[]).find(x=>(x.nome||'')===(p.terapeuta_nome||'')) || {};
+    const prof = (_profsCache||[]).find(x=>(x.nome||'')===(terapeutasDe(p)[0]||'')) || {};
     return comum + `
       <div class="fg"><label class="fl">Texto da declaração</label>
         <textarea class="ft" id="dcTexto" style="min-height:190px"
@@ -9160,6 +9306,8 @@ async function openPaciente(linha, id) {
   if(currentRole==='admin') tabs.push('Orçamento');
   if(podeVerFinanceiro()) tabs.push('Financeiro');
   if(currentRole!=='profissional') tabs.push('Área do paciente');
+  tabs.push('Visão geral');
+  const iVg = tabs.indexOf('Visão geral');
   const iEvo = tabs.indexOf('Evoluções');
   const iPac = tabs.indexOf('Área do paciente');
   const iExe = tabs.indexOf('Exercícios');
@@ -9170,12 +9318,12 @@ async function openPaciente(linha, id) {
   const iPlano = tabs.indexOf('Plano e horários');
   // Evoluções aparece primeiro (é o que mais se usa), mas a numeração interna
   // das abas não muda: as fichas são gravadas pela posição (aba '0', '1'...)
-  const ordemAbas = [iEvo, ...tabs.map((_,i)=>i).filter(i=>i!==iEvo)];
+  const ordemAbas = [iVg, iEvo, ...tabs.map((_,i)=>i).filter(i=>i!==iEvo && i!==iVg)];
 
   document.getElementById('sheetBody').innerHTML = `
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
       <button class="backbtn" onclick="openLinha('${_currentLinha}')">‹ Voltar</button>
-      <span style="font-size:12px;color:var(--ink3);flex:1">${idade !== '—' ? idade+' anos · ' : ''}${esc(p.terapeuta_nome||'—')}${p.status&&p.status!=='Ativo'?' · '+esc(p.status):''}</span>
+      <span style="font-size:12px;color:var(--ink3);flex:1">${idade !== '—' ? idade+' anos · ' : ''}${esc(terapeutasDe(p).join(', ')||'—')}${p.status&&p.status!=='Ativo'?' · '+esc(p.status):''}</span>
       ${currentRole==='admin'?`<button class="backbtn" onclick="excluirPaciente('${linha}','${id}')" title="Excluir paciente" aria-label="Excluir paciente" style="color:var(--rose)">${icone('lixeira',16)}</button>`:''}
       <button class="backbtn" onclick="exportarProntuario('${linha}','${id}')" title="Exportar o prontuário em PDF"><svg class="ico" aria-hidden="true" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/></svg></button>
       <button class="backbtn" onclick="editarPaciente('${linha}','${id}')">Editar</button>
@@ -9185,10 +9333,12 @@ async function openPaciente(linha, id) {
     ${chipsServicosHTML(p)}
     ${fichaCadastroHTML(p)}
     <div class="tabs">
-      ${ordemAbas.map(i=>`<div class="tab ${i===iEvo?'active':''}" onclick="swTab('tb${i}',this)">${tabs[i]}</div>`).join('')}
+      ${ordemAbas.map(i=>`<div class="tab ${i===iVg?'active':''}" onclick="swTab('tb${i}',this)">${tabs[i]}</div>`).join('')}
     </div>
-    ${tabs.map((t,i)=>`<div id="tb${i}" style="display:${i===iEvo?'block':'none'}">
-      ${i===iEvo
+    ${tabs.map((t,i)=>`<div id="tb${i}" style="display:${i===iVg?'block':'none'}">
+      ${i===iVg
+        ? `<div id="vgPac">${loadingHTML()}</div>`
+        : i===iEvo
         ? `<div id="evoPainel">${loadingHTML()}</div>`
         : i===iExe
         ? `<div id="exePainel">${loadingHTML()}</div>`
@@ -9212,6 +9362,7 @@ async function openPaciente(linha, id) {
     </div>`).join('')}`;
 
   carregarEvolucoes(id);
+  carregarVisaoGeral(p);
   carregarPlano('plPac', {id:p.id, nome:p.nome});
   if(iFin>=0) carregarFichaFinanceira('ffPac', {id:p.id, nome:p.nome, telefone:p.telefone||'', cpf:p.cpf||'', email:p.email||'', temCadastro:true});
   carregarDocumentos(id);
@@ -9225,6 +9376,177 @@ async function openPaciente(linha, id) {
     }
   }, 150);
   Object.entries(_histAba).forEach(([, tipo])=>carregarHistorico(tipo, id));
+}
+
+// ═══════════════════════════════════════════════
+// VISÃO GERAL DO PACIENTE — a vida do cliente na Casa numa tela só:
+// relacionamento (como chegou, quem acompanha), atendimentos da agenda,
+// financeiro, pendências e uma linha do tempo com tudo em ordem.
+// ═══════════════════════════════════════════════
+let _vg = null, _vgFiltro = 'tudo', _vgTodos = false;
+
+function irAba(nome) {
+  const t = [...document.querySelectorAll('#sheetBody .tabs .tab')].find(x=>x.textContent.trim()===nome);
+  if(t) { t.click(); t.scrollIntoView({behavior:'smooth', block:'nearest', inline:'center'}); }
+}
+
+async function carregarVisaoGeral(p) {
+  const box = document.getElementById('vgPac'); if(!box) return;
+  const fin = podeVerFinanceiro();
+  const nada = Promise.resolve({ok:false});
+  const [hist, pil, ser, msgs, leads, evo, alertas] = await Promise.all([
+    api('historico_paciente',{paciente_id:p.id}),
+    fin ? api('listar',{tabela:'financeiro_pilates'}) : nada,
+    fin ? api('listar',{tabela:'financeiro_servicos'}) : nada,
+    api('mensagens_paciente',{paciente_id:p.id}),
+    currentRole!=='profissional' ? api('listar_leads',{}) : nada,
+    api('listar',{tabela:'evolucoes', filtros:{paciente_id:p.id}}),
+    calcularAlertas().catch(()=>({criticos:[], altos:[], proximos:[]})),
+  ]);
+  if(String(_pacienteAberto)!==String(p.id) || !document.getElementById('vgPac')) return;
+  const agora = new Date();
+  const sess = (hist.ok ? hist.dados||[] : []).map(e=>({...e, servico:e.servico||String(e.titulo||'').split(' · ')[1]||''}));
+  const passadas = sess.filter(e=>new Date(e.inicio) < agora), futuras = sess.filter(e=>new Date(e.inicio) >= agora);
+  const itensFin = fin && pil.ok && ser.ok ? itensFinanceiros(pil.dados, ser.dados, {id:p.id, nome:p.nome}) : null;
+  const lead = leads.ok ? (leads.dados||[]).find(l=>String(l.paciente_id||'')===String(p.id)) : null;
+  const evos = (evo.ok ? evo.dados||[] : []).filter(e=>e.origem!=='infantil' && !(e.origem==='sensor' && /"type"\s*:\s*"(perfil|publicado)"/.test(String(e.sensor||''))));
+  const ms = msgs.ok ? msgs.dados||[] : [];
+  _vg = {p, sess, passadas, futuras, itensFin, lead, evos, ms, alertas, histOk:hist.ok, histErro:hist.erro};
+  desenharVisaoGeral();
+}
+
+function desenharVisaoGeral() {
+  const box = document.getElementById('vgPac'); if(!box || !_vg) return;
+  const {p, passadas, futuras, itensFin, lead, evos, ms, alertas} = _vg;
+  const hoje = new Date(); hoje.setHours(0,0,0,0);
+  const real = passadas.filter(e=>e.status==='realizado'), falt = passadas.filter(e=>e.status==='falta');
+  const semReg = passadas.filter(e=>e.status!=='realizado' && e.status!=='falta');
+  const taxa = real.length+falt.length ? Math.round(real.length/(real.length+falt.length)*100) : null;
+  let seguidas = 0; for(let i=passadas.length-1;i>=0;i--){ const st=passadas[i].status; if(st==='falta') seguidas++; else if(st==='realizado') break; }
+  const ult = real[real.length-1], prox = futuras.find(e=>!e.aviso);
+  const dCurta = iso => new Date(iso).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'});
+  const dLonga = iso => maiuscula(new Date(iso).toLocaleDateString('pt-BR',{weekday:'short',day:'numeric',month:'short'}))+' · '+horaDe(iso);
+  const desde = p.criado_em ? new Date(p.criado_em) : null;
+  const tempoCasa = desde ? (()=>{ const m = (hoje.getFullYear()-desde.getFullYear())*12 + hoje.getMonth()-desde.getMonth();
+    return m<1 ? 'este mês' : m<12 ? m+(m===1?' mês':' meses') : Math.floor(m/12)+(Math.floor(m/12)===1?' ano':' anos')+(m%12?' e '+(m%12)+(m%12===1?' mês':' meses'):''); })() : '';
+
+  // Financeiro
+  const fin = itensFin ? (()=>{
+    const aberto = itensFin.filter(i=>!i.pago), atras = aberto.filter(i=>i.atrasado);
+    return {aberto:aberto.reduce((s,i)=>s+i.valor,0), atras:atras.reduce((s,i)=>s+i.valor,0), nAtras:atras.length,
+      pago:itensFin.filter(i=>i.pago).reduce((s,i)=>s+i.valor,0), pend:itensFin.filter(i=>i.r && i.r.pendente).length,
+      ultPag:itensFin.filter(i=>i.pago && i.data_pagamento).sort((a,b)=>String(b.data_pagamento).localeCompare(String(a.data_pagamento)))[0]};
+  })() : null;
+
+  // Pendências
+  const pend = [];
+  const add = (nivel, txt, aba) => pend.push({nivel, txt, aba});
+  [...(alertas.criticos||[])].filter(a=>a.pid===String(p.id)).forEach(a=>add('crit', a.titulo, /PTS|Checklist|Ficha/.test(a.titulo)?null:null));
+  [...(alertas.altos||[])].filter(a=>a.pid===String(p.id)).forEach(a=>add('warn', a.titulo, /evolu/i.test(a.titulo)?'Evoluções':null));
+  if(fin && fin.nAtras) add('crit', fin.nAtras+(fin.nAtras===1?' cobrança atrasada':' cobranças atrasadas')+' · '+fmtMoeda(fin.atras), 'Financeiro');
+  if(fin && fin.pend) add('warn', fin.pend+(fin.pend===1?' pedido':' pedidos')+' esperando aprovação da gestão', 'Financeiro');
+  if(semReg.length) add('warn', semReg.length+(semReg.length===1?' sessão passou':' sessões passaram')+' sem presença marcada na agenda', null);
+  if(seguidas>=2) add('crit', seguidas+' faltas seguidas', null);
+  const abertas = ms.filter(m=>String(m.status||'')==='aberta');
+  if(abertas.length) add('warn', abertas.length+(abertas.length===1?' mensagem esperando resposta':' mensagens esperando resposta'), 'Mensagens');
+  const ativo = !p.status || String(p.status).toLowerCase()==='ativo';
+  if(ativo && _vg.histOk && !prox) add('warn', 'Nenhuma sessão marcada daqui para frente', 'Plano e horários');
+  futuras.filter(e=>e.aviso).forEach(e=>add('warn', 'Avisou que não vem em '+dLonga(e.inicio), null));
+  const faltam = [['telefone','telefone'],['email','e-mail'],['cpf','CPF'],['data_nascimento','data de nascimento']].filter(([k])=>!String(p[k]||'').trim()).map(x=>x[1]);
+  if(faltam.length) add('info', 'Cadastro sem '+faltam.join(', '), 'editar');
+  if(currentRole!=='profissional' && p.email && String(p.acesso||'').toLowerCase()!=='liberado') add('info', 'Ainda sem acesso à área do paciente', 'Área do paciente');
+
+  // Atendimentos por serviço e por profissional
+  const conta = (lista, k) => { const o={}; lista.forEach(e=>{ const n=e[k]||'—'; o[n]=(o[n]||0)+1; }); return Object.entries(o).sort((a,b)=>b[1]-a[1]); };
+  // Últimos 6 meses: realizadas e faltas
+  const meses = [...Array(6)].map((_,i)=>{ const d=new Date(hoje.getFullYear(), hoje.getMonth()-5+i, 1); return {k:d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'), rot:d.toLocaleDateString('pt-BR',{month:'short'}).replace('.','')}; });
+  meses.forEach(m=>{ m.r = real.filter(e=>diaISO(new Date(e.inicio)).slice(0,7)===m.k).length; m.f = falt.filter(e=>diaISO(new Date(e.inicio)).slice(0,7)===m.k).length; });
+  const maxM = Math.max(1, ...meses.map(m=>m.r+m.f));
+
+  // Linha do tempo
+  const tl = [];
+  if(lead) tl.push({t:'contato', d:lead.data_contato||lead.criado_em, tit:'Primeiro contato'+(lead.origem?' · '+lead.origem:''),
+    sub:[lead.nome && normalizar(lead.nome)!==normalizar(p.nome) ? 'Quem procurou: '+lead.nome+(lead.parentesco?' ('+lead.parentesco+')':'') : '', lead.indicado_por?'Indicação de '+lead.indicado_por:'', lead.campanha||'', lead.observacoes||''].filter(Boolean).join(' · ')});
+  if(p.criado_em) tl.push({t:'contato', d:p.criado_em, tit:'Cadastro como paciente', sub:[rotuloLinhas(p.linha), p.criado_por?'por '+nomeDoEmail(p.criado_por):''].filter(Boolean).join(' · ')});
+  passadas.forEach(e=>tl.push({t:'atend', d:e.inicio, tit:(e.servico||'Atendimento')+(e.status==='falta'?' · faltou':e.status==='realizado'?'':' · sem presença marcada'), sub:[e.profissional, e.sala, e.aviso?'avisou ausência':''].filter(Boolean).join(' · '), st:e.status==='falta'?'falta':e.status==='realizado'?'ok':'neutro'}));
+  evos.forEach(e=>tl.push({t:'evo', d:e.data, tit:'Evolução registrada', sub:[e.autor_nome, String(e.texto||'').slice(0,110)+(String(e.texto||'').length>110?'…':'')].filter(Boolean).join(' · ')}));
+  (itensFin||[]).forEach(i=>{ if(i.pago && i.data_pagamento) tl.push({t:'fin', d:i.data_pagamento, tit:'Pagamento · '+fmtMoeda(i.valor), sub:[i.titulo, i.forma].filter(Boolean).join(' · '), st:'ok'});
+    else if(!i.pago && i.ref) tl.push({t:'fin', d:i.venc||i.ref, tit:'Cobrança '+(i.atrasado?'atrasada':'em aberto')+' · '+fmtMoeda(i.valor), sub:i.titulo, st:i.atrasado?'falta':'neutro'}); });
+  ms.forEach(m=>tl.push({t:'msg', d:m.criado_em, tit:m.de==='paciente'?'Mensagem do paciente':'Mensagem da equipe'+(m.autor_nome?' ('+m.autor_nome+')':''), sub:String(m.texto||'').slice(0,110)}));
+  const tlOk = tl.filter(x=>x.d && !isNaN(new Date(String(x.d).length===10?x.d+'T12:00:00':x.d)))
+    .map(x=>({...x, dt:new Date(String(x.d).length===10?x.d+'T12:00:00':x.d)})).filter(x=>x.dt<=new Date(Date.now()+60000))
+    .sort((a,b)=>b.dt-a.dt);
+  const filtros = [['tudo','Tudo'],['atend','Atendimentos'],['evo','Evoluções'],['fin','Financeiro'],['msg','Mensagens'],['contato','Cadastro']].filter(([k])=>k==='tudo'||tlOk.some(x=>x.t===k));
+  const tlVis = tlOk.filter(x=>_vgFiltro==='tudo'||x.t===_vgFiltro);
+  const ico = {atend:'agenda', evo:'lapis', fin:'carteira', msg:'mensagem', contato:'casa'};
+
+  box.innerHTML = `
+  <div class="vg-top">
+    <div class="vg-card vg-rel">
+      <div class="vg-k">Relacionamento</div>
+      <div class="vg-l"><span>Na Casa desde</span><b>${desde?esc(desde.toLocaleDateString('pt-BR',{day:'numeric',month:'short',year:'numeric'}))+' <small>('+esc(tempoCasa)+')</small>':'—'}</b></div>
+      ${lead?`<div class="vg-l"><span>Como chegou</span><b>${esc([lead.origem, lead.indicado_por?'indicação de '+lead.indicado_por:''].filter(Boolean).join(' · ')||'—')}</b></div>`:''}
+      ${lead && lead.nome && normalizar(lead.nome)!==normalizar(p.nome)?`<div class="vg-l"><span>Quem procurou</span><b>${esc(lead.nome)}${lead.parentesco?' <small>('+esc(lead.parentesco)+')</small>':''}</b></div>`:''}
+      <div class="vg-l"><span>Linhas de cuidado</span><b>${esc(rotuloLinhas(p.linha)||'—')}</b></div>
+      <div class="vg-l"><span>Terapeutas de referência</span><b>${terapeutasDe(p).map(t=>`<span class="vg-ter">${avatarHTML(t,22)}${esc(t)}</span>`).join('')||'—'}</b></div>
+      ${p.responsavel?`<div class="vg-l"><span>Responsável</span><b>${esc(p.responsavel)}</b></div>`:''}
+      <div class="vg-l"><span>Contato</span><b>${esc([p.telefone, p.email].filter(Boolean).join(' · ')||'—')}</b></div>
+    </div>
+    <div class="vg-card">
+      <div class="vg-k">Pendências ${pend.length?`<span class="vg-n">${pend.length}</span>`:''}</div>
+      ${pend.length ? pend.map(x=>`<div class="vg-pend ${x.nivel}"><i></i><span>${esc(x.txt)}</span>${x.aba?`<button class="ff-link" onclick="${x.aba==='editar'?`editarPaciente('${esc(_currentLinha)}','${esc(p.id)}')`:`irAba('${esc(x.aba)}')`}">${x.aba==='editar'?'completar':'abrir'}</button>`:''}</div>`).join('')
+        : `<div class="vg-tudo">Tudo em dia com ${esc(String(p.nome||'').split(' ')[0])}.</div>`}
+    </div>
+  </div>
+
+  <div class="vg-nums">
+    <div class="vg-num"><b>${real.length}</b><span>atendimentos realizados</span></div>
+    <div class="vg-num"><b>${taxa==null?'—':taxa+'%'}</b><span>presença${falt.length?' · '+falt.length+(falt.length===1?' falta':' faltas'):''}</span></div>
+    <div class="vg-num"><b>${ult?esc(dCurta(ult.inicio)):'—'}</b><span>última sessão</span></div>
+    <div class="vg-num"><b>${prox?esc(dCurta(prox.inicio)):'—'}</b><span>${prox?esc('próxima · '+horaDe(prox.inicio)):'próxima sessão'}</span></div>
+    ${fin?`<div class="vg-num"><b style="color:${fin.aberto?(fin.atras?'var(--rose)':'var(--amber)'):'inherit'}">${fmtMoeda(fin.aberto)}</b><span>em aberto</span></div>
+    <div class="vg-num"><b style="color:var(--teal)">${fmtMoeda(fin.pago)}</b><span>total já pago</span></div>`:''}
+    <div class="vg-num"><b>${evos.length}</b><span>evoluções</span></div>
+  </div>
+  ${!_vg.histOk?`<div class="pt-nota">Não deu para ler a agenda deste paciente${_vg.histErro?' ('+esc(_vg.histErro)+')':''}. Se aparecer "ação desconhecida", falta atualizar o Apps Script.</div>`:''}
+
+  <div class="vg-meio">
+    <div class="vg-card">
+      <div class="vg-k">Frequência · últimos 6 meses</div>
+      <div class="vg-barras">${meses.map(m=>`<div class="vg-bar" title="${m.r} realizadas, ${m.f} faltas">
+        <div class="vg-col"><i class="f" style="height:${m.f/maxM*100}%"></i><i class="r" style="height:${m.r/maxM*100}%"></i></div>
+        <b>${m.r||''}</b><span>${esc(m.rot)}</span></div>`).join('')}</div>
+      <div class="vg-leg"><span><i class="r"></i>realizadas</span><span><i class="f"></i>faltas</span></div>
+    </div>
+    <div class="vg-card">
+      <div class="vg-k">Atendimentos por serviço</div>
+      ${real.length ? conta(real,'servico').slice(0,6).map(([n,q])=>`<div class="vg-l"><span>${esc(n)}</span><b>${q}</b></div>`).join('') : '<div class="vg-tudo">Nenhum atendimento realizado ainda.</div>'}
+      ${real.length && conta(real,'profissional').length>1?`<div class="vg-k" style="margin-top:12px">Com quem</div>${conta(real,'profissional').slice(0,5).map(([n,q])=>`<div class="vg-l"><span>${esc(n)}</span><b>${q}</b></div>`).join('')}`:''}
+    </div>
+    <div class="vg-card">
+      <div class="vg-k">Próximas sessões</div>
+      ${futuras.length ? futuras.slice(0,5).map(e=>`<div class="vg-l"><span>${esc(dLonga(e.inicio))}</span><b>${esc(e.servico||'')}${e.aviso?' <span class="chip ch-amber">não vem</span>':e.confirmado_paciente||e.status==='confirmado'?' <span class="chip ch-sage">confirmado</span>':''}</b></div>`).join('')
+        +(futuras.length>5?`<div class="pt-nota">e mais ${futuras.length-5} marcadas</div>`:'')
+        : '<div class="vg-tudo">Nada marcado.</div>'}
+      <button class="ff-link" style="margin-top:8px" onclick="irAba('Plano e horários')">Plano e horários ›</button>
+    </div>
+  </div>
+
+  <div class="vg-card vg-tl">
+    <div class="vg-k">Linha do tempo</div>
+    <div class="agx-seg vg-filtros">${filtros.map(([k,r])=>`<button class="${_vgFiltro===k?'on':''}" onclick="_vgFiltro='${k}';_vgTodos=false;desenharVisaoGeral()">${r}</button>`).join('')}</div>
+    ${tlVis.length ? (_vgTodos?tlVis:tlVis.slice(0,20)).map(x=>`<div class="vg-ev ${x.st||''}">
+      <div class="vg-ev-ico">${icone(ico[x.t]||'documento',15)}</div>
+      <div class="vg-ev-txt"><b>${esc(x.tit)}</b>${x.sub?`<span>${esc(x.sub)}</span>`:''}</div>
+      <time>${esc(x.dt.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'2-digit'}))}</time></div>`).join('')
+      + (!_vgTodos && tlVis.length>20 ? `<button class="backbtn" style="margin-top:10px" onclick="_vgTodos=true;desenharVisaoGeral()">Ver tudo (${tlVis.length})</button>` : '')
+      : '<div class="vg-tudo">Nada registrado ainda.</div>'}
+  </div>`;
+}
+
+function nomeDoEmail(em) {
+  const x = (_profsCache||[]).find(q=>String(q.email||'').toLowerCase()===String(em||'').toLowerCase());
+  return x ? x.nome : String(em||'');
 }
 
 // Cópia do prontuário para imprimir ou salvar em PDF (pedido do paciente,
@@ -9683,7 +10005,7 @@ function editarProf(id) {
 async function excluirProf(id) {
   const p = (_equipeLista||_profsCache||[]).find(x=>String(x.id)===String(id));
   if(!p) return;
-  const vinculados = (await carregarTodosPacientes()).filter(x=>(x.terapeuta_nome||'').trim()===String(p.nome||'').trim());
+  const vinculados = (await carregarTodosPacientes()).filter(x=>ehTerapeutaDe(x, p.nome));
   if(!confirm('Remover '+p.nome+' da equipe?\n\nEla perde o acesso ao sistema na hora e sai da lista. As evoluções e registros que ela fez continuam nos prontuários.\n\nSe quiser só bloquear o acesso e manter o nome na lista, cancele e use Editar › Situação: Inativo.'+
     (vinculados.length?'\n\n'+vinculados.length+' paciente(s) têm '+p.nome+' como terapeuta de referência — troque a referência deles depois.':''))) return;
   const btn = document.getElementById('epDel');
@@ -9715,7 +10037,7 @@ async function salvarProf(id) {
   let pacientesParaAjustar = [];
   if(mudouNome) {
     const todos = await carregarTodosPacientes();
-    pacientesParaAjustar = todos.filter(x=>(x.terapeuta_nome||'').trim()===String(p.nome||'').trim());
+    pacientesParaAjustar = todos.filter(x=>ehTerapeutaDe(x, p.nome));
     const aviso = pacientesParaAjustar.length
       ? '\n\n'+pacientesParaAjustar.length+' paciente(s) estão vinculados a "'+p.nome+'" e serão atualizados para o nome novo.'
       : '';
@@ -9745,7 +10067,7 @@ async function salvarProf(id) {
   }
 
   for(const pac of pacientesParaAjustar) {
-    await api('atualizar',{tabela:'pacientes', id:pac.id, dados:{terapeuta_nome:nome}});
+    await api('atualizar',{tabela:'pacientes', id:pac.id, dados:{terapeuta_nome:terapeutasDe(pac).map(t=>normalizar(t)===normalizar(p.nome)?nome:t).join(', ')}});
   }
 
   btn.textContent='Salvar alterações'; btn.disabled=false;
@@ -10003,6 +10325,7 @@ async function calcularAlertas() {
 
   pacs.forEach(p=>{
     if(ehLead(p)) return;
+    const n0 = [criticos.length, altos.length, proximos.length];
     const d = porPaciente[String(p.id)] || {};
     const cfg = {label: rotuloLinhas(p.linha)};
     const meta = `${p.nome} • ${cfg.label} • ${p.terapeuta_nome||'sem terapeuta'}`;
@@ -10043,6 +10366,7 @@ async function calcularAlertas() {
       else if(dias <= 7) criticos.push({titulo:rotulo+' vence em '+dias+'d', meta:`${p.nome} • ${quando}`});
       else if(dias <= 30) proximos.push({titulo:rotulo+' — '+p.nome, meta:`${quando} • ${cfg.label}`});
     });
+    [criticos, altos, proximos].forEach((l,k)=>l.slice(n0[k]).forEach(a=>a.pid=String(p.id)));
   });
 
   // Reuniões e visitas marcadas para o futuro entram como compromisso, não
@@ -10056,14 +10380,18 @@ async function calcularAlertas() {
       const p = pacPorId[String(r.paciente_id)];
       const cfg = LINHAS[(p&&p.linha)||''] || {label:(p&&p.linha)||''};
       const quando = dt.toLocaleDateString('pt-BR');
-      proximos.push({
+      proximos.push({pid:String(r.paciente_id),
         titulo: (r.tipo||'Reunião')+' — '+(p?p.nome:'Paciente'),
         meta: `${quando} • ${cfg.label}`
       });
     });
   }
 
-  return {criticos, altos, proximos};
+  // Cadastros dos últimos 7 dias: a gestão e a coordenação ficam sabendo
+  const seteDias = Date.now() - 7*86400000;
+  const novos = currentRole==='profissional' ? [] : pacs.filter(p=>!ehLead(p) && p.criado_em && new Date(p.criado_em).getTime() >= seteDias)
+    .sort((a,b)=>String(b.criado_em).localeCompare(String(a.criado_em)));
+  return {criticos, altos, proximos, novos};
 }
 
 function blocoAlertas(titulo, cor, itens, classe, ic) {
@@ -10079,17 +10407,24 @@ async function loadAlertas() {
   const el = document.getElementById('pgAlertas') || document.getElementById('mainArea');
   const alvo = document.getElementById('alertasBody');
   if(!alvo) return;
-  const {criticos, altos, proximos} = await calcularAlertas();
+  const {criticos, altos, proximos, novos} = await calcularAlertas();
+  const quemCadastrou = em => { const x=(_profsCache||[]).find(q=>String(q.email||'').toLowerCase()===String(em||'').toLowerCase()); return x?x.nome:(em||''); };
+  const blocoNovos = novos.length ? `<div class="card">
+      <div class="card-title"><div class="ct-bar" style="background:var(--teal)"></div>Pacientes novos · últimos 7 dias</div>
+      ${novos.map(p=>`<div class="astrip novo" onclick="openPaciente('${esc(linhasDoPaciente(p)[0]||'')}','${esc(p.id)}')" style="cursor:pointer">
+        <div class="astrip-icon">${avatarHTML(p.nome,30)}</div>
+        <div><div class="astrip-title">${esc(p.nome)}</div><div class="astrip-meta">${esc([rotuloLinhas(p.linha), terapeutasDe(p).join(', '), fmtDataHora(p.criado_em)+(p.criado_por?' por '+quemCadastrou(p.criado_por):'')].filter(Boolean).join(' • '))}</div></div></div>`).join('')}
+    </div>` : '';
 
   if(!criticos.length && !altos.length && !proximos.length) {
     alvo.innerHTML = `<div class="card" style="text-align:center;padding:36px 20px;color:var(--ink3)">
       <div class="vazio-ico"><svg class="ico" aria-hidden="true" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
       <div style="font-weight:600;color:var(--ink)">Nenhuma pendência</div>
-      <div style="font-size:13px;margin-top:4px">Tudo em dia por aqui.</div></div>`;
+      <div style="font-size:13px;margin-top:4px">Tudo em dia por aqui.</div></div>` + blocoNovos;
     return;
   }
 
-  alvo.innerHTML =
+  alvo.innerHTML = blocoNovos +
     blocoAlertas('Críticos','--rose',criticos,'crit','alerta') +
     blocoAlertas('Alta Prioridade','--amber',altos,'warn','relogio') +
     (proximos.length?`<div class="card">
@@ -10099,7 +10434,7 @@ async function loadAlertas() {
     </div>`:'');
 
   const dot = document.getElementById('notifDot');
-  if(dot) dot.style.display = (criticos.length+altos.length) ? 'block' : 'none';
+  if(dot) dot.style.display = (criticos.length+altos.length+novos.length) ? 'block' : 'none';
 }
 
 async function loadHomeResumo() {
