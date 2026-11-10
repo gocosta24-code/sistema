@@ -1084,6 +1084,7 @@ function renderPt(){const v=$('#ptView');if(!ready()){v.hidden=true;return}const
  <div><label for="ptPlano">Plano de cuidado</label><textarea id="ptPlano" placeholder="Ex.: TO 2x/semana com foco em regulação sensorial; reavaliação em 3 meses">${esc(d.plano||'')}</textarea></div>
  <div><label>Instrumentos no relatório</label><div class="qopts">${IORDER.filter(k=>g[k]).map(k=>`<button type="button" data-a="repsel" data-i="${k}" aria-pressed="${sel[k]!==false}">${esc(I[k].n)}</button>`).join('')}</div></div>
  <div class="btns two">${DL?`<button class="btn" data-a="ptDown" type="button">Baixar relatório</button>`:''}<button class="btn ghost" data-a="ptCopy" type="button">Copiar em texto</button></div>
+ <button class="btn ghost" data-a="ptSalvar" type="button" style="width:100%;margin-top:8px">Salvar no perfil do paciente</button>
  <p class="hint">O arquivo abre no navegador; de lá dá para salvar em PDF ou enviar à família. Revise antes de entregar.</p></div>
  <div class="ptpaper" id="ptPaper">${ptHTML()}</div></div>`}
 function ptText(){const M=repModel(),d=P.doc;let t=`Casa Oliveira Saúde · Relatório de acompanhamento\n${d.codigo} · ${ageTxt(ageM(d.nasc))} · ${dBR(M.de)} a ${dBR(M.ate)}\n\n`;
@@ -1154,6 +1155,7 @@ function renderTc(){const v=$('#tcView');if(!ready()){v.hidden=true;return}const
  <div><label for="tcMot">Motivo da avaliação</label><textarea id="tcMot" placeholder="Queixa, quem encaminhou e por quê">${esc(d.tecMotivo||'')}</textarea></div>
  <div><label for="tcCon">Conduta e encaminhamentos</label><textarea id="tcCon" placeholder="Frequência, objetivos, encaminhamentos sugeridos">${esc(d.tecConduta||'')}</textarea></div>
  <div class="btns two">${DL?`<button class="btn" data-a="tcDown" type="button">Baixar relatório</button>`:''}<button class="btn ghost" data-a="tcCopy" type="button">Copiar em texto</button></div>
+ <button class="btn ghost" data-a="tcSalvar" type="button" style="width:100%;margin-top:8px">Salvar no perfil do paciente</button>
  <p class="hint">Envie ao médico ou à escola só com a autorização dos responsáveis${(d.consent||{}).escola?'':' (o contato com a escola ainda não foi autorizado)'}.</p></div>
  <div class="tpaper" id="tcPaper">${tcHTML()}</div></div>`}
 function tcText(){const d=P.doc,g=byInstr(),ev=lsGet('ai-aval',{n:'',r:''});let t=`Casa Oliveira Saúde · Relatório técnico de avaliação\nPaciente: ${d.codigo} · ${ageTxt(ageM(d.nasc))}\n`;
@@ -1161,6 +1163,14 @@ function tcText(){const d=P.doc,g=byInstr(),ev=lsGet('ai-aval',{n:'',r:''});let 
  IORDER.filter(k=>g[k]).forEach(k=>{const arr=g[k],a=arr[arr.length-1];t+=`\n${I[k].n} (${arr.map(x=>dBR(x.data)).join(', ')}):\n`+I[k].m.map(m=>{const v=val(m,a);if(v==null)return'';const c=classify(m,v,a,d);return`- ${m.n}: ${showVal(m,v)}${c?' · '+c.t:''}`}).filter(Boolean).join('\n')+'\n'});
  if(d.rodaCentral)t+=`\nQuestão central (Roda de Cuidado): ${AREA[d.rodaCentral].adult}\n`;
  if(d.tecConduta)t+=`\nConduta: ${d.tecConduta}\n`;return t+`\n${ev.n||''} ${ev.r||''}`.trim()}
+/* Relatório guardado no perfil do paciente (Documentos do sistema) */
+async function salvarRelPerfil(tipo,btn){if(!P||!P.id||OFFLINE){toast('Este registro não está ligado a um paciente do sistema.');return}
+ const css=[...document.querySelectorAll('style')].map(s=>s.textContent).join('\n');
+ const corpo=tipo==='pt'?`<div class="ptpaper">${ptHTML()}</div>`:`<div class="tpaper">${tcHTML()}</div>`;
+ const html=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${tipo==='pt'?'Relatório para a família':'Relatório técnico'}</title><style>${css}body{background:#fff;padding:20px}.ptpaper,.tpaper{max-width:860px;margin:0 auto}</style></head><body>${corpo}</body></html>`;
+ const txt=btn.textContent;btn.disabled=true;btn.textContent='Salvando…';
+ const r=await api('enviar_documento',{paciente_id:P.id,nome:`${tipo==='pt'?'Relatório de avaliação infantil (família)':'Relatório técnico de avaliação infantil'} ${today()}.html`,tipo:'text/html',categoria:'Relatório de avaliação',visivel_paciente:false,enviado_nome:(S.user||{}).nome||'',arquivo:btoa(unescape(encodeURIComponent(html)))});
+ btn.disabled=false;btn.textContent=txt;toast(r&&r.ok?'Relatório salvo no perfil do paciente (Documentos)':'Não foi possível salvar: '+((r&&r.erro)||''))}
 async function tcDown(){if(!DL)return;const css=[...document.querySelectorAll('style')].map(s=>s.textContent).join('\n');
  const html=`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Relatório técnico ${esc(P.doc.codigo)}</title><link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet"><style>${css}body{background:#EEF2EE;padding:20px}.tpaper{max-width:820px;margin:0 auto}</style></head><body><div class="tpaper">${tcHTML()}</div></body></html>`;
  try{await DL.save({filename:`relatorio-tecnico-${String(P.doc.codigo).replace(/[^\w-]+/g,'_')}-${today()}.html`,data:html});toast('Relatório salvo')}catch(e){if(e&&e.code==='declined')return;toast(e&&e.code==='rate_limited'?'Aguarde a janela anterior':'Não foi possível baixar aqui. Use Copiar em texto.')}}
@@ -1240,6 +1250,8 @@ document.addEventListener('click',e=>{
  if(A==='ptClose'){$('#ptView').hidden=true;$('#ptView').innerHTML='';return}
  if(A==='repsel'){const s=lsGet('ai-repsel',{});s[d.i]=s[d.i]===false;lsSet('ai-repsel',s);b.setAttribute('aria-pressed',String(s[d.i]!==false));$('#ptPaper').innerHTML=ptHTML();return}
  if(A==='ptDown'){ptDown();return}
+ if(A==='ptSalvar'){salvarRelPerfil('pt',b);return}
+ if(A==='tcSalvar'){salvarRelPerfil('tc',b);return}
  if(A==='tcOpen'){const v=$('#tcView');v.hidden=false;v.dataset.built='';renderTc();v.scrollTop=0;return}
  if(A==='tcClose'){$('#tcView').hidden=true;$('#tcView').innerHTML='';return}
  if(A==='tcDown'){tcDown();return}

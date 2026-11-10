@@ -2534,7 +2534,7 @@ function listarProfs(token, body) {
   if (dados.length<2) return {ok:true,dados:[]};
   const h = dados[0];
   const profs = dados.slice(1)
-    .map(row => { const o={}; h.forEach((k,i)=>{ if(k!=='senha_hash' && (ehAdmin || k!=='documento')) o[k]=row[i]; }); return o; })
+    .map(row => { const o={}; h.forEach((k,i)=>{ if(k!=='senha_hash' && (ehAdmin || (k!=='documento' && k!=='comissao_tipo' && k!=='comissao_valor'))) o[k]=row[i]; }); return o; })
     .filter(r => r.id && (comInativos || (r.status||'Ativo')!=='Inativo'));
   return {ok:true, dados:profs};
 }
