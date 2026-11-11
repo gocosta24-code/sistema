@@ -615,6 +615,7 @@ body.agx-movendo{cursor:grabbing;user-select:none;}
 .pl-av .pt-linha{margin-top:6px;}
 .ep-com{display:flex;gap:8px;flex-wrap:wrap;align-items:center;} .ep-com .fs{flex:1;min-width:220px;}
 .ep-com #epComValor{width:110px;display:inline-block;} .ep-com small{color:var(--ink3);}
+.ag-valor{display:flex;align-items:center;gap:8px;} .ag-valor span{font-weight:600;color:var(--ink2);} .ag-valor .fi{max-width:160px;}
 /* FECHAMENTO: perda */
 .fe-perda{color:var(--rose);background:rgba(184,70,60,.05);} .fe-perda-h{color:var(--rose)!important;}
 /* CLIENTES e RELATÓRIO */
@@ -1743,7 +1744,7 @@ function demoApi(action, body) {
     case 'excluir_evento': case 'criar_agendas':
       return demoAgenda(action, body);
     case 'listar_catalogo': {
-      const veValor = currentRole==='admin' || currentRole==='coordenador';
+      const veValor = currentRole==='admin' || currentRole==='coordenador' || ehRecepcao() || ehAdministracao();
       const dados = (DEMO_DB.catalogo||[])
         .map(s=>({...s, valor: veValor ? (s.valor||'') : ''}))
         .sort((a,b)=>String(a.nome).localeCompare(String(b.nome),'pt-BR'));
@@ -1963,6 +1964,7 @@ function demoAgenda(action, body) {
     let e = DEMO_DB.agenda.find(x=>x.id===body.evento_id);
     if(!e) { e = {id:'ev'+Date.now(), agenda_email:prof.email, status:'', do_sistema:true}; DEMO_DB.agenda.push(e); }
     Object.assign(e, {titulo, inicio:ini.toISOString(), fim:fim.toISOString(), paciente_id:body.paciente_id||'', servico:body.servico||'', obs:body.obs||''});
+    if(body.valor!==undefined) e.valor = String(body.valor||'');
     return {ok:true, dados:comNome(e)};
   }
   const e = DEMO_DB.agenda.find(x=>x.id===body.evento_id && x.agenda_email===prof.email);
@@ -1978,7 +1980,7 @@ function demoAgenda(action, body) {
         const pac=(DEMO_DB.pacientes||[]).find(p=>p.id===e.paciente_id)||{};
         const id='fin_'+Date.now(); const dia=diaISO(new Date(e.inicio));
         fin.push({id, data:dia, mes:dia.slice(0,7), paciente:pac.nome||e.titulo.split(' · ')[0], paciente_id:e.paciente_id,
-                  servico:e.servico, profissional:prof.nome, sessoes:1, valor:'', pago:'Não', origem:'agenda'});
+                  servico:e.servico, profissional:prof.nome, sessoes:1, valor:e.valor||'', pago:'Não', origem:'agenda'});
         e.fin_id=id; lancamento='lancado';
       }
     } else if(atual) {
@@ -4578,16 +4580,18 @@ async function loadFechamento(el) {
       return u ? numDe(u.valor)/(numDe(u.sessoes)||1) : (precoCatalogo(serv) || 0);
     };
     const pagas = g.linhas.filter(ehPago), abertas = g.linhas.filter(r=>!ehPago(r));
-    const faltandoValor = faltando.reduce((s,e)=>s+precoPara(e.servico),0);
-    const precos = [...new Set([...g.linhas.map(r=>numDe(r.valor)/(numDe(r.sessoes)||1)).filter(Boolean), ...faltando.map(e=>precoPara(e.servico)).filter(Boolean)])];
+    // O valor gravado no atendimento (combinado no agendamento) vem antes da tabela
+    const valorEv = e => numDe(e.valor) || precoPara(e.servico);
+    const faltandoValor = faltando.reduce((s,e)=>s+valorEv(e),0);
+    const precos = [...new Set([...g.linhas.map(r=>numDe(r.valor)/(numDe(r.sessoes)||1)).filter(Boolean), ...faltando.map(e=>valorEv(e)).filter(Boolean)])];
     const agora = new Date();
-    const esperado = g.agendadas.reduce((s,e)=>s+precoPara(e.servico),0);
-    const perda = g.faltasEv.reduce((s,e)=>s+precoPara(e.servico),0);
+    const esperado = g.agendadas.reduce((s,e)=>s+valorEv(e),0);
+    const perda = g.faltasEv.reduce((s,e)=>s+valorEv(e),0);
     const semMarcar = g.agendadas.filter(e=>new Date(e.fim)<agora && e.status!=='realizado' && e.status!=='falta').length;
     const aRealizar = g.agendadas.filter(e=>new Date(e.inicio)>=agora).length;
     return {...g, servicos:[...g.servicos], sessoes:Math.max(sessLanc, g.realizadas.length), sessLanc, faltando, total, precoPara, precos,
       esperado, perda, semMarcar, aRealizar,
-      faltandoValor, semPreco: faltando.some(e=>!precoPara(e.servico)),
+      faltandoValor, valorEv, semPreco: faltando.some(e=>!valorEv(e)),
       previsto: total + faltandoValor, precoSug, semValor,
       pago: abertas.length===0 && pagas.length>0, parcial: pagas.length>0 && abertas.length>0,
       aberto: abertas.reduce((s,r)=>s+numDe(r.valor),0)};
@@ -4660,7 +4664,7 @@ async function lancarFaltantes(i) {
     const ini = new Date(e.inicio);
     const r = await api('salvar',{tabela:'financeiro_servicos', dados:{
       data:diaISO(ini), mes:diaISO(ini).slice(0,7), paciente:g.nome, paciente_id:g.id||e.paciente_id||'', servico:e.servico||'',
-      profissional:e.profissional||'', sessoes:'1', valor:String((g.valorManual || g.precoPara(e.servico)) || ''), pago:'Não', origem:'agenda', evento_id:e.id}});
+      profissional:e.profissional||'', sessoes:'1', valor:String((g.valorManual || g.valorEv(e)) || ''), pago:'Não', origem:'agenda', evento_id:e.id}});
     if(r.ok) ok++;
   }
   showToast(ok+' '+(ok===1?'sessão lançada':'sessões lançadas'),'ok');
@@ -5309,7 +5313,7 @@ async function estenderRepeticoes() {
       if(datas.has(diaISO(d))) continue;
       if(ehPilates(ult.servico) && alunasNoHorario(res.dados||[], ult.agenda_email, d, new Date(d.getTime()+dur), '').length >= PILATES_VAGAS) continue;
       const r = await api('salvar_evento',{agenda_email:ult.agenda_email, paciente_id:ult.paciente_id||'', paciente_nome:String(ult.titulo||'').split(' · ')[0],
-        servico:ult.servico||'', obs:ult.obs||'', inicio:d.toISOString(), fim:new Date(d.getTime()+dur).toISOString(), forcar:true});
+        servico:ult.servico||'', obs:ult.obs||'', ...(ult.valor!==undefined && ult.valor!=='' ? {valor:ult.valor} : {}), inicio:d.toISOString(), fim:new Date(d.getTime()+dur).toISOString(), forcar:true});
       if(r.ok) criados++;
     }
   }
@@ -5606,6 +5610,9 @@ function detalheAtendimento(agendaEmail, eventoId) {
       <div class="agx-det-l"><span>Profissional</span><b><i style="background:${agCor(e.agenda_email)}"></i>${esc(e.profissional||agProfNome(e.agenda_email))}</b></div>
       ${e.servico?`<div class="agx-det-l"><span>Serviço</span><b>${esc(e.servico)}</b></div>`:''}
       ${e.sala?`<div class="agx-det-l"><span>Sala</span><b>${esc(e.sala)}</b></div>`:''}
+      ${_veValorCatalogo && e.servico && !ehPilates(e.servico) ? `<div class="agx-det-l"><span>Valor</span><b>${(()=>{ const v = numDe(e.valor) || precoCatalogo(e.servico);
+        return (v ? fmtMoeda(v) : 'sem valor')+(e.valor && Math.abs(numDe(e.valor)-precoCatalogo(e.servico))>0.009 ? ' <small style="font-weight:400;color:var(--ink3)">(combinado)</small>' : !e.valor && v ? ' <small style="font-weight:400;color:var(--ink3)">(tabela)</small>' : ''); })()}
+        ${e.do_sistema?`<button class="ff-link" style="margin-left:8px" onclick="novoAtendimento('${esc(e.agenda_email)}','${esc(e.id)}');setTimeout(()=>{const v=document.getElementById('agValor'); if(v){v.focus();v.select();}},900)">alterar</button>`:''}</b></div>` : ''}
       ${e.aviso?`<div class="agx-det-l agx-det-aviso"><span>Paciente avisou</span><b>Não vem${(()=>{const [q,m]=String(e.aviso).split(' | ');const d=new Date(q);return (isNaN(d)?'':' · avisou em '+d.toLocaleDateString('pt-BR')+' '+horaDe(q))+(m?'<div style="font-weight:500;margin-top:2px">Motivo: '+esc(m)+'</div>':'');})()}</b></div>`:''}
       ${!e.aviso&&e.confirmado_paciente?`<div class="agx-det-l"><span>Paciente</span><b>Confirmou pela área do paciente</b></div>`:''}
       ${e.prog?`<div class="agx-det-l"><span>Programa</span><b>Sessão ${e.prog.k} de ${e.prog.n}${e.prog.k===e.prog.n?' · última do programa':e.prog.n-e.prog.k<=2?' · faltam '+(e.prog.n-e.prog.k):''}</b></div>`:''}
@@ -5675,9 +5682,9 @@ function servicosAgendaHTML(atual, pac) {
   const outras = cat.filter(s=>!LINHAS[s.linha]);
   const temAtual = !atual || cat.some(s=>normalizar(s.nome)===normalizar(atual));
   if(!cat.length) return `<input class="fi" id="agServ" value="${esc(atual)}" placeholder="Cadastre os serviços na tela Serviços">`;
-  return `<select class="fs" id="agServ" onchange="document.getElementById('agServNota').innerHTML=servicoInfo(this.value);sugerirDuracaoServico(this.value)">
+  return `<select class="fs" id="agServ" onchange="document.getElementById('agServNota').innerHTML=servicoInfo(this.value);sugerirDuracaoServico(this.value);valorDoServicoNoForm(this.value)">
     <option value="">Escolha o serviço…</option>
-    ${grupos.map(g=>`<optgroup label="${esc(LINHAS[g.k].label)}${doPac.includes(g.k)?' · do paciente':''}">${g.lista.map(s=>`<option value="${esc(s.nome)}"${normalizar(s.nome)===normalizar(atual)?' selected':''}>${esc(s.nome)}${_veValorCatalogo&&s.valor?' · R$ '+esc(s.valor):''}</option>`).join('')}</optgroup>`).join('')}
+    ${grupos.map(g=>`<optgroup label="${esc(LINHAS[g.k].label)}${doPac.includes(g.k)?' · do paciente':''}">${g.lista.map(s=>`<option value="${esc(s.nome)}"${normalizar(s.nome)===normalizar(atual)?' selected':''}>${esc(s.nome)}</option>`).join('')}</optgroup>`).join('')}
     ${outras.length?`<optgroup label="Outros">${outras.map(s=>`<option value="${esc(s.nome)}"${normalizar(s.nome)===normalizar(atual)?' selected':''}>${esc(s.nome)}</option>`).join('')}</optgroup>`:''}
     ${temAtual?'':`<option value="${esc(atual)}" selected>${esc(atual)} (fora do catálogo)</option>`}
   </select>`;
@@ -5687,7 +5694,6 @@ function servicoInfo(nome) {
   const c = (_catalogo||[]).find(s=>normalizar(s.nome)===normalizar(nome));
   const partes = [];
   if(c && c.descricao) partes.push(esc(c.descricao));
-  if(c && _veValorCatalogo && c.valor) partes.push('Valor da sessão: <b>R$ '+esc(c.valor)+'</b>');
   if(ehPilates(nome)) partes.push('No Pilates, cada profissional recebe até '+PILATES_VAGAS+' alunas por horário.');
   if(!c) partes.push('<span style="color:var(--amber)">Este serviço não está no catálogo: o Financeiro não terá o preço dele.</span>');
   return partes.join(' · ');
@@ -5709,6 +5715,28 @@ async function servicosDoPacienteAgenda(nome) {
   // paciente com um serviço só no cadastro: já vem escolhido
   const seus = servicosDoPaciente(pac).filter(n=>(_catalogo||[]).some(s=>normalizar(s.nome)===normalizar(n)));
   if(!atual && seus.length===1) { novo.value = (_catalogo.find(s=>normalizar(s.nome)===normalizar(seus[0]))||{}).nome || ''; novo.dispatchEvent(new Event('change')); }
+}
+// ── Valor da sessão no agendamento ──
+// Vem da tela Serviços e pode ser mudado à mão (desconto, valor combinado).
+// Fica guardado no próprio atendimento e é o que o Financeiro usa.
+// Só aparece para quem vê valores (gestão, coordenação, recepção, administrativo).
+function fmtValorCampo(v) { const n = numDe(String(v||'').replace(/[^\d,.-]/g,'')); return n ? n.toFixed(2).replace('.',',') : ''; }
+function notaValorTxt(serv, manual) {
+  const cat = precoCatalogo(serv);
+  if(!serv) return 'Escolha o serviço: o valor vem da tela Serviços.';
+  if(!cat) return 'Este serviço está sem preço na tela Serviços. Informe o valor aqui.';
+  return manual ? 'Valor da tabela: R$ '+fmtValorCampo(cat)+'. Este atendimento usa o valor acima.' : 'Valor da tabela (tela Serviços). Mude se for um valor combinado diferente.';
+}
+function valorDoServicoNoForm(serv) {
+  const el = document.getElementById('agValor'); if(!el) return;
+  if(!el.dataset.manual) el.value = fmtValorCampo(precoCatalogo(serv));
+  notaValorAgenda();
+}
+function notaValorAgenda() {
+  const el = document.getElementById('agValor'), n = document.getElementById('agValorNota'); if(!el || !n) return;
+  const serv = (document.getElementById('agServ')||{}).value || '';
+  const cat = precoCatalogo(serv), v = numDe(el.value);
+  n.innerHTML = notaValorTxt(serv, el.dataset.manual && v && Math.abs(v-cat)>0.009);
 }
 // novoAtendimento(agendaEmail, eventoId) remarca; novoAtendimento(null,null,{inicio,email}) vem do clique na grade
 async function novoAtendimento(agendaEmail, eventoId, pre) {
@@ -5742,6 +5770,11 @@ async function novoAtendimento(agendaEmail, eventoId, pre) {
       <div class="fg fa"><label class="fl" for="agServ">Serviço</label>
         ${servicosAgendaHTML(servAtual, pacAtual)}
         <div class="pt-nota" style="margin:6px 0 0" id="agServNota">${servicoInfo(servAtual)}</div></div>
+      ${_veValorCatalogo ? `<div class="fg"><label class="fl" for="agValor">Valor da sessão</label>
+        <div class="ag-valor"><span>R$</span><input class="fi" id="agValor" inputmode="decimal" placeholder="0,00"
+          value="${esc(e && e.valor ? fmtValorCampo(e.valor) : fmtValorCampo(precoCatalogo(servAtual)))}" data-manual="${e && e.valor ? '1' : ''}"
+          oninput="this.dataset.manual='1';notaValorAgenda()"></div>
+        <div class="pt-nota" style="margin:4px 0 0" id="agValorNota">${notaValorTxt(servAtual, e && e.valor)}</div></div>` : ''}
       <div class="fg fa"><label class="fl" for="agSala">Sala</label>
         ${salas.length?`<div class="agx-chips" id="agSalaChips">${salas.map(s=>`<button type="button" class="agx-chip${agMesmaSala(s,salaAtual)?' on':''}" onclick="escolherChip(this,'agSala')">${esc(s)}</button>`).join('')}</div>`:''}
         <input class="fi" id="agSala" value="${esc(salaAtual)}" placeholder="${salas.length?'Ou escreva outra sala':'Ex.: Sala 2, Ateliê, Domicílio'}" style="${salas.length?'margin-top:8px':''}" oninput="sincronizarChips('agSalaChips',this.value)">
@@ -5945,7 +5978,7 @@ async function salvarAtendimento(eventoId, forcar) {
     const inicio = new Date(datas[i].dt+'T'+datas[i].hora+':00');
     const fim = new Date(inicio.getTime() + dur*60000);
     const body = {agenda_email:email, paciente_id: pac?pac.id:'', paciente_nome:nomePac,
-                  servico, inicio:inicio.toISOString(), fim:fim.toISOString(), obs:obsDe(datas[i], i),
+                  servico, inicio:inicio.toISOString(), fim:fim.toISOString(), ...(document.getElementById('agValor') ? {valor:String(numDe(document.getElementById('agValor').value)||'')} : {}), obs:obsDe(datas[i], i),
                   evento_id: eventoId||'', forcar: !!forcar || forcarGrupo};
     const res = await api('salvar_evento', body);
     if(!res.ok && res.lotado) {
