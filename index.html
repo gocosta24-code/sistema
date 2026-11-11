@@ -666,6 +666,9 @@ body.agx-movendo{cursor:grabbing;user-select:none;}
 .gs-ev .gs-ev-s{color:var(--ink3);}
 .gs-ev.falta{opacity:.55;} .gs-ev.falta b{text-decoration:line-through;}
 .gs-equipe{display:flex;flex-direction:column;gap:10px;}
+.gs-areas{margin-bottom:12px;flex-wrap:wrap;}
+.gs-areas-tab tbody tr{cursor:pointer;} .gs-tx{display:flex;align-items:center;gap:8px;min-width:120px;} .gs-tx .gs-ocbar{flex:1;margin:0;}
+.gs-prof-l{display:flex;flex-wrap:wrap;gap:4px;margin:3px 0 2px;} .gs-prof-l .chip{font-size:11px;padding:2px 8px;}
 .gs-prof{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);padding:12px 14px;}
 .gs-prof-h{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
 .gs-prof-n{display:flex;align-items:center;gap:9px;flex:1;min-width:200px;} .gs-prof-n>i{width:10px;height:10px;border-radius:50%;flex:none;}
@@ -10657,7 +10660,7 @@ async function calcularAlertas() {
 // ═══════════════════════════════════════════════
 const GS_DIAS = [1,2,3,4,5,6];          // segunda a sábado
 const GS_PX = 1.15;                     // pixels por minuto na grade das salas
-let _gs = {aba:'salas', dia:(()=>{ const d=new Date(); d.setHours(0,0,0,0); return d; })(), semana:inicioDaSemana(new Date()), cap:null, abertoProf:''};
+let _gs = {area:'', aba:'salas', dia:(()=>{ const d=new Date(); d.setHours(0,0,0,0); return d; })(), semana:inicioDaSemana(new Date()), cap:null, abertoProf:''};
 const podeVerGestao = () => currentRole==='admin' || ehAdministracao();
 
 function renderGestao() {
@@ -10823,7 +10826,12 @@ async function painelEquipe() {
   if(!res.ok) { box.innerHTML = `<div class="card" style="color:var(--rose)">Não foi possível ler a agenda: ${esc(res.erro||'')}</div>`; return; }
   const evs = (res.dados||[]).map(prepEvento);
   const profs = (_ag.profissionais||[]).filter(p=>p.tem_agenda!==false);
-  const linhas = profs.map(p=>({p, cfg:cap[p.email]||{}, o:calcularOcupacao(p, cap[p.email]||{}, evs, seg)}));
+  const todas = profs.map(p=>({p, cfg:cap[p.email]||{}, o:calcularOcupacao(p, cap[p.email]||{}, evs, seg), areas:areasDaProf(p)}));
+  const daArea = k => todas.filter(x=>x.areas.includes(k));
+  const linhas = _gs.area ? daArea(_gs.area) : todas;
+  const resumo = lista => { const c = lista.filter(x=>x.o.capacidade);
+    const cap = c.reduce((s,x)=>s+x.o.capacidade,0), ag = c.reduce((s,x)=>s+Math.min(x.o.agendados,x.o.capacidade),0);
+    return {n:lista.length, cap, ag, taxa: cap ? Math.round(ag/cap*100) : null, vagas: c.reduce((s,x)=>s+x.o.vagos.reduce((a,v)=>a+v.livres,0),0), semCfg: lista.filter(x=>!x.o.temCfg).length}; };
   const comCfg = linhas.filter(x=>x.o.capacidade);
   const capT = comCfg.reduce((s,x)=>s+x.o.capacidade,0), agT = comCfg.reduce((s,x)=>s+Math.min(x.o.agendados,x.o.capacidade),0);
   const vagT = comCfg.reduce((s,x)=>s+x.o.vagos.reduce((a,v)=>a+v.livres,0),0);
@@ -10832,8 +10840,14 @@ async function painelEquipe() {
   const corTaxa = t => t==null ? 'var(--ink3)' : t>=85 ? 'var(--teal)' : t>=60 ? 'var(--amber)' : 'var(--rose)';
   const fmtDia = d => maiuscula(d.toLocaleDateString('pt-BR',{weekday:'short', day:'2-digit', month:'2-digit'})).replace('.','');
   const admin = currentRole==='admin';
+  const areas = Object.keys(LINHAS).filter(k=>daArea(k).length);
+  const semArea = todas.filter(x=>!x.areas.length);
 
   box.innerHTML = `
+  <div class="agx-seg gs-areas">
+    <button class="${!_gs.area?'on':''}" onclick="_gs.area='';painelEquipe()">Geral</button>
+    ${areas.map(k=>`<button class="${_gs.area===k?'on':''}" onclick="_gs.area='${k}';painelEquipe()">${esc(LINHAS[k].label)}</button>`).join('')}
+  </div>
   <div class="gs-nav">
     <button class="backbtn" onclick="trocarSemanaGestao(-1)" aria-label="Semana anterior">‹</button>
     <button class="backbtn" onclick="trocarSemanaGestao(0)">Esta semana</button>
@@ -10841,18 +10855,28 @@ async function painelEquipe() {
     <b class="gs-tit">${esc(seg.toLocaleDateString('pt-BR',{day:'numeric',month:'short'}))} a ${esc(fimSem.toLocaleDateString('pt-BR',{day:'numeric',month:'short'}))}</b>
   </div>
   <div class="vg-nums" style="margin-bottom:12px">
-    <div class="vg-num"><b>${capT||'—'}</b><span>capacidade da equipe (sessões na semana)</span></div>
+    <div class="vg-num"><b>${capT||'—'}</b><span>capacidade ${_gs.area?'da área':'da equipe'} (sessões na semana)</span></div>
     <div class="vg-num"><b>${agT}</b><span>agendadas dentro da capacidade</span></div>
     <div class="vg-num"><b style="color:${corTaxa(taxaT)}">${taxaT==null?'—':taxaT+'%'}</b><span>ocupação geral</span></div>
     <div class="vg-num"><b>${vagT}</b><span>vagas livres daqui para frente</span></div>
   </div>
+  ${!_gs.area && areas.length ? `<div class="vg-card" style="margin-bottom:12px"><div class="vg-k">Por área</div>
+    <div style="overflow-x:auto"><table class="fin-tabela gs-areas-tab"><thead><tr><th>Área</th><th class="r">Profissionais</th><th class="r">Capacidade</th><th class="r">Agendadas</th><th>Ocupação</th><th class="r">Vagas livres</th></tr></thead>
+    <tbody>${areas.map(k=>{ const r = resumo(daArea(k)); return `<tr onclick="_gs.area='${k}';painelEquipe()">
+      <td><span class="chip ch-${LINHAS[k].color}">${esc(LINHAS[k].label)}</span></td><td class="r">${r.n}${r.semCfg?` <small style="color:var(--amber)">(${r.semCfg} sem disp.)</small>`:''}</td>
+      <td class="r">${r.cap||'—'}</td><td class="r">${r.ag}</td>
+      <td>${r.taxa==null?'—':`<span class="gs-tx"><span class="gs-ocbar"><i style="width:${r.taxa}%;background:${corTaxa(r.taxa)}"></i></span><b style="color:${corTaxa(r.taxa)}">${r.taxa}%</b></span>`}</td>
+      <td class="r">${r.cap?r.vagas:'—'}</td></tr>`; }).join('')}</tbody></table></div>
+    <div class="pt-nota" style="margin:6px 0 0">A área vem do cadastro de cada profissional (Cadastro da equipe › Linhas). Quem atende em mais de uma área entra em todas elas.${semArea.length?' '+semArea.length+(semArea.length===1?' profissional está':' profissionais estão')+' sem área no cadastro.':''}</div></div>` : ''}
   ${linhas.some(x=>!x.o.temCfg) ? `<div class="fe-aviso" style="margin-bottom:12px"><div><b>${linhas.filter(x=>!x.o.temCfg).length} ${linhas.filter(x=>!x.o.temCfg).length===1?'profissional ainda sem':'profissionais ainda sem'} disponibilidade.</b> ${admin?'Toque em "definir disponibilidade" para dizer em que dias e horários cada uma atende.':'A gestão define a disponibilidade de cada uma.'}</div></div>` : ''}
-  <div class="gs-equipe">${linhas.map(({p,cfg,o})=>{
+  <div class="gs-equipe">${linhas.map(({p,cfg,o,areas:ar})=>{
     const aberto = _gs.abertoProf===p.email;
     const porDia = {}; o.vagos.forEach(v=>{ const k=diaISO(v.d); (porDia[k]=porDia[k]||{d:v.d, l:[]}).l.push(v); });
     return `<div class="gs-prof">
       <div class="gs-prof-h">
-        <div class="gs-prof-n"><i style="background:${agCor(p.email)}"></i><div><b>${esc(p.nome)}</b><span>${o.temCfg?`${o.capacidade} sessões possíveis · ${o.dur} min${o.vagas>1?' · '+o.vagas+' por horário':''}${o.folgas?' · '+o.folgas+(o.folgas===1?' dia de folga':' dias de folga'):''}`:'sem disponibilidade definida'}</span></div></div>
+        <div class="gs-prof-n"><i style="background:${agCor(p.email)}"></i><div><b>${esc(p.nome)}</b>
+          <div class="gs-prof-l">${ar.length ? ar.map(k=>`<span class="chip ch-${(LINHAS[k]||{}).color||'gray'}">${esc((LINHAS[k]||{label:k}).label)}</span>`).join('') : '<span class="chip ch-gray">sem área no cadastro</span>'}</div>
+          <span>${o.temCfg?`${o.capacidade} sessões possíveis · ${o.dur} min${o.vagas>1?' · '+o.vagas+' por horário':''}${o.folgas?' · '+o.folgas+(o.folgas===1?' dia de folga':' dias de folga'):''}`:'sem disponibilidade definida'}</span></div></div>
         <div class="gs-prof-k"><b>${o.agendados}</b><span>agendadas</span></div>
         <div class="gs-prof-k gs-taxa"><b style="color:${corTaxa(o.taxa)}">${o.taxa==null?'—':o.taxa+'%'}</b><span>ocupação</span>
           ${o.taxa!=null?`<div class="gs-ocbar"><i style="width:${o.taxa}%;background:${corTaxa(o.taxa)}"></i></div>`:''}</div>
@@ -10869,6 +10893,11 @@ async function painelEquipe() {
   <div class="pt-nota">Capacidade = horários de atendimento que cabem na disponibilidade de cada profissional na semana (vezes as vagas por horário, no caso de turma). Dias com evento de dia inteiro na agenda dela (folga, férias, curso) não contam. Horários vagos mostram só o que ainda está por vir; toque num deles para agendar.</div>`;
 }
 
+// Linhas (áreas) em que a profissional atende, do cadastro da equipe; "todos" = todas
+function areasDaProf(p) {
+  const l = (Array.isArray(p.linhas) ? p.linhas : String(p.linhas||'').split(',')).map(x=>String(x).trim().toLowerCase()).filter(Boolean);
+  return l.includes('todos') ? Object.keys(LINHAS) : l.filter(k=>LINHAS[k]);
+}
 function editarDisponibilidade(email) {
   if(currentRole!=='admin') return;
   const p = (_ag.profissionais||[]).find(x=>x.email===email) || {nome:email};
