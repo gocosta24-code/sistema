@@ -615,6 +615,7 @@ body.agx-movendo{cursor:grabbing;user-select:none;}
 .pl-av .pt-linha{margin-top:6px;}
 .ep-com{display:flex;gap:8px;flex-wrap:wrap;align-items:center;} .ep-com .fs{flex:1;min-width:220px;}
 .ep-com #epComValor{width:110px;display:inline-block;} .ep-com small{color:var(--ink3);}
+.ag-valor{display:flex;align-items:center;gap:8px;} .ag-valor span{font-weight:600;color:var(--ink2);} .ag-valor .fi{max-width:160px;}
 /* FECHAMENTO: perda */
 .fe-perda{color:var(--rose);background:rgba(184,70,60,.05);} .fe-perda-h{color:var(--rose)!important;}
 /* CLIENTES e RELATÓRIO */
@@ -665,6 +666,9 @@ body.agx-movendo{cursor:grabbing;user-select:none;}
 .gs-ev .gs-ev-s{color:var(--ink3);}
 .gs-ev.falta{opacity:.55;} .gs-ev.falta b{text-decoration:line-through;}
 .gs-equipe{display:flex;flex-direction:column;gap:10px;}
+.gs-areas{margin-bottom:12px;flex-wrap:wrap;}
+.gs-areas-tab tbody tr{cursor:pointer;} .gs-tx{display:flex;align-items:center;gap:8px;min-width:120px;} .gs-tx .gs-ocbar{flex:1;margin:0;}
+.gs-prof-l{display:flex;flex-wrap:wrap;gap:4px;margin:3px 0 2px;} .gs-prof-l .chip{font-size:11px;padding:2px 8px;}
 .gs-prof{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);padding:12px 14px;}
 .gs-prof-h{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
 .gs-prof-n{display:flex;align-items:center;gap:9px;flex:1;min-width:200px;} .gs-prof-n>i{width:10px;height:10px;border-radius:50%;flex:none;}
@@ -1477,7 +1481,7 @@ function demoApi(action, body) {
       if(body.tabela==='pacientes') {
         let pacs = [...DEMO_DB.pacientes];
         if(body.filtros) Object.entries(body.filtros).forEach(([k,v])=>{pacs=pacs.filter(p=>(p[k]||'').toLowerCase()===(v||'').toLowerCase());});
-        if(body.role==='profissional' && body.nome_usuario) {
+        if(body.role==='profissional' && body.nome_usuario && !/recep|comercial|administra/i.test(String((currentUser||{}).funcao||''))) {
           pacs = pacs.filter(p=>ehTerapeutaDe(p, body.nome_usuario));
         }
         return {ok:true, dados:pacs};
@@ -1743,7 +1747,7 @@ function demoApi(action, body) {
     case 'excluir_evento': case 'criar_agendas':
       return demoAgenda(action, body);
     case 'listar_catalogo': {
-      const veValor = currentRole==='admin' || currentRole==='coordenador';
+      const veValor = currentRole==='admin' || currentRole==='coordenador' || ehRecepcao() || ehAdministracao();
       const dados = (DEMO_DB.catalogo||[])
         .map(s=>({...s, valor: veValor ? (s.valor||'') : ''}))
         .sort((a,b)=>String(a.nome).localeCompare(String(b.nome),'pt-BR'));
@@ -1963,6 +1967,7 @@ function demoAgenda(action, body) {
     let e = DEMO_DB.agenda.find(x=>x.id===body.evento_id);
     if(!e) { e = {id:'ev'+Date.now(), agenda_email:prof.email, status:'', do_sistema:true}; DEMO_DB.agenda.push(e); }
     Object.assign(e, {titulo, inicio:ini.toISOString(), fim:fim.toISOString(), paciente_id:body.paciente_id||'', servico:body.servico||'', obs:body.obs||''});
+    if(body.valor!==undefined) e.valor = String(body.valor||'');
     return {ok:true, dados:comNome(e)};
   }
   const e = DEMO_DB.agenda.find(x=>x.id===body.evento_id && x.agenda_email===prof.email);
@@ -1978,7 +1983,7 @@ function demoAgenda(action, body) {
         const pac=(DEMO_DB.pacientes||[]).find(p=>p.id===e.paciente_id)||{};
         const id='fin_'+Date.now(); const dia=diaISO(new Date(e.inicio));
         fin.push({id, data:dia, mes:dia.slice(0,7), paciente:pac.nome||e.titulo.split(' · ')[0], paciente_id:e.paciente_id,
-                  servico:e.servico, profissional:prof.nome, sessoes:1, valor:'', pago:'Não', origem:'agenda'});
+                  servico:e.servico, profissional:prof.nome, sessoes:1, valor:e.valor||'', pago:'Não', origem:'agenda'});
         e.fin_id=id; lancamento='lancado';
       }
     } else if(atual) {
@@ -4578,16 +4583,18 @@ async function loadFechamento(el) {
       return u ? numDe(u.valor)/(numDe(u.sessoes)||1) : (precoCatalogo(serv) || 0);
     };
     const pagas = g.linhas.filter(ehPago), abertas = g.linhas.filter(r=>!ehPago(r));
-    const faltandoValor = faltando.reduce((s,e)=>s+precoPara(e.servico),0);
-    const precos = [...new Set([...g.linhas.map(r=>numDe(r.valor)/(numDe(r.sessoes)||1)).filter(Boolean), ...faltando.map(e=>precoPara(e.servico)).filter(Boolean)])];
+    // O valor gravado no atendimento (combinado no agendamento) vem antes da tabela
+    const valorEv = e => numDe(e.valor) || precoPara(e.servico);
+    const faltandoValor = faltando.reduce((s,e)=>s+valorEv(e),0);
+    const precos = [...new Set([...g.linhas.map(r=>numDe(r.valor)/(numDe(r.sessoes)||1)).filter(Boolean), ...faltando.map(e=>valorEv(e)).filter(Boolean)])];
     const agora = new Date();
-    const esperado = g.agendadas.reduce((s,e)=>s+precoPara(e.servico),0);
-    const perda = g.faltasEv.reduce((s,e)=>s+precoPara(e.servico),0);
+    const esperado = g.agendadas.reduce((s,e)=>s+valorEv(e),0);
+    const perda = g.faltasEv.reduce((s,e)=>s+valorEv(e),0);
     const semMarcar = g.agendadas.filter(e=>new Date(e.fim)<agora && e.status!=='realizado' && e.status!=='falta').length;
     const aRealizar = g.agendadas.filter(e=>new Date(e.inicio)>=agora).length;
     return {...g, servicos:[...g.servicos], sessoes:Math.max(sessLanc, g.realizadas.length), sessLanc, faltando, total, precoPara, precos,
       esperado, perda, semMarcar, aRealizar,
-      faltandoValor, semPreco: faltando.some(e=>!precoPara(e.servico)),
+      faltandoValor, valorEv, semPreco: faltando.some(e=>!valorEv(e)),
       previsto: total + faltandoValor, precoSug, semValor,
       pago: abertas.length===0 && pagas.length>0, parcial: pagas.length>0 && abertas.length>0,
       aberto: abertas.reduce((s,r)=>s+numDe(r.valor),0)};
@@ -4660,7 +4667,7 @@ async function lancarFaltantes(i) {
     const ini = new Date(e.inicio);
     const r = await api('salvar',{tabela:'financeiro_servicos', dados:{
       data:diaISO(ini), mes:diaISO(ini).slice(0,7), paciente:g.nome, paciente_id:g.id||e.paciente_id||'', servico:e.servico||'',
-      profissional:e.profissional||'', sessoes:'1', valor:String((g.valorManual || g.precoPara(e.servico)) || ''), pago:'Não', origem:'agenda', evento_id:e.id}});
+      profissional:e.profissional||'', sessoes:'1', valor:String((g.valorManual || g.valorEv(e)) || ''), pago:'Não', origem:'agenda', evento_id:e.id}});
     if(r.ok) ok++;
   }
   showToast(ok+' '+(ok===1?'sessão lançada':'sessões lançadas'),'ok');
@@ -5309,7 +5316,7 @@ async function estenderRepeticoes() {
       if(datas.has(diaISO(d))) continue;
       if(ehPilates(ult.servico) && alunasNoHorario(res.dados||[], ult.agenda_email, d, new Date(d.getTime()+dur), '').length >= PILATES_VAGAS) continue;
       const r = await api('salvar_evento',{agenda_email:ult.agenda_email, paciente_id:ult.paciente_id||'', paciente_nome:String(ult.titulo||'').split(' · ')[0],
-        servico:ult.servico||'', obs:ult.obs||'', inicio:d.toISOString(), fim:new Date(d.getTime()+dur).toISOString(), forcar:true});
+        servico:ult.servico||'', obs:ult.obs||'', ...(ult.valor!==undefined && ult.valor!=='' ? {valor:ult.valor} : {}), inicio:d.toISOString(), fim:new Date(d.getTime()+dur).toISOString(), forcar:true});
       if(r.ok) criados++;
     }
   }
@@ -5606,6 +5613,9 @@ function detalheAtendimento(agendaEmail, eventoId) {
       <div class="agx-det-l"><span>Profissional</span><b><i style="background:${agCor(e.agenda_email)}"></i>${esc(e.profissional||agProfNome(e.agenda_email))}</b></div>
       ${e.servico?`<div class="agx-det-l"><span>Serviço</span><b>${esc(e.servico)}</b></div>`:''}
       ${e.sala?`<div class="agx-det-l"><span>Sala</span><b>${esc(e.sala)}</b></div>`:''}
+      ${_veValorCatalogo && e.servico && !ehPilates(e.servico) ? `<div class="agx-det-l"><span>Valor</span><b>${(()=>{ const v = numDe(e.valor) || precoCatalogo(e.servico);
+        return (v ? fmtMoeda(v) : 'sem valor')+(e.valor && Math.abs(numDe(e.valor)-precoCatalogo(e.servico))>0.009 ? ' <small style="font-weight:400;color:var(--ink3)">(combinado)</small>' : !e.valor && v ? ' <small style="font-weight:400;color:var(--ink3)">(tabela)</small>' : ''); })()}
+        ${e.do_sistema?`<button class="ff-link" style="margin-left:8px" onclick="novoAtendimento('${esc(e.agenda_email)}','${esc(e.id)}');setTimeout(()=>{const v=document.getElementById('agValor'); if(v){v.focus();v.select();}},900)">alterar</button>`:''}</b></div>` : ''}
       ${e.aviso?`<div class="agx-det-l agx-det-aviso"><span>Paciente avisou</span><b>Não vem${(()=>{const [q,m]=String(e.aviso).split(' | ');const d=new Date(q);return (isNaN(d)?'':' · avisou em '+d.toLocaleDateString('pt-BR')+' '+horaDe(q))+(m?'<div style="font-weight:500;margin-top:2px">Motivo: '+esc(m)+'</div>':'');})()}</b></div>`:''}
       ${!e.aviso&&e.confirmado_paciente?`<div class="agx-det-l"><span>Paciente</span><b>Confirmou pela área do paciente</b></div>`:''}
       ${e.prog?`<div class="agx-det-l"><span>Programa</span><b>Sessão ${e.prog.k} de ${e.prog.n}${e.prog.k===e.prog.n?' · última do programa':e.prog.n-e.prog.k<=2?' · faltam '+(e.prog.n-e.prog.k):''}</b></div>`:''}
@@ -5675,9 +5685,9 @@ function servicosAgendaHTML(atual, pac) {
   const outras = cat.filter(s=>!LINHAS[s.linha]);
   const temAtual = !atual || cat.some(s=>normalizar(s.nome)===normalizar(atual));
   if(!cat.length) return `<input class="fi" id="agServ" value="${esc(atual)}" placeholder="Cadastre os serviços na tela Serviços">`;
-  return `<select class="fs" id="agServ" onchange="document.getElementById('agServNota').innerHTML=servicoInfo(this.value);sugerirDuracaoServico(this.value)">
+  return `<select class="fs" id="agServ" onchange="document.getElementById('agServNota').innerHTML=servicoInfo(this.value);sugerirDuracaoServico(this.value);valorDoServicoNoForm(this.value)">
     <option value="">Escolha o serviço…</option>
-    ${grupos.map(g=>`<optgroup label="${esc(LINHAS[g.k].label)}${doPac.includes(g.k)?' · do paciente':''}">${g.lista.map(s=>`<option value="${esc(s.nome)}"${normalizar(s.nome)===normalizar(atual)?' selected':''}>${esc(s.nome)}${_veValorCatalogo&&s.valor?' · R$ '+esc(s.valor):''}</option>`).join('')}</optgroup>`).join('')}
+    ${grupos.map(g=>`<optgroup label="${esc(LINHAS[g.k].label)}${doPac.includes(g.k)?' · do paciente':''}">${g.lista.map(s=>`<option value="${esc(s.nome)}"${normalizar(s.nome)===normalizar(atual)?' selected':''}>${esc(s.nome)}</option>`).join('')}</optgroup>`).join('')}
     ${outras.length?`<optgroup label="Outros">${outras.map(s=>`<option value="${esc(s.nome)}"${normalizar(s.nome)===normalizar(atual)?' selected':''}>${esc(s.nome)}</option>`).join('')}</optgroup>`:''}
     ${temAtual?'':`<option value="${esc(atual)}" selected>${esc(atual)} (fora do catálogo)</option>`}
   </select>`;
@@ -5687,7 +5697,6 @@ function servicoInfo(nome) {
   const c = (_catalogo||[]).find(s=>normalizar(s.nome)===normalizar(nome));
   const partes = [];
   if(c && c.descricao) partes.push(esc(c.descricao));
-  if(c && _veValorCatalogo && c.valor) partes.push('Valor da sessão: <b>R$ '+esc(c.valor)+'</b>');
   if(ehPilates(nome)) partes.push('No Pilates, cada profissional recebe até '+PILATES_VAGAS+' alunas por horário.');
   if(!c) partes.push('<span style="color:var(--amber)">Este serviço não está no catálogo: o Financeiro não terá o preço dele.</span>');
   return partes.join(' · ');
@@ -5709,6 +5718,28 @@ async function servicosDoPacienteAgenda(nome) {
   // paciente com um serviço só no cadastro: já vem escolhido
   const seus = servicosDoPaciente(pac).filter(n=>(_catalogo||[]).some(s=>normalizar(s.nome)===normalizar(n)));
   if(!atual && seus.length===1) { novo.value = (_catalogo.find(s=>normalizar(s.nome)===normalizar(seus[0]))||{}).nome || ''; novo.dispatchEvent(new Event('change')); }
+}
+// ── Valor da sessão no agendamento ──
+// Vem da tela Serviços e pode ser mudado à mão (desconto, valor combinado).
+// Fica guardado no próprio atendimento e é o que o Financeiro usa.
+// Só aparece para quem vê valores (gestão, coordenação, recepção, administrativo).
+function fmtValorCampo(v) { const n = numDe(String(v||'').replace(/[^\d,.-]/g,'')); return n ? n.toFixed(2).replace('.',',') : ''; }
+function notaValorTxt(serv, manual) {
+  const cat = precoCatalogo(serv);
+  if(!serv) return 'Escolha o serviço: o valor vem da tela Serviços.';
+  if(!cat) return 'Este serviço está sem preço na tela Serviços. Informe o valor aqui.';
+  return manual ? 'Valor da tabela: R$ '+fmtValorCampo(cat)+'. Este atendimento usa o valor acima.' : 'Valor da tabela (tela Serviços). Mude se for um valor combinado diferente.';
+}
+function valorDoServicoNoForm(serv) {
+  const el = document.getElementById('agValor'); if(!el) return;
+  if(!el.dataset.manual) el.value = fmtValorCampo(precoCatalogo(serv));
+  notaValorAgenda();
+}
+function notaValorAgenda() {
+  const el = document.getElementById('agValor'), n = document.getElementById('agValorNota'); if(!el || !n) return;
+  const serv = (document.getElementById('agServ')||{}).value || '';
+  const cat = precoCatalogo(serv), v = numDe(el.value);
+  n.innerHTML = notaValorTxt(serv, el.dataset.manual && v && Math.abs(v-cat)>0.009);
 }
 // novoAtendimento(agendaEmail, eventoId) remarca; novoAtendimento(null,null,{inicio,email}) vem do clique na grade
 async function novoAtendimento(agendaEmail, eventoId, pre) {
@@ -5742,6 +5773,11 @@ async function novoAtendimento(agendaEmail, eventoId, pre) {
       <div class="fg fa"><label class="fl" for="agServ">Serviço</label>
         ${servicosAgendaHTML(servAtual, pacAtual)}
         <div class="pt-nota" style="margin:6px 0 0" id="agServNota">${servicoInfo(servAtual)}</div></div>
+      ${_veValorCatalogo ? `<div class="fg"><label class="fl" for="agValor">Valor da sessão</label>
+        <div class="ag-valor"><span>R$</span><input class="fi" id="agValor" inputmode="decimal" placeholder="0,00"
+          value="${esc(e && e.valor ? fmtValorCampo(e.valor) : fmtValorCampo(precoCatalogo(servAtual)))}" data-manual="${e && e.valor ? '1' : ''}"
+          oninput="this.dataset.manual='1';notaValorAgenda()"></div>
+        <div class="pt-nota" style="margin:4px 0 0" id="agValorNota">${notaValorTxt(servAtual, e && e.valor)}</div></div>` : ''}
       <div class="fg fa"><label class="fl" for="agSala">Sala</label>
         ${salas.length?`<div class="agx-chips" id="agSalaChips">${salas.map(s=>`<button type="button" class="agx-chip${agMesmaSala(s,salaAtual)?' on':''}" onclick="escolherChip(this,'agSala')">${esc(s)}</button>`).join('')}</div>`:''}
         <input class="fi" id="agSala" value="${esc(salaAtual)}" placeholder="${salas.length?'Ou escreva outra sala':'Ex.: Sala 2, Ateliê, Domicílio'}" style="${salas.length?'margin-top:8px':''}" oninput="sincronizarChips('agSalaChips',this.value)">
@@ -5945,7 +5981,7 @@ async function salvarAtendimento(eventoId, forcar) {
     const inicio = new Date(datas[i].dt+'T'+datas[i].hora+':00');
     const fim = new Date(inicio.getTime() + dur*60000);
     const body = {agenda_email:email, paciente_id: pac?pac.id:'', paciente_nome:nomePac,
-                  servico, inicio:inicio.toISOString(), fim:fim.toISOString(), obs:obsDe(datas[i], i),
+                  servico, inicio:inicio.toISOString(), fim:fim.toISOString(), ...(document.getElementById('agValor') ? {valor:String(numDe(document.getElementById('agValor').value)||'')} : {}), obs:obsDe(datas[i], i),
                   evento_id: eventoId||'', forcar: !!forcar || forcarGrupo};
     const res = await api('salvar_evento', body);
     if(!res.ok && res.lotado) {
@@ -10624,7 +10660,7 @@ async function calcularAlertas() {
 // ═══════════════════════════════════════════════
 const GS_DIAS = [1,2,3,4,5,6];          // segunda a sábado
 const GS_PX = 1.15;                     // pixels por minuto na grade das salas
-let _gs = {aba:'salas', dia:(()=>{ const d=new Date(); d.setHours(0,0,0,0); return d; })(), semana:inicioDaSemana(new Date()), cap:null, abertoProf:''};
+let _gs = {area:'', aba:'salas', dia:(()=>{ const d=new Date(); d.setHours(0,0,0,0); return d; })(), semana:inicioDaSemana(new Date()), cap:null, abertoProf:''};
 const podeVerGestao = () => currentRole==='admin' || ehAdministracao();
 
 function renderGestao() {
@@ -10790,7 +10826,12 @@ async function painelEquipe() {
   if(!res.ok) { box.innerHTML = `<div class="card" style="color:var(--rose)">Não foi possível ler a agenda: ${esc(res.erro||'')}</div>`; return; }
   const evs = (res.dados||[]).map(prepEvento);
   const profs = (_ag.profissionais||[]).filter(p=>p.tem_agenda!==false);
-  const linhas = profs.map(p=>({p, cfg:cap[p.email]||{}, o:calcularOcupacao(p, cap[p.email]||{}, evs, seg)}));
+  const todas = profs.map(p=>({p, cfg:cap[p.email]||{}, o:calcularOcupacao(p, cap[p.email]||{}, evs, seg), areas:areasDaProf(p)}));
+  const daArea = k => todas.filter(x=>x.areas.includes(k));
+  const linhas = _gs.area ? daArea(_gs.area) : todas;
+  const resumo = lista => { const c = lista.filter(x=>x.o.capacidade);
+    const cap = c.reduce((s,x)=>s+x.o.capacidade,0), ag = c.reduce((s,x)=>s+Math.min(x.o.agendados,x.o.capacidade),0);
+    return {n:lista.length, cap, ag, taxa: cap ? Math.round(ag/cap*100) : null, vagas: c.reduce((s,x)=>s+x.o.vagos.reduce((a,v)=>a+v.livres,0),0), semCfg: lista.filter(x=>!x.o.temCfg).length}; };
   const comCfg = linhas.filter(x=>x.o.capacidade);
   const capT = comCfg.reduce((s,x)=>s+x.o.capacidade,0), agT = comCfg.reduce((s,x)=>s+Math.min(x.o.agendados,x.o.capacidade),0);
   const vagT = comCfg.reduce((s,x)=>s+x.o.vagos.reduce((a,v)=>a+v.livres,0),0);
@@ -10799,8 +10840,14 @@ async function painelEquipe() {
   const corTaxa = t => t==null ? 'var(--ink3)' : t>=85 ? 'var(--teal)' : t>=60 ? 'var(--amber)' : 'var(--rose)';
   const fmtDia = d => maiuscula(d.toLocaleDateString('pt-BR',{weekday:'short', day:'2-digit', month:'2-digit'})).replace('.','');
   const admin = currentRole==='admin';
+  const areas = Object.keys(LINHAS).filter(k=>daArea(k).length);
+  const semArea = todas.filter(x=>!x.areas.length);
 
   box.innerHTML = `
+  <div class="agx-seg gs-areas">
+    <button class="${!_gs.area?'on':''}" onclick="_gs.area='';painelEquipe()">Geral</button>
+    ${areas.map(k=>`<button class="${_gs.area===k?'on':''}" onclick="_gs.area='${k}';painelEquipe()">${esc(LINHAS[k].label)}</button>`).join('')}
+  </div>
   <div class="gs-nav">
     <button class="backbtn" onclick="trocarSemanaGestao(-1)" aria-label="Semana anterior">‹</button>
     <button class="backbtn" onclick="trocarSemanaGestao(0)">Esta semana</button>
@@ -10808,18 +10855,28 @@ async function painelEquipe() {
     <b class="gs-tit">${esc(seg.toLocaleDateString('pt-BR',{day:'numeric',month:'short'}))} a ${esc(fimSem.toLocaleDateString('pt-BR',{day:'numeric',month:'short'}))}</b>
   </div>
   <div class="vg-nums" style="margin-bottom:12px">
-    <div class="vg-num"><b>${capT||'—'}</b><span>capacidade da equipe (sessões na semana)</span></div>
+    <div class="vg-num"><b>${capT||'—'}</b><span>capacidade ${_gs.area?'da área':'da equipe'} (sessões na semana)</span></div>
     <div class="vg-num"><b>${agT}</b><span>agendadas dentro da capacidade</span></div>
     <div class="vg-num"><b style="color:${corTaxa(taxaT)}">${taxaT==null?'—':taxaT+'%'}</b><span>ocupação geral</span></div>
     <div class="vg-num"><b>${vagT}</b><span>vagas livres daqui para frente</span></div>
   </div>
+  ${!_gs.area && areas.length ? `<div class="vg-card" style="margin-bottom:12px"><div class="vg-k">Por área</div>
+    <div style="overflow-x:auto"><table class="fin-tabela gs-areas-tab"><thead><tr><th>Área</th><th class="r">Profissionais</th><th class="r">Capacidade</th><th class="r">Agendadas</th><th>Ocupação</th><th class="r">Vagas livres</th></tr></thead>
+    <tbody>${areas.map(k=>{ const r = resumo(daArea(k)); return `<tr onclick="_gs.area='${k}';painelEquipe()">
+      <td><span class="chip ch-${LINHAS[k].color}">${esc(LINHAS[k].label)}</span></td><td class="r">${r.n}${r.semCfg?` <small style="color:var(--amber)">(${r.semCfg} sem disp.)</small>`:''}</td>
+      <td class="r">${r.cap||'—'}</td><td class="r">${r.ag}</td>
+      <td>${r.taxa==null?'—':`<span class="gs-tx"><span class="gs-ocbar"><i style="width:${r.taxa}%;background:${corTaxa(r.taxa)}"></i></span><b style="color:${corTaxa(r.taxa)}">${r.taxa}%</b></span>`}</td>
+      <td class="r">${r.cap?r.vagas:'—'}</td></tr>`; }).join('')}</tbody></table></div>
+    <div class="pt-nota" style="margin:6px 0 0">A área vem do cadastro de cada profissional (Cadastro da equipe › Linhas). Quem atende em mais de uma área entra em todas elas.${semArea.length?' '+semArea.length+(semArea.length===1?' profissional está':' profissionais estão')+' sem área no cadastro.':''}</div></div>` : ''}
   ${linhas.some(x=>!x.o.temCfg) ? `<div class="fe-aviso" style="margin-bottom:12px"><div><b>${linhas.filter(x=>!x.o.temCfg).length} ${linhas.filter(x=>!x.o.temCfg).length===1?'profissional ainda sem':'profissionais ainda sem'} disponibilidade.</b> ${admin?'Toque em "definir disponibilidade" para dizer em que dias e horários cada uma atende.':'A gestão define a disponibilidade de cada uma.'}</div></div>` : ''}
-  <div class="gs-equipe">${linhas.map(({p,cfg,o})=>{
+  <div class="gs-equipe">${linhas.map(({p,cfg,o,areas:ar})=>{
     const aberto = _gs.abertoProf===p.email;
     const porDia = {}; o.vagos.forEach(v=>{ const k=diaISO(v.d); (porDia[k]=porDia[k]||{d:v.d, l:[]}).l.push(v); });
     return `<div class="gs-prof">
       <div class="gs-prof-h">
-        <div class="gs-prof-n"><i style="background:${agCor(p.email)}"></i><div><b>${esc(p.nome)}</b><span>${o.temCfg?`${o.capacidade} sessões possíveis · ${o.dur} min${o.vagas>1?' · '+o.vagas+' por horário':''}${o.folgas?' · '+o.folgas+(o.folgas===1?' dia de folga':' dias de folga'):''}`:'sem disponibilidade definida'}</span></div></div>
+        <div class="gs-prof-n"><i style="background:${agCor(p.email)}"></i><div><b>${esc(p.nome)}</b>
+          <div class="gs-prof-l">${ar.length ? ar.map(k=>`<span class="chip ch-${(LINHAS[k]||{}).color||'gray'}">${esc((LINHAS[k]||{label:k}).label)}</span>`).join('') : '<span class="chip ch-gray">sem área no cadastro</span>'}</div>
+          <span>${o.temCfg?`${o.capacidade} sessões possíveis · ${o.dur} min${o.vagas>1?' · '+o.vagas+' por horário':''}${o.folgas?' · '+o.folgas+(o.folgas===1?' dia de folga':' dias de folga'):''}`:'sem disponibilidade definida'}</span></div></div>
         <div class="gs-prof-k"><b>${o.agendados}</b><span>agendadas</span></div>
         <div class="gs-prof-k gs-taxa"><b style="color:${corTaxa(o.taxa)}">${o.taxa==null?'—':o.taxa+'%'}</b><span>ocupação</span>
           ${o.taxa!=null?`<div class="gs-ocbar"><i style="width:${o.taxa}%;background:${corTaxa(o.taxa)}"></i></div>`:''}</div>
@@ -10836,6 +10893,11 @@ async function painelEquipe() {
   <div class="pt-nota">Capacidade = horários de atendimento que cabem na disponibilidade de cada profissional na semana (vezes as vagas por horário, no caso de turma). Dias com evento de dia inteiro na agenda dela (folga, férias, curso) não contam. Horários vagos mostram só o que ainda está por vir; toque num deles para agendar.</div>`;
 }
 
+// Linhas (áreas) em que a profissional atende, do cadastro da equipe; "todos" = todas
+function areasDaProf(p) {
+  const l = (Array.isArray(p.linhas) ? p.linhas : String(p.linhas||'').split(',')).map(x=>String(x).trim().toLowerCase()).filter(Boolean);
+  return l.includes('todos') ? Object.keys(LINHAS) : l.filter(k=>LINHAS[k]);
+}
 function editarDisponibilidade(email) {
   if(currentRole!=='admin') return;
   const p = (_ag.profissionais||[]).find(x=>x.email===email) || {nome:email};
