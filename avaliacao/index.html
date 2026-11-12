@@ -325,7 +325,7 @@ input[type=date]{width:100%;min-height:48px;font:inherit;color:var(--ink);backgr
     </div>
     <p class="err" id="pErr" hidden></p>
     <p class="pfacts" id="pFacts"></p>
-    <button class="linkbtn" id="pDataToggle" type="button">Dados do paciente (sexo, nascimento, escolaridade, nível no Pilates)</button>
+    <button class="linkbtn" id="pDataToggle" type="button">Dados do paciente (sexo, nascimento, altura, escolaridade, nível no Pilates)</button>
     <div class="stack" id="pData" hidden>
       <div class="row">
         <div><label for="pSex">Sexo</label><select id="pSex"><option value="">–</option><option value="F">Feminino</option><option value="M">Masculino</option></select></div>
@@ -1312,9 +1312,10 @@ $('#cSave').addEventListener('click',async()=>{
 const G=(j,s)=>({k:'gonio',j,s}),EQ=p=>({k:'equi',p}),FU=t=>({k:'func',t}),SC=(id,s)=>({k:'escala',id,s}),QI=i=>({k:'geri',i}),PI=(t,s,o)=>({k:'pil',t,s,o}),GR=[SC('preensao','D'),SC('preensao','E')],DOR={k:'escala',id:'dor',note:'se houver queixa'};
 const PRS={
  longevidade:{label:'Longevidade 60+ (protocolo Casa Oliveira)',how:'Avaliação em camadas para pessoas idosas: triagem multidimensional (IVCF-20), fragilidade física (Fried) e desempenho (SPPB, TUG, força), instrumentos por domínio e síntese clínica (CFS). Faça na ordem e gere o Relatório para o paciente na aba Relatório. Reavalie nos mesmos dias de protocolo: entrada, 3 e 6 meses.',items:[QI('antro'),QI('ivcf'),SC('preensao','D'),SC('preensao','E'),FU('tug'),FU('marcha'),FU('sl30'),QI('sppb'),QI('fried'),QI('katz'),QI('lawton'),QI('meem'),QI('moca'),QI('gds'),QI('man'),SC('berg'),SC('fesi'),QI('cfs')]},
- pil1:{label:'Pilates · Nível 1 · Funcional Essencial',nivel:1,how:'Para idosos frágeis, alunos com baixa capacidade funcional ou que estão começando. Objetivo: segurança, mobilidade básica, equilíbrio e independência.',items:[...GR,FU('tug'),PI('sts5'),PI('eqest'),DOR]},
- pil2:{label:'Pilates · Nível 2 · Funcional Ativo',nivel:2,how:'Para quem já treina, tem boa consciência corporal e executa os exercícios, mas apresenta alguma limitação. Apoio unipodal com teto de 30 s de olhos abertos: quem completar 30 s repete de olhos fechados (o app troca sozinho).',items:[...GR,FU('sl30'),PI('unip','D','A'),PI('unip','E','A'),DOR]},
- pil3:{label:'Pilates · Nível 3 · Performance e Movimento',nivel:3,how:'Para jovens, adultos jovens e alunos sem queixas. Prancha com teto de 90 s, sem levar à falha. Apoio unipodal de olhos fechados; se for muito difícil para o aluno, use olhos abertos (troque em Olhos, na aba Pilates).',items:[...GR,PI('prancha'),PI('agach'),PI('unip','D','F'),PI('unip','E','F'),PI('plat','D'),PI('plat','E')]},
+ pil0:{label:'Pilates · Alunas antigas (reavaliação rápida)',how:'Para quem já é aluna e ainda não tem avaliação no sistema. Confira sexo e data de nascimento em Dados do paciente, leve a balança, e registre peso e altura (o IMC sai sozinho) e a força de preensão das duas mãos.',items:[QI('antro'),...GR]},
+ pil1:{label:'Pilates · Nível 1 · Funcional Essencial',nivel:1,how:'Para idosos frágeis, alunos com baixa capacidade funcional ou que estão começando. Objetivo: segurança, mobilidade básica, equilíbrio e independência.',items:[QI('antro'),...GR,FU('tug'),PI('sts5'),PI('eqest'),PI('sentalc'),PI('quadri','D'),PI('quadri','E'),QI('who5'),DOR]},
+ pil2:{label:'Pilates · Nível 2 · Funcional Ativo',nivel:2,how:'Para quem já treina, tem boa consciência corporal e executa os exercícios, mas apresenta alguma limitação. Apoio unipodal com teto de 30 s de olhos abertos: quem completar 30 s repete de olhos fechados (o app troca sozinho).',items:[QI('antro'),...GR,FU('sl30'),PI('unip','D','A'),PI('unip','E','A'),PI('sentalc'),PI('quadri','D'),PI('quadri','E'),QI('who5'),DOR]},
+ pil3:{label:'Pilates · Nível 3 · Performance e Movimento',nivel:3,how:'Para jovens, adultos jovens e alunos sem queixas. Prancha com teto de 90 s, sem levar à falha. Apoio unipodal de olhos fechados; se for muito difícil para o aluno, use olhos abertos (troque em Olhos, na aba Pilates).',items:[QI('antro'),...GR,PI('prancha'),PI('agach'),PI('unip','D','F'),PI('unip','E','F'),PI('plat','D'),PI('plat','E'),PI('sentalc'),PI('quadri','D'),PI('quadri','E'),QI('who5')]},
  lca:{label:'Joelho: pós-operatório de LCA',how:'Bateria para reavaliar joelho após reconstrução do ligamento cruzado anterior. Use o lado operado.',items:[SC('dor'),...GR,G('joelho_flex'),G('joelho_ext'),EQ('u'),FU('marcha'),SC('koos')]},
  ombro:{label:'Ombro: rigidez ou manguito',how:'Bateria para ombro doloroso, capsulite ou lesão do manguito rotador.',items:[SC('dor'),...GR,G('ombro_flex'),G('ombro_abd'),G('ombro_re'),G('ombro_ri'),SC('dash')]},
  lombar:{label:'Coluna lombar: lombalgia',how:'Bateria para lombalgia. A inclinação e a rotação são medidas para os dois lados.',items:[SC('dor'),...GR,G('tl_flex'),G('tl_ext'),G('tl_incl','D'),G('tl_incl','E'),G('tl_rot','D'),G('tl_rot','E'),SC('odi')]},
@@ -1349,11 +1350,15 @@ function renderProto(){
   const lista=itensDoLado(P,sideSel);
   const today=new Date().toDateString();const recs=p?p.records.filter(r=>new Date(r.date).toDateString()===today):[];
   let n=0;
-  $('#prList').innerHTML=lista.map(({it,side},i)=>{const done=recs.some(r=>itMatch(it,side,r));if(done)n++;return `<div class="it"><span class="${done?'done':''}">${done?'✓ ':''}${esc(itDesc(it,side))}</span><button type="button" data-i="${i}">${done?'Refazer':'Fazer'}</button></div>`}).join('')
+  // Pilates: sexo e nascimento são o primeiro passo (as referências dependem deles)
+  const ehPil=/^pil/.test($('#prSel').value);
+  const faltaDado=p&&ehPil&&(!p.sexo||!p.nasc);
+  $('#prList').innerHTML=(faltaDado?`<div class="it" style="background:#FFF4E5;border-radius:10px;padding:10px 12px"><span><b>Antes de começar:</b> preencha ${[!p.sexo?'o sexo':'',!p.nasc?'a data de nascimento':''].filter(Boolean).join(' e ')} em Dados do paciente.</span><button type="button" id="prDados">Preencher</button></div>`:'')+lista.map(({it,side},i)=>{const done=recs.some(r=>itMatch(it,side,r));if(done)n++;return `<div class="it"><span class="${done?'done':''}">${done?'✓ ':''}${esc(itDesc(it,side))}</span><button type="button" data-i="${i}">${done?'Refazer':'Fazer'}</button></div>`}).join('')
    +`<div class="it"><span class="hint">${n} de ${lista.length} itens feitos hoje${p?'':'. Escolha um paciente'}</span></div>`
    +(P.nivel&&p?`<div class="it"><span${p.nivel===P.nivel?' class="done"':''}>${p.nivel===P.nivel?'✓ Aluno no '+LEVELS[P.nivel].n:p.nivel?'Aluno hoje no '+LEVELS[p.nivel].n:'Aluno ainda sem nível'}</span>${p.nivel===P.nivel?'':`<button type="button" data-nv="${P.nivel}">Mudar para Nível ${P.nivel}</button>`}</div>`:'');
   $('#prList').querySelectorAll('button[data-i]').forEach(bt=>bt.onclick=()=>protoGo(lista[+bt.dataset.i].it,lista[+bt.dataset.i].side));
   $('#prList').querySelectorAll('button[data-nv]').forEach(bt=>bt.onclick=()=>setNivel(bt.dataset.nv));
+  const bd=$('#prDados');if(bd)bd.onclick=()=>{const d=$('#pData');d.hidden=false;d.scrollIntoView({behavior:'smooth',block:'center'});($('#pSex').value?$('#pNasc'):$('#pSex')).focus()};
 }
 $('#prSel').addEventListener('change',renderProto);$('#prSide').addEventListener('change',renderProto);
 
@@ -1553,7 +1558,7 @@ function renderPData(){
 }
 $('#pDataToggle').addEventListener('click',()=>{const d=$('#pData');d.hidden=!d.hidden});
 function pDataSave(){const p=cur();if(!p)return;p.sexo=$('#pSex').value||null;p.nasc=$('#pNasc').value||null;const e=num($('#pEsc').value);p.esc=e!=null&&e>=0?Math.round(e):null;const h=num($('#pAlt').value);p.altura=h&&h>50&&h<250?h:null;savePerfil(p);renderPData();if(!$('#tab-ger').hidden){qPrefill(true);qRender()}}
-['#pSex','#pNasc','#pEsc','#pAlt'].forEach(x=>$(x).addEventListener('change',pDataSave));
+['#pSex','#pNasc','#pEsc','#pAlt'].forEach(x=>$(x).addEventListener('change',()=>{pDataSave();renderProto()}));
 function lastRec(p,f){if(!p)return null;const a=p.records.filter(f).sort((x,y)=>x.date.localeCompare(y.date));return a.length?a[a.length-1]:null}
 function lastGrip(p){const d=lastRec(p,r=>r.type==='escala'&&r.escala==='preensao'&&r.lado==='D'),e=lastRec(p,r=>r.type==='escala'&&r.escala==='preensao'&&r.lado==='E');const v=[d,e].filter(Boolean).map(r=>r.value);return v.length?Math.max(...v):null}
 function lastSpeed(p){const r=lastRec(p,r=>r.type==='marcha'||(r.type==='geri'&&r.inst==='sppb'&&r.detail&&r.detail.vel));return r?(r.type==='marcha'?r.velocidade:r.detail.vel):null}
@@ -1680,6 +1685,13 @@ const QS={
   bands:[{lo:7,hi:7,l:3,t:'Dependência total'},{lo:8,hi:20,l:1,t:'Dependência parcial'},{lo:21,hi:21,l:0,t:'Independente'}],
   items:[['tel','Usar o telefone'],['transp','Ir a lugares distantes (ônibus, táxi, carro)'],['compras','Fazer compras'],['refeic','Preparar as refeições'],['casa','Fazer o trabalho doméstico'],['remed','Tomar os remédios'],['dinheiro','Cuidar do dinheiro']].map(([id,t])=>({k:'opt',id,t,o:[[3,'Sem ajuda'],[2,'Com ajuda parcial'],[1,'Não consegue']]})),
   score(a){const ks=['tel','transp','compras','refeic','casa','remed','dinheiro'];const m=ks.filter(k=>a[k]==null);if(m.length)return{miss:m.length};return{score:ks.reduce((x,k)=>x+ +a[k],0),lines:[]}}},
+ who5:{label:'Bem-estar (WHO-5)',full:'Índice de Bem-Estar da OMS, 5 itens',better:'high',min:0,max:100,unit:'%',
+  how:'Pergunte sobre as últimas duas semanas. Leia cada frase e marque com que frequência a pessoa se sentiu assim.',
+  ref:'Topp CW et al., Psychother Psychosom, 2015; versão brasileira de Souza CM e Hidalgo MPL, 2012. Pontuação de 0 a 100: abaixo de 50 vale conversar sobre o bem-estar.',
+  bands:[{lo:0,hi:28,l:2,t:'Bem-estar baixo'},{lo:29,hi:50,l:1,t:'Bem-estar pede cuidado'},{lo:51,hi:100,l:0,t:'Bom bem-estar'}],
+  items:[['w1','Eu me senti alegre e de bom humor'],['w2','Eu me senti calma e tranquila'],['w3','Eu me senti ativa e cheia de energia'],['w4','Acordei me sentindo descansada e revigorada'],['w5','Meu dia a dia foi cheio de coisas que me interessam']]
+    .map(([id,t])=>({k:'opt',col:1,id,t,o:[[5,'O tempo todo'],[4,'A maior parte do tempo'],[3,'Mais da metade do tempo'],[2,'Menos da metade do tempo'],[1,'De vez em quando'],[0,'Nunca']]})),
+  score(a){const its=this.items;const m=its.filter(i=>a[i.id]==null);if(m.length)return{miss:m.length};const s=its.reduce((t,i)=>t+(+a[i.id]),0)*4;return{score:s,lines:s<50?['Abaixo de 50: vale conversar sobre o bem-estar e o que tem pesado no dia a dia.']:[]}}},
  gds:{label:'GDS-15',full:'Escala de Depressão Geriátrica, 15 itens',better:'low',min:0,max:15,
   how:'Pergunte sobre a última semana. Leia cada pergunta como está e marque a resposta da pessoa.',
   ref:'Yesavage JA, Sheikh JI, 1986; validação brasileira de Almeida e Almeida, 1999. 0–5 sem sintomas relevantes, 6–10 leves a moderados, 11–15 graves.',
@@ -1892,6 +1904,7 @@ const EXPL={
  katz:'Independência nas atividades básicas: banho, vestir, banheiro, transferência, continência e alimentação.',
  lawton:'Independência nas atividades que mantêm a vida em casa e na comunidade: telefone, transporte, compras, refeições, casa, remédios e dinheiro.',
  gds:'Rastreia sintomas de depressão na última semana. Quanto menor, melhor.',
+ who5:'Como você tem se sentido nas últimas duas semanas: alegria, calma, energia, descanso e interesse. Quanto maior, melhor.',
  meem:'Rastreio cognitivo, interpretado de acordo com a escolaridade.',
  moca:'Rastreio cognitivo mais sensível a alterações leves.',
  man:'Rastreia o risco de desnutrição. Quanto maior, melhor.',
@@ -1951,7 +1964,7 @@ function ptRender(){
   if(top.length)h+=`<div class="sec"><h2>Classificação geral</h2><p class="sd">Os quatro instrumentos que resumem vulnerabilidade, fragilidade e desempenho físico.</p><div class="grid">${top.map(k=>qCard(k,S['q_'+k])).join('')}</div></div>`;
   /* normativos */
   const nCard=(key,nk,a,title)=>{const N=NORM[nk];const fm=v=>fN(v,N.dec);if(!sx||age==null)return `<div class="pc"><div class="t"><h3>${title}</h3></div><div class="big">${fm(a[a.length-1].v)}<small>${N.unit}</small></div><p class="empty">Cadastre sexo e data de nascimento para comparar com a referência.</p>${chgLine(a,fm,N.better,N.unit)}</div>`;
-    const n=N.get(sx,age,key.slice(-1));if(!n)return `<div class="pc"><div class="t"><h3>${title}</h3></div><div class="big">${fm(a[a.length-1].v)}<small>${N.unit}</small></div><p class="empty">Sem referência publicada para esta idade.</p>${chgLine(a,fm,N.better,N.unit)}</div>`;
+    const n=N.get(sx,age,key.slice(-1));if(!n)return `<div class="pc"><div class="t"><h3>${title}</h3></div><div class="big">${fm(a[a.length-1].v)}<small>${N.unit}</small></div>${chgLine(a,fm,N.better,N.unit)}</div>`;
     N.src.forEach(x=>used.add(x));const v=a[a.length-1].v;const z=(v-n.m)/n.sd;const zp=N.better==='high'?z:-z;const zn=zoneOf(zp);const pc=Math.round(Phi(zp)*100);
     const grpT=(sx==='F'?'mulheres':'homens')+' de '+n.grp;
     let mean=`O esperado para ${grpT} é cerca de <b>${fm(n.m)} ${N.unit}</b> (faixa habitual de ${fm(Math.max(0,n.m-n.sd))} a ${fm(n.m+n.sd)}). `;
@@ -1967,8 +1980,8 @@ function ptRender(){
     nc.push(`<div class="pc"><div class="t"><div><h3>${e.label}</h3><div class="st">${e.st}</div></div><span class="tag" style="background:${LC[b.l]}">${b.t}</span></div><div class="big">${fm(a[a.length-1].v)}<small>/${e.max}</small></div>${gaugeSVG(e.bands,e.min,e.max,a,fm,gi)}${chgLine(a,fm,e.better)}<p class="ref">${esc(e.ref)}</p></div>`)});
   if(nc.length)h+=`<div class="sec"><h2>Força, equilíbrio e mobilidade</h2><p class="sd">Como cada resultado se compara com pessoas da mesma idade e do mesmo sexo.</p>${zl}<div class="grid" style="margin-top:12px">${nc.join('')}</div></div>`;
   const pc=pilCards(p,S,age,gi,used);
-  if(pc.length)h+=`<div class="sec"><h2>Pilates: pernas, equilíbrio e tronco</h2><p class="sd">Testes do protocolo do seu nível. Quando existe referência publicada, a cor mostra a faixa; quando não existe, a comparação é com você mesmo.</p><div class="grid">${pc.join('')}</div></div>`;
-  const rest=['katz','lawton','meem','moca','gds','man','antro'].filter(k=>S['q_'+k]);
+  if(pc.length)h+=`<div class="sec"><h2>Pilates: pernas, equilíbrio e tronco</h2><p class="sd">Testes do protocolo do seu nível, com a sua evolução a cada reavaliação.</p><div class="grid">${pc.join('')}</div></div>`;
+  const rest=['who5','katz','lawton','meem','moca','gds','man','antro'].filter(k=>S['q_'+k]);
   if(rest.length)h+=`<div class="sec"><h2>Autonomia, memória, humor e nutrição</h2><p class="sd">Instrumentos com pontos de corte publicados. A cor mostra a faixa em que o resultado está.</p><div class="grid">${rest.map(k=>qCard(k,S['q_'+k])).join('')}</div></div>`;
   if(!top.length&&!nc.length&&!rest.length&&!pc.length)h+=`<p class="empty" style="margin-top:20px">Ainda não há testes com comparação para este paciente. Registre os testes do Protocolo Longevidade 60+ ou força, TUG, marcha e sentar e levantar.</p>`;
   if(g('#ptMsg')||g('#ptPlano'))h+=`<div class="sec"><h2>O que isso significa e o que vamos fazer</h2><div class="box">${g('#ptMsg')?`<p>${br(g('#ptMsg'))}</p>`:''}${g('#ptPlano')?`<p><b>Plano de cuidado:</b> ${br(g('#ptPlano'))}</p>`:''}</div></div>`;
@@ -2004,13 +2017,20 @@ const PT={
   fields:[['tempo','Tempo','s']]},
  agach:{label:'Agachamentos em 30 s',short:'Agachamentos em 30 s',cap:30,mode:'down',better:'high',unit:'repetições',dec:0,count:true,
   how:'Pés na largura do quadril. Cada repetição vai até cerca de 90° de joelho (ou encostar numa cadeira atrás) e volta à extensão completa. Toque em Iniciar e, a cada repetição completa, toque no botão +1. O tempo para sozinho em 30 s.',
-  fields:[['n','Repetições','']]}
+  fields:[['n','Repetições','']]},
+ sentalc:{label:'Sentar e alcançar (flexibilidade da parte de trás da coxa)',short:'Sentar e alcançar',manual:true,neg:true,better:'high',unit:'cm',dec:0,
+  how:'Sentada no chão, pernas esticadas e juntas, pés apoiados na caixa ou na parede. Mãos uma sobre a outra, leva o corpo à frente devagar, sem balançar, e segura 2 s. Meça a distância entre a ponta dos dedos das mãos e a ponta dos pés: negativo se não alcança os pés (ex.: -8), 0 se toca, positivo se passa (ex.: 5).',
+  fields:[['cm','Distância até a ponta dos pés','cm']]},
+ quadri:{label:'Alongamento de quadríceps (pegar o pé com a mão)',short:'Alongamento de quadríceps',manual:true,lado:true,better:'low',unit:'cm',dec:0,
+  how:'Em pé com apoio (ou deitada de bruços), dobra o joelho e tenta pegar o pé com a mão do mesmo lado, levando o calcanhar em direção ao glúteo sem arquear a lombar. Meça a distância entre o calcanhar e o glúteo: 0 se encosta. Registre os dois lados.',
+  fields:[['cm','Distância calcanhar–glúteo','cm']],flag:['naopega','Não conseguiu pegar o pé com a mão']}
 };
 const ladoTxt=(t,s)=>!s?'':t==='plat'?(s==='D'?'lado direito':'lado esquerdo'):(s==='D'?'perna direita':'perna esquerda');
+const flexTxt=v=>v<0?'não alcança os pés ('+fN(Math.abs(v),0)+' cm antes)':v===0?'toca a ponta dos pés':'passa '+fN(v,0)+' cm da ponta dos pés';
 const olhosTxt=o=>!o?'':o==='A'?'olhos abertos':'olhos fechados';
 function pilLabel(r){const P=PT[r.t];const b=[ladoTxt(r.t,r.lado),olhosTxt(r.olhos)].filter(Boolean);return P.short+(b.length?' · '+b.join(', '):'')}
-function pilFmt(t,v){const P=PT[t];return v==null?'–':fN(v,P.dec)+(t==='agach'?'':' s')}
-function pilSub(r){if(r.t==='eqest')return `Pés juntos ${pilFmt('eqest',r.pj)} · semi-tandem ${pilFmt('eqest',r.st)} · tandem ${pilFmt('eqest',r.td)}`;if(r.t==='sts5')return r.bracos?'Usou os braços para levantar.':'Sem apoio dos braços.';return ''}
+function pilFmt(t,v){const P=PT[t];return v==null?'–':fN(v,P.dec)+(P.manual?' '+P.unit:t==='agach'?'':' s')}
+function pilSub(r){if(r.t==='eqest')return `Pés juntos ${pilFmt('eqest',r.pj)} · semi-tandem ${pilFmt('eqest',r.st)} · tandem ${pilFmt('eqest',r.td)}`;if(r.t==='sts5')return r.bracos?'Usou os braços para levantar.':'Sem apoio dos braços.';if(r.t==='sentalc'){const x=flexTxt(r.v);return x.charAt(0).toUpperCase()+x.slice(1)+'.'}if(r.t==='quadri')return r.naopega?'Não conseguiu pegar o pé com a mão.':r.v===0?'Calcanhar encosta no glúteo.':'';return ''}
 
 /* ---------- formulário e cronômetro ---------- */
 $('#kSel').innerHTML=Object.entries(PT).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join('');
@@ -2021,13 +2041,15 @@ function kOnSel(){
   $('#kHow').textContent=P.how;$('#kLadoW').hidden=!P.lado;$('#kOlhosW').hidden=!P.olhos;$('#kSideRow').hidden=!P.lado&&!P.olhos;
   $('#kLadoLbl').textContent=t==='plat'?'Lado':'Perna de apoio';
   $('#kPos').hidden=!P.pos;$('#kTap').hidden=true;
-  $('#kFields').innerHTML=P.fields.map(([id,lb,u])=>`<div class="qnum"><div><label for="kf_${id}">${lb}${P.pos?'':''}</label><input type="number" inputmode="decimal" id="kf_${id}" data-id="${id}" min="0"></div><span class="unit">${u}</span></div>`).join('')
+  document.querySelector('#tab-pil .kstage').hidden=!!P.manual;$('#kGo').hidden=!!P.manual;
+  $('#kFields').innerHTML=P.fields.map(([id,lb,u])=>`<div class="qnum"><div><label for="kf_${id}">${lb}${P.pos?'':''}</label><input type="${P.neg?'text':'number'}" inputmode="${P.neg?'text':'decimal'}" id="kf_${id}" data-id="${id}"${P.neg?' placeholder="ex.: -8, 0 ou 5"':' min="0"'}></div><span class="unit">${u}</span></div>`).join('')
     +(P.flag?`<label class="chk"><input type="checkbox" id="kFlag"> ${P.flag[1]}</label>`:'');
   $('#kObs').value='';kt.n=0;kt.val=0;kRender();
   $('#kRef').textContent=t==='sts5'?'Referência: média de 11,4 s (60 a 69 anos), 12,6 s (70 a 79) e 14,8 s (80 a 89), Bohannon, 2006. 15 s ou mais: maior risco de queda (Buatois et al., 2008).':
     t==='unip'?'Referência: médias por idade de Springer et al., 2007. Menos de 5 s com olhos abertos se associa a maior risco de queda (Vellas et al., 1997).':
     t==='eqest'?'Posições e tempos da SPPB (Guralnik et al., 1994).':t==='plat'?'Compare os dois lados: diferença acima de 5% sugere assimetria de resistência do tronco (McGill et al., 1999).':
-    t==='prancha'?'Sem valor populacional de referência com teto de 90 s: a comparação é com o próprio aluno, a cada reavaliação.':'Sem valor populacional de referência: a comparação é com o próprio aluno, a cada reavaliação.';
+    t==='sentalc'?'A comparação é com a própria aluna, a cada reavaliação: quanto mais à frente, mais flexível.':t==='quadri'?'Compare os dois lados e a evolução: quanto mais perto do glúteo, mais flexível o quadríceps.':
+    t==='prancha'?'Teto de 90 s: a comparação é com o próprio aluno, a cada reavaliação.':'A comparação é com o próprio aluno, a cada reavaliação.';
 }
 $('#kSel').addEventListener('change',kOnSel);
 $('#kPos').addEventListener('click',e=>{const bt=e.target.closest('button');if(!bt)return;kt.pos=bt.dataset.p;kRender()});
@@ -2072,11 +2094,13 @@ $('#kSave').addEventListener('click',async()=>{
   if(t==='eqest'){r.pj=val('pj');r.st=val('st');r.td=val('td');if(r.pj==null){toast('Registre ao menos o tempo de pés juntos.');return}
     ['pj','st','td'].forEach(k=>{if(r[k]!=null)r[k]=Math.min(10,r[k])});r.v=r.td!=null?r.td:0}
   else if(P.count){const n=val('n');if(n==null){toast('Registre o número de repetições.');return}r.v=Math.round(n)}
-  else{const v=val('tempo');if(v==null||(t==='sts5'&&v<=0)){toast('Registre o tempo.');return}r.v=Math.min(P.cap,v);if(P.flag)r.bracos=$('#kFlag').checked}
+  else if(P.manual){const id=P.fields[0][0],x=$('#kf_'+id),v=x?num(String(x.value).replace('+','').replace('−','-')):null;
+    if(v==null||(!P.neg&&v<0)){toast('Registre a medida em cm.');return}r.v=Math.round(v);if(P.flag)r[P.flag[0]]=$('#kFlag').checked}
+  else{const v=val('tempo');if(v==null||(t==='sts5'&&v<=0)){toast('Registre o tempo.');return}r.v=Math.min(P.cap,v);if(P.flag)r[P.flag[0]]=$('#kFlag').checked}
   if(!await salvando($('#kSave'),()=>addRecord(r)))return;
   toast('Salvo no prontuário: '+pilLabel(r)+', '+(t==='eqest'?'tandem '+pilFmt(t,r.td):pilFmt(t,r.v)));
   if(t==='unip'&&r.olhos==='A'&&r.v>=30){$('#kOlhos').value='F';toast('Completou 30 s de olhos abertos. Repita de olhos fechados.')}
-  else if((t==='unip'||t==='plat')&&r.lado==='D')$('#kLado').value='E';
+  else if((t==='unip'||t==='plat'||t==='quadri')&&r.lado==='D')$('#kLado').value='E';
   P.fields.forEach(([id])=>{const x=$('#kf_'+id);if(x)x.value=''});if($('#kFlag'))$('#kFlag').checked=false;$('#kObs').value='';kt.val=0;kt.n=0;kt.pos='pj';kRender();
 });
 kOnSel();
@@ -2118,7 +2142,7 @@ function pilCards(p,S,age,gi,used){
   const tagL=b=>`<span class="tag" style="background:${LC[b.l]}">${b.t}</span>`;
   /* 5xSTS */
   if(S['p_sts5||']){const a=S['p_sts5||'];const v=a[a.length-1].v,lr=a[a.length-1].r;const rf=STS_REF(age);const fm=v=>fN(v,1);
-    const bs=rf?[{lo:0,hi:rf[0],l:0,t:'Dentro da média para a idade'},{lo:rf[0],hi:15,l:1,t:'Mais lento que a média'},{lo:15,hi:999,l:3,t:'Maior risco de queda'}]:[{lo:0,hi:12,l:0,t:'Abaixo de 12 s'},{lo:12,hi:15,l:1,t:'Atenção: 12 s ou mais'},{lo:15,hi:999,l:3,t:'Maior risco de queda'}];
+    const bs=rf?[{lo:0,hi:rf[0],l:0,t:'Dentro da média para a idade'},{lo:rf[0],hi:15,l:1,t:'Mais lento que a média'},{lo:15,hi:999,l:3,t:'Pede atenção ao risco de queda'}]:[{lo:0,hi:12,l:0,t:'Abaixo de 12 s'},{lo:12,hi:15,l:1,t:'Atenção: 12 s ou mais'},{lo:15,hi:999,l:3,t:'Pede atenção ao risco de queda'}];
     const b=band(bs,v)||bs[bs.length-1];used.add('bohannon5');used.add('buatois');if(!rf)used.add('tiedemann');
     out.push(card('Sentar e levantar 5 vezes','força e potência das pernas',tagL(b),fm(v),'s',gaugeSVG(bs,0,Math.max(30,Math.ceil(Math.max(...a.map(q=>q.v))/5)*5),a,fm,gi),
       (rf?`A média publicada para pessoas de ${rf[1]} é <b>${fN(rf[0],1)} s</b>. `:'Valores de referência publicados existem a partir dos 60 anos; aqui o resultado é comparado aos pontos de corte de risco. ')+'Quanto menor o tempo, melhor.'+(lr.bracos?' <b>Usou os braços</b> para levantar.':''),
@@ -2155,6 +2179,12 @@ function pilCards(p,S,age,gi,used){
   /* agachamentos */
   if(S['p_agach||']){const a=S['p_agach||'];const v=a[a.length-1].v;const fm=v=>fN(v,0);const mx=Math.max(30,Math.ceil(Math.max(...a.map(q=>q.v))/5)*5);
     out.push(card('Agachamentos em 30 s','força e resistência das pernas','',fm(v),'repetições',progSVG(mx,a,v=>fN(v,0),gi,false),'Repetições completas em 30 segundos. A comparação é com você mesmo, a cada reavaliação.',chgLine(a,fm,'high','repetições')+evoSVG(a,fm,null,null,null,'','high',gi),''))}
+  /* flexibilidade */
+  if(S['p_sentalc||']){const a=S['p_sentalc||'];const v=a[a.length-1].v;const fm=v=>fN(v,0);const tag=v>=0?{l:0,t:'Alcança os pés'}:{l:1,t:'Pode ganhar flexibilidade'};
+    out.push(card('Sentar e alcançar','flexibilidade da parte de trás da coxa',tagL(tag),fm(v),'cm','<p class="mean">Hoje: <b>'+flexTxt(v)+'</b>.</p>','Mede a flexibilidade da parte de trás das coxas e da lombar. Quanto mais à frente as mãos chegam, melhor.',chgLine(a,fm,'high','cm'),''))}
+  [['D','direita'],['E','esquerda']].forEach(([l,t])=>{const a=S[`p_quadri|${l}|`];if(!a)return;const lr=a[a.length-1].r,v=a[a.length-1].v;const fm=v=>fN(v,0);
+    const tag=lr.naopega?{l:1,t:'Ainda não pega o pé'}:v<=0?{l:0,t:'Calcanhar encosta no glúteo'}:{l:1,t:'Pode ganhar flexibilidade'};
+    out.push(card('Alongamento de quadríceps · perna '+t,'flexibilidade da frente da coxa',tagL(tag),fm(v),'cm do glúteo','',(lr.naopega?'Ainda não conseguiu pegar o pé com a mão. ':'')+'Distância entre o calcanhar e o glúteo: quanto menor, mais flexível.',chgLine(a,fm,'low','cm'),''))});
   /* dor */
   if(S.e_dor){const a=S.e_dor;const v=a[a.length-1].v;const bs=[{lo:0,hi:3,l:0,t:'Dor leve ou ausente'},{lo:4,hi:6,l:1,t:'Dor moderada'},{lo:7,hi:10,l:3,t:'Dor intensa'}];const b=band(bs,v)||bs[0];const fm=v=>fN(v,0);
     out.push(card('Dor','escala visual analógica, de 0 a 10',tagL(b),fm(v),'/10',gaugeSVG(bs,0,10,a,fm,gi),'0 é sem dor e 10 é a pior dor imaginável. Quanto menor, melhor.',chgLine(a,fm,'low',''),''))}
@@ -2180,7 +2210,7 @@ const PN_ZC=['#E5533D','#EE9A3C','#C3D046','#6CC04A','#4FC9A0','#4F8EF7']; /* mu
 const PN_LC=['#6CC04A','#E8C33F','#EE8A3C','#E5533D']; /* níveis 0 a 3 */
 const PN_SEG=['#E5533D','#EE8A3C','#E8B83F','#D6CF45','#B7D24A','#8FC94A','#6CC04A','#5FCF8A','#4FC9B0','#4F8EF7'];
 const PN_SEC=[['geral','Classificação geral','Vulnerabilidade, fragilidade e desempenho físico'],['forca','Força','Mãos e pernas'],['mob','Mobilidade e equilíbrio','Transferências, caminhada e equilíbrio'],
-  ['tronco','Tronco','Resistência do abdômen e das laterais'],['vida','Autonomia, memória, humor e nutrição','Instrumentos com pontos de corte publicados'],['dor','Dor','Como a dor está no dia a dia']];
+  ['tronco','Tronco','Resistência do abdômen e das laterais'],['flex','Flexibilidade','Parte de trás e da frente das coxas'],['vida','Autonomia, memória, humor e nutrição','Instrumentos com pontos de corte publicados'],['dor','Dor','Como a dor está no dia a dia']];
 let pnN=0,PN=null;
 const bandAt=(bs,v)=>{let b=bs[0];bs.forEach(x=>{if(v>=x.lo)b=x});return b};
 
@@ -2255,7 +2285,7 @@ function pnModel(p,cmpDay){
   const bandItem=(o,bs,min,max)=>{const b=bandAt(bs,o.a[o.a.length-1].v);return add(Object.assign(o,{viz:'bar',bs,min,max,tag:{t:b.t,c:PN_LC[b.l]},st:b.l===0?'ok':b.l===1?'mid':'att'}))};
   const norm=(key,nk,a,title,sec,side)=>{const N=NORM[nk],fm=v=>fN(v,N.dec),n=sx&&age!=null?N.get(sx,age,side):null;
     const o={key,sec,title,a,fm,unit:N.unit,better:N.better,ref:N.src.map(x=>SHORT[x]).join('; ')};
-    if(!n){o.viz='line';o.sub=!sx||age==null?'sexo e nascimento não cadastrados':'sem referência publicada para a idade';o.expl='Aqui a comparação é com você mesmo, a cada reavaliação.';return add(o)}
+    if(!n){o.viz='line';o.sub=!sx||age==null?'sexo e nascimento não cadastrados':'';o.expl='Aqui a comparação é com você mesmo, a cada reavaliação.';return add(o)}
     const v=a[a.length-1].v,zf=x=>(N.better==='high'?1:-1)*(x-n.m)/n.sd,zp=zf(v),zn=zoneOf(zp),pc=Math.round(Phi(zp)*100),grp=(sx==='F'?'mulheres':'homens')+' de '+n.grp;
     let ex=`O esperado para ${grp} é cerca de <b>${fm(n.m)} ${N.unit}</b> (faixa habitual de ${fm(Math.max(0,n.m-n.sd))} a ${fm(n.m+n.sd)}). `;
     ex+=pc<1?'Hoje, o resultado ficou abaixo de praticamente todas as pessoas dessa faixa.':pc>99?'Hoje, o resultado superou praticamente todas as pessoas dessa faixa.':`Hoje, o resultado foi melhor que o de cerca de <b>${pc} em cada 100</b> pessoas dessa faixa.`;
@@ -2275,7 +2305,7 @@ function pnModel(p,cmpDay){
   if(S.gripE)norm('gripE','grip',S.gripE,'Força de preensão · mão esquerda','forca','E');
   if(S.gripD)norm('gripD','grip',S.gripD,'Força de preensão · mão direita','forca','D');
   if(S.sl30)norm('sl30','sl30',S.sl30,'Sentar e levantar em 30 segundos','forca');
-  if(S['p_sts5||']){const a=S['p_sts5||'],rf=STS_REF(age),lr=a[a.length-1].r;const bs=rf?[{lo:0,hi:rf[0],l:0,t:'Dentro da média para a idade'},{lo:rf[0],hi:15,l:1,t:'Mais lento que a média'},{lo:15,hi:999,l:3,t:'Maior risco de queda'}]:[{lo:0,hi:12,l:0,t:'Abaixo de 12 s'},{lo:12,hi:15,l:1,t:'Atenção: 12 s ou mais'},{lo:15,hi:999,l:3,t:'Maior risco de queda'}];
+  if(S['p_sts5||']){const a=S['p_sts5||'],rf=STS_REF(age),lr=a[a.length-1].r;const bs=rf?[{lo:0,hi:rf[0],l:0,t:'Dentro da média para a idade'},{lo:rf[0],hi:15,l:1,t:'Mais lento que a média'},{lo:15,hi:999,l:3,t:'Pede atenção ao risco de queda'}]:[{lo:0,hi:12,l:0,t:'Abaixo de 12 s'},{lo:12,hi:15,l:1,t:'Atenção: 12 s ou mais'},{lo:15,hi:999,l:3,t:'Pede atenção ao risco de queda'}];
     bandItem({key:'sts5',sec:'forca',title:'Sentar e levantar 5 vezes',sub:'força e potência das pernas',a,fm:v=>fN(v,1),unit:'s',better:'low',expl:(rf?`A média publicada para pessoas de ${rf[1]} é <b>${fN(rf[0],1)} s</b>. `:'')+'Quanto menor o tempo, melhor.'+(lr.bracos?' <b>Usou os braços</b> para levantar.':''),ref:'Bohannon, 2006; Buatois et al., 2008.'},bs,0,Math.max(30,Math.ceil(Math.max(...a.map(q=>q.v))/5)*5))}
   if(S['p_agach||'])add({key:'agach',sec:'forca',title:'Agachamentos em 30 segundos',sub:'força e resistência das pernas',a:S['p_agach||'],fm:v=>fN(v,0),unit:'repetições',better:'high',viz:'line',expl:'Repetições completas em 30 segundos. A comparação é com você mesmo, a cada reavaliação.'});
   /* mobilidade e equilíbrio */
@@ -2291,10 +2321,12 @@ function pnModel(p,cmpDay){
       expl:(rf?`A média publicada para pessoas de ${rf[2]} é <b>${fN(rf[1],1)} s</b>. `:'')+(o==='A'?'Menos de 5 s com olhos abertos se associa a maior risco de queda.':'Sem a visão, o equilíbrio depende da sensação dos pés e do labirinto.'),ref:'Springer et al., 2007'+(o==='A'?'; Vellas et al., 1997':'')+'.'};
     if(bs)bandItem(it,bs,0,30);else add(Object.assign(it,{viz:'line'}))});
   /* tronco */
+  if(S['p_sentalc||']){const a=S['p_sentalc||'];bandItem({key:'sentalc',sec:'flex',title:'Sentar e alcançar',sub:'flexibilidade da parte de trás da coxa',a,fm:v=>fN(v,0),unit:'cm',better:'high',expl:'Hoje: '+flexTxt(a[a.length-1].v)+'. Quanto mais à frente as mãos chegam, melhor.'},[{lo:-60,hi:-0.01,l:1,t:'Pode ganhar flexibilidade'},{lo:0,hi:60,l:0,t:'Alcança os pés'}],Math.min(-20,...a.map(q=>q.v)),Math.max(20,...a.map(q=>q.v)))}
+  [['D','direita'],['E','esquerda']].forEach(([l,t])=>{const a=S[`p_quadri|${l}|`];if(a)bandItem({key:'quadri'+l,sec:'flex',title:'Alongamento de quadríceps · perna '+t,sub:'distância do calcanhar ao glúteo',a,fm:v=>fN(v,0),unit:'cm',better:'low',expl:(a[a.length-1].r.naopega?'Ainda não conseguiu pegar o pé com a mão. ':'')+'Quanto menor a distância, mais flexível.'},[{lo:0,hi:0,l:0,t:'Encosta no glúteo'},{lo:0.01,hi:99,l:1,t:'Pode ganhar flexibilidade'}],0,Math.max(30,...a.map(q=>q.v)))});
   if(S['p_prancha||'])add({key:'prancha',sec:'tronco',title:'Prancha frontal',sub:'resistência do abdômen',a:S['p_prancha||'],fm:v=>fN(v,0),unit:'s',better:'high',viz:'line',expl:'Tempo máximo com a execução adequada, com teto de 90 s. A comparação é com você mesmo.'});
   [['D','direito'],['E','esquerdo']].forEach(([l,t])=>{const a=S[`p_plat|${l}|`];if(a)add({key:'plat'+l,sec:'tronco',title:'Prancha lateral · lado '+t,sub:'resistência das laterais do tronco',a,fm:v=>fN(v,0),unit:'s',better:'high',viz:'line',expl:'Diferença acima de 5% entre os lados sugere assimetria de resistência.',ref:'McGill et al., 1999.'})});
   /* autonomia, memória, humor e nutrição */
-  ['katz','lawton','meem','moca','gds','man','antro'].forEach(k=>qItem(k,'vida'));
+  ['who5','katz','lawton','meem','moca','gds','man','antro'].forEach(k=>qItem(k,'vida'));
   if(S.e_dor)bandItem({key:'dor',sec:'dor',title:'Dor',sub:'escala de 0 a 10',a:S.e_dor,fm:v=>fN(v,0),unit:'/10',better:'low',expl:'0 é sem dor e 10 é a pior dor imaginável. Quanto menor, melhor.'},[{lo:0,hi:3,l:0,t:'Dor leve ou ausente'},{lo:4,hi:6,l:1,t:'Dor moderada'},{lo:7,hi:10,l:3,t:'Dor intensa'}],0,10);
   return{items,age,lastD};
 }
