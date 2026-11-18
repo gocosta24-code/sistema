@@ -273,6 +273,7 @@ function handle(e) {
       case 'mover_lead':        return resp(moverLead(body, token));
       case 'historico_lead':    return resp(historicoLead(body, token));
       case 'converter_lead':    return resp(converterLead(body, token));
+      case 'excluir_lead':      return resp(excluirLead(body, token));
       case 'marcar_mensagem':   return resp(marcarMensagem(body, token));
       case 'obter_config':      return resp(obterConfig(token));
       case 'salvar_config':     return resp(salvarConfigClinica(body, token));
@@ -3461,4 +3462,27 @@ function responderQuestionario(body) {
     }
     return {ok:true};
   } finally { lock.releaseLock(); }
+}
+
+
+// Excluir lead: some do funil com o historico. Se o lead tinha ganhado um
+// cadastro provisorio (status 'Lead', so para o portal), ele sai junto; um
+// lead que ja virou paciente nao mexe no paciente - so tira o lead do funil.
+function excluirLead(body, token) {
+  const perfil = perfilDaEquipe(token);
+  if (!perfil || !podeEditarLeads(perfil)) return {ok:false, erro:'Só gestão e recepção excluem leads'};
+  const sheet = abaComCabecalho('Leads', LEAD_CABECALHO);
+  const achado = acharLead(sheet, body.id);
+  if (!achado) return {ok:false, erro:'Lead não encontrado'};
+  const pid = String(achado.dados.paciente_id||'');
+  sheet.deleteRow(achado.linha);
+  const log = abaComCabecalho('LeadHistorico', LEADLOG_CABECALHO);
+  const dl = log.getDataRange().getValues(), iL = dl[0].indexOf('lead_id');
+  for (let i = dl.length-1; i >= 1; i--) if (String(dl[i][iL]) === String(body.id)) log.deleteRow(i+1);
+  let pacienteRemovido = false;
+  if (pid) {
+    const pac = acharPacientePorId(pid);
+    if (pac && String(pac.obj.status||'').toLowerCase() === 'lead') { pac.sheet.deleteRow(pac.linha); pacienteRemovido = true; }
+  }
+  return {ok:true, paciente_removido:pacienteRemovido};
 }

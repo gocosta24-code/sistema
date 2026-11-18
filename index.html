@@ -613,6 +613,8 @@ body.agx-movendo{cursor:grabbing;user-select:none;}
 .mp-vazio,.mp-sw.mp-vazio{background:var(--sur);}
 .mp-passou{opacity:.62;}
 .mp-g{margin-bottom:5px;}
+.mt-acaba{color:var(--amber);font-weight:600}
+@media print{#pgPilates .ph-sub,#pgPilates .mp-resumo button,#pgPilates .agx-profs,#pgPilates .pt-nota,.mp-mais{display:none!important}}
 .mp-gh{display:flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;color:var(--ink3);text-transform:uppercase;letter-spacing:.3px;margin-bottom:2px;}
 .mp-gh i{width:7px;height:7px;border-radius:50%;}
 .mp-gh b{margin-left:auto;color:var(--teal);font-size:11px;}
@@ -1151,6 +1153,7 @@ button .ico{vertical-align:-3px}
     <div id="pgGestao" class="page"></div>
     <div id="pgClientes" class="page"></div>
     <div id="pgAgenda" class="page"></div>
+    <div id="pgPilates" class="page"></div>
     <div id="pgCasa" class="page"></div>
     <div id="pgLeads"     class="page"></div>
     <div id="pgEspera"    class="page"></div>
@@ -1712,6 +1715,15 @@ function demoApi(action, body) {
         String(body.obs||'') + (motivo ? (body.obs?' — ':'')+'Motivo: '+motivo : ''));
       return {ok:true, id:body.id, estagio:novo};
     }
+    case 'excluir_lead': {
+      if(!demoPodeEditarLeads()) return {ok:false, erro:'Só gestão e recepção excluem leads'};
+      const l=(DEMO_DB.leads||[]).find(x=>String(x.id)===String(body.id));
+      if(!l) return {ok:false, erro:'Lead não encontrado'};
+      DEMO_DB.leads = DEMO_DB.leads.filter(x=>x!==l);
+      const pac=(DEMO_DB.pacientes||[]).find(x=>String(x.id)===String(l.paciente_id||''));
+      let rem=false; if(pac && String(pac.status||'').toLowerCase()==='lead'){ DEMO_DB.pacientes = DEMO_DB.pacientes.filter(x=>x!==pac); rem=true; }
+      return {ok:true, paciente_removido:rem};
+    }
     case 'converter_lead': {
       if(!demoPodeEditarLeads()) return {ok:false, erro:'Sem permissão'};
       const l=(DEMO_DB.leads||[]).find(x=>String(x.id)===String(body.id));
@@ -2218,6 +2230,7 @@ const FUNCOES = [
 // ═══════════════════════════════════════════════
 const ICONES = {
   casa:       '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/>',
+  pilates:    '<circle cx="12" cy="4.5" r="2"/><path d="M5 9.5l7-1.5 7 1.5M12 8v6l-3.5 7M12 14l3.5 7"/>',
   agenda:     '<rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/>',
   folha:      '<path d="M5 19c0-8 5-14 14-14 0 9-6 14-14 14z"/><path d="M5 19l7-7"/>',
   mensagem:   '<path d="M4 5h16v11H9l-5 4z"/>',
@@ -2267,9 +2280,9 @@ function icone(nome, tam) {
 }
 
 const NAVS = {
-  admin:        [{id:'home',icon:'casa',label:'Início'},{id:'agenda',icon:'agenda',label:'Agenda'},{id:'gestao',icon:'painel',label:'Painel da gestão',barra:false},{id:'linhas',icon:'folha',label:'Linhas'},{id:'clientes',icon:'cliente',label:'Clientes',barra:false},{id:'casa',icon:'coracao',label:'Nossa Casa',barra:false},{id:'mensagens',icon:'mensagem',label:'Mensagens',num:true},{id:'leads',icon:'megafone',label:'Leads'},{id:'servicos',icon:'grade',label:'Serviços',barra:false},{id:'tarefas',icon:'tarefa',label:'Tarefas',barra:false},{id:'financeiro',icon:'carteira',label:'Financeiro',barra:false},{id:'espera',icon:'cadeira',label:'Espera',barra:false},{id:'equipe',icon:'equipe',label:'Cadastro da equipe',barra:false},{id:'alertas',icon:'sino',label:'Alertas',badge:true}],
-  coordenador:  [{id:'home',icon:'casa',label:'Início'},{id:'agenda',icon:'agenda',label:'Agenda'},{id:'casa',icon:'coracao',label:'Nossa Casa',barra:false},{id:'linhas',icon:'folha',label:'Pacientes'},{id:'clientes',icon:'cliente',label:'Clientes',barra:false},{id:'mensagens',icon:'mensagem',label:'Mensagens',num:true},{id:'leads',icon:'megafone',label:'Leads'},{id:'servicos',icon:'grade',label:'Serviços',barra:false},{id:'tarefas',icon:'tarefa',label:'Tarefas',barra:false},{id:'espera',icon:'cadeira',label:'Espera',barra:false},{id:'alertas',icon:'sino',label:'Alertas',badge:true}],
-  profissional: [{id:'home',icon:'casa',label:'Hoje'},{id:'agenda',icon:'agenda',label:'Agenda'},{id:'linhas',icon:'folha',label:'Meus Pcts'},{id:'casa',icon:'coracao',label:'Nossa Casa'},{id:'mensagens',icon:'mensagem',label:'Mensagens',num:true},{id:'servicos',icon:'grade',label:'Serviços',barra:false},{id:'alertas',icon:'sino',label:'Pendências',badge:true}],
+  admin:        [{id:'home',icon:'casa',label:'Início'},{id:'agenda',icon:'agenda',label:'Agenda'},{id:'pilates',icon:'pilates',label:'Mapa de Pilates',barra:false},{id:'gestao',icon:'painel',label:'Painel da gestão',barra:false},{id:'linhas',icon:'folha',label:'Linhas'},{id:'clientes',icon:'cliente',label:'Clientes',barra:false},{id:'casa',icon:'coracao',label:'Nossa Casa',barra:false},{id:'mensagens',icon:'mensagem',label:'Mensagens',num:true},{id:'leads',icon:'megafone',label:'Leads'},{id:'servicos',icon:'grade',label:'Serviços',barra:false},{id:'tarefas',icon:'tarefa',label:'Tarefas',barra:false},{id:'financeiro',icon:'carteira',label:'Financeiro',barra:false},{id:'espera',icon:'cadeira',label:'Espera',barra:false},{id:'equipe',icon:'equipe',label:'Cadastro da equipe',barra:false},{id:'alertas',icon:'sino',label:'Alertas',badge:true}],
+  coordenador:  [{id:'home',icon:'casa',label:'Início'},{id:'agenda',icon:'agenda',label:'Agenda'},{id:'pilates',icon:'pilates',label:'Mapa de Pilates',barra:false},{id:'casa',icon:'coracao',label:'Nossa Casa',barra:false},{id:'linhas',icon:'folha',label:'Pacientes'},{id:'clientes',icon:'cliente',label:'Clientes',barra:false},{id:'mensagens',icon:'mensagem',label:'Mensagens',num:true},{id:'leads',icon:'megafone',label:'Leads'},{id:'servicos',icon:'grade',label:'Serviços',barra:false},{id:'tarefas',icon:'tarefa',label:'Tarefas',barra:false},{id:'espera',icon:'cadeira',label:'Espera',barra:false},{id:'alertas',icon:'sino',label:'Alertas',badge:true}],
+  profissional: [{id:'home',icon:'casa',label:'Hoje'},{id:'agenda',icon:'agenda',label:'Agenda'},{id:'pilates',icon:'pilates',label:'Mapa de Pilates',barra:false},{id:'linhas',icon:'folha',label:'Meus Pcts'},{id:'casa',icon:'coracao',label:'Nossa Casa'},{id:'mensagens',icon:'mensagem',label:'Mensagens',num:true},{id:'servicos',icon:'grade',label:'Serviços',barra:false},{id:'alertas',icon:'sino',label:'Pendências',badge:true}],
 };
 
 // Recepção é função, não nível de acesso: quem atende o telefone entra como
@@ -2406,11 +2419,11 @@ let _activePage = '';
 function loadPage(id) {
   _activePage = id;
   marcarAtivo(id);
-  const map={casa:'pgCasa',agenda:'pgAgenda',home:'pgHome',linhas:'pgLinhas',equipe:'pgEquipe',alertas:'pgAlertas',mensagens:'pgMensagens',servicos:'pgServicos',tarefas:'pgTarefas',financeiro:'pgFinanceiro',gestao:'pgGestao',clientes:'pgClientes',leads:'pgLeads',espera:'pgEspera',programas:'pgProgramas',biblioteca:'pgBiblioteca'};
+  const map={casa:'pgCasa',agenda:'pgAgenda',pilates:'pgPilates',home:'pgHome',linhas:'pgLinhas',equipe:'pgEquipe',alertas:'pgAlertas',mensagens:'pgMensagens',servicos:'pgServicos',tarefas:'pgTarefas',financeiro:'pgFinanceiro',gestao:'pgGestao',clientes:'pgClientes',leads:'pgLeads',espera:'pgEspera',programas:'pgProgramas',biblioteca:'pgBiblioteca'};
   document.querySelectorAll('.page').forEach(e=>{e.classList.remove('active');e.innerHTML='';});
   const el = document.getElementById(map[id]);
   if(!el) return;
-  const renders={casa:renderCasa,agenda:renderAgenda,home:renderHome,linhas:renderLinhas,equipe:renderEquipe,alertas:renderAlertas,mensagens:renderMensagensCentral,servicos:renderServicos,tarefas:renderTarefas,financeiro:renderFinanceiro,gestao:renderGestao,clientes:renderClientes,leads:renderLeads,espera:renderEspera,programas:renderProgramas,biblioteca:renderBiblioteca};
+  const renders={casa:renderCasa,agenda:renderAgenda,pilates:renderMapaTurmas,home:renderHome,linhas:renderLinhas,equipe:renderEquipe,alertas:renderAlertas,mensagens:renderMensagensCentral,servicos:renderServicos,tarefas:renderTarefas,financeiro:renderFinanceiro,gestao:renderGestao,clientes:renderClientes,leads:renderLeads,espera:renderEspera,programas:renderProgramas,biblioteca:renderBiblioteca};
   if(renders[id]){el.innerHTML=renders[id]();el.classList.add('active');}
 }
 
@@ -6554,6 +6567,91 @@ async function agendaDoPeriodo(datas) {
   return out;
 }
 
+// ── MAPA DE TURMAS DO PILATES (aba própria) ──
+// O mapa fixo das turmas, como o de papel: quem faz Pilates em cada dia da
+// semana e horário. Sai sozinho da agenda das próximas 4 semanas: plano novo
+// entra, plano cancelado (sessões excluídas) sai. Reposição e aula avulsa não
+// entram; falta não tira a aluna da turma.
+let _mt = null, _mtFiltro = '';
+function renderMapaTurmas() {
+  return `<div class="ph"><div class="ph-title">Mapa de Pilates</div>
+    <div class="ph-sub">As turmas fixas da semana, montadas a partir dos planos na agenda. Toque no nome para abrir o cadastro.</div></div>
+  <div id="mtBody">${loadingHTML()}</div>`;
+}
+async function loadMapaTurmas() {
+  const el = document.getElementById('mtBody'); if(!el) return;
+  const hoje = new Date(); hoje.setHours(0,0,0,0); const seg = inicioDaSemana(hoje);
+  const [r, pacs] = await Promise.all([api('listar_agenda',{de:seg.toISOString(), ate:somaDias(seg,35).toISOString()}), carregarTodosPacientes()]);
+  if(!r.ok) { el.innerHTML = `<div class="card" style="color:var(--rose)">Não foi possível carregar a agenda: ${esc(r.erro||'')}</div>`; return; }
+  const evs = (r.dados||[]).map(prepEvento).filter(e=>ehPilates(e.servico) && !e.dia_inteiro && !e.reposDe);
+  const profs = (r.profissionais||[]).filter(p=>evs.some(e=>e.agenda_email===p.email));
+  // aluna × profissional × dia da semana × horário
+  const vagas = {};
+  evs.forEach(e=>{
+    const d = new Date(e.inicio), dow = d.getDay(); if(dow===0) return;
+    const quem = e.paciente_id || 'n:'+normalizar(String(e.titulo||'').split(' · ')[0]);
+    const k = [e.agenda_email, dow, d.getHours(), d.getMinutes(), quem].join('|');
+    const x = vagas[k] = vagas[k] || {email:e.agenda_email, dow, h:d.getHours(), m:d.getMinutes(), pid:e.paciente_id||'', nome:String(e.titulo||'').split(' · ')[0].replace(/^\[Não vem\] /,''), n:0, serie:false, ultima:e.inicio};
+    x.n++; if(e.rep||e.prog) x.serie = true; if(!e.rep) x.fimPlano = true; if(e.rep) x.fimPlano = false;
+    if(e.inicio > x.ultima) x.ultima = e.inicio;
+  });
+  const lista = Object.values(vagas).filter(x=>x.serie || x.n>=2);
+  lista.forEach(x=>{ const p = x.pid ? pacs.find(q=>String(q.id)===String(x.pid)) : null; if(p) x.nome = p.nome;
+    // plano que acaba dentro das 4 semanas: mostra até quando
+    x.acaba = x.fimPlano && new Date(x.ultima) < somaDias(hoje, 21) ? new Date(x.ultima) : null; });
+  _mt = {lista, profs};
+  desenharMapaTurmas();
+}
+function desenharMapaTurmas() {
+  const el = document.getElementById('mtBody'); if(!el || !_mt) return;
+  const {lista, profs} = _mt;
+  if(_mtFiltro && !profs.some(p=>p.email===_mtFiltro)) _mtFiltro = '';
+  const vis = lista.filter(x=>!_mtFiltro || x.email===_mtFiltro);
+  const dias = [1,2,3,4,5,6], nomesD = ['','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  let h0 = 7, h1 = 20; vis.forEach(x=>{ h0 = Math.min(h0,x.h); h1 = Math.max(h1,x.h); });
+  const varias = profs.length > 1 && !_mtFiltro;
+  const curto = n => { const p = String(n||'').trim().split(/\s+/); return p[0] + (p.length>1 ? ' '+p[p.length-1].charAt(0)+'.' : ''); };
+  let vagasLivres = 0, cheios = 0;
+  const linhas = [];
+  for(let h=h0; h<=h1; h++) {
+    const tds = dias.map(dow=>{
+      const aqui = vis.filter(x=>x.dow===dow && x.h===h).sort((a,b)=>(a.m-b.m)||a.nome.localeCompare(b.nome));
+      const grupos = (varias ? profs : profs.filter(p=>!_mtFiltro||p.email===_mtFiltro)).map(p=>({p, xs:aqui.filter(x=>x.email===p.email)})).filter(g=>g.xs.length);
+      grupos.forEach(g=>{ const livres = Math.max(0, PILATES_VAGAS-g.xs.length); vagasLivres += livres; if(!livres) cheios++; });
+      const estado = !grupos.length ? 'vazio' : grupos.every(g=>g.xs.length>=PILATES_VAGAS) ? 'cheio' : 'vaga';
+      return `<td class="mp-c mp-${estado}" onclick="novaAlunaMapa(${dow},${h})" title="${nomesD[dow]} às ${String(h).padStart(2,'0')}h">
+        ${grupos.map(g=>`<div class="mp-g">
+          <div class="mp-gh${varias?'':' mp-gh1'}">${varias?`<i style="background:${agCor(g.p.email)}"></i>${esc(g.p.nome.split(' ').slice(-1)[0])}`:''}<b class="${g.xs.length>=PILATES_VAGAS?'cheio':''}">${g.xs.length}/${PILATES_VAGAS}</b></div>
+          ${g.xs.map(x=>`<button class="mp-n" ${x.pid?`onclick="event.stopPropagation();abrirCliente('${esc(x.pid)}')"`:'onclick="event.stopPropagation()"'} title="${esc(x.nome)}${x.acaba?' · plano até '+x.acaba.toLocaleDateString('pt-BR'):''}">${esc(curto(x.nome))}${x.m?` <small>${String(x.h).padStart(2,'0')}:${String(x.m).padStart(2,'0')}</small>`:''}${x.acaba?` <small class="mt-acaba">até ${x.acaba.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})}</small>`:''}</button>`).join('')}
+        </div>`).join('')}
+        ${estado!=='cheio'?'<span class="mp-mais">+ aluna</span>':''}</td>`;
+    }).join('');
+    linhas.push(`<tr><th class="mp-h">${String(h).padStart(2,'0')}h</th>${tds}</tr>`);
+  }
+  const alunas = new Set(vis.map(x=>x.pid||x.nome)).size;
+  el.innerHTML = `
+    ${profs.length>1?`<div class="agx-profs" style="margin-bottom:12px"><button class="agx-pf${!_mtFiltro?' on':''}" onclick="_mtFiltro='';desenharMapaTurmas()">Todas</button>${profs.map(p=>`<button class="agx-pf${_mtFiltro===p.email?' on':''}" onclick="_mtFiltro='${esc(p.email)}';desenharMapaTurmas()"><i style="background:${agCor(p.email)}"></i>${esc(p.nome)}</button>`).join('')}</div>`:''}
+    <div class="mp-resumo">
+      <div><b>${alunas}</b><span>${alunas===1?'aluna':'alunas'} nas turmas</span></div>
+      <div><b style="color:var(--teal)">${vagasLivres}</b><span>vagas livres nas turmas abertas</span></div>
+      <div><b style="color:${cheios?'var(--rose)':'var(--ink)'}">${cheios}</b><span>${cheios===1?'turma cheia':'turmas cheias'}</span></div>
+      <button class="backbtn" onclick="window.print()">Imprimir</button>
+      <div class="mp-leg"><span><i class="mp-sw mp-vaga"></i>Tem vaga</span><span><i class="mp-sw mp-cheio"></i>Cheia (${PILATES_VAGAS} por profissional)</span><span><i class="mp-sw mp-vazio"></i>Sem turma</span></div>
+    </div>
+    ${lista.length?'':`<div class="card" style="color:var(--ink3);margin-bottom:12px">Nenhum plano de Pilates nas próximas semanas. Quando um plano é agendado, a aluna aparece aqui sozinha.</div>`}
+    <div class="mp-wrap"><table class="mp"><thead><tr><th></th>${dias.map(d=>`<th>${nomesD[d]}</th>`).join('')}</tr></thead><tbody>${linhas.join('')}</tbody></table></div>
+    <div class="pt-nota" style="margin-top:10px">Vem dos planos marcados na agenda das próximas 4 semanas: plano novo entra sozinho e plano cancelado sai. Reposições e aulas avulsas não aparecem; faltas não tiram a aluna da turma.</div>`;
+}
+// Horário vazio do mapa: abre o agendamento de Pilates no próximo dia com esse horário
+function novaAlunaMapa(dow, h) {
+  const d = new Date(); d.setHours(h,0,0,0); while(d.getDay()!==dow || d < new Date()) { d.setDate(d.getDate()+1); d.setHours(h,0,0,0); }
+  const pil = (_catalogo||[]).find(s=>ehPilates(s.nome));
+  const email = _mtFiltro || '';
+  loadPage('agenda');
+  // espera a agenda carregar para abrir o formulário já com o horário
+  let t = 0; const iv = setInterval(()=>{ t++; if((typeof _ag!=='undefined' && _ag && (_ag.profissionais||[]).length && document.getElementById('agGrade')) || t>40) { clearInterval(iv); novoAtendimento(null, null, {inicio:d, email, servico:pil?pil.nome:''}); } }, 150);
+}
+
 // ── Mapa de ocupação: semana × hora, como o mapa de turmas em papel ──
 function professorasPilates() {
   const comAula = new Set(_ag.eventos.filter(e=>ehPilates(e.servico)).map(e=>e.agenda_email));
@@ -7241,6 +7339,16 @@ function leadCardHTML(l) {
 }
 
 // ── Ficha do lead: dados, histórico e as ações do funil ──
+async function excluirLead(id, btn) {
+  const l = (_leads||[]).find(x=>String(x.id)===String(id));
+  if(!confirm('Excluir o lead '+(l?l.nome:'')+' do funil?\n\nO histórico de contatos sai junto. Se ele já virou paciente, o cadastro do paciente continua.')) return;
+  btn.disabled = true; btn.textContent = 'Excluindo…';
+  const r = await api('excluir_lead',{id});
+  if(!r.ok) { btn.disabled = false; btn.textContent = 'Excluir lead'; showToast(r.erro||'Não foi possível excluir','err'); return; }
+  const f = document.getElementById('leadForm'); if(f) f.innerHTML = '';
+  showToast('Lead excluído','ok');
+  if(typeof loadLeads==='function') loadLeads();
+}
 async function abrirLead(id) {
   const l = _leads.find(x=>String(x.id)===String(id));
   if(!l) return;
@@ -7315,6 +7423,7 @@ async function abrirLead(id) {
 
     <div style="display:flex;gap:8px;margin-top:12px">
       ${pode?`<button class="backbtn" onclick="novoLead(_leads.find(x=>String(x.id)==='${esc(l.id)}'))">Editar dados</button>`:''}
+      ${pode?`<button class="backbtn" style="color:var(--rose)" onclick="excluirLead('${esc(l.id)}',this)">Excluir lead</button>`:''}
       <button class="backbtn" onclick="document.getElementById('leadForm').innerHTML=''">Fechar</button>
     </div>
   </div>`;
@@ -11740,6 +11849,7 @@ const _afterRender = {
   gestao: ()=>setTimeout(carregarGestao,50),
   clientes: ()=>setTimeout(loadClientes,50),
   agenda: ()=>setTimeout(loadAgenda,50),
+  pilates: ()=>setTimeout(loadMapaTurmas,50),
   casa: ()=>setTimeout(loadCasa,50),
   leads: ()=>setTimeout(loadLeads,50),
   espera: ()=>setTimeout(loadEspera,50),
