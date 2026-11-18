@@ -283,6 +283,11 @@ function handle(e) {
       case 'salvar_evento':     return resp(salvarEvento(body, token));
       case 'status_evento':     return resp(statusEvento(body, token));
       case 'excluir_evento':    return resp(excluirEvento(body, token));
+      case 'listar_feriados':   return resp(listarFeriados(body, token));
+      case 'salvar_feriado':    return resp(salvarFeriado(body, token));
+      case 'excluir_feriado':   return resp(excluirFeriado(body, token));
+      case 'salvar_reuniao':    return resp(salvarReuniao(body, token));
+      case 'excluir_reuniao':   return resp(excluirReuniao(body, token));
       case 'criar_agendas':     return resp(criarAgendas(token));
       case 'equipe_hoje':       return resp(equipeHoje(token));
       case 'apoiar_post':       return resp(apoiarPost(body, token));
@@ -2781,7 +2786,10 @@ function eventoParaTela(ev, prof) {
     aviso: ev.getTag('aviso_paciente') || '',
     confirmado_paciente: ev.getTag('confirmado_paciente') || '',
     valor: ev.getTag('valor') || '',
-    motivo_ausencia: ev.getTag('motivo_ausencia') || ''
+    motivo_ausencia: ev.getTag('motivo_ausencia') || '',
+    tipo: ev.getTag('tipo') || '',
+    reuniao_id: ev.getTag('reuniao_id') || '',
+    participantes: ev.getTag('participantes') || ''
   };
 }
 
@@ -2798,11 +2806,20 @@ function listarAgenda(body, token) {
     if (!prof.agenda_id) return;
     const cal = agendaDe(prof);
     if (!cal) { semAcesso.push(prof.nome); return; }
-    cal.getEvents(de, ate).forEach(function(ev){ const o = eventoParaTela(ev, prof); if (!veValor) delete o.valor; eventos.push(o); });
+    cal.getEvents(de, ate).forEach(function(ev){
+      // Reunioes so vem quando a tela pede (a grade da agenda): contas de
+      // atendimentos, ocupacao e faturamento ficam sem elas
+      if (!body.com_reunioes && ev.getTag('tipo') === 'reuniao') return;
+      const o = eventoParaTela(ev, prof); if (!veValor) delete o.valor; eventos.push(o); });
   });
   eventos.sort(function(a,b){ return a.inicio.localeCompare(b.inicio); });
+  const visEmails = visiveis.map(function(p){ return p.email; });
   return {ok:true, dados:eventos, sem_acesso:semAcesso,
     profissionais: visiveis.map(function(p){ return {email:p.email, nome:p.nome, linhas:p.linhas, tem_agenda:!!p.agenda_id}; }),
+    // Toda a equipe com agenda: reuniao pode juntar quem a pessoa nao ve na agenda
+    equipe: equipeComAgenda().filter(function(p){ return p.agenda_id; }).map(function(p){ return {email:p.email, nome:p.nome}; }),
+    feriados: feriadosEntre(de, ate).filter(function(f){ return !f.profissionais.length || f.profissionais.some(function(e){ return visEmails.indexOf(e) !== -1; }); }),
+    pode_feriados: podeFeriados(perfil),
     pode_criar_agendas: perfil.role === 'admin'};
 }
 
@@ -2829,6 +2846,8 @@ function salvarEvento(body, token) {
   if (!cal) return {ok:false, erro:'A agenda de ' + prof.nome + ' ainda não foi criada ou compartilhada com a clínica'};
   const inicio = new Date(body.inicio), fim = new Date(body.fim);
   if (isNaN(inicio) || isNaN(fim) || fim <= inicio) return {ok:false, erro:'Horário inválido'};
+  const fer = feriadoDoDia(inicio, prof.email);
+  if (fer) return {ok:false, feriado:true, erro:'Agenda bloqueada em ' + Utilities.formatDate(inicio, Session.getScriptTimeZone(), 'dd/MM') + ': ' + fer.titulo};
 
   let nomePac = String(body.paciente_nome||'').trim();
   const pid = String(body.paciente_id||'');
@@ -3171,4 +3190,169 @@ function historicoPaciente(body, token) {
       confirmado_paciente: ev.getTag('confirmado_paciente') || ''};
   });
   return {ok:true, dados: dados};
+}
+
+
+// =============================================================
+// FERIADOS E BLOQUEIOS DA AGENDA
+// Um dia inteiro bloqueado: para a clinica toda (profissionais vazio) ou so
+// para algumas profissionais (ferias, curso). Nenhum atendimento ou reuniao
+// pode ser marcado nesse dia - a trava e aqui, no servidor, e nao some com
+// "marcar assim mesmo". O que ja estava marcado continua na agenda, com aviso.
+// =============================================================
+const FERIADO_CAB = ['id','data','titulo','profissionais','criado_por','criado_em'];
+function podeFeriados(perfil) {
+  return !!perfil && (perfil.role === 'admin' || perfil.role === 'coordenador' || ehRecepcao(perfil));
+}
+function dataISOdaCelula(v) {
+  if (v instanceof Date) return Utilities.formatDate(v, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+  return String(v||'').slice(0,10);
+}
+function todosFeriados() {
+  const sheet = abaComCabecalho('Feriados', FERIADO_CAB);
+  const dados = sheet.getDataRange().getValues();
+  const h = dados[0], out = [];
+  for (let i=1;i<dados.length;i++) {
+    const o = {}; h.forEach(function(k,j){ o[k] = dados[i][j]; });
+    if (!o.id) continue;
+    o.data = dataISOdaCelula(o.data);
+    o.titulo = String(o.titulo||'Feriado');
+    o.profissionais = String(o.profissionais||'').toLowerCase().split(',').map(function(x){ return x.trim(); }).filter(Boolean);
+    o.linha = i+1;
+    out.push(o);
+  }
+  return out;
+}
+function feriadosEntre(de, ate) {
+  const tz = Session.getScriptTimeZone();
+  const a = Utilities.formatDate(de, tz, 'yyyy-MM-dd'), b = Utilities.formatDate(ate, tz, 'yyyy-MM-dd');
+  return todosFeriados().filter(function(f){ return f.data >= a && f.data <= b; })
+    .map(function(f){ return {id:f.id, data:f.data, titulo:f.titulo, profissionais:f.profissionais}; });
+}
+function feriadoDoDia(quando, email) {
+  const dia = Utilities.formatDate(quando, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+  const alvo = String(email||'').toLowerCase();
+  return todosFeriados().filter(function(f){ return f.data === dia && (!f.profissionais.length || f.profissionais.indexOf(alvo) !== -1); })[0] || null;
+}
+function listarFeriados(body, token) {
+  const perfil = perfilDaEquipe(token);
+  if (!perfil) return {ok:false, erro:'Sem permissão'};
+  const hoje = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'yyyy-MM-dd');
+  const desde = String(body.desde || hoje).slice(0,10);
+  return {ok:true, pode:podeFeriados(perfil), dados: todosFeriados().filter(function(f){ return f.data >= desde; })
+    .sort(function(a,b){ return a.data.localeCompare(b.data); })
+    .map(function(f){ return {id:f.id, data:f.data, titulo:f.titulo, profissionais:f.profissionais}; })};
+}
+// body: {datas:['2026-12-25',...], titulo, profissionais:[emails] (vazio = clinica toda)}
+function salvarFeriado(body, token) {
+  const perfil = perfilDaEquipe(token);
+  if (!podeFeriados(perfil)) return {ok:false, erro:'Só gestão, coordenação e recepção cadastram feriados'};
+  const titulo = String(body.titulo||'').trim().slice(0,80) || 'Feriado';
+  const datas = (body.datas||[]).map(function(d){ return String(d).slice(0,10); }).filter(function(d){ return /^\d{4}-\d{2}-\d{2}$/.test(d); });
+  if (!datas.length) return {ok:false, erro:'Informe a data'};
+  if (datas.length > 400) return {ok:false, erro:'Período longo demais'};
+  const equipe = equipeComAgenda();
+  const profs = (body.profissionais||[]).map(function(e){ return String(e).toLowerCase().trim(); })
+    .filter(function(e){ return equipe.some(function(p){ return p.email === e; }); });
+  const existentes = todosFeriados();
+  const sheet = abaComCabecalho('Feriados', FERIADO_CAB);
+  const h = sheet.getRange(1,1,1,sheet.getLastColumn()).getValues()[0];
+  const agora = new Date().toISOString();
+  const linhas = [];
+  datas.forEach(function(d) {
+    // mesmo dia, mesmo alcance: nao duplica
+    if (existentes.some(function(f){ return f.data === d && f.profissionais.join(',') === profs.join(','); })) return;
+    const v = {id:'fer_' + Date.now().toString(36) + Math.floor(Math.random()*1e6).toString(36), data:"'" + d, titulo:titulo,
+               profissionais:profs.join(', '), criado_por:perfil.nome||perfil.email, criado_em:agora};
+    linhas.push(h.map(function(k){ return v[k] === undefined ? '' : v[k]; }));
+  });
+  if (linhas.length) sheet.getRange(sheet.getLastRow()+1, 1, linhas.length, h.length).setValues(linhas);
+  // Atendimentos que ja estavam marcados nesses dias: a tela avisa para remarcar
+  const tz = Session.getScriptTimeZone();
+  const marcados = [];
+  const alcance = profs.length ? equipe.filter(function(p){ return profs.indexOf(p.email) !== -1; }) : equipe;
+  datas.slice(0, 60).forEach(function(d) {
+    const ini = new Date(d + 'T00:00:00'), fim = new Date(ini.getTime() + 86400000);
+    alcance.forEach(function(p) {
+      const cal = p.agenda_id ? agendaDe(p) : null; if (!cal) return;
+      cal.getEvents(ini, fim).forEach(function(ev){ if (!ev.isAllDayEvent()) marcados.push({data:d, profissional:p.nome, titulo:ev.getTitle(), hora:Utilities.formatDate(ev.getStartTime(), tz, 'HH:mm')}); });
+    });
+  });
+  return {ok:true, criados:linhas.length, marcados:marcados};
+}
+function excluirFeriado(body, token) {
+  const perfil = perfilDaEquipe(token);
+  if (!podeFeriados(perfil)) return {ok:false, erro:'Sem permissão'};
+  const f = todosFeriados().filter(function(x){ return String(x.id) === String(body.id); })[0];
+  if (!f) return {ok:false, erro:'Feriado não encontrado'};
+  abaComCabecalho('Feriados', FERIADO_CAB).deleteRow(f.linha);
+  return {ok:true};
+}
+
+// =============================================================
+// REUNIOES DA EQUIPE
+// Uma reuniao vira um evento na agenda de cada participante, todos com a
+// mesma etiqueta reuniao_id - e assim que editar e excluir alcancam todos.
+// Nao tem paciente nem servico: nao entra em presenca, faturamento nem ocupacao.
+// Qualquer pessoa da equipe pode marcar, inclusive com quem ela nao ve na agenda.
+// =============================================================
+function copiasDaReuniao(rid, dia) {
+  const ini = new Date(dia.getTime() - 2*86400000), fim = new Date(dia.getTime() + 3*86400000);
+  const out = [];
+  equipeComAgenda().forEach(function(p) {
+    const cal = p.agenda_id ? agendaDe(p) : null; if (!cal) return;
+    cal.getEvents(ini, fim).forEach(function(ev){ if (ev.getTag('reuniao_id') === rid) out.push({ev:ev, prof:p}); });
+  });
+  return out;
+}
+function salvarReuniao(body, token) {
+  const perfil = perfilDaEquipe(token);
+  if (!perfil) return {ok:false, erro:'Sem permissão'};
+  const titulo = String(body.titulo||'').trim().slice(0,100);
+  if (!titulo) return {ok:false, erro:'Informe o assunto da reunião'};
+  const inicio = new Date(body.inicio), fim = new Date(body.fim);
+  if (isNaN(inicio) || isNaN(fim) || fim <= inicio) return {ok:false, erro:'Horário inválido'};
+  const equipe = equipeComAgenda();
+  const quer = (body.participantes||[]).map(function(e){ return String(e).toLowerCase().trim(); });
+  const part = equipe.filter(function(p){ return quer.indexOf(p.email) !== -1; });
+  if (!part.length) return {ok:false, erro:'Escolha ao menos uma profissional'};
+  const semAgenda = part.filter(function(p){ return !agendaDe(p); }).map(function(p){ return p.nome; });
+  if (semAgenda.length) return {ok:false, erro:'Sem agenda no Google: ' + semAgenda.join(', ')};
+  const bloqueadas = part.filter(function(p){ return feriadoDoDia(inicio, p.email); });
+  if (bloqueadas.length) return {ok:false, feriado:true, erro:'Agenda bloqueada nesse dia (' + feriadoDoDia(inicio, bloqueadas[0].email).titulo + ') para ' + bloqueadas.map(function(p){ return p.nome; }).join(', ')};
+  const rid = String(body.reuniao_id||'') || ('re_' + Date.now().toString(36) + Math.floor(Math.random()*1e6).toString(36));
+  const antigas = body.reuniao_id ? copiasDaReuniao(rid, new Date(body.inicio_antigo || body.inicio)) : [];
+  if (!body.forcar) {
+    const choques = [];
+    part.forEach(function(p) {
+      agendaDe(p).getEvents(inicio, fim).forEach(function(ev){
+        if (ev.isAllDayEvent() || ev.getTag('reuniao_id') === rid) return;
+        choques.push(p.nome + ' (' + ev.getTitle() + ')');
+      });
+    });
+    if (choques.length) return {ok:false, conflito:true, erro:'Já existe compromisso nesse horário: ' + choques.join('; ')};
+  }
+  // Editar = refazer: some de quem saiu, entra em quem chegou, todos com o horario novo
+  antigas.forEach(function(x){ x.ev.deleteEvent(); });
+  const nomes = part.map(function(p){ return p.nome; }).join(', ');
+  const criados = [];
+  part.forEach(function(p) {
+    const ev = agendaDe(p).createEvent('Reunião · ' + titulo, inicio, fim, {description: String(body.obs||'')});
+    ev.setTag('origem', 'sistema');
+    ev.setTag('tipo', 'reuniao');
+    ev.setTag('reuniao_id', rid);
+    ev.setTag('participantes', nomes);
+    ev.setTag('marcado_por', perfil.email);
+    criados.push(eventoParaTela(ev, p));
+  });
+  return {ok:true, reuniao_id:rid, dados:criados};
+}
+function excluirReuniao(body, token) {
+  const perfil = perfilDaEquipe(token);
+  if (!perfil) return {ok:false, erro:'Sem permissão'};
+  const rid = String(body.reuniao_id||'');
+  if (!rid) return {ok:false, erro:'Reunião não informada'};
+  const copias = copiasDaReuniao(rid, new Date(body.inicio));
+  copias.forEach(function(x){ x.ev.deleteEvent(); });
+  return {ok:true, removidas:copias.length};
 }

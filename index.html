@@ -508,6 +508,17 @@ input,select,textarea{outline:none;}
   background-size:100% 64px,100% 32px;}
 .agx-col:first-of-type{border-left:0;}
 .agx-col.hoje{background-color:#FFFBF4;}
+.agx-fer{position:absolute;inset:0;z-index:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-align:center;font-size:12px;color:var(--ink2);
+  background:repeating-linear-gradient(135deg,rgba(150,140,125,.13) 0 8px,rgba(150,140,125,.04) 8px 16px);pointer-events:none}
+.agx-fer b{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--rose)}
+.agx-fer span{font-weight:600;padding:0 6px}
+.agx-col.bloq{cursor:not-allowed}
+.agx-fer-p{position:absolute;top:0;left:0;right:0;z-index:1;font-size:10.5px;line-height:1.3;padding:3px 5px;background:rgba(214,170,90,.18);color:var(--ink2);pointer-events:none}
+.agx-ev.reun{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--c) 16%,#fff) 0 6px,color-mix(in srgb,var(--c) 9%,#fff) 6px 12px);border-style:dashed}
+.agx-part{display:flex;flex-wrap:wrap;gap:6px}
+.agx-fer-l{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--bor)}
+.agx-fer-l b{min-width:86px}
+.agx-fer-l span{flex:1;font-size:13.5px}
 .agx-fantasma{position:absolute;left:3px;right:3px;border:1.5px dashed var(--teal);border-radius:8px;color:var(--teal);font-size:12px;font-weight:700;padding:4px 8px;pointer-events:none;background:rgba(238,243,231,.7);}
 .agx-ev{position:absolute;display:flex;flex-direction:column;gap:1px;text-align:left;border-radius:8px;padding:4px 7px 4px 9px;overflow:hidden;font-size:12px;line-height:1.25;color:var(--ink);
   background:color-mix(in srgb,var(--c) 13%,#fff);box-shadow:inset 3px 0 0 var(--c),0 0 0 1.5px var(--sur);transition:box-shadow .12s,background .12s;z-index:2;cursor:pointer;}
@@ -1752,6 +1763,7 @@ function demoApi(action, body) {
     }
     case 'listar_agenda': case 'salvar_evento': case 'status_evento':
     case 'excluir_evento': case 'criar_agendas':
+    case 'listar_feriados': case 'salvar_feriado': case 'excluir_feriado': case 'salvar_reuniao': case 'excluir_reuniao':
       return demoAgenda(action, body);
     case 'listar_catalogo': {
       const veValor = currentRole==='admin' || currentRole==='coordenador' || ehRecepcao() || ehAdministracao();
@@ -1947,13 +1959,44 @@ function demoAgenda(action, body) {
     (currentRole==='coordenador' && (!minhas.length || minhas.includes('todos') || linhasDe(p).some(l=>minhas.includes(l)))));
   const visivel = email => visiveis.find(p=>p.email===String(email||'').toLowerCase());
   const comNome = e => ({...e, profissional:(equipe.find(p=>p.email===e.agenda_email)||{}).nome||''});
+  // Feriados e reuniões: mesmo comportamento do Code.gs
+  const fers = DEMO_DB.feriados = DEMO_DB.feriados || [];
+  const podeFer = currentRole==='admin' || currentRole==='coordenador' || ehRecepcao();
+  const ferDoDia = (d, email) => fers.find(f=>f.data===diaISO(d) && (!f.profissionais.length || f.profissionais.includes(String(email).toLowerCase())));
   if(action==='listar_agenda') {
     const de=new Date(body.de), ate=new Date(body.ate);
-    return {ok:true, dados:DEMO_DB.agenda.filter(e=>visivel(e.agenda_email) && new Date(e.inicio)<ate && new Date(e.fim)>de)
+    return {ok:true, dados:DEMO_DB.agenda.filter(e=>visivel(e.agenda_email) && new Date(e.inicio)<ate && new Date(e.fim)>de && (body.com_reunioes || e.tipo!=='reuniao'))
               .map(comNome).sort((a,b)=>a.inicio.localeCompare(b.inicio)),
             profissionais:visiveis.map(p=>({email:p.email, nome:p.nome, linhas:linhasDe(p), tem_agenda:!!p.agenda_id})),
-            sem_acesso:[], pode_criar_agendas: currentRole==='admin'};
+            equipe:equipe.filter(p=>p.agenda_id).map(p=>({email:p.email, nome:p.nome})),
+            feriados:fers.filter(f=>f.data>=diaISO(de) && f.data<=diaISO(ate)),
+            pode_feriados:podeFer, sem_acesso:[], pode_criar_agendas: currentRole==='admin'};
   }
+  if(action==='listar_feriados') return {ok:true, pode:podeFer, dados:fers.filter(f=>f.data>=(body.desde||diaISO(new Date()))).sort((a,b)=>a.data.localeCompare(b.data))};
+  if(action==='salvar_feriado') {
+    if(!podeFer) return {ok:false, erro:'Só gestão, coordenação e recepção cadastram feriados'};
+    const profs=(body.profissionais||[]).map(x=>String(x).toLowerCase());let criados=0;
+    (body.datas||[]).forEach(d=>{ if(fers.some(f=>f.data===d && f.profissionais.join(',')===profs.join(','))) return; fers.push({id:'fer'+Math.random().toString(36).slice(2,8), data:d, titulo:body.titulo||'Feriado', profissionais:profs}); criados++; });
+    const marcados = DEMO_DB.agenda.filter(e=>(body.datas||[]).includes(diaISO(new Date(e.inicio))) && (!profs.length||profs.includes(e.agenda_email)))
+      .map(e=>({data:diaISO(new Date(e.inicio)), profissional:(equipe.find(p=>p.email===e.agenda_email)||{}).nome||'', titulo:e.titulo, hora:horaDe(e.inicio)}));
+    return {ok:true, criados, marcados};
+  }
+  if(action==='excluir_feriado') { if(!podeFer) return {ok:false, erro:'Sem permissão'}; DEMO_DB.feriados = fers.filter(f=>f.id!==body.id); return {ok:true}; }
+  if(action==='salvar_reuniao') {
+    const ini=new Date(body.inicio), fim=new Date(body.fim), part=equipe.filter(p=>(body.participantes||[]).includes(p.email));
+    if(!String(body.titulo||'').trim()) return {ok:false, erro:'Informe o assunto da reunião'};
+    if(!part.length) return {ok:false, erro:'Escolha ao menos uma profissional'};
+    const bl = part.filter(p=>ferDoDia(ini,p.email)); if(bl.length) return {ok:false, feriado:true, erro:'Agenda bloqueada nesse dia ('+ferDoDia(ini,bl[0].email).titulo+') para '+bl.map(p=>p.nome).join(', ')};
+    const rid = body.reuniao_id || 're'+Date.now().toString(36);
+    if(!body.forcar) { const ch=[]; part.forEach(p=>DEMO_DB.agenda.forEach(e=>{ if(e.agenda_email===p.email && e.reuniao_id!==rid && new Date(e.inicio)<fim && new Date(e.fim)>ini) ch.push(p.nome+' ('+e.titulo+')'); }));
+      if(ch.length) return {ok:false, conflito:true, erro:'Já existe compromisso nesse horário: '+ch.join('; ')}; }
+    DEMO_DB.agenda = DEMO_DB.agenda.filter(e=>e.reuniao_id!==rid);
+    const nomes = part.map(p=>p.nome).join(', ');
+    part.forEach(p=>DEMO_DB.agenda.push({id:'ev'+Math.random().toString(36).slice(2,9), agenda_email:p.email, titulo:'Reunião · '+String(body.titulo).trim(), inicio:ini.toISOString(), fim:fim.toISOString(),
+      obs:body.obs||'', status:'', do_sistema:true, tipo:'reuniao', reuniao_id:rid, participantes:nomes, paciente_id:'', servico:''}));
+    return {ok:true, reuniao_id:rid};
+  }
+  if(action==='excluir_reuniao') { const n=DEMO_DB.agenda.length; DEMO_DB.agenda = DEMO_DB.agenda.filter(e=>e.reuniao_id!==body.reuniao_id); return {ok:true, removidas:n-DEMO_DB.agenda.length}; }
   if(action==='criar_agendas') {
     if(currentRole!=='admin') return {ok:false, erro:'Só a gestão cria agendas'};
     const criadas = equipe.filter(p=>!p.agenda_id).map(p=>{ p.agenda_id='demo-'+p.id; return p.nome; });
@@ -1963,6 +2006,7 @@ function demoAgenda(action, body) {
   if(!prof) return {ok:false, erro:'Você não tem acesso à agenda dessa profissional'};
   if(action==='salvar_evento') {
     const ini=new Date(body.inicio), fim=new Date(body.fim);
+    const fer = ferDoDia(ini, prof.email); if(fer) return {ok:false, feriado:true, erro:'Agenda bloqueada em '+ini.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})+': '+fer.titulo};
     if(/pilates/i.test(body.servico||'') && DEMO_DB.agenda.filter(e=>e.agenda_email===prof.email && e.id!==body.evento_id && /pilates/i.test(e.servico||'') && e.status!=='falta' && e.status!=='justificada' && new Date(e.inicio)<fim && new Date(e.fim)>ini).length>=3)
       return {ok:false, lotado:true, erro:'Turma cheia: '+prof.nome+' já tem 3 alunas nesse horário'};
     if(!body.forcar) {
@@ -5286,6 +5330,177 @@ function montaObs(sala, rp, nota, pg) {
           pg ? 'Programa: sessão '+pg.k+' de '+pg.n+' [p:'+pg.id+'/'+pg.k+'/'+pg.n+']' : '',
           nota||''].filter(Boolean).join('\n');
 }
+// Feriados e bloqueios do dia (vêm com a semana em listar_agenda)
+function agFeriadoDe(dia, email) { const k = diaISO(dia); return (_ag.feriados||[]).find(f=>f.data===k && (!f.profissionais.length || (!!email && f.profissionais.includes(email)))) || null; }
+function agFeriadosDoDia(dia) { const k = diaISO(dia); return (_ag.feriados||[]).filter(f=>f.data===k); }
+// ── REUNIÕES DA EQUIPE ─────────────────────────
+// Um evento na agenda de cada participante, ligados pela mesma reuniao_id
+// (ver salvarReuniao no Code.gs). Não tem paciente: não conta em presença,
+// faturamento nem ocupação.
+async function novaReuniao(e, pre) {
+  const equipe = (_ag.equipe&&_ag.equipe.length ? _ag.equipe : _ag.profissionais.filter(p=>p.tem_agenda));
+  if(!equipe.length) { showToast('Nenhuma agenda disponível ainda','err'); return; }
+  document.getElementById('sheetTitle').textContent = e ? 'Editar reunião' : 'Nova reunião';
+  document.getElementById('sheetBody').innerHTML = loadingHTML(); openSheet();
+  await carregarSalas();
+  const eu = (currentUser.email||'').toLowerCase();
+  const irmas = e ? _ag.eventos.filter(x=>x.reuniao_id===e.reuniao_id) : [];
+  const nomesPart = e ? String(e.participantes||'').split(',').map(x=>normalizar(x.trim())) : [];
+  const marcados = new Set(e ? equipe.filter(p=>irmas.some(x=>x.agenda_email===p.email) || nomesPart.includes(normalizar(p.nome))).map(p=>p.email)
+                             : [ (pre&&pre.email) || (equipe.some(p=>p.email===eu)?eu:'') ].filter(Boolean));
+  let ini = e ? new Date(e.inicio) : (pre&&pre.inicio) || null;
+  if(!ini) { ini = new Date(_agVista==='dia'?_agDia:new Date()); ini.setHours(Math.min(19,Math.max(8,new Date().getHours()+1)),0,0,0); }
+  const dur = e ? Math.round((new Date(e.fim)-new Date(e.inicio))/60000) : 60;
+  const durs = [30,45,60,90,120]; if(!durs.includes(dur)) durs.push(dur);
+  const salaAtual = e ? e.sala : ''; const salas = [...(_agSalas||[])]; if(salaAtual && !salas.some(x=>agMesmaSala(x,salaAtual))) salas.push(salaAtual);
+  document.getElementById('sheetBody').innerHTML = `
+    ${e?'':`<div class="agx-seg agx-seg-f" style="margin-bottom:12px"><button type="button" onclick="novoAtendimento(null,null,${pre&&pre.inicio?`{inicio:new Date(${+ini}),email:'${esc((pre&&pre.email)||'')}'}`:'undefined'})">Atendimento</button><button type="button" class="on">Reunião da equipe</button></div>`}
+    <div class="f2">
+      <div class="fg fa"><label class="fl" for="reTit">Assunto</label><input class="fi" id="reTit" value="${esc(e?String(e.titulo||'').replace(/^Reunião · /,''):'')}" placeholder="Ex.: Reunião de equipe, discussão de caso, supervisão"></div>
+      <div class="fg fa"><label class="fl">Participantes <span style="font-weight:400;color:var(--ink3)">(toque para marcar quantas quiser)</span></label>
+        <div class="agx-part" id="reProfs">${equipe.map(p=>`<button type="button" class="agx-chip${marcados.has(p.email)?' on':''}" data-email="${esc(p.email)}" onclick="this.classList.toggle('on')"><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${agCor(p.email)};margin-right:5px"></i>${esc(p.nome)}</button>`).join('')}</div>
+        <button type="button" class="ff-link" style="margin-top:6px" onclick="document.querySelectorAll('#reProfs .agx-chip').forEach(b=>b.classList.add('on'))">marcar toda a equipe</button></div>
+      <div class="fg"><label class="fl" for="reData">Data</label><input class="fi" type="date" id="reData" value="${diaISO(ini)}"></div>
+      <div class="fg"><label class="fl" for="reHora">Horário</label><input class="fi" type="time" id="reHora" step="300" value="${ini.toTimeString().slice(0,5)}"></div>
+      <div class="fg fa"><label class="fl">Duração</label>
+        <div class="agx-chips" id="reDur">${durs.map(m=>`<button type="button" class="agx-chip${m===dur?' on':''}" data-min="${m}" onclick="this.parentNode.querySelectorAll('.agx-chip').forEach(c=>c.classList.remove('on'));this.classList.add('on')">${m} min</button>`).join('')}</div></div>
+      <div class="fg fa"><label class="fl" for="reSala">Sala</label>
+        ${salas.length?`<div class="agx-chips" id="reSalaChips">${salas.map(x=>`<button type="button" class="agx-chip${agMesmaSala(x,salaAtual)?' on':''}" onclick="escolherChip(this,'reSala')">${esc(x)}</button>`).join('')}</div>`:''}
+        <input class="fi" id="reSala" value="${esc(salaAtual)}" placeholder="${salas.length?'Ou escreva outro lugar':'Ex.: Sala 2, on-line'}" style="${salas.length?'margin-top:8px':''}" oninput="sincronizarChips('reSalaChips',this.value)"></div>
+      <div class="fg fa"><label class="fl" for="reObs">Pauta ou observação (aparece no Google Agenda)</label><input class="fi" id="reObs" value="${esc(e?e.nota:'')}" placeholder="Ex.: casos da semana, link da chamada"></div>
+    </div>
+    <div id="reErr" class="errbox"></div>
+    <button class="savebtn" id="reBtn" onclick="salvarReuniaoForm(${e?`'${esc(e.reuniao_id)}','${esc(e.inicio)}'`:''})">${e?'Salvar para todos':'Marcar reunião'}</button>`;
+}
+async function salvarReuniaoForm(rid, inicioAntigo, forcar) {
+  const v = id => ((document.getElementById(id)||{}).value||'').trim();
+  const err = document.getElementById('reErr'), btn = document.getElementById('reBtn');
+  const erro = m => { err.textContent = m; err.style.display = 'block'; };
+  const part = [...document.querySelectorAll('#reProfs .agx-chip.on')].map(b=>b.dataset.email);
+  if(!v('reTit')) return erro('Informe o assunto da reunião.');
+  if(!part.length) return erro('Marque ao menos uma participante.');
+  if(!v('reData') || !v('reHora')) return erro('Informe data e horário.');
+  err.style.display = 'none';
+  const durEl = document.querySelector('#reDur .agx-chip.on'), dur = durEl ? +durEl.dataset.min : 60;
+  const inicio = new Date(v('reData')+'T'+v('reHora')+':00'), fim = new Date(inicio.getTime()+dur*60000);
+  const t = btn.textContent; btn.disabled = true; btn.textContent = 'Salvando…';
+  const res = await api('salvar_reuniao',{titulo:v('reTit'), participantes:part, inicio:inicio.toISOString(), fim:fim.toISOString(),
+    obs:montaObs(v('reSala'), null, v('reObs'), null), reuniao_id:rid||'', inicio_antigo:inicioAntigo||'', forcar:!!forcar});
+  btn.disabled = false; btn.textContent = t;
+  if(!res.ok && res.conflito) { if(confirm(res.erro+'.\n\nMarcar assim mesmo?')) return salvarReuniaoForm(rid, inicioAntigo, true); return; }
+  if(!res.ok) return erro(res.erro||'Não foi possível salvar.');
+  closeSheet(true);
+  _agDia = new Date(inicio); _agDia.setHours(0,0,0,0); _agSemana = inicioDaSemana(inicio);
+  await loadAgenda();
+  showToast(rid ? 'Reunião atualizada para todas' : 'Reunião marcada na agenda de '+part.length+' '+(part.length===1?'profissional':'profissionais'),'ok');
+}
+function detalheReuniao(e) {
+  const ini = new Date(e.inicio);
+  const ref = `'${esc(e.reuniao_id)}','${esc(e.inicio)}'`;
+  document.getElementById('sheetTitle').textContent = String(e.titulo||'Reunião').replace(/^Reunião · /,'');
+  document.getElementById('sheetBody').innerHTML = `
+    <div class="agx-det">
+      <div class="agx-det-l"><span>Tipo</span><b>👥 Reunião da equipe</b></div>
+      <div class="agx-det-l"><span>Quando</span><b>${esc(maiuscula(ini.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'})))} · ${horaDe(e.inicio)} às ${horaDe(e.fim)}</b></div>
+      <div class="agx-det-l"><span>Participantes</span><b>${esc(e.participantes||e.profissional||agProfNome(e.agenda_email))}</b></div>
+      ${e.sala?`<div class="agx-det-l"><span>Sala</span><b>${esc(e.sala)}</b></div>`:''}
+      ${e.nota?`<div class="agx-det-l"><span>Pauta</span><b style="font-weight:500;white-space:pre-wrap">${esc(e.nota)}</b></div>`:''}
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:16px">
+      <button class="savebtn" style="flex:1" onclick="novaReuniao(_ag.eventos.find(x=>x.reuniao_id==='${esc(e.reuniao_id)}'))">Editar</button>
+      <button class="backbtn" style="flex:1;color:var(--rose)" onclick="excluirReuniaoUI(${ref},this)">Excluir para todas</button>
+    </div>`;
+  openSheet();
+}
+async function excluirReuniaoUI(rid, inicio, btn) {
+  if(!confirm('Excluir esta reunião da agenda de todas as participantes?')) return;
+  btn.disabled = true; btn.textContent = 'Excluindo…';
+  const r = await api('excluir_reuniao',{reuniao_id:rid, inicio});
+  if(!r.ok) { btn.disabled = false; btn.textContent = 'Excluir para todas'; showToast(r.erro||'Não foi possível excluir','err'); return; }
+  closeSheet(true); await loadAgenda(); showToast('Reunião excluída','ok');
+}
+
+// ── FERIADOS E BLOQUEIOS ───────────────────────
+// Dia inteiro sem agenda: para a clínica toda ou só para algumas profissionais
+// (férias, curso). O servidor recusa qualquer marcação nesses dias.
+function pascoa(ano) { const a=ano%19,b=Math.floor(ano/100),c=ano%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),mes=Math.floor((h+l-7*m+114)/31),dia=((h+l-7*m+114)%31)+1; return new Date(ano,mes-1,dia,12); }
+function feriadosDoAno(ano) {
+  const p = pascoa(ano), d = (m,dd,t)=>[`${ano}-${String(m).padStart(2,'0')}-${String(dd).padStart(2,'0')}`, t], rel = (n,t)=>[diaISO(somaDias(p,n)), t];
+  return [d(1,1,'Confraternização Universal'), d(1,25,'Aniversário de São Paulo'), rel(-48,'Carnaval'), rel(-47,'Carnaval'), rel(-2,'Sexta-feira Santa'),
+    d(4,21,'Tiradentes'), d(5,1,'Dia do Trabalho'), rel(60,'Corpus Christi'), d(7,9,'Revolução Constitucionalista (SP)'), d(9,7,'Independência do Brasil'),
+    d(10,12,'Nossa Senhora Aparecida'), d(11,2,'Finados'), d(11,15,'Proclamação da República'), d(11,20,'Dia da Consciência Negra'), d(12,25,'Natal')]
+    .sort((a,b)=>a[0].localeCompare(b[0]));
+}
+async function abrirFeriados() {
+  document.getElementById('sheetTitle').textContent = 'Feriados e bloqueios';
+  document.getElementById('sheetBody').innerHTML = loadingHTML(); openSheet();
+  const r = await api('listar_feriados',{desde:diaISO(somaDias(new Date(),-1))});
+  const lista = r.ok ? r.dados||[] : [];
+  const equipe = (_ag.equipe&&_ag.equipe.length ? _ag.equipe : _ag.profissionais);
+  const ano = new Date().getFullYear(), hojeK = diaISO(new Date());
+  const anos = [ano, ano+1].filter(a=>feriadosDoAno(a).some(([dt])=>dt>=hojeK));
+  const fmt = k => new Date(k+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit',year:'numeric'});
+  document.getElementById('sheetBody').innerHTML = `
+    <div class="pt-nota" style="margin:0 0 12px">Nos dias bloqueados ninguém consegue marcar atendimento nem reunião. O que já estava marcado continua na agenda, e o sistema avisa para remarcar.</div>
+    <div class="card" style="margin-bottom:14px">
+      <div class="f2">
+        <div class="fg fa"><label class="fl" for="ferTit">Nome</label><input class="fi" id="ferTit" placeholder="Ex.: Natal, recesso de fim de ano, férias da Juliana"></div>
+        <div class="fg"><label class="fl" for="ferDe">Dia</label><input class="fi" type="date" id="ferDe"></div>
+        <div class="fg"><label class="fl" for="ferAte">Até <span style="font-weight:400;color:var(--ink3)">(se for mais de um dia)</span></label><input class="fi" type="date" id="ferAte"></div>
+        <div class="fg fa"><label class="fl">Vale para</label>
+          <div class="agx-seg agx-seg-f" id="ferAlc"><button type="button" class="on" data-v="todas" onclick="this.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('on'));this.classList.add('on');document.getElementById('ferProfs').style.display='none'">Toda a clínica</button><button type="button" data-v="algumas" onclick="this.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('on'));this.classList.add('on');document.getElementById('ferProfs').style.display='flex'">Só algumas profissionais</button></div>
+          <div class="agx-part" id="ferProfs" style="display:none;margin-top:8px">${equipe.map(p=>`<button type="button" class="agx-chip" data-email="${esc(p.email)}" onclick="this.classList.toggle('on')">${esc(p.nome)}</button>`).join('')}</div></div>
+      </div>
+      <div id="ferErr" class="errbox"></div>
+      <button class="savebtn" id="ferBtn" onclick="salvarFeriadoUI()">Bloquear agenda</button>
+      ${anos.length?`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">${anos.map(a=>`<button class="backbtn" onclick="feriadosNacionaisUI(${a},this)">Adicionar feriados de ${a} (nacionais e de SP)</button>`).join('')}</div>`:''}
+    </div>
+    <div class="fl" style="margin-bottom:4px">Próximos bloqueios</div>
+    ${lista.length ? lista.map(f=>`<div class="agx-fer-l"><b>${esc(fmt(f.data))}</b><span>${esc(f.titulo)}${f.profissionais.length?` <small style="color:var(--ink3)">· ${esc(f.profissionais.map(e=>(equipe.find(p=>p.email===e)||{}).nome||e).join(', '))}</small>`:''}</span>${r.pode?`<button class="ff-link" style="color:var(--rose)" onclick="excluirFeriadoUI('${esc(f.id)}',this)">liberar</button>`:''}</div>`).join('')
+      : '<div class="pt-nota">Nenhum feriado cadastrado ainda.</div>'}`;
+}
+async function enviarFeriados(datas, titulo, profs, btn, quieto) {
+  const t = btn.textContent; btn.disabled = true; btn.textContent = 'Salvando…';
+  const r = await api('salvar_feriado',{datas, titulo, profissionais:profs});
+  btn.disabled = false; btn.textContent = t;
+  if(!r.ok) { showToast(r.erro||'Não foi possível salvar','err'); return null; }
+  if(!quieto && r.marcados && r.marcados.length) alert('Agenda bloqueada. Atenção: já havia '+r.marcados.length+' '+(r.marcados.length===1?'compromisso marcado':'compromissos marcados')+' nesses dias e '+(r.marcados.length===1?'ele continua':'eles continuam')+' na agenda. Remarque:\n\n'+r.marcados.slice(0,25).map(m=>m.data.split('-').reverse().slice(0,2).join('/')+' '+m.hora+' · '+m.profissional+' · '+m.titulo).join('\n')+(r.marcados.length>25?'\n…':''));
+  return r;
+}
+async function salvarFeriadoUI() {
+  const v = id => ((document.getElementById(id)||{}).value||'').trim();
+  const err = document.getElementById('ferErr'); const erro = m => { err.textContent = m; err.style.display = 'block'; };
+  if(!v('ferTit')) return erro('Dê um nome ao bloqueio (ex.: Natal, férias da Juliana).');
+  if(!v('ferDe')) return erro('Escolha o dia.');
+  const ate = v('ferAte') || v('ferDe'); if(ate < v('ferDe')) return erro('O "até" precisa ser depois do primeiro dia.');
+  const datas = []; for(let d=new Date(v('ferDe')+'T12:00:00'); diaISO(d)<=ate && datas.length<400; d=somaDias(d,1)) datas.push(diaISO(d));
+  const algumas = (document.querySelector('#ferAlc button.on')||{}).dataset.v==='algumas';
+  const profs = algumas ? [...document.querySelectorAll('#ferProfs .agx-chip.on')].map(b=>b.dataset.email) : [];
+  if(algumas && !profs.length) return erro('Escolha as profissionais, ou marque "Toda a clínica".');
+  err.style.display = 'none';
+  const r = await enviarFeriados(datas, v('ferTit'), profs, document.getElementById('ferBtn'));
+  if(!r) return;
+  showToast(r.criados ? 'Agenda bloqueada em '+r.criados+' '+(r.criados===1?'dia':'dias') : 'Esses dias já estavam bloqueados','ok');
+  await loadAgenda(); abrirFeriados();
+}
+async function feriadosNacionaisUI(ano, btn) {
+  const hojeK = diaISO(new Date());
+  const fs = feriadosDoAno(ano).filter(([dt])=>dt>=hojeK);
+  if(!confirm('Bloquear a agenda da clínica toda nestes dias de '+ano+'?\n\n'+fs.map(([dt,t])=>dt.split('-').reverse().slice(0,2).join('/')+' · '+t).join('\n')+'\n\nDepois dá para liberar qualquer um deles.')) return;
+  let criados = 0; const marc = [];
+  for(const t of [...new Set(fs.map(x=>x[1]))]) { const r = await enviarFeriados(fs.filter(x=>x[1]===t).map(x=>x[0]), t, [], btn, true); if(!r) return; criados += r.criados||0; marc.push(...(r.marcados||[])); }
+  if(marc.length) alert('Atenção: já havia '+marc.length+' '+(marc.length===1?'compromisso marcado':'compromissos marcados')+' em feriados. Remarque:\n\n'+marc.slice(0,25).map(m=>m.data.split('-').reverse().slice(0,2).join('/')+' '+m.hora+' · '+m.profissional+' · '+m.titulo).join('\n')+(marc.length>25?'\n…':''));
+  showToast(criados ? criados+' feriados adicionados' : 'Os feriados de '+ano+' já estavam na agenda','ok');
+  await loadAgenda(); abrirFeriados();
+}
+async function excluirFeriadoUI(id, btn) {
+  if(!confirm('Liberar a agenda nesse dia?')) return;
+  btn.disabled = true;
+  const r = await api('excluir_feriado',{id});
+  if(!r.ok) { btn.disabled = false; showToast(r.erro||'Não foi possível liberar','err'); return; }
+  await loadAgenda(); abrirFeriados();
+}
+
 function agMesmaSala(a,b) { return !!a && !!b && normalizar(a)===normalizar(b); }
 async function carregarSalas(forcar) {
   if(_agSalas && !forcar) return _agSalas;
@@ -5318,13 +5533,13 @@ function renderAgenda() {
 async function loadAgenda() {
   const el = document.getElementById('agBody');
   if(!el) return;
-  const res = await api('listar_agenda',{de:_agSemana.toISOString(), ate:somaDias(_agSemana,7).toISOString()});
+  const res = await api('listar_agenda',{de:_agSemana.toISOString(), ate:somaDias(_agSemana,7).toISOString(), com_reunioes:true});
   if(!res.ok) {
     el.innerHTML = `<div class="card" style="color:var(--rose)">Não foi possível carregar a agenda: ${esc(res.erro||'')}</div>`;
     return;
   }
   _ag = {eventos:(res.dados||[]).map(prepEvento), profissionais:res.profissionais||[], sem_acesso:res.sem_acesso||[],
-         pode_criar_agendas:!!res.pode_criar_agendas};
+         pode_criar_agendas:!!res.pode_criar_agendas, feriados:res.feriados||[], equipe:res.equipe||[], pode_feriados:!!res.pode_feriados};
   if(_agFiltro && !_ag.profissionais.some(p=>p.email===_agFiltro)) _agFiltro = '';
   if(_ag.profissionais.length===1) _agFiltro = _ag.profissionais[0].email;
   await carregarSalas();
@@ -5394,6 +5609,8 @@ function desenharAgenda(rolar) {
     </div>
     <div class="agx-seg" role="tablist">${[['dia','Dia'],['semana','Semana'],['lista','Lista'],['mapa','Mapa do Pilates']].map(([v,t])=>`<button class="${_agVista===v?'on':''}" onclick="vistaAgenda('${v}')">${t}</button>`).join('')}</div>
     ${currentRole==='admin' || ehRecepcao() ? `<button class="backbtn" onclick="lembretesWhats(1)" title="Mensagem pronta para cada paciente de amanhã">Lembretes de amanhã</button>` : ''}
+    ${_ag.pode_feriados ? `<button class="backbtn" onclick="abrirFeriados()" title="Feriados, recessos e férias: a agenda fica bloqueada nesses dias">Feriados e bloqueios</button>` : ''}
+    <button class="backbtn" onclick="novaReuniao()">+ Reunião</button>
     <button class="addbtn agx-add" onclick="novoAtendimento()">+ Agendar</button>
   </div>
   ${_agVista==='dia' && !_agFiltro && varias ? `<div class="agx-cols"><span>Colunas por</span><div class="agx-seg">${[['prof','Profissional'],['sala','Sala']].map(([v,t])=>`<button class="${_agColunas===v?'on':''}" onclick="colunasPor('${v}')">${t}</button>`).join('')}</div>${currentRole==='admin'?`<button class="agx-link" onclick="editarSalas()">Salas da clínica</button>`:''}</div>` : (currentRole==='admin' && _agVista!=='dia' ? '' : '')}
@@ -5495,32 +5712,36 @@ function gradeAgenda(varias) {
   const cab = cols.map(c=>{
     const n = eventosDaColuna(c).length, hojeCol = agMesmoDia(c.dia, hoje);
     if(porSala) return `<div class="agx-hc"><div class="agx-hn">${c.semSala?'<span style="color:var(--ink3)">Sem sala</span>':'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v16M2 21h20M15 12h.01"/></svg>'+esc(c.sala)}</div><div class="agx-hs">${n} ${n===1?'atendimento':'atendimentos'}</div></div>`;
-    if(porProf) return `<div class="agx-hc"><div class="agx-hn"><i style="background:${agCor(c.email)}"></i>${esc(c.prof.nome)}</div><div class="agx-hs">${n} ${n===1?'atendimento':'atendimentos'}</div></div>`;
-    return `<div class="agx-hc${hojeCol?' hoje':''}"><div class="agx-hd"><span class="agx-dn">${c.dia.getDate()}</span><div><div class="agx-hn">${esc(maiuscula(c.dia.toLocaleDateString('pt-BR',{weekday:_agVista==='dia'?'long':'short'}).replace('.','')))}</div><div class="agx-hs">${n||'Livre'}${n?(n===1?' atendimento':' atendimentos'):''}</div></div></div></div>`;
+    if(porProf) return `<div class="agx-hc"><div class="agx-hn"><i style="background:${agCor(c.email)}"></i>${esc(c.prof.nome)}</div>${agFeriadoDe(c.dia,c.email)?`<div class="agx-hs" style="color:var(--rose);font-weight:600">${esc(agFeriadoDe(c.dia,c.email).titulo)}</div>`:`<div class="agx-hs">${n} ${n===1?'atendimento':'atendimentos'}</div>`}</div>`;
+    return `<div class="agx-hc${hojeCol?' hoje':''}"><div class="agx-hd"><span class="agx-dn">${c.dia.getDate()}</span><div><div class="agx-hn">${esc(maiuscula(c.dia.toLocaleDateString('pt-BR',{weekday:_agVista==='dia'?'long':'short'}).replace('.','')))}</div>${agFeriadoDe(c.dia,c.email)?`<div class="agx-hs" style="color:var(--rose);font-weight:600">${esc(agFeriadoDe(c.dia,c.email).titulo)}</div>`:`<div class="agx-hs">${n||'Livre'}${n?(n===1?' atendimento':' atendimentos'):''}</div>`}</div></div></div>`;
   }).join('');
 
   let horas = '';
   for(let h=h0; h<=h1; h++) horas += `<div style="top:${(h-h0)*AG_PX}px">${String(h).padStart(2,'0')}:00</div>`;
 
   const corpo = cols.map((c,ci)=>{
+    const fer = agFeriadoDe(c.dia, c.email), parciais = !fer && !c.email ? agFeriadosDoDia(c.dia).filter(f=>f.profissionais.length) : [];
+    const ferH = fer ? `<div class="agx-fer"><b>Agenda bloqueada</b><span>${esc(fer.titulo)}</span></div>` : '';
+    const parcH = parciais.length ? `<div class="agx-fer-p">${parciais.map(f=>esc(f.titulo)+': '+esc(f.profissionais.map(agProfNome).join(', '))).join(' · ')}</div>` : '';
     const evs = faixas(eventosDaColuna(c)).map(({e,ini,fim,faixa,de})=>{
       const top = (ini-h0*60)/60*AG_PX, alt = Math.max(22,(fim-ini)/60*AG_PX-2);
       const st = e.status||'', cor = agCor(e.agenda_email), curto = alt < 40, estreito = de >= 3 || (de===2 && largura<130);
-      const [nome, serv] = String(e.titulo||'(sem título)').split(' · ');
+      const reun = e.tipo==='reuniao';
+      const [nome, serv] = reun ? [String(e.titulo||'').replace(/^Reunião · /,''), 'Reunião'] : String(e.titulo||'(sem título)').split(' · ');
       const prof = (!porProf || porSala) && !_agFiltro && varias ? esc(e.profissional||agProfNome(e.agenda_email)) : '';
       const sala = e.sala && !porSala ? esc(e.sala) : '';
-      if(estreito) return `<button class="agx-ev agx-mini st-${st||'agendado'}${e.do_sistema?' mov':''}" data-id="${esc(e.id)}" data-ag="${esc(e.agenda_email)}"
+      if(estreito) return `<button class="agx-ev agx-mini st-${st||'agendado'}${e.do_sistema&&!reun?' mov':''}${reun?' reun':''}" data-id="${esc(e.id)}" data-ag="${esc(e.agenda_email)}"
         style="--c:${cor};top:${top}px;height:${alt}px;left:calc(${faixa*100/de}% + 1px);width:calc(${100/de}% - 2px)"
         title="${esc(e.titulo)} · ${horaDe(e.inicio)}–${horaDe(e.fim)}${prof?' · '+prof:''}${sala?' · '+sala:''}">${st?`<b class="agx-st st-${st}">${AG_ICONE[st]}</b>`:''}<span class="agx-ini">${esc(nome.split(' ').map(x=>x[0]).join('').slice(0,2))}</span></button>`;
-      return `<button class="agx-ev st-${st||'agendado'}${e.do_sistema?' mov':''}${e.aviso?' avisou':''}" data-id="${esc(e.id)}" data-ag="${esc(e.agenda_email)}"
+      return `<button class="agx-ev st-${st||'agendado'}${e.do_sistema&&!reun?' mov':''}${e.aviso?' avisou':''}${reun?' reun':''}" data-id="${esc(e.id)}" data-ag="${esc(e.agenda_email)}"
         style="--c:${cor};top:${top}px;height:${alt}px;left:calc(${faixa*100/de}% + 2px);width:calc(${100/de}% - 4px)"
         title="${esc(e.titulo)} · ${horaDe(e.inicio)}–${horaDe(e.fim)}${prof?' · '+prof:''}${sala?' · '+sala:''}${e.rep?' · repete sem data para acabar':''}">
-        <span class="agx-et">${st?`<b class="agx-st st-${st}">${AG_ICONE[st]}</b>`:''}<span class="agx-en">${esc(nome.replace(/^\[Não vem\] /,''))}</span>${e.aviso?'<span class="agx-nv">não vem</span>':''}${e.reposDe?'<span class="agx-rp" title="Reposição">rep.</span>':''}${e.rep?'<span class="agx-rep" aria-label="Repete">↻</span>':''}${e.prog?`<span class="agx-rep" title="Sessão ${e.prog.k} de ${e.prog.n} do programa">${e.prog.k}/${e.prog.n}</span>`:''}${curto?`<span class="agx-eh">${horaDe(e.inicio)}</span>`:''}</span>
+        <span class="agx-et">${st?`<b class="agx-st st-${st}">${AG_ICONE[st]}</b>`:''}${reun?'<span class="agx-rep" aria-label="Reunião">👥</span>':''}<span class="agx-en">${esc(nome.replace(/^\[Não vem\] /,''))}</span>${e.aviso?'<span class="agx-nv">não vem</span>':''}${e.reposDe?'<span class="agx-rp" title="Reposição">rep.</span>':''}${e.rep?'<span class="agx-rep" aria-label="Repete">↻</span>':''}${e.prog?`<span class="agx-rep" title="Sessão ${e.prog.k} de ${e.prog.n} do programa">${e.prog.k}/${e.prog.n}</span>`:''}${curto?`<span class="agx-eh">${horaDe(e.inicio)}</span>`:''}</span>
         ${curto?'':`<span class="agx-es">${horaDe(e.inicio)}–${horaDe(e.fim)}${serv?' · '+esc(serv):''}</span>${(prof||sala) && alt>=58?`<span class="agx-es agx-ep">${[prof,sala].filter(Boolean).join(' · ')}</span>`:''}`}
       </button>`;
     }).join('');
     const linhaAgora = agMesmoDia(c.dia, hoje) && agora>=h0*60 && agora<=h1*60 ? `<div class="agx-agora" style="top:${(agora-h0*60)/60*AG_PX}px"></div>` : '';
-    return `<div class="agx-col${agMesmoDia(c.dia,hoje)&&!porProf?' hoje':''}" data-col="${ci}" style="height:${H}px">${evs}${linhaAgora}<div class="agx-fantasma" hidden></div></div>`;
+    return `<div class="agx-col${agMesmoDia(c.dia,hoje)&&!porProf?' hoje':''}${fer?' bloq':''}" data-col="${ci}" style="height:${H}px">${ferH}${parcH}${evs}${linhaAgora}<div class="agx-fantasma" hidden></div></div>`;
   }).join('');
 
   _agGrade = {cols, h0, h1};
@@ -5571,6 +5792,7 @@ function ligarGrade(rolar) {
     const col = ev.target.closest('.agx-col');
     if(!col) return;
     const c = _agGrade.cols[+col.dataset.col];
+    const ferC = agFeriadoDe(c.dia, c.email); if(ferC) { showToast('Agenda bloqueada nesse dia: '+ferC.titulo,'err'); return; }
     const m = Math.floor(minutoDoPonteiro(col, ev.clientY)/30)*30;
     const ini = new Date(c.dia); ini.setHours(0, m, 0, 0);
     novoAtendimento(null, null, {inicio:ini, email:c.email, sala:c.sala||''});
@@ -5639,6 +5861,7 @@ async function moverAtendimento(e, ini, dur, forcar) {
 function detalheAtendimento(agendaEmail, eventoId) {
   const e = _ag.eventos.find(x=>x.id===eventoId && x.agenda_email===agendaEmail);
   if(!e) return;
+  if(e.tipo==='reuniao') return detalheReuniao(e);
   const st = AG_STATUS[e.status||''] || AG_STATUS[''];
   const passou = agPassou(e);
   const pac = e.paciente_id ? (_todosPacientes||[]).find(p=>String(p.id)===String(e.paciente_id)) : null;
@@ -5809,6 +6032,7 @@ async function novoAtendimento(agendaEmail, eventoId, pre) {
   const salas = [...(_agSalas||[])]; if(salaAtual && !salas.some(x=>agMesmaSala(x,salaAtual))) salas.push(salaAtual);
   const marca = (grupo, btn) => { btn.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); };
   document.getElementById('sheetBody').innerHTML = `
+    ${e||_agReposDe?'':`<div class="agx-seg agx-seg-f" style="margin-bottom:12px"><button type="button" class="on">Atendimento</button><button type="button" onclick="novaReuniao(null,${pre&&pre.inicio?`{inicio:new Date(${+ini}),email:'${esc((pre&&pre.email)||'')}'}`:'null'})">Reunião da equipe</button></div>`}
     ${_agReposDe?`<div class="aus-box" style="margin-top:0">↻ <b>Reposição</b> da sessão${_agReposDe.data?' de '+esc(_agReposDe.data):''}. Escolha o novo dia e horário.</div>`:''}
     ${pre&&pre.inicio?`<div class="agx-pre">${pre.email?`<i style="background:${agCor(profPadrao)}"></i>`:''}${esc(maiuscula(ini.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'short'})))} · ${horaDe(ini)}${!_agFiltro&&pre.email?' · '+esc(agProfNome(pre.email)):''}${pre.sala?' · '+esc(pre.sala):''}</div>`:''}
     <div class="f2">
@@ -5990,6 +6214,16 @@ async function salvarAtendimento(eventoId, forcar) {
   if(!datas.length) return erro('Nenhuma data para agendar com essas opções.');
   const servico = v('agServ');
   if(!servico && !eventoId) return erro('Escolha o serviço (a lista vem da tela Serviços).');
+  // Feriados e bloqueios: as datas que caem neles ficam de fora
+  { const fl = await api('listar_feriados',{desde:datas.map(o=>o.dt).sort()[0]});
+    const bloq = fl.ok ? (fl.dados||[]).filter(f=>!f.profissionais.length || f.profissionais.includes(email)) : [];
+    const cai = datas.filter(o=>bloq.some(f=>f.data===o.dt));
+    if(cai.length) {
+      const fmtF = o => o.dt.split('-').reverse().slice(0,2).join('/')+' ('+bloq.find(f=>f.data===o.dt).titulo+')';
+      if(cai.length===datas.length) return erro('Agenda bloqueada: '+cai.map(fmtF).join(', ')+'. Escolha outro dia.');
+      if(!confirm(cai.length+' '+(cai.length===1?'data cai':'datas caem')+' em feriado ou bloqueio e '+(cai.length===1?'fica':'ficam')+' de fora: '+cai.map(fmtF).join(', ')+'.\n\nAgendar as outras '+(datas.length-cai.length)+'?')) return;
+      datas = datas.filter(o=>!cai.includes(o));
+    } }
   let forcarGrupo = false;
 
   // Pilates: confere as vagas da turma em todas as datas antes de gravar
@@ -6044,6 +6278,7 @@ async function salvarAtendimento(eventoId, forcar) {
       if(e.status) await api('status_evento',{agenda_email:email, evento_id:res.dados.id, status:e.status, ...(e.motivo_ausencia?{motivo:e.motivo_ausencia}:{})});
       if(!rx.ok) showToast('Criado na agenda de '+agProfNome(email)+', mas não deu para tirar da agenda antiga: '+(rx.erro||''),'err');
     }
+    if(!res.ok && res.feriado && datas.length>1) { choques.push(inicio.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})); continue; }
     if(!res.ok && res.lotado) {
       if(datas.length===1) { btn.disabled = false; btn.textContent = textoBtn; return erro(res.erro); }
       choques.push(inicio.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})); continue;
@@ -6072,7 +6307,7 @@ async function salvarAtendimento(eventoId, forcar) {
   _agReposDe = null;
   await loadAgenda();
   const msg = eventoId ? 'Atendimento atualizado' : rp ? 'Agendado sem data para acabar. As próximas semanas já estão marcadas' : (feitos>1?feitos+' atendimentos agendados':'Agendado');
-  if(choques.length) showToast(feitos+' agendados. Ficaram de fora por choque de horário ou turma cheia: '+choques.join(', '),'err');
+  if(choques.length) showToast(feitos+' agendados. Ficaram de fora por choque de horário, turma cheia ou feriado: '+choques.join(', '),'err');
   else showToast(msg,'ok');
 }
 
@@ -6312,7 +6547,7 @@ async function agendaDoPeriodo(datas) {
   let de = new Date(ord[0]+'T00:00:00'); const fim = somaDias(new Date(ord[ord.length-1]+'T00:00:00'), 1);
   while(de < fim) {
     const ate = new Date(Math.min(+somaDias(de, 60), +fim));
-    const r = await api('listar_agenda',{de:de.toISOString(), ate:ate.toISOString()});
+    const r = await api('listar_agenda',{de:de.toISOString(), ate:ate.toISOString(), com_reunioes:true});
     if(r.ok) out.push(...(r.dados||[]).map(prepEvento));
     de = ate;
   }
