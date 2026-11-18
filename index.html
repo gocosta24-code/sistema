@@ -5671,11 +5671,11 @@ function detalheAtendimento(agendaEmail, eventoId) {
       ${e.do_sistema?`<div style="margin-top:8px"><button class="addbtn" onclick="remarcarAusencia(${ref})">Remarcar esta sessão</button></div>`:''}</div>` : ''}
     ${pac && e.status==='realizado' ? `<button class="savebtn" onclick="closeSheet(true);abrirPacienteDaAgenda('${esc(linhasDoPaciente(pac)[0]||'')}','${esc(pac.id)}')">Registrar evolução</button>` : ''}
     <div class="agx-acoes" style="margin-top:12px">
-      ${e.do_sistema ? `<button class="backbtn" onclick="novoAtendimento(${ref})">Remarcar</button>` : `<span class="pt-nota" style="margin:0">Criado direto no Google Agenda. Para mudar o horário, altere por lá.</span>`}
+      ${e.do_sistema ? `<button class="backbtn" onclick="novoAtendimento(${ref})">✎ Editar data, horário ou profissional</button>` : `<span class="pt-nota" style="margin:0">Criado direto no Google Agenda. Para mudar o horário, altere por lá.</span>`}
       <button class="backbtn" style="color:var(--rose);margin-left:auto" onclick="cancelarAtendimento(${ref})">Excluir agendamento</button>
     </div>
     ${!e.rep && !passou ? `<div class="agx-encerrar"><div><b>Excluir este e os próximos iguais</b><div class="pt-nota" style="margin:2px 0 0">Tira da agenda todas as sessões de ${esc(String(e.titulo||'').split(' · ')[0])} ${esc(DIAS_SEMANA[new Date(e.inicio).getDay()].toLowerCase())} às ${horaDe(e.inicio)} com esta profissional, a partir desta.</div></div>
-      <button class="backbtn" style="color:var(--rose)" onclick="excluirProximosIguais(${ref})">Excluir a partir de ${new Date(e.inicio).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})}</button></div>` : ''}
+      <button class="backbtn" style="color:var(--rose)" onclick="excluirProximosIguais(${ref},this)">Excluir a partir de ${new Date(e.inicio).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})}</button></div>` : ''}
     ${e.paciente_id ? `<button class="backbtn" style="margin-top:12px" onclick="abrirPlanoPaciente('${esc(e.paciente_id)}','${esc(String(e.titulo||'').split(' · ')[0].replace(/'/g,''))}')">Ver ou mudar o plano de horários do paciente</button>` : ''}
     ${e.rep && e.do_sistema ? `<div class="agx-encerrar"><div><b>Encerrar a repetição</b><div class="pt-nota" style="margin:2px 0 0">Cancela este e os próximos atendimentos da série. Os anteriores ficam como estão.</div></div>
       <button class="backbtn" style="color:var(--rose)" onclick="encerrarRepeticao(${ref})">Encerrar a partir de ${new Date(e.inicio).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})}</button></div>` : ''}`;
@@ -5703,7 +5703,7 @@ function cartaoAtendimento(e, mostrarProf) {
       ${passou && e.status!=='falta' ? `<button class="backbtn" style="padding:5px 10px;font-size:12px" onclick="marcarAusencia(${ref},'falta')">Faltou</button>` : ''}
       ${e.status!=='justificada' ? `<button class="backbtn" style="padding:5px 10px;font-size:12px" onclick="marcarAusencia(${ref},'justificada')">Justificada</button>` : ''}
       ${pac && e.status==='realizado' ? `<button class="backbtn" style="padding:5px 10px;font-size:12px" onclick="abrirPacienteDaAgenda('${esc(linhasDoPaciente(pac)[0]||'')}','${esc(pac.id)}')">Registrar evolução</button>` : ''}
-      ${e.do_sistema ? `<button class="backbtn" style="padding:5px 10px;font-size:12px" onclick="novoAtendimento(${ref})">Remarcar</button>` : ''}
+      ${e.do_sistema ? `<button class="backbtn" style="padding:5px 10px;font-size:12px" onclick="novoAtendimento(${ref})">Editar</button>` : ''}
       <button class="backbtn" style="padding:5px 10px;font-size:12px;color:var(--rose)" onclick="cancelarAtendimento(${ref})">Excluir</button>
     </div>
   </div>`;
@@ -5788,7 +5788,7 @@ async function novoAtendimento(agendaEmail, eventoId, pre) {
   const e = eventoId ? _ag.eventos.find(x=>x.id===eventoId && x.agenda_email===agendaEmail) : null;
   const profs = _ag.profissionais.filter(p=>p.tem_agenda);
   if(!profs.length) { showToast('Nenhuma agenda disponível ainda','err'); return; }
-  document.getElementById('sheetTitle').textContent = e ? 'Remarcar' : 'Novo atendimento';
+  document.getElementById('sheetTitle').textContent = e ? 'Editar atendimento' : 'Novo atendimento';
   document.getElementById('sheetBody').innerHTML = loadingHTML();
   openSheet();
   const [pacs] = await Promise.all([carregarTodosPacientes(), carregarSalas(), carregarCatalogo()]);
@@ -5814,7 +5814,7 @@ async function novoAtendimento(agendaEmail, eventoId, pre) {
         <input class="fi" id="agPac" list="agPacs" value="${esc(nomeAtual)}" placeholder="Comece a digitar o nome" autocomplete="off" onchange="servicosDoPacienteAgenda(this.value)">
         <datalist id="agPacs">${pacs.map(p=>`<option value="${esc(p.nome)}">`).join('')}</datalist></div>
       <div class="fg fa"><label class="fl" for="agProf">Profissional</label>
-        <select class="fs" id="agProf" ${e?'disabled':''}>${profs.map(p=>`<option value="${esc(p.email)}"${p.email===profPadrao?' selected':''}>${esc(p.nome)}</option>`).join('')}</select></div>
+        <select class="fs" id="agProf">${profs.map(p=>`<option value="${esc(p.email)}"${p.email===profPadrao?' selected':''}>${esc(p.nome)}</option>`).join('')}</select></div>
       <div class="fg fa"><label class="fl" for="agServ">Serviço</label>
         ${servicosAgendaHTML(servAtual, pacAtual)}
         <div class="pt-nota" style="margin:6px 0 0" id="agServNota">${servicoInfo(servAtual)}</div></div>
@@ -5860,7 +5860,7 @@ async function novoAtendimento(agendaEmail, eventoId, pre) {
         <input class="fi" id="agObs" value="${esc(e?e.nota:'')}" placeholder="Ex.: trazer exames"></div>
     </div>
     <div id="agErr" class="errbox"></div>
-    <button class="savebtn" id="agBtn" onclick="salvarAtendimento(${e?`'${esc(e.id)}'`:''})">${e?'Salvar novo horário':'Agendar'}</button>`;
+    <button class="savebtn" id="agBtn" onclick="salvarAtendimento(${e?`'${esc(e.id)}'`:''})">${e?'Salvar alterações':'Agendar'}</button>`;
   _agSlotsExtra = [];
   previaRepeticao();
   if(!e) setTimeout(()=>{ const i=document.getElementById('agPac'); if(i && matchMedia('(hover:hover)').matches) i.focus(); }, 60);
@@ -5972,7 +5972,9 @@ async function salvarAtendimento(eventoId, forcar) {
   const durEl = document.querySelector('#agDurChips .agx-chip.on');
   const dur = durEl ? +durEl.dataset.min : 50;
   const e = eventoId ? _ag.eventos.find(x=>x.id===eventoId) : null;
-  const email = e ? e.agenda_email : v('agProf');
+  const email = v('agProf') || (e ? e.agenda_email : '');
+  // Trocar a profissional muda a agenda do Google: cria na agenda nova e tira da antiga
+  const trocaProf = !!(e && email !== e.agenda_email);
   const sala = v('agSala');
   // Sem data para acabar: cada dia da semana vira uma série própria
   const novoRep = () => ({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6), passo:r.passo});
@@ -6031,8 +6033,15 @@ async function salvarAtendimento(eventoId, forcar) {
     const fim = new Date(inicio.getTime() + dur*60000);
     const body = {agenda_email:email, paciente_id: pac?pac.id:'', paciente_nome:nomePac,
                   servico, inicio:inicio.toISOString(), fim:fim.toISOString(), ...(document.getElementById('agValor') ? {valor:String(numDe(document.getElementById('agValor').value)||'')} : {}), obs:obsDe(datas[i], i),
-                  evento_id: eventoId||'', forcar: !!forcar || forcarGrupo};
+                  evento_id: trocaProf ? '' : (eventoId||''), forcar: !!forcar || forcarGrupo};
     const res = await api('salvar_evento', body);
+    if(res.ok && trocaProf) {
+      // Realizado: tira o lançamento da sessão antiga antes, para não lançar duas vezes
+      if(e.status==='realizado') await api('status_evento',{agenda_email:e.agenda_email, evento_id:e.id, status:''});
+      const rx = await api('excluir_evento',{agenda_email:e.agenda_email, evento_id:e.id});
+      if(e.status) await api('status_evento',{agenda_email:email, evento_id:res.dados.id, status:e.status, ...(e.motivo_ausencia?{motivo:e.motivo_ausencia}:{})});
+      if(!rx.ok) showToast('Criado na agenda de '+agProfNome(email)+', mas não deu para tirar da agenda antiga: '+(rx.erro||''),'err');
+    }
     if(!res.ok && res.lotado) {
       if(datas.length===1) { btn.disabled = false; btn.textContent = textoBtn; return erro(res.erro); }
       choques.push(inicio.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})); continue;
@@ -6060,7 +6069,7 @@ async function salvarAtendimento(eventoId, forcar) {
   }
   _agReposDe = null;
   await loadAgenda();
-  const msg = eventoId ? 'Remarcado' : rp ? 'Agendado sem data para acabar. As próximas semanas já estão marcadas' : (feitos>1?feitos+' atendimentos agendados':'Agendado');
+  const msg = eventoId ? 'Atendimento atualizado' : rp ? 'Agendado sem data para acabar. As próximas semanas já estão marcadas' : (feitos>1?feitos+' atendimentos agendados':'Agendado');
   if(choques.length) showToast(feitos+' agendados. Ficaram de fora por choque de horário ou turma cheia: '+choques.join(', '),'err');
   else showToast(msg,'ok');
 }
@@ -6263,15 +6272,15 @@ async function excluirEmLote(lista, rotulo, btn) {
   if(!confirm('Excluir '+lista.length+(lista.length===1?' agendamento':' agendamentos')+' de '+rotulo+'?\n\nDe '+fmt(lista[0].inicio)+' a '+fmt(lista[lista.length-1].inicio)+'. Saem também do Google Agenda. Não tem volta.')) return 0;
   let ok = 0, i = 0;
   for(const x of lista) {
-    if(btn) { btn.disabled = true; btn.textContent = 'Excluindo… '+(++i)+'/'+lista.length; }
+    i++; if(btn && btn.tagName==='BUTTON') { btn.disabled = true; btn.textContent = 'Excluindo… '+i+'/'+lista.length; }
     const r = await api('excluir_evento',{agenda_email:x.agenda_email, evento_id:x.id}); if(r.ok) ok++;
   }
   return ok;
 }
-async function excluirProximosIguais(agendaEmail, eventoId) {
+async function excluirProximosIguais(agendaEmail, eventoId, btn) {
   const e = _ag.eventos.find(x=>x.id===eventoId && x.agenda_email===agendaEmail); if(!e) return;
   const lista = await sessoesIguais(e, new Date(e.inicio)); if(!lista) return;
-  const n = await excluirEmLote(lista, String(e.titulo||'').split(' · ')[0]+' ('+DIAS_SEMANA[new Date(e.inicio).getDay()].toLowerCase()+' '+horaDe(e.inicio)+')', document.activeElement);
+  const n = await excluirEmLote(lista, String(e.titulo||'').split(' · ')[0]+' ('+DIAS_SEMANA[new Date(e.inicio).getDay()].toLowerCase()+' '+horaDe(e.inicio)+')', btn);
   if(!n) return;
   closeSheet(true);
   await loadAgenda();
