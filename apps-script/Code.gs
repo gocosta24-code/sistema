@@ -88,7 +88,8 @@ function handle(e) {
     const token  = body.token  || params.token;
 
     // Recuperacao de senha roda sem sessao - quem esqueceu a senha nao tem token
-    const SEM_LOGIN = ['login','login_paciente','solicitar_reset','redefinir_senha'];
+    // questionario_*: o paciente responde pelo link, sem login; quem autoriza e o codigo do link
+    const SEM_LOGIN = ['login','login_paciente','solicitar_reset','redefinir_senha','questionario_info','responder_questionario'];
     if (SEM_LOGIN.indexOf(action) === -1 && !validarToken(token)) {
       return resp({ok:false, erro:'Token inv\u00e1lido ou expirado'});
     }
@@ -258,6 +259,9 @@ function handle(e) {
       case 'meus_documentos':   return resp(meusDocumentos(token));
       case 'baixar_documento':  return resp(baixarDocumento(body, token));
       case 'enviar_documento':  return resp(enviarDocumento(body, token));
+      case 'criar_questionario':     return resp(criarQuestionario(body, token));
+      case 'questionario_info':      return resp(questionarioInfo(body));
+      case 'responder_questionario': return resp(responderQuestionario(body));
       case 'excluir_documento': return resp(excluirDocumento(body, token));
       case 'minhas_mensagens':  return resp(minhasMensagens(token));
       case 'enviar_mensagem':   return resp(enviarMensagem(body, token));
@@ -3355,4 +3359,106 @@ function excluirReuniao(body, token) {
   const copias = copiasDaReuniao(rid, new Date(body.inicio));
   copias.forEach(function(x){ x.ev.deleteEvent(); });
   return {ok:true, removidas:copias.length};
+}
+
+// =============================================================
+// QUESTIONARIO POR LINK (Avaliacao Integrada do Bem-Estar)
+// A equipe gera um link unico para o paciente; ele responde no celular, sem
+// login, e a resposta entra nas evolucoes como registro da Avaliacao fisica
+// (origem 'sensor', tipo 'geri', instrumento 'bemestar'). O link vale uma vez
+// e expira em 30 dias. O codigo e longo e aleatorio: e ele que autoriza.
+// =============================================================
+const QUEST_CAB = ['token','paciente_id','tipo','criado_por','criado_em','expira_em','respondido_em','evolucao_id'];
+const QUEST_TIPOS = ['bemestar'];
+const BE_DIM = ['energia','humor','imunidade','conforto','aparencia','sono','folego','social','estresse','alimentacao'];
+
+function criarQuestionario(body, token) {
+  const perfil = perfilDaEquipe(token);
+  if (!perfil) return {ok:false, erro:'Sem permissão'};
+  const tipo = QUEST_TIPOS.indexOf(body.tipo) !== -1 ? body.tipo : 'bemestar';
+  const pac = acharPacientePorId(body.paciente_id);
+  if (!pac) return {ok:false, erro:'Paciente não encontrado'};
+  if (!podeVerPaciente(perfil, pac.obj) && !ehRecepcao(perfil)) return {ok:false, erro:'Sem permissão para este paciente'};
+  const sheet = abaComCabecalho('Questionarios', QUEST_CAB);
+  const tk = Utilities.getUuid().replace(/-/g,'') + Utilities.getUuid().replace(/-/g,'').slice(0,8);
+  const agora = new Date();
+  const expira = new Date(agora.getTime() + 30*24*3600*1000);
+  const h = sheet.getRange(1,1,1,sheet.getLastColumn()).getValues()[0];
+  const v = {token:tk, paciente_id:String(pac.obj.id), tipo:tipo, criado_por:perfil.nome||perfil.email,
+             criado_em:agora.toISOString(), expira_em:expira.toISOString(), respondido_em:'', evolucao_id:''};
+  sheet.appendRow(h.map(function(k){ return v[k] === undefined ? '' : v[k]; }));
+  return {ok:true, token:tk, expira_em:v.expira_em};
+}
+
+function acharQuestionario(tk) {
+  tk = String(tk||'').trim();
+  if (tk.length < 30) return null;
+  const sheet = abaComCabecalho('Questionarios', QUEST_CAB);
+  const dados = sheet.getDataRange().getValues();
+  const h = dados[0];
+  const iT = h.indexOf('token');
+  for (let i=1;i<dados.length;i++) {
+    if (String(dados[i][iT]) === tk) { const o = {}; h.forEach(function(k,j){ o[k]=dados[i][j]; }); return {obj:o, linha:i+1, h:h, sheet:sheet}; }
+  }
+  return null;
+}
+
+function questionarioInfo(body) {
+  const q = acharQuestionario(body.t);
+  if (!q) return {ok:false, erro:'Link inválido. Peça um novo link para a equipe da Casa Oliveira.'};
+  if (q.obj.respondido_em) return {ok:false, respondido:true, erro:'Este questionário já foi respondido. Obrigada!'};
+  if (q.obj.expira_em && new Date(q.obj.expira_em) < new Date()) return {ok:false, erro:'Este link expirou. Peça um novo para a equipe da Casa Oliveira.'};
+  const pac = acharPacientePorId(q.obj.paciente_id);
+  const p = pac ? pac.obj : {};
+  let nasc = '';
+  try { nasc = p.data_nascimento instanceof Date ? Utilities.formatDate(p.data_nascimento, Session.getScriptTimeZone(), 'yyyy-MM-dd') : String(p.data_nascimento||'').slice(0,10); } catch(e) {}
+  // So o que ajuda a pessoa a se reconhecer e a nao redigitar: primeiro nome,
+  // sexo e nascimento. Nada de prontuario sai por aqui.
+  return {ok:true, tipo:q.obj.tipo, primeiro_nome:String(p.nome||'').split(' ')[0], sexo:String(p.sexo||''), nasc:nasc};
+}
+
+function responderQuestionario(body) {
+  const lock = LockService.getScriptLock();
+  try { lock.waitLock(20000); } catch(e) { return {ok:false, erro:'Tente de novo em instantes'}; }
+  try {
+    const q = acharQuestionario(body.t);
+    if (!q) return {ok:false, erro:'Link inválido'};
+    if (q.obj.respondido_em) return {ok:false, erro:'Este questionário já foi respondido'};
+    if (q.obj.expira_em && new Date(q.obj.expira_em) < new Date()) return {ok:false, erro:'Este link expirou'};
+    const r = body.respostas || {};
+    const d = {};
+    for (let i=0;i<BE_DIM.length;i++) {
+      const v = Number(r[BE_DIM[i]]);
+      if (!(v >= 0 && v <= 10) || Math.round(v) !== v) return {ok:false, erro:'Responda todas as 10 perguntas'};
+      d[BE_DIM[i]] = v;
+    }
+    const af = ['sed','mod','int'].indexOf(r.af) !== -1 ? r.af : null;
+    const num = function(x, lo, hi){ const n = Number(String(x||'').replace(',','.')); return n >= lo && n <= hi ? n : null; };
+    const peso = num(r.peso, 20, 300);
+    let alt = num(r.alt, 1, 250); if (alt != null && alt < 3) alt = Math.round(alt*100);
+    if (alt != null && alt < 90) alt = null;
+    const soma = BE_DIM.reduce(function(t,k){ return t + d[k]; }, 0);
+    const score = Math.round(soma/BE_DIM.length*10)/10;
+    const detail = {d:d, af:af, peso:peso, alt:alt, obs:String(r.obs||'').slice(0,1000), via:'link'};
+    if (peso && alt) detail.imc = Math.round(peso/Math.pow(alt/100,2)*10)/10;
+    const agora = new Date();
+    const pac = acharPacientePorId(q.obj.paciente_id);
+    const nome = pac ? String(pac.obj.nome||'') : '';
+    const rec = {type:'geri', inst:'bemestar', score:score, detail:detail, date:agora.toISOString(), autor_email:'paciente'};
+    const res = salvar({tabela:'evolucoes', dados:{
+      paciente_id:String(q.obj.paciente_id), data:Utilities.formatDate(agora, Session.getScriptTimeZone(), 'yyyy-MM-dd'),
+      texto:'Avaliação Integrada do Bem-Estar (respondida pelo paciente): média ' + String(score).replace('.',',') + ' de 10',
+      autor_email:'paciente', autor_nome:(nome ? nome.split(' ')[0] + ' ' : '') + '(pelo link)', origem:'sensor', sensor:JSON.stringify(rec)}});
+    q.sheet.getRange(q.linha, q.h.indexOf('respondido_em')+1).setValue(agora.toISOString());
+    q.sheet.getRange(q.linha, q.h.indexOf('evolucao_id')+1).setValue(res.id||'');
+    // Sexo e nascimento vao para o cadastro so se la estiverem vazios
+    if (pac) {
+      const dados = {};
+      const sx = String(r.sexo||'').toUpperCase();
+      if ((sx === 'F' || sx === 'M') && !String(pac.obj.sexo||'').trim()) dados.sexo = sx;
+      if (/^\d{4}-\d{2}-\d{2}$/.test(String(r.nasc||'')) && !String(pac.obj.data_nascimento||'').trim()) dados.data_nascimento = r.nasc;
+      if (Object.keys(dados).length) atualizar({tabela:'pacientes', id:pac.obj.id, dados:dados});
+    }
+    return {ok:true};
+  } finally { lock.releaseLock(); }
 }

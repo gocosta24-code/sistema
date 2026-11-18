@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Avaliação Integrada do Seu Bem-Estar · Casa Oliveira</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,500&family=Instrument+Sans:wght@400;500;600;700&display=swap">
+<style>
+:root{--bg:#F4EFE6;--card:#FFFDF9;--ink:#2E2A26;--muted:#6E6358;--line:#E3D9CA;--brand:#4A6491;--brand2:#3B5179;--ok:#4D7A3A;--err:#A8432F}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Instrument Sans",system-ui,sans-serif;-webkit-text-size-adjust:100%}
+.w{max-width:640px;margin:0 auto;padding:20px 16px 48px}
+header{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+header img{width:44px;height:44px;object-fit:contain}
+header .b{font-family:Lora,serif;font-size:19px;line-height:1.15}
+header .b small{display:block;font-family:"Instrument Sans";font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+h1{font-family:Lora,serif;font-weight:600;font-size:27px;line-height:1.15;margin:4px 0 6px;color:var(--brand2)}
+.lead{color:var(--muted);margin:0 0 18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:12px}
+.num{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--brand);color:#fff;font-size:13px;font-weight:700;margin-right:8px;flex:none}
+.q{display:flex;align-items:flex-start;font-weight:600;font-size:17px;margin:0 0 4px}
+.q span{padding-top:1px}
+.qq{margin:0 0 12px;color:var(--ink)}
+.scale{display:grid;grid-template-columns:repeat(11,1fr);gap:4px}
+.scale button{appearance:none;border:1.5px solid var(--line);background:#fff;border-radius:9px;min-height:44px;font:600 15px "Instrument Sans",sans-serif;color:var(--ink);padding:0;cursor:pointer}
+.scale button[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:#fff}
+.anch{display:flex;justify-content:space-between;gap:12px;font-size:12.5px;color:var(--muted);margin-top:6px;line-height:1.3}
+.anch span:last-child{text-align:right}
+.opts{display:grid;gap:8px}
+.opts button{appearance:none;text-align:left;border:1.5px solid var(--line);background:#fff;border-radius:12px;padding:12px 14px;font:inherit;color:var(--ink);cursor:pointer}
+.opts button b{display:block}
+.opts button small{color:var(--muted)}
+.opts button[aria-pressed="true"]{border-color:var(--brand);background:#EEF2F9;box-shadow:inset 0 0 0 1px var(--brand)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+label{display:block;font-size:14px;font-weight:600;margin-bottom:4px}
+input,textarea,select{width:100%;font:inherit;font-size:16px;border:1.5px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff;color:var(--ink)}
+textarea{min-height:84px;resize:vertical}
+.seg{display:flex;gap:8px}.seg button{flex:1;appearance:none;border:1.5px solid var(--line);background:#fff;border-radius:10px;min-height:44px;font:600 15px "Instrument Sans",system-ui,sans-serif;cursor:pointer;color:var(--ink)}
+.seg button[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:#fff}
+.go{width:100%;min-height:54px;border:0;border-radius:14px;background:var(--brand2);color:#fff;font:700 17px "Instrument Sans";cursor:pointer;margin-top:6px}
+.go:disabled{opacity:.6}
+.msg{color:var(--err);font-size:14px;min-height:20px;margin:8px 0 0}
+.prog{position:sticky;top:0;z-index:2;background:var(--bg);padding:8px 0 10px;margin:0 0 6px}
+.bar{height:6px;background:var(--line);border-radius:6px;overflow:hidden}.bar i{display:block;height:100%;width:0;background:var(--brand);transition:width .25s}
+.prog small{color:var(--muted);font-size:12.5px}
+.done{text-align:center;padding:36px 18px}
+.done h2{font-family:Lora,serif;font-size:26px;margin:10px 0 6px;color:var(--brand2)}
+.foot{text-align:center;color:var(--muted);font-family:Lora,serif;font-style:italic;margin-top:22px}
+.hid{display:none}
+@media (max-width:380px){.scale{gap:3px}.scale button{font-size:14px;min-height:40px;border-radius:7px}}
+</style>
+</head>
+<body>
+<div class="w">
+  <header><img src="../logo-simbolo.png" alt=""><div class="b"><small>Casa Oliveira</small>Saúde integrada</div></header>
+  <main id="app"><p class="lead">Carregando…</p></main>
+  <p class="foot">Não é clínica, é Casa.</p>
+</div>
+<script>
+(function(){
+const API='https://script.google.com/macros/s/AKfycbzqrsPO-348xxzNw3Mm7KVc_KnSv36NX63qrsQU57KJ6ck2z4b2SWDnaZ-QZMRXoJkn/exec';
+const qs=new URLSearchParams(location.search),T=qs.get('t')||'',DEMO=qs.get('demo')==='1';
+const $=s=>document.querySelector(s),app=$('#app');
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const DIMS=[['energia','Autoavaliação de energia','Como está a sua energia durante o dia, sua disposição para as coisas do dia?','Sem energia para o dia','Energia para tudo no dia'],
+ ['humor','Humor','Considerando os últimos 30 dias, como anda seu humor?','Humor muito ruim','Humor excelente'],
+ ['imunidade','Imunidade','Como você acha que está a sua imunidade?','Imunidade baixa, fica doente regularmente','Imunidade alta, quase não fica doente'],
+ ['conforto','Conforto físico','Nas últimas semanas, como você avalia seu conforto físico e a ausência de dores no dia a dia?','Muitas dores ou desconfortos frequentes','Sem dores ou desconfortos relevantes'],
+ ['aparencia','Aparência','Qual é a sua satisfação com a sua aparência?','Muita insatisfação com a própria aparência','Muita satisfação com a própria aparência'],
+ ['sono','Sono','Você dorme bem e acorda repousado na maioria dos dias?','Não acorda repousado, tem sonolência durante o dia','Acorda revigorado e bem disposto'],
+ ['folego','Fôlego','Para as suas atividades do dia a dia, não as de treino, como está seu fôlego?','Subir um lance de escada já deixa ofegante','O fôlego está sempre bom nas coisas do dia a dia'],
+ ['social','Convívio social','Qual a sua satisfação com o convívio social: amigos, família, colegas de trabalho?','Muita insatisfação com o convívio social','Muita satisfação com o convívio social'],
+ ['estresse','Gestão de estresse','Como você lida com o estresse?','O estresse está difícil de lidar','Lida com o estresse tranquilamente'],
+ ['alimentacao','Alimentação','Dê uma nota de 0 a 10 para a sua alimentação.','Insatisfeito com a alimentação','Satisfeito com a alimentação']];
+const AF=[['sed','Não faço atividade física regularmente','Não pratico esportes no meu tempo livre nem atividades físicas intensas.'],
+ ['mod','Faço atividades físicas moderadas regularmente','No trabalho ou no lazer: caminhada, ginástica, hidroginástica, musculação, Pilates, golfe, atividades no quintal.'],
+ ['int','Faço atividades físicas intensas regularmente','Exercícios intensos como corrida, natação, ciclismo, remo, pular corda, futebol, vôlei, tênis, basquete ou handebol.']];
+const R={};let info=null;
+
+async function api(action,body){
+  if(DEMO){await new Promise(r=>setTimeout(r,400));return action==='questionario_info'?{ok:true,primeiro_nome:'Maria',sexo:'',nasc:''}:{ok:true}}
+  try{const r=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({...body,action}),redirect:'follow'});return JSON.parse(await r.text())}
+  catch(e){return{ok:false,erro:'Sem conexão. Confira a internet e tente de novo.'}}
+}
+function erro(t){app.innerHTML=`<div class="card done"><h2>Ops</h2><p>${esc(t)}</p></div>`}
+
+async function start(){
+  if(!T&&!DEMO){erro('Este link está incompleto. Peça um novo link para a equipe da Casa Oliveira.');return}
+  info=await api('questionario_info',{t:T});
+  if(!info.ok){if(info.respondido){app.innerHTML=`<div class="card done"><h2>Tudo certo!</h2><p>Este questionário já foi respondido. Obrigada!</p></div>`;return}erro(info.erro||'Não foi possível abrir o questionário.');return}
+  render();
+}
+function render(){
+  const sx=String(info.sexo||'').toUpperCase().slice(0,1),temSexo=sx==='F'||sx==='M',temNasc=!!info.nasc;
+  let h=`<h1>Avaliação Integrada do Seu Bem-Estar</h1><p class="lead">${info.primeiro_nome?'Olá, '+esc(info.primeiro_nome)+'! ':''}Cuidar de você é o primeiro passo para uma vida com mais saúde e qualidade. Leva uns 3 minutos: para cada pergunta, toque na nota de 0 a 10 que mais combina com você hoje.</p>
+  <div class="prog"><div class="bar"><i id="pb"></i></div><small id="pt">0 de 11 respondidas</small></div>`;
+  if(!temSexo||!temNasc)h+=`<div class="card">${!temSexo?`<label>Sexo</label><div class="seg" data-id="sexo"><button type="button" data-v="F">Feminino</button><button type="button" data-v="M">Masculino</button></div>`:''}${!temNasc?`<div style="margin-top:${temSexo?0:12}px"><label for="nasc">Data de nascimento</label><input type="date" id="nasc"></div>`:''}</div>`;
+  DIMS.forEach(([id,t,q,lo,hi],i)=>{h+=`<section class="card"><p class="q"><span class="num">${i+1}</span><span>${t}</span></p><p class="qq">${q}</p>
+    <div class="scale" data-id="${id}" role="group" aria-label="${esc(t)}, nota de 0 a 10">${[...Array(11).keys()].map(n=>`<button type="button" data-v="${n}" aria-pressed="false">${n}</button>`).join('')}</div>
+    <div class="anch"><span>0 · ${lo}</span><span>10 · ${hi}</span></div></section>`});
+  h+=`<section class="card"><p class="q"><span class="num">11</span><span>Nível de atividade física</span></p><p class="qq">Escolha a opção que melhor descreve o seu nível de atividade física atual.</p>
+    <div class="opts" data-id="af">${AF.map(([v,t,d])=>`<button type="button" data-v="${v}" aria-pressed="false"><b>${t}</b><small>${d}</small></button>`).join('')}</div></section>
+  <section class="card"><p class="q"><span>Peso e altura <small style="font-weight:400;color:var(--muted)">(se souber)</small></span></p>
+    <div class="row"><div><label for="peso">Peso (kg)</label><input id="peso" inputmode="decimal" placeholder="ex.: 62"></div><div><label for="alt">Altura (cm)</label><input id="alt" inputmode="decimal" placeholder="ex.: 163"></div></div></section>
+  <section class="card"><label for="obs">Quer contar mais alguma coisa? <small style="font-weight:400;color:var(--muted)">(opcional)</small></label><textarea id="obs" maxlength="1000"></textarea></section>
+  <button class="go" id="go" type="button">Enviar respostas</button><p class="msg" id="msg" role="alert"></p>`;
+  app.innerHTML=h;
+  app.querySelectorAll('[data-id]').forEach(g=>g.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;R[g.dataset.id]=b.dataset.v;
+    g.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b?'true':'false'));prog();
+    if(g.classList.contains('scale')){const sec=g.closest('section').nextElementSibling;if(sec&&sec.tagName==='SECTION'&&!sec.querySelector('[aria-pressed="true"]'))setTimeout(()=>sec.scrollIntoView({behavior:'smooth',block:'center'}),180)}}));
+  $('#go').addEventListener('click',enviar);prog();
+}
+function prog(){const n=DIMS.filter(([id])=>R[id]!=null).length+(R.af?1:0);$('#pb').style.width=(n/11*100)+'%';$('#pt').textContent=n+' de 11 respondidas'}
+async function enviar(){
+  const falta=DIMS.filter(([id])=>R[id]==null);
+  if(falta.length){$('#msg').textContent='Falta responder: '+falta.map(([,t])=>t.toLowerCase()).join(', ')+'.';const g=app.querySelector(`[data-id="${falta[0][0]}"]`);g.closest('section').scrollIntoView({behavior:'smooth',block:'center'});return}
+  const b=$('#go');b.disabled=true;b.textContent='Enviando…';$('#msg').textContent='';
+  const resp={...R,peso:($('#peso')||{}).value||'',alt:($('#alt')||{}).value||'',obs:($('#obs')||{}).value||'',nasc:($('#nasc')||{}).value||''};
+  DIMS.forEach(([id])=>resp[id]=+R[id]);
+  const r=await api('responder_questionario',{t:T,respostas:resp});
+  if(!r.ok){b.disabled=false;b.textContent='Enviar respostas';$('#msg').textContent=r.erro||'Não foi possível enviar. Tente de novo.';return}
+  window.scrollTo({top:0,behavior:'smooth'});
+  app.innerHTML=`<div class="card done"><div style="font-size:40px">💛</div><h2>Obrigada!</h2><p>Suas respostas chegaram para a equipe da Casa Oliveira e vão nos ajudar a cuidar de você. Vamos conversar sobre elas no seu próximo atendimento.</p></div>`;
+}
+start();
+})();
+</script>
+</body>
+</html>

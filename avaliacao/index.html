@@ -371,6 +371,12 @@ input[type=date]{width:100%;min-height:48px;font:inherit;color:var(--ink);backgr
   <section class="panel" id="tab-ger" hidden>
     <div><label for="qSel">Instrumento</label><select id="qSel"></select></div>
     <p class="how" id="qHow"></p>
+    <div id="qLinkBox" hidden style="background:var(--surface);border:1.5px dashed var(--accent);border-radius:12px;padding:12px 14px;display:grid;gap:8px">
+      <b>O paciente pode responder sozinho, pelo celular</b>
+      <span class="hint" style="margin:0">Gere o link e envie pelo WhatsApp. Quando ele responder, o resultado aparece aqui e no relatório, sem digitar nada.</span>
+      <button class="btn" id="qLinkGo" type="button">Gerar link para o paciente</button>
+      <div id="qLinkOut"></div>
+    </div>
     <div class="stack" id="qForm"></div>
     <div class="qres" id="qRes" aria-live="polite"></div>
     <div><label for="qObs">Observação (opcional)</label><input type="text" id="qObs" autocomplete="off"></div>
@@ -1412,7 +1418,7 @@ async function renderReport(){
   if(!p.records.length){el.innerHTML=`<div class="empty"><p>${esc(p.name)} ainda não tem medidas. Faça uma medida em qualquer aba e salve.</p></div>`;return}
   const {gon,eq,fun,sc,trn,ger,pil}=groups(p);let h=`<div style="display:grid;gap:12px"><h2>${esc(p.name)}</h2>${p.nivel?`<p class="hint">Pilates: <b style="color:var(--ink)">${LEVELS[p.nivel].n}</b></p>`:''}<button class="btn full" id="rPn" type="button">Painel do paciente (celular) · prévia e publicação</button><button class="btn ghost full" id="rPt" type="button">Relatório para o paciente (visual, com comparações)</button>`;
   const qk=Object.keys(QS).filter(k=>ger[k]);
-  if(qk.length){h+=`<h3>Avaliação 60+</h3>`;qk.forEach(k=>{const a=ger[k];const lr=a[a.length-1].r;const fm=v=>qFmt(k,v);const b=qLevel(k,lr.score,p);h+=cardH(esc(QS[k].label+' · '+QS[k].full),fm(lr.score)+(QS[k].unit?' '+QS[k].unit:' / '+QS[k].max),b?`<span class="lvl ${LV[b.l]}">${b.t}</span>`+(lr.obs?' '+esc(lr.obs):''):'',a.length>1?chgTxt(a,fm):'',chart(a,fm))})}
+  if(qk.length){h+=`<h3>Questionários e escalas</h3>`;qk.forEach(k=>{const a=ger[k];const lr=a[a.length-1].r;const fm=v=>qFmt(k,v);const b=qLevel(k,lr.score,p);h+=cardH(esc(QS[k].label+' · '+QS[k].full),fm(lr.score)+(QS[k].unit?' '+QS[k].unit:' / '+QS[k].max),b?`<span class="lvl ${LV[b.l]}">${b.t}</span>`+(lr.obs?' '+esc(lr.obs):''):'',a.length>1?chgTxt(a,fm):'',(k==='bemestar'?beWheel((lr.detail||{}).d||{},a.length>1?(a[a.length-2].r.detail||{}).d:null,false)+(lr.detail&&lr.detail.via==='link'?'<p class="hint">Respondida pelo paciente, pelo link.</p>':''):'')+chart(a,fm))})}
   const pk=Object.keys(pil);
   if(pk.length){h+=`<h3>Pilates</h3>`;pk.forEach(k=>{const a=pil[k];const lr=a[a.length-1].r;const fm=v=>pilFmt(lr.t,v);const P=PT[lr.t];
     h+=cardH(esc(pilLabel(lr)),lr.t==='eqest'?'Tandem '+fm(lr.td):fm(lr.v),[pilSub(lr),P.better==='low'?'Menor é melhor.':'Maior é melhor.',lr.obs?esc(lr.obs):''].filter(Boolean).join(' '),a.length>1?chgTxt(a,fm):'',chart(a,fm))})}
@@ -1585,6 +1591,32 @@ function lastAntro(p){return lastRec(p,r=>r.type==='geri'&&r.inst==='antro')}
 
 /* ---------- instrumentos ---------- */
 const YN=[['S','Sim'],['N','Não']];
+/* Avaliação Integrada do Bem-Estar (ficha da Casa Oliveira): id, nome, pergunta, âncora do 0, âncora do 10 */
+const BE_DIMS=[['energia','Energia','Como está a sua energia durante o dia, sua disposição para as coisas do dia?','sem energia para o dia','energia para tudo no dia'],
+ ['humor','Humor','Considerando os últimos 30 dias, como anda seu humor?','humor muito ruim','humor excelente'],
+ ['imunidade','Imunidade','Como você acha que está a sua imunidade?','imunidade baixa, fica doente regularmente','imunidade alta, quase não fica doente'],
+ ['conforto','Conforto físico','Nas últimas semanas, como você avalia seu conforto físico e a ausência de dores no dia a dia?','muitas dores ou desconfortos frequentes','sem dores ou desconfortos relevantes'],
+ ['aparencia','Aparência','Qual é a sua satisfação com a sua aparência?','muita insatisfação com a própria aparência','muita satisfação com a própria aparência'],
+ ['sono','Sono','Você dorme bem e acorda repousado na maioria dos dias?','não acorda repousado, tem sonolência durante o dia','acorda revigorado e bem disposto'],
+ ['folego','Fôlego','Para as suas atividades do dia a dia, não as de treino, como está seu fôlego?','subir um lance de escada já deixa ofegante','o fôlego está sempre bom nas coisas do dia a dia'],
+ ['social','Convívio social','Qual a sua satisfação com o convívio social: amigos, família, colegas de trabalho?','muita insatisfação com o convívio social','muita satisfação com o convívio social'],
+ ['estresse','Gestão de estresse','Como você lida com o estresse?','o estresse está difícil de lidar','lida com o estresse tranquilamente'],
+ ['alimentacao','Alimentação','Dê uma nota de 0 a 10 para a sua alimentação.','insatisfeito com a alimentação','satisfeito com a alimentação']];
+const BE_AF=[['sed','Não faz atividade física regularmente'],['mod','Faz atividades físicas moderadas regularmente'],['int','Faz atividades físicas intensas regularmente']];
+const BE_COR=v=>v<4?'#C4553E':v<5?'#E39B4A':v<7?'#D9B13B':v<9?'#7DAE59':'#4FAE96';
+/* Roda do bem-estar: um raio por dimensão, preenchido até a nota; o contorno
+   pontilhado é a avaliação anterior. dark = versão do painel do paciente */
+function beWheel(d,prev,dark){
+  const W=400,H=330,cx=200,cy=166,R=108,n=BE_DIMS.length,ink=dark?'#C9CDD4':'#3A2A1F',grid=dark?'#ffffff':'#3A2A1F';
+  const ang=i=>-Math.PI/2+i*2*Math.PI/n,pt=(i,r)=>[cx+r*Math.cos(ang(i)),cy+r*Math.sin(ang(i))];
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Roda do bem-estar com as notas de 0 a 10 em cada dimensão">`;
+  [2,4,6,8,10].forEach(k=>{s+=`<polygon points="${BE_DIMS.map((_,i)=>pt(i,R*k/10).map(x=>x.toFixed(1)).join(',')).join(' ')}" fill="none" stroke="${grid}" stroke-opacity="${k===10?.3:.12}"/>`});
+  BE_DIMS.forEach(([id],i)=>{const v=d[id];if(v==null)return;const a0=ang(i)-Math.PI/n*.82,a1=ang(i)+Math.PI/n*.82,r=Math.max(2,R*v/10);
+    s+=`<path d="M${cx},${cy} L${(cx+r*Math.cos(a0)).toFixed(1)},${(cy+r*Math.sin(a0)).toFixed(1)} A${r.toFixed(1)},${r.toFixed(1)} 0 0 1 ${(cx+r*Math.cos(a1)).toFixed(1)},${(cy+r*Math.sin(a1)).toFixed(1)} Z" fill="${BE_COR(v)}" opacity=".92"/>`});
+  if(prev)s+=`<polygon points="${BE_DIMS.map(([id],i)=>pt(i,R*(prev[id]||0)/10).map(x=>x.toFixed(1)).join(',')).join(' ')}" fill="none" stroke="${ink}" stroke-width="1.6" stroke-dasharray="4 3"/>`;
+  BE_DIMS.forEach(([id,t],i)=>{const[x,y]=pt(i,R+26);const v=d[id];const an=Math.abs(x-cx)<12?'middle':x>cx?'start':'end';
+    s+=`<text x="${x.toFixed(1)}" y="${(y-2).toFixed(1)}" text-anchor="${an}" font-size="11" fill="${ink}" font-family="Instrument Sans,sans-serif">${t}</text><text x="${x.toFixed(1)}" y="${(y+12).toFixed(1)}" text-anchor="${an}" font-size="12" font-weight="700" fill="${ink}">${v==null?'–':v}</text>`});
+  return s+'</svg>'}
 const FREQ=[[0,'Nunca ou raramente (menos de 1 dia)'],[1,'Poucas vezes (1 a 2 dias)'],[2,'Algumas vezes (3 a 4 dias)'],[3,'A maior parte do tempo']];
 const BRUCKI=[[0,0,20,'analfabetos'],[1,4,25,'1 a 4 anos de estudo'],[5,8,26.5,'5 a 8 anos de estudo'],[9,11,28,'9 a 11 anos de estudo'],[12,99,29,'12 anos ou mais de estudo']];
 const brucki=e=>e==null?null:BRUCKI.find(b=>e>=b[0]&&e<=b[1]);
@@ -1704,6 +1736,18 @@ const QS={
   bands:[{lo:7,hi:7,l:3,t:'Dependência total'},{lo:8,hi:20,l:1,t:'Dependência parcial'},{lo:21,hi:21,l:0,t:'Independente'}],
   items:[['tel','Usar o telefone'],['transp','Ir a lugares distantes (ônibus, táxi, carro)'],['compras','Fazer compras'],['refeic','Preparar as refeições'],['casa','Fazer o trabalho doméstico'],['remed','Tomar os remédios'],['dinheiro','Cuidar do dinheiro']].map(([id,t])=>({k:'opt',id,t,o:[[3,'Sem ajuda'],[2,'Com ajuda parcial'],[1,'Não consegue']]})),
   score(a){const ks=['tel','transp','compras','refeic','casa','remed','dinheiro'];const m=ks.filter(k=>a[k]==null);if(m.length)return{miss:m.length};return{score:ks.reduce((x,k)=>x+ +a[k],0),lines:[]}}},
+ bemestar:{label:'Bem-estar integrado',full:'Avaliação Integrada do Bem-Estar (Casa Oliveira), 10 dimensões',better:'high',min:0,max:10,unit:'de 10',dec:1,
+  how:'O paciente dá uma nota de 0 a 10 para cada dimensão. Pode ser respondido aqui, junto com o paciente, ou pelo link que ele preenche no celular.',
+  ref:'Autoavaliação da Casa Oliveira em 10 dimensões do bem-estar (0 a 10). Média abaixo de 5: dimensões que pedem cuidado; 7 ou mais: bem-estar bom. Atividade física classificada como no IPAQ (sedentário, moderado, vigoroso).',
+  bands:[{lo:0,hi:4.99,l:2,t:'Bem-estar pede cuidado'},{lo:5,hi:6.99,l:1,t:'Bem-estar moderado'},{lo:7,hi:10,l:0,t:'Bom bem-estar'}],
+  items:[...BE_DIMS.map(([id,t,q,lo,hi])=>({k:'opt',id,t:`${t}: ${q}`,s:`0 = ${lo} · 10 = ${hi}`,o:[0,1,2,3,4,5,6,7,8,9,10].map(n=>[n,String(n)])})),
+    {k:'opt',col:1,id:'af',t:'Nível de atividade física',o:BE_AF.map(([v,t])=>[v,t])},
+    {k:'num',id:'peso',t:'Peso (kg)',u:'kg',opt:true},{k:'num',id:'alt',t:'Altura (cm)',u:'cm',opt:true}],
+  score(a){const m=BE_DIMS.filter(([id])=>a[id]==null||a[id]==='');if(m.length)return{miss:m.length};
+    const d={};BE_DIMS.forEach(([id])=>d[id]=+a[id]);const sc=Math.round(BE_DIMS.reduce((t,[id])=>t+d[id],0)/BE_DIMS.length*10)/10;
+    const peso=num(a.peso),alt=num(a.alt);const det={d,af:a.af||null,peso:peso||null,alt:alt||null};if(peso&&alt)det.imc=Math.round(peso/Math.pow(alt/100,2)*10)/10;
+    const baixas=BE_DIMS.filter(([id])=>d[id]<5).map(([,t])=>t.toLowerCase());
+    return{score:sc,detail:det,lines:baixas.length?['Pedem cuidado: '+baixas.join(', ')+'.']:[]}}},
  who5:{label:'Bem-estar (WHO-5)',full:'Índice de Bem-Estar da OMS, 5 itens',better:'high',min:0,max:100,unit:'%',
   how:'Pergunte sobre as últimas duas semanas. Leia cada frase e marque com que frequência a pessoa se sentiu assim.',
   ref:'Topp CW et al., Psychother Psychosom, 2015; versão brasileira de Souza CM e Hidalgo MPL, 2012. Pontuação de 0 a 100: abaixo de 50 vale conversar sobre o bem-estar.',
@@ -1763,7 +1807,7 @@ function mob3Hint(){const p=cur();if(!p)return'';const an=lastAntro(p),s=lastSpe
   if(an&&an.score<22)h.push('IMC '+fN(an.score,1));if(an&&an.detail&&an.detail.pant&&an.detail.pant<31)h.push('panturrilha '+fN(an.detail.pant,1)+' cm');if(s&&4/s>5)h.push('marcha de 4 m em '+fN(4/s,1)+' s');
   return h.length?`<small style="color:var(--accent);font-weight:600">Já registrado: ${h.join(', ')}. Isso conta como “Sim”.</small>`:''}
 function qRender(){
-  const k=$('#qSel').value,q=QS[k];$('#qHow').textContent=q.how;$('#qRef').textContent='Referência: '+q.ref;
+  const k=$('#qSel').value,q=QS[k];$('#qLinkBox').hidden=k!=='bemestar';$('#qLinkOut').innerHTML='';$('#qHow').textContent=q.how;$('#qRef').textContent='Referência: '+q.ref;
   let dim=0;
   $('#qForm').innerHTML=q.items.map(it=>{
     if(it.k==='h')return `<p class="qsub">${it.t}</p>`;
@@ -1794,6 +1838,19 @@ $('#qSave').addEventListener('click',async()=>{
   const rec={type:'geri',inst:k,score:r.score,lvl:b?b.l:null,cls:b?b.t:'',ans:{...qAns},detail:r.detail||null,obs:$('#qObs').value.trim()||null};
   if(k==='antro'&&r.detail&&p.altura!==r.detail.alt){p.altura=r.detail.alt;renderPData();savePerfil(p)}
   if(await salvando($('#qSave'),()=>addRecord(rec))){toast(`Salvo no prontuário: ${QS[k].label}, ${qFmt(k,r.score)}${b?' ('+b.t.toLowerCase()+')':''}`);qPrefill();$('#qObs').value='';qRender()}
+});
+
+/* ---------- link para o paciente responder no celular ---------- */
+$('#qLinkGo').addEventListener('click',async()=>{
+  const p=cur();if(!p){toast('Escolha o paciente antes de gerar o link.');$('#pSel').focus();return}
+  const bt=$('#qLinkGo');bt.disabled=true;bt.textContent='Gerando…';
+  const r=await api('criar_questionario',{paciente_id:p.id,tipo:'bemestar'});
+  bt.disabled=false;bt.textContent='Gerar outro link';
+  if(!r.ok){toast('Não gerou o link: '+(r.erro||'tente de novo'));return}
+  const url=new URL('../questionario/?t='+r.token,location.href).href;
+  const msg=`Olá, ${p.name.split(' ')[0]}! Aqui é da Casa Oliveira. Para cuidarmos melhor de você, responda a nossa Avaliação Integrada do Bem-Estar (leva uns 3 minutos): ${url}`;
+  $('#qLinkOut').innerHTML=`<input type="text" readonly value="${esc(url)}" id="qLinkUrl" style="font-size:13px"><div class="btns two"><a class="btn" href="https://wa.me/?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">Enviar pelo WhatsApp</a><button class="btn quiet" type="button" id="qLinkCopy">Copiar link</button></div><span class="hint" style="margin:0">O link vale por 30 dias e só pode ser respondido uma vez.</span>`;
+  $('#qLinkCopy').onclick=async()=>{try{await navigator.clipboard.writeText(url);toast('Link copiado')}catch(e){$('#qLinkUrl').select();toast('Selecione e copie o link')}};
 });
 
 /* ---------- registro manual no Funcional ---------- */
@@ -2037,6 +2094,7 @@ function ptRender(){
      <div class="big ${k==='antro'?'sm':''}">${fm(a[a.length-1].v)}<small>${q.unit?q.unit:'/'+q.max}</small></div>
      ${bs?gaugeSVG(bs,q.min,q.max,a,fm,gi):''}<p class="mean">${EXPL[k]||''}</p>${extra}${chgLine(a,fm,q.better)}<p class="ref">${esc(q.ref.split('.').slice(0,2).join('.'))}.</p></div>`};
   h+=levelSection(p);
+  if(S.q_bemestar)h+=beSection(S.q_bemestar,gi,used);
   const top=['ivcf','fried','sppb','cfs'].filter(k=>S['q_'+k]);
   if(top.length)h+=`<div class="sec"><h2>Classificação geral</h2><p class="sd">Os quatro instrumentos que resumem vulnerabilidade, fragilidade e desempenho físico.</p><div class="grid">${top.map(k=>qCard(k,S['q_'+k])).join('')}</div></div>`;
   /* normativos */
@@ -2248,6 +2306,17 @@ function pilCards(p,S,age,gi,used){
     out.push(card('Dor','escala visual analógica, de 0 a 10',tagL(b),fm(v),'/10',gaugeSVG(bs,0,10,a,fm,gi),'0 é sem dor e 10 é a pior dor imaginável. Quanto menor, melhor.',chgLine(a,fm,'low',''),''))}
   return out;
 }
+/* Avaliação Integrada do Bem-Estar no relatório do paciente */
+const BE_AF_T={sed:'não faz atividade física regularmente',mod:'faz atividades físicas moderadas regularmente',int:'faz atividades físicas intensas regularmente'};
+function beSection(a,gi,used){
+  const lr=a[a.length-1].r,dt=lr.detail||{},d=dt.d||{},pv=a.length>1?(a[a.length-2].r.detail||{}).d:null;used.add('q:bemestar');const b=qLevel('bemestar',lr.score);
+  const fortes=BE_DIMS.filter(([id])=>d[id]>=8).map(([,t])=>t.toLowerCase()),cuidar=BE_DIMS.filter(([id])=>d[id]<5).map(([,t])=>t.toLowerCase());
+  return `<div class="sec"><h2>Seu bem-estar</h2><p class="sd">Sua própria nota, de 0 a 10, para cada parte do bem-estar.${pv?' O contorno pontilhado é a avaliação anterior.':''}</p>
+   <div class="grid"><div class="pc"><div class="t"><div><h3>Avaliação Integrada do Bem-Estar</h3><div class="st">${dLong(a[a.length-1].d)}${dt.via==='link'?' · respondida por você':''}</div></div>${b?`<span class="tag" style="background:${LC[b.l]}">${b.t}</span>`:''}</div>
+   <div class="big">${fN(lr.score,1)}<small>de 10, em média</small></div>${beWheel(d,pv,false)}
+   ${fortes.length?`<p class="mean"><b>Pontos fortes:</b> ${fortes.join(', ')}.</p>`:''}${cuidar.length?`<p class="mean" style="color:#A8432F"><b>Pedem cuidado:</b> ${cuidar.join(', ')}.</p>`:''}
+   ${dt.af?`<p class="mean"><b>Atividade física:</b> ${BE_AF_T[dt.af]}.</p>`:''}${dt.imc?`<p class="mean">Peso ${fN(dt.peso,1)} kg · altura ${fN(dt.alt)} cm · IMC <b>${fN(dt.imc,1)}</b>.</p>`:''}
+   ${chgLine(a,v=>fN(v,1),'high','')}${a.length>1?evoSVG(a,v=>fN(v,1),null,null,5,'Abaixo de 5: pede cuidado','high',gi):''}</div></div></div>`}
 function levelSection(p){
   const hist=p.records.filter(r=>r.type==='nivel').sort((a,b)=>a.date.localeCompare(b.date));if(!p.nivel&&!hist.length)return'';
   const cur=p.nivel;
@@ -2381,6 +2450,9 @@ function pnModel(p,cmpDay){
   if(S['p_prancha||'])norm('prancha','prancha',S['p_prancha||'],'Prancha frontal','tronco','',{sub:'resistência do abdômen',ex:'Tempo máximo com a execução adequada.'});
   [['D','direito'],['E','esquerdo']].forEach(([l,t])=>{const a=S[`p_plat|${l}|`];if(a)norm('plat'+l,'plat',a,'Prancha lateral · lado '+t,'tronco',l,{sub:'resistência das laterais do tronco',ex:'Diferença acima de 5% entre os lados sugere assimetria de resistência.'})});
   /* autonomia, memória, humor e nutrição */
+  if(S.q_bemestar){const a=S.q_bemestar,dt=a[a.length-1].r.detail||{},b=qLevel('bemestar',a[a.length-1].v),cuidar=BE_DIMS.filter(([id])=>(dt.d||{})[id]<5).map(([,t])=>t.toLowerCase());
+    add({key:'q_bemestar',sec:'vida',title:'Bem-estar integrado',sub:'sua nota de 0 a 10 em cada parte do bem-estar',a,fm:v=>fN(v,1),unit:' de 10',better:'high',viz:'be',d:dt.d||{},prev:a.length>1?(a[a.length-2].r.detail||{}).d:null,
+      tag:b?{t:b.t,c:PN_LC[b.l]}:null,st:b?(b.l===0?'ok':b.l===1?'mid':'att'):null,expl:(cuidar.length?'Pedem cuidado: <b>'+cuidar.join(', ')+'</b>. ':'')+(dt.af?'Atividade física: '+BE_AF_T[dt.af]+'.':'')})}
   ['who5','katz','lawton','meem','moca','gds','man','antro'].forEach(k=>qItem(k,'vida'));
   if(S.e_dor)bandItem({key:'dor',sec:'dor',title:'Dor',sub:'escala de 0 a 10',a:S.e_dor,fm:v=>fN(v,0),unit:'/10',better:'low',expl:'0 é sem dor e 10 é a pior dor imaginável. Quanto menor, melhor.'},[{lo:0,hi:3,l:0,t:'Dor leve ou ausente'},{lo:4,hi:6,l:1,t:'Dor moderada'},{lo:7,hi:10,l:3,t:'Dor intensa'}],0,10);
   return{items,age,lastD};
@@ -2395,7 +2467,8 @@ function pnDelta(o){
 function pnWhen(o,lastD){return dayKey(o.cur.d)!==dayKey(lastD)?`<div class="pn-when">medido em ${dLong(o.cur.d)}</div>`:''}
 function pnCard(o,lastD){
   let viz='';
-  if(o.viz==='bell')viz=pnBell(o.n,o.cur.v,o.cmp?o.cmp.v:null,o.fm,o.better);
+  if(o.viz==='be')viz=beWheel(o.d,o.prev,true);
+  else if(o.viz==='bell')viz=pnBell(o.n,o.cur.v,o.cmp?o.cmp.v:null,o.fm,o.better);
   else if(o.viz==='bar'){const lab=o.bs.slice(1).map(b=>[Math.max(o.min,b.lo),o.fm(b.lo)]);viz=pnBar(pnBandSegs(o.bs,o.min,o.max),o.min,o.max,o.cur.v,o.cmp?o.cmp.v:null,[[o.min,o.fm(o.min)]].concat(lab,[[o.max,o.fm(o.max)]]))}
   else viz=o.a.length>1?pnLine(o.a,o.fm):'<p class="pn-sub" style="margin-top:8px">A evolução aparece a partir da segunda avaliação.</p>';
   const more=(o.expl?`<p>${o.expl}</p>`:'')+(o.viz!=='line'&&o.a.length>1?pnLine(o.a,o.fm):'')+(o.ref?`<p class="pn-ref">Referência: ${esc(o.ref)}</p>`:'');
