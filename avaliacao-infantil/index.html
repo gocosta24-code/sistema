@@ -1319,7 +1319,9 @@ renderAll();
  DB=DBX;
  DB.doc('config/faixas').onSnapshot(s=>{if(s.exists){const x=s.data();if(x&&x.idadi&&x.pedicat){CFG=clone(x);if(P&&P.doc)syncResumo();renderMain()}}},()=>{});
  DB.collection('pacientes').onSnapshot(s=>{PACS=s.docs.map(d=>Object.assign({id:d.id},clone(d.data())));
-  renderPatient();if(UI.tab==='painel')renderMain()},e=>{onErr(e);if(!e||e.code!=='sessao')toast('Não foi possível carregar os pacientes.')});
+  renderPatient();if(UI.tab==='painel')renderMain();
+  /* vindo do perfil do paciente no sistema (?pac=<id>): abre direto o relatório dele */
+  const dl=new URLSearchParams(location.search).get('pac');if(dl&&!window._dlFeito&&PACS.some(p=>String(p.id)===String(dl))){window._dlFeito=1;openPac(String(PACS.find(p=>String(p.id)===String(dl)).id));UI.tab='rel';renderAll()}},e=>{onErr(e);if(!e||e.code!=='sessao')toast('Não foi possível carregar os pacientes.')});
 })();
 })();
 </script>
