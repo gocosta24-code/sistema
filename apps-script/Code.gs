@@ -805,7 +805,7 @@ function minhaAgenda(token) {
       servico: ev.getTag('servico') || '', sala: salaDaDescricao(ev.getDescription()),
       status: ev.getTag('status') || '', aviso: ev.getTag('aviso_paciente') || '',
       confirmado_paciente: ev.getTag('confirmado_paciente') || ''};
-  }).filter(function(e){ return e.status !== 'falta'; });
+  }).filter(function(e){ return e.status !== 'falta' && e.status !== 'justificada'; });
   return {ok:true, dados: dados};
 }
 function responderPresenca(body, token) {
@@ -2780,7 +2780,8 @@ function eventoParaTela(ev, prof) {
     do_sistema: ev.getTag('origem') === 'sistema',
     aviso: ev.getTag('aviso_paciente') || '',
     confirmado_paciente: ev.getTag('confirmado_paciente') || '',
-    valor: ev.getTag('valor') || ''
+    valor: ev.getTag('valor') || '',
+    motivo_ausencia: ev.getTag('motivo_ausencia') || ''
   };
 }
 
@@ -2845,7 +2846,7 @@ function salvarEvento(body, token) {
   const ehPilates = /pilates/i.test(String(body.servico||''));
   const noHorario = cal.getEvents(inicio, fim).filter(function(ev){ return ev.getId() !== body.evento_id && !ev.isAllDayEvent(); });
   if (ehPilates) {
-    const alunas = noHorario.filter(function(ev){ return /pilates/i.test(String(ev.getTag('servico')||'')) && ev.getTag('status') !== 'falta'; });
+    const alunas = noHorario.filter(function(ev){ return /pilates/i.test(String(ev.getTag('servico')||'')) && ev.getTag('status') !== 'falta' && ev.getTag('status') !== 'justificada'; });
     if (alunas.length >= PILATES_VAGAS) return {ok:false, lotado:true, erro:'Turma cheia: ' + prof.nome + ' já tem ' + PILATES_VAGAS + ' alunas nesse horário'};
   }
   // Choque de horario na mesma agenda (o proprio evento, ao editar, nao conta)
@@ -2885,12 +2886,16 @@ function eventoComPermissao(body, token) {
   return {ev:ev, prof:prof};
 }
 
-const STATUS_EVENTO = ['', 'confirmado', 'realizado', 'falta'];
+const STATUS_EVENTO = ['', 'confirmado', 'realizado', 'falta', 'justificada'];
 function statusEvento(body, token) {
   if (STATUS_EVENTO.indexOf(String(body.status||'')) === -1) return {ok:false, erro:'Situação inválida'};
   const r = eventoComPermissao(body, token);
   if (r.erro) return {ok:false, erro:r.erro};
   r.ev.setTag('status', String(body.status||''));
+  // Falta ou ausência justificada: guarda o motivo (some quando volta a outra situação)
+  if (body.status === 'falta' || body.status === 'justificada') {
+    if (body.motivo !== undefined) r.ev.setTag('motivo_ausencia', String(body.motivo||'').slice(0, 300));
+  } else if (r.ev.getTag('motivo_ausencia')) r.ev.deleteTag('motivo_ausencia');
   let lancamento = '';
   if (body.status === 'realizado') lancamento = lancarAtendimento(r.ev, r.prof);
   else lancamento = retirarLancamento(r.ev);
