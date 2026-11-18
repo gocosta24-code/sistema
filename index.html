@@ -5956,8 +5956,9 @@ async function abrirPacienteDaAgenda(linha, id) {
 // ── Serviço no agendamento: exatamente o que está cadastrado em Serviços ──
 // As linhas do paciente aparecem primeiro. O preço do catálogo é o que o
 // Financeiro usa para o faturamento esperado e para a perda das faltas.
-function servicosAgendaHTML(atual, pac) {
-  const cat = (_catalogo||[]).filter(s=>!inativoServico(s));
+function linhaDoServico(nome) { const c = (_catalogo||[]).find(s=>normalizar(s.nome)===normalizar(nome)); return c && LINHAS[c.linha] ? c.linha : ''; }
+function servicosAgendaHTML(atual, pac, linha) {
+  const cat = (_catalogo||[]).filter(s=>!inativoServico(s) && (!linha || String(s.linha)===linha || normalizar(s.nome)===normalizar(atual)));
   const doPac = pac ? linhasDoPaciente(pac) : [];
   const ordem = [...doPac, ...Object.keys(LINHAS).filter(k=>!doPac.includes(k))];
   const grupos = ordem.map(k=>({k, lista:cat.filter(s=>String(s.linha)===k)})).filter(g=>g.lista.length);
@@ -5970,6 +5971,21 @@ function servicosAgendaHTML(atual, pac) {
     ${outras.length?`<optgroup label="Outros">${outras.map(s=>`<option value="${esc(s.nome)}"${normalizar(s.nome)===normalizar(atual)?' selected':''}>${esc(s.nome)}</option>`).join('')}</optgroup>`:''}
     ${temAtual?'':`<option value="${esc(atual)}" selected>${esc(atual)} (fora do catálogo)</option>`}
   </select>`;
+}
+function trocarLinhaAgenda(linha) {
+  const sel = document.getElementById('agServ'); if(!sel || sel.tagName!=='SELECT') return;
+  const pac = (_todosPacientes||[]).find(p=>normalizar(p.nome)===normalizar((document.getElementById('agPac')||{}).value||''));
+  const atual = sel.value && (!linha || linhaDoServico(sel.value)===linha) ? sel.value : '';
+  sel.outerHTML = servicosAgendaHTML(atual, pac, linha);
+  if(!atual) { document.getElementById('agServNota').innerHTML = servicoInfo(''); }
+}
+// Paciente marcado num serviço de outra linha: entra nessa linha no cadastro
+async function garantirLinhaDoPaciente(pac, servico) {
+  const l = linhaDoServico(servico) || (document.getElementById('agLinha')||{}).value || '';
+  if(!pac || !l || linhasDoPaciente(pac).includes(l)) return;
+  const nova = [...linhasDoPaciente(pac), l].join(', ');
+  const r = await api('atualizar',{tabela:'pacientes', id:pac.id, dados:{linha:nova}});
+  if(r.ok) { pac.linha = nova; showToast(pac.nome.split(' ')[0]+' agora também está na linha '+((LINHAS[l]||{}).label||l),'ok'); }
 }
 function servicoInfo(nome) {
   if(!nome) return 'A lista vem da tela Serviços. Falta algum? Cadastre lá e ele aparece aqui.';
@@ -5992,7 +6008,7 @@ async function servicosDoPacienteAgenda(nome) {
   const pac = (await carregarTodosPacientes()).find(p=>normalizar(p.nome)===normalizar(nome));
   if(!pac) return;
   const atual = sel.value;
-  sel.outerHTML = servicosAgendaHTML(atual, pac);
+  sel.outerHTML = servicosAgendaHTML(atual, pac, (document.getElementById('agLinha')||{}).value||'');
   const rm = document.getElementById('agRepMes'); if(rm) rm.value = pac.reposicoes_mes!=null ? pac.reposicoes_mes : '';
   const novo = document.getElementById('agServ');
   // paciente com um serviço só no cadastro: já vem escolhido
@@ -6054,8 +6070,11 @@ async function novoAtendimento(agendaEmail, eventoId, pre) {
         <datalist id="agPacs">${pacs.map(p=>`<option value="${esc(p.nome)}">`).join('')}</datalist></div>
       <div class="fg fa"><label class="fl" for="agProf">Profissional</label>
         <select class="fs" id="agProf">${profs.map(p=>`<option value="${esc(p.email)}"${p.email===profPadrao?' selected':''}>${esc(p.nome)}</option>`).join('')}</select></div>
+      <div class="fg fa"><label class="fl" for="agLinha">Linha de cuidado</label>
+        <select class="fs" id="agLinha" onchange="trocarLinhaAgenda(this.value)"><option value="">Todas as linhas</option>${Object.entries(LINHAS).map(([k,c])=>`<option value="${k}"${linhaDoServico(servAtual)===k?' selected':''}>${esc(c.label)}</option>`).join('')}</select>
+        <div class="pt-nota" style="margin:4px 0 0">Filtra os serviços. Se o paciente ainda não estiver nessa linha, ele passa a estar ao salvar.</div></div>
       <div class="fg fa"><label class="fl" for="agServ">Serviço</label>
-        ${servicosAgendaHTML(servAtual, pacAtual)}
+        ${servicosAgendaHTML(servAtual, pacAtual, linhaDoServico(servAtual))}
         <div class="pt-nota" style="margin:6px 0 0" id="agServNota">${servicoInfo(servAtual)}</div></div>
       ${_veValorCatalogo ? `<div class="fg"><label class="fl" for="agValor">Valor da sessão</label>
         <div class="ag-valor"><span>R$</span><input class="fi" id="agValor" inputmode="decimal" placeholder="0,00"
@@ -6098,6 +6117,9 @@ async function novoAtendimento(agendaEmail, eventoId, pre) {
       <div class="fg fa"><label class="fl" for="agObs">Observação (aparece no Google Agenda)</label>
         <input class="fi" id="agObs" value="${esc(e?e.nota:'')}" placeholder="Ex.: trazer exames"></div>
     </div>
+    ${e && e.do_sistema && !e.reposDe ? `<div class="fg fa" style="margin-top:4px"><label class="fl">Aplicar a mudança em</label>
+      <div class="agx-seg agx-seg-f" id="agEscopo"><button type="button" class="on" data-v="esta" onclick="this.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('on'));this.classList.add('on');document.getElementById('agBtn').textContent='Salvar alterações'">Só esta sessão</button><button type="button" data-v="proximas" onclick="this.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('on'));this.classList.add('on');document.getElementById('agBtn').textContent='Salvar nesta e nas próximas'">Esta e as próximas do plano</button></div>
+      <div class="pt-nota" style="margin:4px 0 0">"Esta e as próximas" muda todas as sessões seguintes de ${esc(DIAS_SEMANA[new Date(e.inicio).getDay()].toLowerCase())} às ${horaDe(e.inicio)}${e.servico?' ('+esc(e.servico)+')':''}: dia, horário, profissional, serviço, sala, duração e valor. Sessões já realizadas não mudam.</div></div>` : ''}
     <div id="agErr" class="errbox"></div>
     <button class="savebtn" id="agBtn" onclick="salvarAtendimento(${e?`'${esc(e.id)}'`:''})">${e?'Salvar alterações':'Agendar'}</button>`;
   _agSlotsExtra = [];
@@ -6227,6 +6249,7 @@ async function salvarAtendimento(eventoId, forcar) {
   if(!datas.length) return erro('Nenhuma data para agendar com essas opções.');
   const servico = v('agServ');
   if(!servico && !eventoId) return erro('Escolha o serviço (a lista vem da tela Serviços).');
+  if(eventoId && ((document.querySelector('#agEscopo button.on')||{}).dataset||{}).v==='proximas') return salvarProximas(e, {email, sala, servico, dur, pac, nomePac, data:v('agData'), hora:v('agHora'), nota:v('agObs')}, btn, erro);
   // Feriados e bloqueios: as datas que caem neles ficam de fora
   { const fl = await api('listar_feriados',{desde:datas.map(o=>o.dt).sort()[0]});
     const bloq = fl.ok ? (fl.dados||[]).filter(f=>!f.profissionais.length || f.profissionais.includes(email)) : [];
@@ -6318,10 +6341,45 @@ async function salvarAtendimento(eventoId, forcar) {
     if(ru.ok) pac.reposicoes_mes = novo;
   }
   _agReposDe = null;
+  if(pac && servico) await garantirLinhaDoPaciente(pac, servico);
   await loadAgenda();
   const msg = eventoId ? 'Atendimento atualizado' : rp ? 'Agendado sem data para acabar. As próximas semanas já estão marcadas' : (feitos>1?feitos+' atendimentos agendados':'Agendado');
   if(choques.length) showToast(feitos+' agendados. Ficaram de fora por choque de horário, turma cheia ou feriado: '+choques.join(', '),'err');
   else showToast(msg,'ok');
+}
+
+// Editar "esta e as próximas": cada sessão seguinte do mesmo dia, horário e
+// serviço ganha o novo dia (mesmo deslocamento), horário, profissional,
+// serviço, sala, duração e valor. Realizadas e ausências ficam como estão.
+async function salvarProximas(e, n, btn, erro) {
+  const t0 = btn.textContent; btn.disabled = true; btn.textContent = 'Buscando as próximas sessões…';
+  const lista = ((await sessoesIguais(e, new Date(new Date(e.inicio).setHours(0,0,0,0)))) || []).filter(x=>x.status!=='realizado' && !ehAusencia(x.status) && x.do_sistema);
+  if(!lista.some(x=>x.id===e.id)) lista.unshift(e);
+  const desloc = Math.round((new Date(n.data+'T12:00:00') - new Date(diaISO(new Date(e.inicio))+'T12:00:00'))/86400000);
+  const valor = document.getElementById('agValor') ? String(numDe(document.getElementById('agValor').value)||'') : undefined;
+  const fmt = d => d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+  if(!confirm('Mudar '+lista.length+' '+(lista.length===1?'sessão':'sessões')+' de '+fmt(new Date(lista[0].inicio))+' a '+fmt(new Date(lista[lista.length-1].inicio))+'?\n\nNovo horário: '+DIAS_SEMANA[new Date(n.data+'T12:00:00').getDay()].toLowerCase()+' às '+n.hora+' · '+(agProfNome(n.email)||'')+(n.servico?' · '+n.servico:'')+'.')) { btn.disabled=false; btn.textContent=t0; return; }
+  let ok = 0; const falhas = [];
+  for(let i=0;i<lista.length;i++) {
+    const x = lista[i]; btn.textContent = `Atualizando ${i+1} de ${lista.length}…`;
+    const ini = somaDias(new Date(x.inicio), desloc); const [hh,mm] = n.hora.split(':').map(Number); ini.setHours(hh, mm, 0, 0);
+    const fim = new Date(ini.getTime()+n.dur*60000);
+    const troca = x.agenda_email !== n.email;
+    const body = {agenda_email:n.email, paciente_id:n.pac?n.pac.id:(x.paciente_id||''), paciente_nome:n.nomePac, servico:n.servico||x.servico||'',
+      inicio:ini.toISOString(), fim:fim.toISOString(), obs:montaObs(n.sala, x.rep, n.nota, x.prog), evento_id: troca ? '' : x.id, forcar:true,
+      ...(valor!==undefined ? {valor} : {})};
+    const r = await api('salvar_evento', body);
+    if(!r.ok) { falhas.push(fmt(ini)+(r.feriado?' (feriado)':r.lotado?' (turma cheia)':'')); continue; }
+    if(troca) { await api('excluir_evento',{agenda_email:x.agenda_email, evento_id:x.id}); if(x.status) await api('status_evento',{agenda_email:n.email, evento_id:r.dados.id, status:x.status}); }
+    ok++;
+  }
+  btn.disabled = false; btn.textContent = t0;
+  if(n.pac && n.servico) await garantirLinhaDoPaciente(n.pac, n.servico);
+  closeSheet(true);
+  const d0 = somaDias(new Date(e.inicio), desloc); _agDia = new Date(d0); _agDia.setHours(0,0,0,0); _agSemana = inicioDaSemana(d0);
+  await loadAgenda();
+  if(falhas.length) showToast(ok+' sessões atualizadas. Ficaram como estavam: '+falhas.join(', '),'err');
+  else showToast(ok+' '+(ok===1?'sessão atualizada':'sessões atualizadas'),'ok');
 }
 
 async function encerrarRepeticao(agendaEmail, eventoId) {
@@ -6732,7 +6790,7 @@ async function carregarPlano(el, pac) {
   const hoje = new Date(); hoje.setHours(0,0,0,0);
   const [ag, salas] = await Promise.all([
     api('listar_agenda',{de:hoje.toISOString(), ate:somaDias(hoje, AG_REP_JANELA+5).toISOString()}),
-    carregarSalas()]);
+    carregarSalas(), carregarCatalogo()]);
   if(!ag.ok) { box.innerHTML = `<div class="pt-nota">Não foi possível ler a agenda: ${esc(ag.erro||'')}</div>`; return; }
   if(!_ag.profissionais.length && ag.profissionais) _ag.profissionais = ag.profissionais;
   const doPaciente = (ag.dados||[]).map(prepEvento).filter(e=>!e.dia_inteiro && String(e.paciente_id||'')===String(pac.id));
@@ -6749,6 +6807,14 @@ async function carregarPlano(el, pac) {
   desenharPlano();
 }
 
+function servicoOpcoesPlano(atual) {
+  const cat = (_catalogo||[]).filter(x=>!inativoServico(x));
+  const grupos = Object.keys(LINHAS).map(k=>({k, l:cat.filter(x=>String(x.linha)===k)})).filter(g=>g.l.length);
+  const fora = cat.filter(x=>!LINHAS[x.linha]);
+  const tem = !atual || cat.some(x=>normalizar(x.nome)===normalizar(atual));
+  const op = x => `<option value="${esc(x.nome)}"${normalizar(x.nome)===normalizar(atual)?' selected':''}>${esc(x.nome)}</option>`;
+  return `<option value="">Escolha…</option>${grupos.map(g=>`<optgroup label="${esc(LINHAS[g.k].label)}">${g.l.map(op).join('')}</optgroup>`).join('')}${fora.length?`<optgroup label="Outros">${fora.map(op).join('')}</optgroup>`:''}${tem?'':`<option value="${esc(atual)}" selected>${esc(atual)}</option>`}`;
+}
 function resumoPlano(slots) {
   if(!slots.length) return 'Sem horários fixos';
   const sem = slots.reduce((s,x)=>s+(x.passo===14?0.5:1),0);
@@ -6769,7 +6835,7 @@ function desenharPlano() {
         <label class="fl">Duração<select class="fs" onchange="mudarSlot(${i},'dur',+this.value)">${[...new Set([30,40,50,60,90,120,s.dur])].map(m=>`<option value="${m}"${s.dur===m?' selected':''}>${m} min</option>`).join('')}</select></label>
         <label class="fl">Frequência<select class="fs" onchange="mudarSlot(${i},'passo',+this.value)"><option value="7"${s.passo===7?' selected':''}>Toda semana</option><option value="14"${s.passo===14?' selected':''}>A cada 2 semanas</option></select></label>
         <label class="fl pl-wide">Profissional<select class="fs" onchange="mudarSlot(${i},'email',this.value)">${profs.map(p=>`<option value="${esc(p.email)}"${s.email===p.email?' selected':''}>${esc(p.nome)}</option>`).join('')}</select></label>
-        <label class="fl">Serviço<input class="fi" list="plServs" value="${esc(s.servico)}" onchange="mudarSlot(${i},'servico',this.value.trim())"></label>
+        <label class="fl">Serviço<select class="fs" onchange="mudarSlot(${i},'servico',this.value)">${servicoOpcoesPlano(s.servico)}</select></label>
         <label class="fl">Sala<input class="fi" list="plSalas" value="${esc(s.sala)}" onchange="mudarSlot(${i},'sala',this.value.trim())"></label>
       </div>
       <div class="pl-rod">
@@ -6883,6 +6949,7 @@ async function salvarPlano() {
     }
   }
   btn.disabled = false;
+  { const pacs = await carregarTodosPacientes(); const pc = pacs.find(x=>String(x.id)===String(P.pac.id)); for(const sv of new Set(criarSlots.map(x=>x.servico).filter(Boolean))) await garantirLinhaDoPaciente(pc, sv); }
   showToast('Plano atualizado: '+criados+' '+(criados===1?'sessão marcada':'sessões marcadas')+(apagar.length?', '+apagar.length+' retirada'+(apagar.length>1?'s':''):''),'ok');
   if(document.getElementById('agBody')) loadAgenda();
   await carregarPlano(P.el, P.pac);
