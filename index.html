@@ -2611,6 +2611,7 @@ async function openFormNovoPaciente(linha, existente) {
       <div class="fg fa"><label class="fl">Nome completo *</label><input class="fi" id="np_nome" placeholder="Nome do paciente" autocomplete="off" value="${esc(p.nome)}"${editando?'':` oninput="sugerirExistente('${linha}')"`}>
         ${editando?'':'<div id="np_sug"></div>'}</div>
       <div class="fg"><label class="fl">Data de nascimento</label><input class="fi" id="np_nasc" type="date" value="${nascVal?nascVal[1]:''}"></div>
+      <div class="fg"><label class="fl">Sexo <span style="font-weight:400;color:var(--ink3)">(usado nas referências da avaliação)</span></label><select class="fi" id="np_sexo"><option value="">—</option><option value="F"${String(p.sexo||'').toUpperCase().startsWith('F')?' selected':''}>Feminino</option><option value="M"${String(p.sexo||'').toUpperCase().startsWith('M')?' selected':''}>Masculino</option></select></div>
       <div class="fg"><label class="fl">Telefone</label><input class="fi" id="np_tel" type="tel" placeholder="(11) 99999-9999" value="${esc(p.telefone)}"${editando?'':` oninput="sugerirExistente('${linha}')"`}></div>
       <div class="fg"><label class="fl">E-mail</label><input class="fi" id="np_email" type="email" autocomplete="off" placeholder="email@exemplo.com" value="${esc(p.email)}"${emailTravado?' readonly':''}>
         ${emailTravado?'<div class="pt-nota">É o login da área do paciente. Para trocar, use "Área do paciente".</div>':''}</div>
@@ -2738,6 +2739,7 @@ async function salvarPaciente(linha, idExistente) {
   const dados = {
     nome, linha: linhas.join(', '),
     data_nascimento: nasc,
+    sexo: document.getElementById('np_sexo')?.value||null,
     telefone: tel,
     ...(document.getElementById('np_email')?.readOnly ? {} : {email: emailNovo||null}),
     cpf: cpfNovo ? fmtCPF(cpfNovo) : null,
@@ -9777,7 +9779,7 @@ async function carregarVisaoGeral(p) {
   const ms = msgs.ok ? msgs.dados||[] : [];
   const todasEvo = evo.ok ? evo.dados||[] : [];
   _vg = {p, sess, passadas, futuras, itensFin, lead, evos, ms, alertas, histOk:hist.ok, histErro:hist.erro,
-         avals: avaliacoesDoPaciente(todasEvo, docs.ok ? docs.dados||[] : [])};
+         avals: avaliacoesDoPaciente(todasEvo, docs.ok ? docs.dados||[] : [], p.id)};
   desenharVisaoGeral();
 }
 
@@ -9915,13 +9917,15 @@ function desenharVisaoGeral() {
 
 // Avaliações do paciente: testes da Avaliação física (por data), avaliações
 // infantis registradas e relatórios salvos em Documentos
-function avaliacoesDoPaciente(evos, docs) {
+function avaliacoesDoPaciente(evos, docs, pacId) {
   const out = [];
+  // abre a avaliação já com o paciente escolhido e o relatório dele na tela
+  const pq = encodeURIComponent(String(pacId||''));
   const fis = {};
   evos.filter(e=>e.origem==='sensor' && !/"type"\s*:\s*"(perfil|publicado)"/.test(String(e.sensor||''))).forEach(e=>{
     const d = String(e.data||'').slice(0,10); (fis[d] = fis[d] || {tipo:'fisica', data:d, autor:e.autor_nome, itens:[]}).itens.push(String(e.texto||'').split(/[,:]/)[0]); });
-  Object.values(fis).forEach(x=>out.push({tipo:'Avaliação física', data:x.data, autor:x.autor, desc:x.itens.length+' '+(x.itens.length===1?'medida':'medidas')+': '+[...new Set(x.itens)].slice(0,4).join(', '), abrir:"location.href='avaliacao/'"}));
-  evos.filter(e=>e.origem==='infantil_resumo').forEach(e=>out.push({tipo:'Avaliação infantil', data:String(e.data||'').slice(0,10), autor:e.autor_nome, desc:String(e.texto||'').slice(0,140), abrir:"location.href='avaliacao-infantil/'"}));
+  Object.values(fis).forEach(x=>out.push({tipo:'Avaliação física', data:x.data, autor:x.autor, desc:x.itens.length+' '+(x.itens.length===1?'medida':'medidas')+': '+[...new Set(x.itens)].slice(0,4).join(', '), abrir:`location.href='avaliacao/?pac=${pq}&rel=1'`}));
+  evos.filter(e=>e.origem==='infantil_resumo').forEach(e=>out.push({tipo:'Avaliação infantil', data:String(e.data||'').slice(0,10), autor:e.autor_nome, desc:String(e.texto||'').slice(0,140), abrir:`location.href='avaliacao-infantil/?pac=${pq}'`}));
   docs.filter(d=>/avalia|laudo|relat/i.test(String(d.categoria||'')+' '+String(d.nome||''))).forEach(d=>out.push({tipo:d.categoria||'Relatório', data:String(d.criado_em||'').slice(0,10), autor:d.enviado_nome, desc:d.nome, doc:d.id}));
   return out.sort((a,b)=>String(b.data).localeCompare(String(a.data)));
 }
@@ -9930,7 +9934,7 @@ function avaliacoesCardHTML(lista) {
     <div class="vg-k">Avaliações e relatórios ${lista.length?`<span class="vg-n" style="background:var(--teal)">${lista.length}</span>`:''}</div>
     ${lista.length ? lista.slice(0,12).map(a=>`<div class="vg-av">
       <div><b>${esc(a.tipo)}</b><span>${esc(a.data?fmtDataBR(a.data):'')}${a.autor?' · '+esc(a.autor):''}</span><small>${esc(a.desc||'')}</small></div>
-      ${a.doc?`<button class="backbtn" onclick="baixarDoc('${esc(a.doc)}')">Abrir</button>`:`<button class="ff-link" onclick="${a.abrir}">ver na avaliação</button>`}</div>`).join('')
+      ${a.doc?`<button class="backbtn" onclick="baixarDoc('${esc(a.doc)}')">Abrir</button>`:`<button class="ff-link" onclick="${a.abrir}">ver relatório</button>`}</div>`).join('')
       : '<div class="vg-tudo">Nenhuma avaliação registrada ainda. Os relatórios da Avaliação física e da infantil ficam aqui quando você toca em "Salvar no perfil do paciente".</div>'}
   </div>`;
 }
