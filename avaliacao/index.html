@@ -1330,8 +1330,8 @@ const PRS={
  longevidade:{label:'Longevidade 60+ (protocolo Casa Oliveira)',how:'Avaliação em camadas para pessoas idosas: triagem multidimensional (IVCF-20), fragilidade física (Fried) e desempenho (SPPB, TUG, força), instrumentos por domínio e síntese clínica (CFS). Faça na ordem e gere o Relatório para o paciente na aba Relatório. Reavalie nos mesmos dias de protocolo: entrada, 3 e 6 meses.',items:[QI('antro'),QI('ivcf'),SC('preensao','D'),SC('preensao','E'),FU('tug'),FU('marcha'),FU('sl30'),QI('sppb'),QI('fried'),QI('katz'),QI('lawton'),QI('meem'),QI('moca'),QI('gds'),QI('man'),SC('berg'),SC('fesi'),QI('cfs')]},
  pil0:{label:'Pilates · Alunas antigas (reavaliação rápida)',how:'Para quem já é aluna e ainda não tem avaliação no sistema. Confira sexo e data de nascimento em Dados do paciente, leve a balança, e registre peso e altura (o IMC sai sozinho) e a força de preensão das duas mãos.',items:[QI('antro'),...GR]},
  pil1:{label:'Pilates · Nível 1 · Funcional Essencial',nivel:1,how:'Para idosos frágeis, alunos com baixa capacidade funcional ou que estão começando. Objetivo: segurança, mobilidade básica, equilíbrio e independência.',items:[QI('antro'),...GR,FU('tug'),PI('sts5'),PI('eqest'),PI('sentalc'),PI('quadri','D'),PI('quadri','E'),QI('who5'),DOR]},
- pil2:{label:'Pilates · Nível 2 · Funcional Ativo',nivel:2,how:'Para quem já treina, tem boa consciência corporal e executa os exercícios, mas apresenta alguma limitação. Apoio unipodal de olhos abertos, sem teto: quem passar de 30 s também faz de olhos fechados (o app troca sozinho).',items:[QI('antro'),...GR,FU('sl30'),PI('unip','D','A'),PI('unip','E','A'),PI('sentalc'),PI('quadri','D'),PI('quadri','E'),QI('who5'),DOR]},
- pil3:{label:'Pilates · Nível 3 · Performance e Movimento',nivel:3,how:'Para jovens, adultos jovens e alunos sem queixas. Prancha sem teto: pare quando a execução deixar de ser adequada. Apoio unipodal de olhos fechados; se for muito difícil para o aluno, use olhos abertos (troque em Olhos, na aba Pilates).',items:[QI('antro'),...GR,PI('prancha'),PI('agach'),PI('unip','D','F'),PI('unip','E','F'),PI('plat','D'),PI('plat','E'),PI('sentalc'),PI('quadri','D'),PI('quadri','E'),QI('who5')]},
+ pil2:{label:'Pilates · Nível 2 · Funcional Ativo',nivel:2,how:'Para quem já treina, tem boa consciência corporal e executa os exercícios, mas apresenta alguma limitação. Apoio unipodal de olhos abertos: quem passar de 30 s também faz de olhos fechados (o app troca sozinho).',items:[QI('antro'),...GR,FU('sl30'),PI('unip','D','A'),PI('unip','E','A'),PI('sentalc'),PI('quadri','D'),PI('quadri','E'),QI('who5'),DOR]},
+ pil3:{label:'Pilates · Nível 3 · Performance e Movimento',nivel:3,how:'Para jovens, adultos jovens e alunos sem queixas. Prancha até a execução deixar de ser adequada. Apoio unipodal de olhos fechados; se for muito difícil para o aluno, use olhos abertos (troque em Olhos, na aba Pilates).',items:[QI('antro'),...GR,PI('prancha'),PI('agach'),PI('unip','D','F'),PI('unip','E','F'),PI('plat','D'),PI('plat','E'),PI('sentalc'),PI('quadri','D'),PI('quadri','E'),QI('who5')]},
  lca:{label:'Joelho: pós-operatório de LCA',how:'Bateria para reavaliar joelho após reconstrução do ligamento cruzado anterior. Use o lado operado.',items:[SC('dor'),...GR,G('joelho_flex'),G('joelho_ext'),EQ('u'),FU('marcha'),SC('koos')]},
  ombro:{label:'Ombro: rigidez ou manguito',how:'Bateria para ombro doloroso, capsulite ou lesão do manguito rotador.',items:[SC('dor'),...GR,G('ombro_flex'),G('ombro_abd'),G('ombro_re'),G('ombro_ri'),SC('dash')]},
  lombar:{label:'Coluna lombar: lombalgia',how:'Bateria para lombalgia. A inclinação e a rotação são medidas para os dois lados.',items:[SC('dor'),...GR,G('tl_flex'),G('tl_ext'),G('tl_incl','D'),G('tl_incl','E'),G('tl_rot','D'),G('tl_rot','E'),SC('odi')]},
@@ -1415,7 +1415,7 @@ async function renderReport(){
   if(qk.length){h+=`<h3>Avaliação 60+</h3>`;qk.forEach(k=>{const a=ger[k];const lr=a[a.length-1].r;const fm=v=>qFmt(k,v);const b=qLevel(k,lr.score,p);h+=cardH(esc(QS[k].label+' · '+QS[k].full),fm(lr.score)+(QS[k].unit?' '+QS[k].unit:' / '+QS[k].max),b?`<span class="lvl ${LV[b.l]}">${b.t}</span>`+(lr.obs?' '+esc(lr.obs):''):'',a.length>1?chgTxt(a,fm):'',chart(a,fm))})}
   const pk=Object.keys(pil);
   if(pk.length){h+=`<h3>Pilates</h3>`;pk.forEach(k=>{const a=pil[k];const lr=a[a.length-1].r;const fm=v=>pilFmt(lr.t,v);const P=PT[lr.t];
-    h+=cardH(esc(pilLabel(lr)),lr.t==='eqest'?'Tandem '+fm(lr.td):fm(lr.v),[pilSub(lr),P.better==='low'?'Menor é melhor.':'Maior é melhor.',lr.obs?esc(lr.obs):''].filter(Boolean).join(' '),a.length>1?chgTxt(a,fm):'',chart(a,fm))})}
+    h+=cardH(esc(pilLabel(lr)),lr.t==='eqest'?'Tandem '+fm(lr.td):fm(lr.v),[pilSub(lr),P.better==='low'?'Menor é melhor.':'Maior é melhor.',lr.obs?esc(lr.obs):''].filter(Boolean).join(' '),a.length>1?chgTxt(a,fm):'',(PIL_NORM(lr)?normBox(p,PIL_NORM(lr)[0],a,PIL_NORM(lr)[1]):'')+chart(a,fm))})}
   const gk=Object.keys(gon);
   if(gk.length){h+=`<h3>Amplitude de movimento</h3>`;gk.forEach(k=>{const a=gon[k];const u=a[0].u;const last=a[a.length-1].v,first=a[0].v,dif=last-first;
     h+=`<div class="card"><p class="hint">${esc(recLabel(a[0].r))}</p><p class="big">${fmtU(last,u)}</p>${a.length>1?`<p class="hint">${dif>=0?'+':'−'}${fmtU(Math.abs(dif),u)} desde a primeira medida (${dShort(a[0].d)})</p>`:''}${chart(a,v=>fmtU(v,u))}</div>`})}
@@ -1430,11 +1430,11 @@ async function renderReport(){
     if(k==='tug'){big=nf1.format(last)+' s';fmt=v=>nf1.format(v);sub='Tempo total. Menor é melhor.';if(a.length>1){const d=last-first;chg=`${d<=0?'−':'+'}${nf1.format(Math.abs(d))} s desde a primeira medida`}}
     else if(k==='marcha'){big=nf2.format(last)+' m/s';fmt=v=>nf2.format(v);sub=lr.cadencia!=null?`Cadência ${lr.cadencia} passos/min, passo médio ${nf2.format(lr.passo_m)} m.`:`Medida com cronômetro em ${nf1.format(lr.dist)} m.`;if(a.length>1){const pc=Math.round((last-first)/first*100);chg=`${pc>=0?'+':''}${pc}% na velocidade desde a primeira medida`}}
     else{big=String(last);fmt=v=>String(v);sub=lr.classe?`${lr.classe.charAt(0).toUpperCase()+lr.classe.slice(1)} da faixa esperada para ${lr.sexo==='F'?'mulheres':'homens'} de ${lr.faixa} anos.`:'Levantadas em 30 segundos.';if(a.length>1){const d=last-first;chg=`${d>=0?'+':'−'}${Math.abs(d)} desde a primeira medida`}}
-    h+=`<div class="card"><p class="hint">${FT[k].label}</p><p class="big">${big}</p><p class="hint">${sub}</p>${chg?`<p class="hint">${chg}</p>`:''}${chart(a,fmt)}</div>`})}
+    h+=`<div class="card"><p class="hint">${FT[k].label}</p><p class="big">${big}</p><p class="hint">${sub}</p>${chg?`<p class="hint">${chg}</p>`:''}${normBox(p,k==='marcha'?'gait':k,a,'')}${chart(a,fmt)}</div>`})}
 const sk=Object.keys(sc);
   if(sk.length){h+=`<h3 style="margin-top:6px">Dor e escalas</h3>`;sk.forEach(k=>{const a=sc[k];const r0=a[0].r,e=ESC[r0.escala]||{};const lr=a[a.length-1].r;const fm=v=>escFmt({...r0,value:v});
     let sub=e.better==='low'?'Menor é melhor.':'Maior é melhor.';if(lr.baixa)sub+=' Abaixo do ponto de corte de força reduzida.';if(lr.obs)sub+=' '+esc(lr.obs);
-    h+=cardH(esc(escLabel(r0)),fm(a[a.length-1].v),sub,a.length>1?chgTxt(a,fm):'',chart(a,fm))})}
+    h+=cardH(esc(escLabel(r0)),fm(a[a.length-1].v),sub,a.length>1?chgTxt(a,fm):'',(r0.escala==='preensao'?normBox(p,'grip',a,r0.lado||'D'):'')+chart(a,fm))})}
   const tk=Object.keys(trn);
   if(tk.length){h+=`<h3 style="margin-top:6px">Treinos com biofeedback</h3>`;tk.forEach(k=>{const a=trn[k];const lr=a[a.length-1].r;
     h+=cardH(esc(recLabel(lr)),`${lr.reps} de ${lr.alvo}`,`Repetições na meta de ${lr.meta}° na última série. Melhor ângulo: ${lr.best}°. ${a.length} séries registradas.`,'',chart(a,v=>v+'°'))})}
@@ -1443,6 +1443,20 @@ const sk=Object.keys(sc);
   h+=`<div class="btns two" style="margin-top:4px"><button class="btn" id="rCopy" type="button">Copiar resumo</button><button class="btn quiet" id="rShowAll" type="button">Ver todas as medidas</button></div><div id="rOut"></div><div id="rAll" hidden></div></div>`;
   el.innerHTML=h;$('#rPn').onclick=openPn;$('#rPt').onclick=openPt;$('#rCopy').onclick=copySummary;$('#rDoc').onclick=openDoc;$('#rShowAll').onclick=()=>{const a=$('#rAll');a.hidden=!a.hidden;if(!a.hidden)renderAll()};
 }
+/* Parâmetro acadêmico na aba Relatório: faixa de cor, curva com o resultado
+   marcado, o esperado para a idade e o sexo e a referência */
+function normBox(p,nk,a,side){
+  const N=NORM[nk];if(!N||!a||!a.length)return'';const lastD=a[a.length-1].d,age=ageAt(p,lastD),sx=p.sexo;
+  if(age==null||(!N.pooled&&!sx))return `<p class="hint" style="color:#A8432F;margin-top:8px">Para comparar com a referência por idade${N.pooled?'':' e sexo'}, cadastre ${faltaTxt(N,sx,age)} em Dados do paciente.</p>`;
+  const n=N.get(sx,age,side);if(!n)return `<p class="hint" style="margin-top:8px">Sem estudo de referência para esta idade.</p>`;
+  const fm=v=>fN(v,N.dec),v=a[a.length-1].v,zp=zOf(n,v,N.better),zn=zoneOf(zp),src=n.src||N.src,gi=d=>a.findIndex(q=>q.d===d)+1;
+  const cutHit=n.cut!=null&&(N.better==='high'?v<n.cut:v>=n.cut);
+  return `<div style="margin-top:10px;border-top:1px solid var(--line,#e5ddd0);padding-top:10px"><span style="display:inline-block;background:${ZC[zn]};color:#fff;font-weight:700;font-size:12.5px;padding:3px 10px;border-radius:99px">${ZT[zn]}</span>
+    <p class="hint" style="margin-top:6px">Esperado para ${esc(grpTxt(N,n,sx))}: <b style="color:var(--ink)">${fm(n.m)} ${N.unit}</b> (faixa habitual de ${fm(Math.max(0,n.m-n.sd))} a ${fm(n.m+n.sd)}).${n.est?' '+esc(n.est):''}</p>
+    ${bellSVG(n,a,fm,N.better,gi)}
+    <div style="display:flex;flex-wrap:wrap;gap:4px 10px;font-size:11.5px;color:#6B5A4C">${[[0,'muito abaixo'],[1,'abaixo'],[3,'esperado'],[4,'acima'],[5,'muito acima']].map(([i,t])=>`<span><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${ZC[i]};margin-right:4px;vertical-align:-1px"></i>${t}</span>`).join('')}</div>
+    ${cutHit?`<p class="hint" style="color:#A8432F"><b>Atenção:</b> ${esc(n.cutT)}.</p>`:''}<p class="hint" style="font-size:12px">Referência: ${src.map(x=>SHORT[x]).join('; ')}.</p></div>`}
+const PIL_NORM=r=>r.t==='sts5'?['sts5','']:r.t==='unip'?['unip'+(r.olhos||'A'),r.lado]:r.t==='prancha'?['prancha','']:r.t==='plat'?['plat',r.lado]:null;
 function cardH(label,big,sub,chg,ch){return `<div class="card"><p class="hint">${label}</p><p class="big">${big}</p>${sub?`<p class="hint">${sub}</p>`:''}${chg?`<p class="hint">${chg}</p>`:''}${ch}</div>`}
 function chgTxt(a,fm){const d=a[a.length-1].v-a[0].v;return `${d>=0?'+':'−'}${fm(Math.abs(d))} desde a primeira medida`}
 function recText(r){
@@ -1850,10 +1864,21 @@ const NORM={
   get(sx,age){return uniNorm(sx,age,'A')}},
  unipF:{label:'Apoio unipodal, olhos fechados',unit:'s',dec:1,better:'high',src:['springer'],
   get(sx,age){return uniNorm(sx,age,'F')}},
- prancha:{label:'Prancha frontal',unit:'s',dec:0,better:'high',src:['strand'],
-  get(sx,age){if(age==null||age<18||age>29||!sx)return null;const r=sx==='M'?[124,72]:[83,63];return{m:r[0],sd:r[1],grp:'18 a 29 anos',cut:null}}},
+ prancha:{label:'Prancha frontal',unit:'s',dec:0,better:'high',pooled:true,src:['bohannon18'],
+  /* Bohannon et al., 2018: 60 adultos de 20 a 35 anos e 60 de 60 a 79; média geral 145,3 ± 71,5 s,
+     acima de 60 anos 126,1 s, sem diferença entre homens e mulheres. Média do grupo jovem
+     calculada das publicadas (grupos de mesmo tamanho): 164,5 s. Entre 36 e 59 anos, valor
+     estimado em linha reta entre os dois grupos. */
+  get(sx,age){if(age==null||age<18)return null;const Y=164.5,O=126.1,sd=71.5;
+   if(age<=35)return{m:Y,sd,grp:'20 a 35 anos',cut:null,est:age<20?'O estudo começa aos 20 anos.':''};
+   if(age>=60)return{m:O,sd,grp:'60 a 79 anos',cut:null,est:age>79?'O estudo vai até os 79 anos.':''};
+   return{m:Math.round(Y+(O-Y)*(age-35)/25),sd,grp:age+' anos',cut:null,est:'Valor estimado para a idade, entre os grupos de 20 a 35 e de 60 a 79 anos do estudo.'}}},
  plat:{label:'Prancha lateral',unit:'s',dec:0,better:'high',src:['mcgill'],
-  get(sx,age,side){if(age==null||age<18||age>29||!sx)return null;const m={M:{D:95,E:99},F:{D:75,E:78}}[sx][side==='E'?'E':'D'];return{m,sd:side==='E'?36:34,grp:'18 a 29 anos',cut:null}}}
+  /* McGill et al., 1999: 75 adultos jovens (cerca de 23 anos). Não há estudo com faixas de
+     idade; acima dos 29 anos a referência continua sendo a de adultos jovens, com aviso. */
+  get(sx,age,side){if(age==null||age<18||!sx)return null;const m={M:{D:95,E:99},F:{D:75,E:78}}[sx][side==='E'?'E':'D'];
+   return age<=29?{m,sd:side==='E'?36:34,grp:'18 a 29 anos',cut:null}
+     :{m,sd:side==='E'?36:34,grp:'18 a 29 anos',grpFull:(sx==='F'?'mulheres':'homens')+' jovens (estudo de referência, cerca de 23 anos)',cut:null,est:'Não existe estudo da prancha lateral com faixas de idade; a comparação é com adultos jovens, então para a sua idade é esperado ficar um pouco abaixo.'}}}
 };
 /* Springer et al., 2007: melhor de 3 tentativas, teto de 45 s. Nos grupos em
    que quase todos chegam aos 45 s o desvio publicado é mínimo; usamos no
@@ -1872,7 +1897,8 @@ Object.assign(SRC,{
  strand:'Strand SL et al. Norms for an isometric muscle endurance test. J Hum Kinet, 2014;40:93-102 (prancha frontal até a falha; adultos jovens universitários).'
 });
 SRC.massy+=' Dos 18 aos 19 anos usamos a faixa de 20 a 29.';
-Object.assign(SHORT,{tveter:'Tveter et al., 2014',bohannon10:'Bohannon et al., 2010',strand:'Strand et al., 2014',springer:'Springer et al., 2007',vellas:'Vellas et al., 1997',buatois:'Buatois et al., 2008',mcgill:'McGill et al., 1999'});
+Object.assign(SRC,{bohannon18:'Bohannon RW et al. The prone bridge test: performance, validity, and reliability among older and younger adults. J Bodyw Mov Ther, 2018;22(2):385-9 (n = 120; 20 a 35 e 60 a 79 anos; média 145,3 ± 71,5 s).'});
+Object.assign(SHORT,{bohannon18:'Bohannon et al., 2018',tveter:'Tveter et al., 2014',bohannon10:'Bohannon et al., 2010',strand:'Strand et al., 2014',springer:'Springer et al., 2007',vellas:'Vellas et al., 1997',buatois:'Buatois et al., 2008',mcgill:'McGill et al., 1999'});
 const Phi=z=>{const t=1/(1+.2316419*Math.abs(z)),d=.3989423*Math.exp(-z*z/2);const p=d*t*(.3193815+t*(-.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));return z>0?1-p:p};
 
 /* ---------- cores do relatório ---------- */
@@ -2001,6 +2027,7 @@ function chgLine(a,fmt,better,unit){if(a.length<2)return'';const d=a[a.length-1]
   return `<p class="chg" style="color:${c}">${d>0?'+':'−'}${fmt(Math.abs(d))}${unit?' '+unit:''} desde a 1ª avaliação (${dShort(a[0].d)})${good==null?'':good?' · melhorou':' · piorou'}</p>`}
 /* Cartão com curva normal da faixa de idade e sexo. opt: sub (subtítulo),
    extra (texto a mais), nota (aviso), semRef (HTML quando não há referência) */
+const grpTxt=(N,n,sx)=>n.grpFull||(N.pooled?'pessoas':sx==='F'?'mulheres':'homens')+' de '+n.grp;
 const faltaTxt=(N,sx,age)=>[age==null?'a data de nascimento':'',!N.pooled&&!sx?'o sexo':''].filter(Boolean).join(' e ');
 function normCard(ctx,nk,a,title,side,opt){
   opt=opt||{};const {sx,age,gi,used}=ctx;const N=NORM[nk];const fm=v=>fN(v,N.dec);const v=a[a.length-1].v;
@@ -2009,11 +2036,12 @@ function normCard(ctx,nk,a,title,side,opt){
   if(!n){if(opt.semRef)return opt.semRef(falta);
     return `<div class="pc"><div class="t"><div><h3>${title}</h3>${opt.sub?`<div class="st">${opt.sub}</div>`:''}</div></div><div class="big">${fm(v)}<small>${N.unit}</small></div>${falta?`<p class="empty">Cadastre ${faltaTxt(N,sx,age)} para comparar com a referência.</p>`:''}${extra}${chgLine(a,fm,N.better,N.unit)}${a.length>1?evoSVG(a,fm,null,null,null,'',N.better,gi):''}</div>`}
   const src=n.src||N.src;src.forEach(x=>used.add(x));const zp=zOf(n,v,N.better);const zn=zoneOf(zp);const pc=Math.round(Phi(zp)*100);
-  const grpT=(N.pooled?'pessoas':sx==='F'?'mulheres':'homens')+' de '+n.grp;
+  const grpT=grpTxt(N,n,sx);
   let mean=`O esperado para ${grpT} é cerca de <b>${fm(n.m)} ${N.unit}</b> (faixa habitual de ${fm(Math.max(0,n.m-n.sd))} a ${fm(n.m+n.sd)}). `;
-  if(n.cap!=null&&v>=n.cap)mean+=`O estudo de referência para em ${fm(n.cap)} ${N.unit}: chegar lá já é o melhor resultado comparável. `;
+  if(n.cap!=null&&v>=n.cap)mean+=`Resultado no nível mais alto avaliado pelo estudo de referência (${fm(n.cap)} ${N.unit}). `;
   else mean+=pc<1?'Hoje, o desempenho ficou abaixo de praticamente todas as pessoas dessa faixa.':pc>99?'Hoje, o desempenho superou praticamente todas as pessoas dessa faixa.':`Hoje, o desempenho foi melhor que o de cerca de <b>${pc} em cada 100</b> pessoas dessa faixa.`;
   if(nk==='tug'&&v>n.m+2*n.sd)mean+=` O tempo foi <b>${fN(v/n.m,1)} vezes</b> o esperado.`;
+  if(n.est)mean+=` <i>${n.est}</i>`;
   const cutHit=n.cut!=null&&(N.better==='high'?v<n.cut:v>=n.cut);
   return `<div class="pc"><div class="t"><div><h3>${title}</h3><div class="st">${opt.sub?opt.sub+' · ':''}comparado a ${grpT}</div></div><span class="tag" style="background:${ZC[zn]}">${ZT[zn]}</span></div>
    <div class="big">${fm(v)}<small>${N.unit}</small></div>${bellSVG(n,a,fm,N.better,gi)}<p class="mean">${mean}</p>${cutHit?`<p class="mean" style="color:#A8432F"><b>Atenção:</b> ${esc(n.cutT.charAt(0).toLowerCase()+n.cutT.slice(1))}.</p>`:''}${extra}
@@ -2074,13 +2102,13 @@ const PT={
   how:'Na ordem: pés juntos, semi-tandem (calcanhar ao lado do dedão do outro pé) e tandem (um pé exatamente à frente do outro), 10 s em cada. Só avance para a próxima posição se a anterior foi completada. Escolha a posição, toque em Iniciar e pare quando a pessoa sair da posição. O tempo vai para o campo da posição escolhida.',
   fields:[['pj','Pés juntos','s'],['st','Semi-tandem','s'],['td','Tandem','s']]},
  unip:{label:'Apoio unipodal',short:'Apoio unipodal',mode:'up',better:'high',unit:'s',dec:1,lado:true,olhos:true,
-  how:'Braços cruzados no peito, a outra perna dobrada sem encostar na perna de apoio. Pare quando o pé suspenso tocar o chão, a perna de apoio se deslocar ou os braços se soltarem. Sem teto: o cronômetro corre até você parar. Nível 2: comece de olhos abertos; quem passar de 30 s repete de olhos fechados. Nível 3: olhos fechados (se for muito difícil, use olhos abertos).',
+  how:'Braços cruzados no peito, a outra perna dobrada sem encostar na perna de apoio. Pare quando o pé suspenso tocar o chão, a perna de apoio se deslocar ou os braços se soltarem. O cronômetro corre até você tocar em Parar. Nível 2: comece de olhos abertos; quem passar de 30 s repete de olhos fechados. Nível 3: olhos fechados (se for muito difícil, use olhos abertos).',
   fields:[['tempo','Tempo','s']]},
  prancha:{label:'Prancha frontal',short:'Prancha frontal',mode:'up',better:'high',unit:'s',dec:0,
-  how:'Apoio nos antebraços e nas pontas dos pés, corpo alinhado da cabeça aos calcanhares. Pare quando a execução deixar de ser adequada (quadril cai, sobe ou a lombar arqueia). Sem teto: o cronômetro corre até você parar.',
+  how:'Apoio nos antebraços e nas pontas dos pés, corpo alinhado da cabeça aos calcanhares. Pare quando a execução deixar de ser adequada (quadril cai, sobe ou a lombar arqueia). O cronômetro corre até você tocar em Parar.',
   fields:[['tempo','Tempo','s']]},
  plat:{label:'Prancha lateral',short:'Prancha lateral',mode:'up',better:'high',unit:'s',dec:0,lado:true,
-  how:'Apoio no antebraço e na lateral do pé de baixo, quadril elevado e corpo alinhado. Pare quando o quadril cair ou o alinhamento se perder. Registre os dois lados. Sem teto.',
+  how:'Apoio no antebraço e na lateral do pé de baixo, quadril elevado e corpo alinhado. Pare quando o quadril cair ou o alinhamento se perder. Registre os dois lados.',
   fields:[['tempo','Tempo','s']]},
  agach:{label:'Agachamentos em 30 s',short:'Agachamentos em 30 s',cap:30,mode:'down',better:'high',unit:'repetições',dec:0,count:true,
   how:'Pés na largura do quadril. Cada repetição vai até cerca de 90° de joelho (ou encostar numa cadeira atrás) e volta à extensão completa. Toque em Iniciar e, a cada repetição completa, toque no botão +1. O tempo para sozinho em 30 s.',
@@ -2113,10 +2141,10 @@ function kOnSel(){
     +(P.flag?`<label class="chk"><input type="checkbox" id="kFlag"> ${P.flag[1]}</label>`:'');
   $('#kObs').value='';kt.n=0;kt.val=0;kRender();
   $('#kRef').textContent=t==='sts5'?'Referência por idade, dos 18 aos 85 anos: Bohannon et al., 2010 (média de 6,0 s aos 20 a 29 anos e 10,8 s aos 80 a 85). A partir dos 60, 15 s ou mais indica maior risco de queda (Buatois et al., 2008).':
-    t==='unip'?'Referência por idade e sexo a partir dos 18 anos: Springer et al., 2007 (o estudo para em 45 s). Menos de 5 s com olhos abertos se associa a maior risco de queda (Vellas et al., 1997).':
-    t==='eqest'?'Posições e tempos da SPPB (Guralnik et al., 1994).':t==='plat'?'Referência para 18 a 29 anos: McGill et al., 1999. Compare os dois lados: diferença acima de 5% sugere assimetria de resistência do tronco.':
+    t==='unip'?'Referência por idade e sexo a partir dos 18 anos: Springer et al., 2007 (tempo máximo do estudo: 45 s). Menos de 5 s com olhos abertos se associa a maior risco de queda (Vellas et al., 1997).':
+    t==='eqest'?'Posições e tempos da SPPB (Guralnik et al., 1994).':t==='plat'?'Referência por sexo e lado: McGill et al., 1999 (adultos jovens). Compare os dois lados: diferença acima de 5% sugere assimetria de resistência do tronco.':
     t==='sentalc'?'A comparação é com a própria aluna, a cada reavaliação: quanto mais à frente, mais flexível.':t==='quadri'?'Compare os dois lados e a evolução: quanto mais perto do glúteo, mais flexível o quadríceps.':
-    t==='prancha'?'Referência para 18 a 29 anos: Strand et al., 2014. Nas outras idades, a comparação é com o próprio aluno, a cada reavaliação.':'A comparação é com o próprio aluno, a cada reavaliação.';
+    t==='prancha'?'Referência por idade: Bohannon et al., 2018 (20 a 35 e 60 a 79 anos; entre eles, valor estimado para a idade).':'A comparação é com o próprio aluno, a cada reavaliação.';
 }
 $('#kSel').addEventListener('change',kOnSel);
 $('#kPos').addEventListener('click',e=>{const bt=e.target.closest('button');if(!bt)return;kt.pos=bt.dataset.p;kRender()});
@@ -2125,7 +2153,7 @@ function kRender(){
   $('#kPos').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.p===kt.pos?'true':'false'));
   let big,st;
   if(P.count){big=String(kt.n);st=kt.state==='run'?'Restam '+Math.max(0,Math.ceil(P.cap-kt.val))+' s':kt.state==='count'?'Prepare o aluno':'Repetições em 30 s'}
-  else{big=fN(kt.val,1)+' s';st=kt.state==='run'?(P.cap?'Cronometrando · teto de '+P.cap+' s':'Cronometrando · sem teto'):kt.state==='count'?'Prepare o aluno':P.cap?'Teto de '+P.cap+' s':'Sem teto: toque em Parar'}
+  else{big=fN(kt.val,1)+' s';st=kt.state==='run'?(P.cap?'Cronometrando · até '+P.cap+' s':'Cronometrando'):kt.state==='count'?'Prepare o aluno':P.cap?'Até '+P.cap+' s em cada posição':'Toque em Iniciar'}
   if(kt.state==='count')big=String(kt.cd);
   $('#kBig').textContent=big;$('#kStatus').textContent=st;
   $('#kFill').style.width=(P.cap?Math.min(100,kt.val/P.cap*100):kt.val%60/60*100)+'%';
@@ -2151,7 +2179,7 @@ function kFinish(auto){
   const inp=$('#kf_'+field);if(inp)inp.value=v;
   if(P.pos&&field!=='td'&&v>=10){const nx=field==='pj'?'st':'td';kt.pos=nx}
   kRender();
-  toast(P.count?`${v} repetições registradas no campo. Confira e salve.`:auto?`Atingiu o teto de ${P.cap} s.`:`Tempo registrado: ${fN(v,1)} s. Confira e salve.`);
+  toast(P.count?`${v} repetições registradas no campo. Confira e salve.`:auto?`Completou ${P.cap} s.`:`Tempo registrado: ${fN(v,1)} s. Confira e salve.`);
 }
 $('#kSave').addEventListener('click',async()=>{
   const t=$('#kSel').value,P=PT[t],p=cur();if(!p){toast('Escolha o paciente antes de salvar.');return}
@@ -2182,7 +2210,7 @@ Object.assign(SRC,{
  bohannon5:'Bohannon RW. Reference values for the five-repetition sit-to-stand test: a descriptive meta-analysis of data from elders. Percept Mot Skills, 2006;103(1):215-22.',
  buatois:'Buatois S et al. Five times sit to stand test is a predictor of recurrent falls in healthy community-living subjects aged 65 and older. J Am Geriatr Soc, 2008;56(8):1575-7.',
  tiedemann:'Tiedemann A et al. The comparative ability of eight functional mobility tests for predicting falls in community-dwelling older people. Age Ageing, 2008;37(4):430-5.',
- springer:'Springer BA et al. Normative values for the unipedal stance test with eyes open and closed. J Geriatr Phys Ther, 2007;30(1):8-15 (teto do estudo: 45 s).',
+ springer:'Springer BA et al. Normative values for the unipedal stance test with eyes open and closed. J Geriatr Phys Ther, 2007;30(1):8-15 (tempo máximo do estudo: 45 s).',
  vellas:'Vellas BJ et al. One-leg balance is an important predictor of injurious falls in older persons. J Am Geriatr Soc, 1997;45(6):735-8.',
  guralnik:'Guralnik JM et al. A short physical performance battery assessing lower extremity function. J Gerontol, 1994;49(2):M85-94.',
  mcgill:'McGill SM, Childs A, Liebenson C. Endurance times for low back stabilization exercises: clinical targets for testing and training from a normal database. Arch Phys Med Rehabil, 1999;80(8):941-4.'
@@ -2193,7 +2221,7 @@ Object.assign(SRC,{
 function progSVG(max,pts,fmt,gi,cap){
   const W=340,H=58,L=10,R=330,y=22,h=12;const X=v=>L+Math.max(0,Math.min(max,v))/max*(R-L);const last=pts[pts.length-1];
   let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Barra com o resultado e as avaliações anteriores"><rect x="${L}" y="${y}" width="${R-L}" height="${h}" rx="6" fill="#E2D5C2"/><rect x="${L}" y="${y}" width="${Math.max(6,X(last.v)-L).toFixed(1)}" height="${h}" rx="6" fill="#A9573D"/>`;
-  s+=`<text x="${L}" y="${y+h+15}" font-size="10" fill="#6B5A4C">0</text><text x="${R}" y="${y+h+15}" text-anchor="end" font-size="10" fill="#6B5A4C">${cap?'teto '+fmt(max):fmt(max)}</text>`;
+  s+=`<text x="${L}" y="${y+h+15}" font-size="10" fill="#6B5A4C">0</text><text x="${R}" y="${y+h+15}" text-anchor="end" font-size="10" fill="#6B5A4C">${fmt(max)}</text>`;
   pts.slice(0,-1).forEach(q=>{const x=X(q.v).toFixed(1);s+=`<path d="M${x},${y-3} l-6,-9 h12 z" fill="#fff" stroke="#3A2A1F" stroke-width="1.3"/><text x="${x}" y="${y-13}" text-anchor="middle" font-size="9" font-weight="700" fill="#3A2A1F">${gi(q.d)}</text>`});
   s+=`<circle cx="${X(last.v).toFixed(1)}" cy="${y+h/2}" r="9" fill="#A9573D" stroke="#fff" stroke-width="3"/>`;
   return s+'</svg>';
@@ -2205,8 +2233,7 @@ function pilCards(p,S,age,gi,used){
   const out=[];const card=(title,st,tag,big,unit,viz,txt,chg,ref)=>`<div class="pc"><div class="t"><div><h3>${title}</h3>${st?`<div class="st">${st}</div>`:''}</div>${tag||''}</div><div class="big">${big}<small>${unit}</small></div>${viz}${txt?`<p class="mean">${txt}</p>`:''}${chg||''}${ref?`<p class="ref">${ref}</p>`:''}</div>`;
   const tagL=b=>`<span class="tag" style="background:${LC[b.l]}">${b.t}</span>`;
   const ctx={sx:p.sexo,age,gi,used};
-  /* avaliações feitas quando o teste parava num teto: o tempo real pode ter sido maior */
-  const tetoAntigo=(a,cap)=>{const x=a.filter(q=>q.v===cap);return x.length?`Em ${x.map(q=>dShort(q.d)).join(', ')} o teste ainda parava em ${cap} s: o tempo real pode ter sido maior.`:''};
+  const tetoAntigo=()=>'';
   /* 5xSTS */
   if(S['p_sts5||']){const a=S['p_sts5||'];const lr=a[a.length-1].r;
     out.push(normCard(ctx,'sts5',a,'Sentar e levantar 5 vezes','',{sub:'força e potência das pernas',extra:'Quanto menor o tempo, melhor.'+(lr.bracos?' <b>Usou os braços</b> para levantar.':'')}))}
@@ -2227,13 +2254,13 @@ function pilCards(p,S,age,gi,used){
   /* prancha frontal: referência de adultos jovens; nas outras idades, a comparação é com a própria pessoa */
   if(S['p_prancha||']){const a=S['p_prancha||'];
     out.push(normCard(ctx,'prancha',a,'Prancha frontal','',{sub:'resistência do tronco',nota:tetoAntigo(a,90),
-      extra:age!=null&&age>29?'Os estudos de referência da prancha foram feitos com adultos jovens; aqui a comparação é com você mesmo, a cada reavaliação.':''}))}
+      extra:''}))}
   /* prancha lateral: um cartão por lado e a simetria entre eles */
   if(S['p_plat|D|']||S['p_plat|E|']){const d=S['p_plat|D|'],e=S['p_plat|E|'];const vd=d?d[d.length-1].v:null,ve=e?e[e.length-1].v:null;used.add('mcgill');
     let sim='';if(vd!=null&&ve!=null){const df=Math.abs(vd-ve)/Math.max(vd,ve,1)*100;sim=df<=5?'Lados equilibrados (diferença de até 5%).':`Diferença de <b>${fN(df,0)}%</b> entre os lados: acima de 5% sugere assimetria de resistência.`}
     [['D','direito',d],['E','esquerdo',e]].forEach(([l,t,a])=>{if(!a)return;
       out.push(normCard(ctx,'plat',a,'Prancha lateral · lado '+t,l,{sub:'resistência das laterais do tronco',nota:tetoAntigo(a,90),
-        extra:[l==='E'||!e?sim:'',age!=null&&age>29&&l==='D'?'A referência da prancha lateral vem de adultos jovens; aqui a comparação é com você mesmo e entre os lados.':''].filter(Boolean).join(' ')}))})}
+        extra:l==='E'||!e?sim:''}))})}
   /* agachamentos */
   if(S['p_agach||']){const a=S['p_agach||'];const v=a[a.length-1].v;const fm=v=>fN(v,0);const mx=Math.max(30,Math.ceil(Math.max(...a.map(q=>q.v))/5)*5);
     out.push(card('Agachamentos em 30 s','força e resistência das pernas','',fm(v),'repetições',progSVG(mx,a,v=>fN(v,0),gi,false),'Repetições completas em 30 segundos. A comparação é com você mesmo, a cada reavaliação.',chgLine(a,fm,'high','repetições')+evoSVG(a,fm,null,null,null,'','high',gi),''))}
@@ -2344,11 +2371,11 @@ function pnModel(p,cmpDay){
   const norm=(key,nk,a,title,sec,side,more)=>{const N=NORM[nk],fm=v=>fN(v,N.dec),falta=age==null||(!N.pooled&&!sx),n=falta?null:N.get(sx,age,side);
     const o={key,sec,title,a,fm,unit:N.unit,better:N.better,ref:((n&&n.src)||N.src).map(x=>SHORT[x]).join('; ')};
     if(!n){o.viz='line';o.sub=falta?'falta '+faltaTxt(N,sx,age).replace(/\b(a|o) /g,'')+' no cadastro':(more&&more.sub)||'';o.expl=((more&&more.ex)?more.ex+' ':'')+'Aqui a comparação é com você mesmo, a cada reavaliação.';delete o.ref;return add(o)}
-    const v=a[a.length-1].v,zf=x=>zOf(n,x,N.better),zp=zf(v),zn=zoneOf(zp),pc=Math.round(Phi(zp)*100),grp=(N.pooled?'pessoas':sx==='F'?'mulheres':'homens')+' de '+n.grp;
+    const v=a[a.length-1].v,zf=x=>zOf(n,x,N.better),zp=zf(v),zn=zoneOf(zp),pc=Math.round(Phi(zp)*100),grp=grpTxt(N,n,sx);
     let ex=`O esperado para ${grp} é cerca de <b>${fm(n.m)} ${N.unit}</b> (faixa habitual de ${fm(Math.max(0,n.m-n.sd))} a ${fm(n.m+n.sd)}). `;
-    if(n.cap!=null&&v>=n.cap)ex+=`O estudo de referência para em ${fm(n.cap)} ${N.unit}: chegar lá já é o melhor resultado comparável.`;
+    if(n.cap!=null&&v>=n.cap)ex+=`Resultado no nível mais alto avaliado pelo estudo de referência (${fm(n.cap)} ${N.unit}).`;
     else ex+=pc<1?'Hoje, o resultado ficou abaixo de praticamente todas as pessoas dessa faixa.':pc>99?'Hoje, o resultado superou praticamente todas as pessoas dessa faixa.':`Hoje, o resultado foi melhor que o de cerca de <b>${pc} em cada 100</b> pessoas dessa faixa.`;
-    if(more&&more.ex)ex+=' '+more.ex;
+    if(more&&more.ex)ex+=' '+more.ex;if(n.est)ex+=' '+n.est;
     const cutHit=n.cut!=null&&(N.better==='high'?v<n.cut:v>=n.cut);if(cutHit)ex+=` <b>Atenção:</b> ${esc(n.cutT.charAt(0).toLowerCase()+n.cutT.slice(1))}.`;
     o.ex=ex;Object.assign(o,{viz:'bell',n,zp,pc,sub:(more&&more.sub?more.sub+' · ':'')+'comparado a '+grp,expl:ex,tag:{t:ZT[zn],c:PN_ZC[zn]},st:zn>=2?'ok':zn===1?'mid':'att'});
     const r=add(o);if(r.cmp)r.pcCmp=Math.round(Phi(zf(r.cmp.v))*100);return r};
