@@ -533,6 +533,12 @@ input,select,textarea{outline:none;}
 .agx-st.st-confirmado{background:var(--sky);}
 .agx-st.st-realizado{background:var(--sage);}
 .agx-st.st-falta{background:var(--rose);}
+.agx-st.st-justificada{background:var(--amber);}
+.agx-ev.st-justificada{background:repeating-linear-gradient(135deg,#fff 0 6px,var(--amber-lt) 6px 12px);box-shadow:inset 3px 0 0 var(--amber),0 0 0 1.5px var(--sur);}
+.agx-ev.st-justificada .agx-en{color:var(--ink3);}
+.agx-rp{font-size:10px;font-weight:700;color:var(--amber);border:1px solid var(--amber);border-radius:6px;padding:0 4px;}
+.aus-box{background:var(--sur2);border-radius:var(--r-sm);padding:10px 12px;font-size:13.5px;margin:10px 0;}
+.aus-box b{font-weight:700;}
 .agx-agora{position:absolute;left:0;right:0;border-top:2px solid var(--laranja);z-index:5;pointer-events:none;}
 .agx-agora::before{content:"";position:absolute;left:-5px;top:-6px;width:10px;height:10px;border-radius:50%;background:var(--laranja);}
 .agx-leg{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;font-size:12px;color:var(--ink2);padding:10px 4px 4px;}
@@ -551,6 +557,7 @@ body.agx-movendo{cursor:grabbing;user-select:none;}
 .agx-acoes{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
 .agx-ac{flex:1;min-width:110px;padding:11px 10px;border-radius:var(--r-sm);background:var(--sur);border:1px solid var(--bor);font-weight:700;font-size:13.5px;color:var(--ink2);}
 .agx-ac.on{background:var(--teal);border-color:var(--teal);color:#fff;}
+.agx-ac.just.on{background:var(--amber);border-color:var(--amber);color:#fff;}
 .agx-ac.falta.on{background:var(--rose);border-color:var(--rose);}
 .agx-ac:disabled{opacity:.4;cursor:not-allowed;}
 .agx-rep{font-size:11px;color:var(--ink3);flex-shrink:0;}
@@ -615,6 +622,7 @@ body.agx-movendo{cursor:grabbing;user-select:none;}
 .pl-av .pt-linha{margin-top:6px;}
 .ep-com{display:flex;gap:8px;flex-wrap:wrap;align-items:center;} .ep-com .fs{flex:1;min-width:220px;}
 .ep-com #epComValor{width:110px;display:inline-block;} .ep-com small{color:var(--ink3);}
+.ag-valor{display:flex;align-items:center;gap:8px;} .ag-valor span{font-weight:600;color:var(--ink2);} .ag-valor .fi{max-width:160px;}
 /* FECHAMENTO: perda */
 .fe-perda{color:var(--rose);background:rgba(184,70,60,.05);} .fe-perda-h{color:var(--rose)!important;}
 /* CLIENTES e RELATÓRIO */
@@ -665,6 +673,9 @@ body.agx-movendo{cursor:grabbing;user-select:none;}
 .gs-ev .gs-ev-s{color:var(--ink3);}
 .gs-ev.falta{opacity:.55;} .gs-ev.falta b{text-decoration:line-through;}
 .gs-equipe{display:flex;flex-direction:column;gap:10px;}
+.gs-areas{margin-bottom:12px;flex-wrap:wrap;}
+.gs-areas-tab tbody tr{cursor:pointer;} .gs-tx{display:flex;align-items:center;gap:8px;min-width:120px;} .gs-tx .gs-ocbar{flex:1;margin:0;}
+.gs-prof-l{display:flex;flex-wrap:wrap;gap:4px;margin:3px 0 2px;} .gs-prof-l .chip{font-size:11px;padding:2px 8px;}
 .gs-prof{background:var(--sur);border:1px solid var(--bor);border-radius:var(--r);padding:12px 14px;}
 .gs-prof-h{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
 .gs-prof-n{display:flex;align-items:center;gap:9px;flex:1;min-width:200px;} .gs-prof-n>i{width:10px;height:10px;border-radius:50%;flex:none;}
@@ -1477,7 +1488,7 @@ function demoApi(action, body) {
       if(body.tabela==='pacientes') {
         let pacs = [...DEMO_DB.pacientes];
         if(body.filtros) Object.entries(body.filtros).forEach(([k,v])=>{pacs=pacs.filter(p=>(p[k]||'').toLowerCase()===(v||'').toLowerCase());});
-        if(body.role==='profissional' && body.nome_usuario) {
+        if(body.role==='profissional' && body.nome_usuario && !/recep|comercial|administra/i.test(String((currentUser||{}).funcao||''))) {
           pacs = pacs.filter(p=>ehTerapeutaDe(p, body.nome_usuario));
         }
         return {ok:true, dados:pacs};
@@ -1599,7 +1610,7 @@ function demoApi(action, body) {
     case 'minha_agenda': {
       if(!DEMO_DB.agenda) demoAgenda('listar_agenda',{de:new Date().toISOString(), ate:new Date().toISOString()});
       const profs=DEMO_DB.profissionais||[];
-      return {ok:true, dados:(DEMO_DB.agenda||[]).filter(e=>e.paciente_id===_demoPacienteId && new Date(e.inicio)>new Date() && new Date(e.inicio)<new Date(Date.now()+35*864e5) && e.status!=='falta')
+      return {ok:true, dados:(DEMO_DB.agenda||[]).filter(e=>e.paciente_id===_demoPacienteId && new Date(e.inicio)>new Date() && new Date(e.inicio)<new Date(Date.now()+35*864e5) && e.status!=='falta' && e.status!=='justificada')
         .sort((a,b)=>a.inicio.localeCompare(b.inicio)).map(e=>({id:e.id, agenda_email:e.agenda_email, profissional:(profs.find(p=>p.email===e.agenda_email)||{}).nome||'',
           inicio:e.inicio, fim:e.fim, servico:e.servico, sala:(String(e.obs||'').match(/^Sala:\s*(.+)$/m)||[])[1]||'', status:e.status||'', aviso:e.aviso||'', confirmado_paciente:e.confirmado_paciente||''}))};
     }
@@ -1743,7 +1754,7 @@ function demoApi(action, body) {
     case 'excluir_evento': case 'criar_agendas':
       return demoAgenda(action, body);
     case 'listar_catalogo': {
-      const veValor = currentRole==='admin' || currentRole==='coordenador';
+      const veValor = currentRole==='admin' || currentRole==='coordenador' || ehRecepcao() || ehAdministracao();
       const dados = (DEMO_DB.catalogo||[])
         .map(s=>({...s, valor: veValor ? (s.valor||'') : ''}))
         .sort((a,b)=>String(a.nome).localeCompare(String(b.nome),'pt-BR'));
@@ -1952,7 +1963,7 @@ function demoAgenda(action, body) {
   if(!prof) return {ok:false, erro:'Você não tem acesso à agenda dessa profissional'};
   if(action==='salvar_evento') {
     const ini=new Date(body.inicio), fim=new Date(body.fim);
-    if(/pilates/i.test(body.servico||'') && DEMO_DB.agenda.filter(e=>e.agenda_email===prof.email && e.id!==body.evento_id && /pilates/i.test(e.servico||'') && e.status!=='falta' && new Date(e.inicio)<fim && new Date(e.fim)>ini).length>=3)
+    if(/pilates/i.test(body.servico||'') && DEMO_DB.agenda.filter(e=>e.agenda_email===prof.email && e.id!==body.evento_id && /pilates/i.test(e.servico||'') && e.status!=='falta' && e.status!=='justificada' && new Date(e.inicio)<fim && new Date(e.fim)>ini).length>=3)
       return {ok:false, lotado:true, erro:'Turma cheia: '+prof.nome+' já tem 3 alunas nesse horário'};
     if(!body.forcar) {
       const choque = DEMO_DB.agenda.find(e=>e.agenda_email===prof.email && e.id!==body.evento_id && new Date(e.inicio)<fim && new Date(e.fim)>ini);
@@ -1963,12 +1974,14 @@ function demoAgenda(action, body) {
     let e = DEMO_DB.agenda.find(x=>x.id===body.evento_id);
     if(!e) { e = {id:'ev'+Date.now(), agenda_email:prof.email, status:'', do_sistema:true}; DEMO_DB.agenda.push(e); }
     Object.assign(e, {titulo, inicio:ini.toISOString(), fim:fim.toISOString(), paciente_id:body.paciente_id||'', servico:body.servico||'', obs:body.obs||''});
+    if(body.valor!==undefined) e.valor = String(body.valor||'');
     return {ok:true, dados:comNome(e)};
   }
   const e = DEMO_DB.agenda.find(x=>x.id===body.evento_id && x.agenda_email===prof.email);
   if(!e) return {ok:false, erro:'Atendimento não encontrado na agenda'};
   if(action==='status_evento') {
     e.status = body.status||'';
+    if(e.status==='falta'||e.status==='justificada'){ if(body.motivo!==undefined) e.motivo_ausencia = body.motivo||''; } else e.motivo_ausencia = '';
     // Mesmo comportamento do Code.gs (lancarAtendimento / retirarLancamento)
     const fin = DEMO_DB.financeiro_servicos = DEMO_DB.financeiro_servicos||[];
     let lancamento = '';
@@ -1978,7 +1991,7 @@ function demoAgenda(action, body) {
         const pac=(DEMO_DB.pacientes||[]).find(p=>p.id===e.paciente_id)||{};
         const id='fin_'+Date.now(); const dia=diaISO(new Date(e.inicio));
         fin.push({id, data:dia, mes:dia.slice(0,7), paciente:pac.nome||e.titulo.split(' · ')[0], paciente_id:e.paciente_id,
-                  servico:e.servico, profissional:prof.nome, sessoes:1, valor:'', pago:'Não', origem:'agenda'});
+                  servico:e.servico, profissional:prof.nome, sessoes:1, valor:e.valor||'', pago:'Não', origem:'agenda'});
         e.fin_id=id; lancamento='lancado';
       }
     } else if(atual) {
@@ -2523,7 +2536,7 @@ async function carregarPacientes(linha) {
         </div>`
       : pacs.map(p=>renderPC(p,linha)).join('')
     }</div>`;
-  if(linha==='pilates' && currentRole!=='profissional') { carregarPainelPilatesLinha(); carregarPlacarPilates('placarPil'); }
+  if(linha==='pilates' && currentRole!=='profissional') { carregarPainelPilatesLinha(); _placarEscopo='pilates'; carregarPlacarPilates('placarPil'); }
 }
 
 // Busca local: a lista da linha já está carregada, não precisa ir na planilha
@@ -2601,6 +2614,9 @@ async function openFormNovoPaciente(linha, existente) {
       <div class="fg"><label class="fl">Telefone</label><input class="fi" id="np_tel" type="tel" placeholder="(11) 99999-9999" value="${esc(p.telefone)}"${editando?'':` oninput="sugerirExistente('${linha}')"`}></div>
       <div class="fg"><label class="fl">E-mail</label><input class="fi" id="np_email" type="email" autocomplete="off" placeholder="email@exemplo.com" value="${esc(p.email)}"${emailTravado?' readonly':''}>
         ${emailTravado?'<div class="pt-nota">É o login da área do paciente. Para trocar, use "Área do paciente".</div>':''}</div>
+      <div class="fg"><label class="fl" for="np_cep">CEP</label><input class="fi" id="np_cep" inputmode="numeric" placeholder="00000-000" value="${esc(p.cep)}" oninput="buscarCep(this.value)"></div>
+      <div class="fg fa"><label class="fl" for="np_end">Endereço</label><input class="fi" id="np_end" autocomplete="off" placeholder="Rua, número, complemento, bairro, cidade" value="${esc(p.endereco)}">
+        <div class="pt-nota" id="np_cep_nota" style="margin:4px 0 0">Digite o CEP para preencher a rua, o bairro e a cidade. Depois complete o número.</div></div>
       <div class="fg"><label class="fl">CPF</label><input class="fi" id="np_cpf" inputmode="numeric" placeholder="000.000.000-00" value="${esc(fmtCPF(p.cpf))}"${editando?'':` oninput="sugerirExistente('${linha}')"`}></div>
       <div class="fg fa"><label class="fl">Linhas de cuidado * <span style="font-weight:400;color:var(--ink3)">(pode marcar mais de uma)</span></label>
         <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;" id="np_linhas">
@@ -2664,6 +2680,25 @@ function linhasDoFormMudaram() {
   mostra('np_escola_g', linhas.includes('infantil'));
 }
 
+// CEP → rua, bairro e cidade (ViaCEP, serviço público e gratuito dos Correios)
+let _cepBusca = '';
+async function buscarCep(v) {
+  const cep = soDigitos(v); const nota = document.getElementById('np_cep_nota'), end = document.getElementById('np_end');
+  if(cep.length!==8 || cep===_cepBusca || !end) return;
+  _cepBusca = cep;
+  const el = document.getElementById('np_cep'); if(el) el.value = cep.replace(/(\d{5})(\d{3})/,'$1-$2');
+  if(nota) nota.textContent = 'Buscando o endereço…';
+  try {
+    const r = await fetch('https://viacep.com.br/ws/'+cep+'/json/'); const d = await r.json();
+    if(d.erro) { if(nota) nota.textContent = 'CEP não encontrado. Escreva o endereço à mão.'; return; }
+    const base = [d.logradouro, d.bairro, (d.localidade||'')+(d.uf?'/'+d.uf:'')].filter(Boolean).join(', ');
+    if(!end.value.trim() || confirm('Trocar o endereço pelo do CEP?\n\n'+base)) {
+      end.value = d.logradouro ? d.logradouro+', , '+[d.bairro,(d.localidade||'')+(d.uf?'/'+d.uf:'')].filter(Boolean).join(', ') : base;
+      end.focus(); const pos = d.logradouro ? d.logradouro.length+2 : end.value.length; end.setSelectionRange(pos,pos);
+    }
+    if(nota) nota.textContent = 'Complete o número e o complemento logo depois do nome da rua.';
+  } catch(e) { if(nota) nota.textContent = 'Não deu para buscar o CEP agora. Escreva o endereço à mão.'; }
+}
 async function salvarPaciente(linha, idExistente) {
   const nome      = (document.getElementById('np_nome')?.value||'').trim();
   const terapeutas = [...document.querySelectorAll('#np_ters input:checked')].map(x=>x.value);
@@ -2706,6 +2741,8 @@ async function salvarPaciente(linha, idExistente) {
     telefone: tel,
     ...(document.getElementById('np_email')?.readOnly ? {} : {email: emailNovo||null}),
     cpf: cpfNovo ? fmtCPF(cpfNovo) : null,
+    cep: (document.getElementById('np_cep')?.value||'').trim() || null,
+    endereco: (document.getElementById('np_end')?.value||'').trim() || null,
     responsavel: resp,
     escola: escola,
     terapeuta_nome: terapeuta,
@@ -4544,13 +4581,14 @@ async function loadFechamento(el) {
     return p ? 'id:'+p.id : 'nome:'+normalizar(nome);
   };
   const G = {};
-  const grupo = (k, id, nome) => G[k] = G[k] || {k, id:'', nome, servicos:new Set(), realizadas:[], faltas:0, faltasEv:[], agendadas:[], linhas:[]};
+  const grupo = (k, id, nome) => G[k] = G[k] || {k, id:'', nome, servicos:new Set(), realizadas:[], faltas:0, faltasEv:[], justEv:[], agendadas:[], linhas:[]};
   eventos.forEach(e=>{
     const k = chave(e.paciente_id, nomeEv(e)); const g = grupo(k);
     const p = (pacs||[]).find(x=>'id:'+x.id===k);
     g.id = g.id || (p?p.id:e.paciente_id||''); g.nome = p ? p.nome : (g.nome || nomeEv(e)); g.tel = p ? p.telefone : '';
     g.agendadas.push(e); if(e.servico) g.servicos.add(e.servico);
     if(e.status==='falta') { g.faltas++; g.faltasEv.push(e); return; }
+    if(e.status==='justificada') { g.justEv.push(e); return; }
     if(e.status==='realizado') g.realizadas.push(e);
   });
   linhas.forEach(r=>{
@@ -4578,16 +4616,19 @@ async function loadFechamento(el) {
       return u ? numDe(u.valor)/(numDe(u.sessoes)||1) : (precoCatalogo(serv) || 0);
     };
     const pagas = g.linhas.filter(ehPago), abertas = g.linhas.filter(r=>!ehPago(r));
-    const faltandoValor = faltando.reduce((s,e)=>s+precoPara(e.servico),0);
-    const precos = [...new Set([...g.linhas.map(r=>numDe(r.valor)/(numDe(r.sessoes)||1)).filter(Boolean), ...faltando.map(e=>precoPara(e.servico)).filter(Boolean)])];
+    // O valor gravado no atendimento (combinado no agendamento) vem antes da tabela
+    const valorEv = e => numDe(e.valor) || precoPara(e.servico);
+    const faltandoValor = faltando.reduce((s,e)=>s+valorEv(e),0);
+    const precos = [...new Set([...g.linhas.map(r=>numDe(r.valor)/(numDe(r.sessoes)||1)).filter(Boolean), ...faltando.map(e=>valorEv(e)).filter(Boolean)])];
     const agora = new Date();
-    const esperado = g.agendadas.reduce((s,e)=>s+precoPara(e.servico),0);
-    const perda = g.faltasEv.reduce((s,e)=>s+precoPara(e.servico),0);
-    const semMarcar = g.agendadas.filter(e=>new Date(e.fim)<agora && e.status!=='realizado' && e.status!=='falta').length;
+    const esperado = g.agendadas.reduce((s,e)=>s+valorEv(e),0);
+    const perda = g.faltasEv.reduce((s,e)=>s+valorEv(e),0);
+    const semMarcar = g.agendadas.filter(e=>new Date(e.fim)<agora && e.status!=='realizado' && !ehAusencia(e.status)).length;
+    const repostas = g.agendadas.filter(e=>e.reposDe).length;
     const aRealizar = g.agendadas.filter(e=>new Date(e.inicio)>=agora).length;
     return {...g, servicos:[...g.servicos], sessoes:Math.max(sessLanc, g.realizadas.length), sessLanc, faltando, total, precoPara, precos,
-      esperado, perda, semMarcar, aRealizar,
-      faltandoValor, semPreco: faltando.some(e=>!precoPara(e.servico)),
+      esperado, perda, semMarcar, aRealizar, repostas,
+      faltandoValor, valorEv, semPreco: faltando.some(e=>!valorEv(e)),
       previsto: total + faltandoValor, precoSug, semValor,
       pago: abertas.length===0 && pagas.length>0, parcial: pagas.length>0 && abertas.length>0,
       aberto: abertas.reduce((s,r)=>s+numDe(r.valor),0)};
@@ -4609,7 +4650,7 @@ function desenharFechamento(el) {
       <div><span>Sessões agendadas no mês</span><b>${agTot}</b><small>${F.grupos.reduce((s,g)=>s+g.aRealizar,0)} ainda por vir</small></div>
       <div><span>Faturamento esperado</span><b>${fmtMoeda(espTot)}</b><small>todas as agendadas × valor do serviço</small></div>
       <div><span>Realizadas (somando)</span><b style="color:var(--teal)">${tot('sessoes')} · ${fmtMoeda(realTot)}</b><small>${espTot?Math.round(realTot/espTot*100)+'% do esperado':''}</small></div>
-      <div><span>Não realizadas (faltas)</span><b style="color:var(--rose)">${faltTot} · −${fmtMoeda(perdaTot)}</b><small>perda financeira do mês</small></div>
+      <div><span>Não realizadas (faltas)</span><b style="color:var(--rose)">${faltTot} · −${fmtMoeda(perdaTot)}</b><small>perda financeira do mês${F.grupos.reduce((s,g)=>s+g.justEv.length,0)?' · '+F.grupos.reduce((s,g)=>s+g.justEv.length,0)+' ausências justificadas (fora da perda)':''}</small></div>
       <div><span>A receber em ${esc(nomeDoMes(prox))}</span><b style="color:var(--amber)">${fmtMoeda(tot('aberto') + F.grupos.reduce((s,g)=>s+g.faltandoValor,0))}</b><small>vencimento ${venc.toLocaleDateString('pt-BR')}</small></div>
       <div><span>Já recebido</span><b style="color:var(--teal)">${fmtMoeda(tot('total')-tot('aberto'))}</b></div>
     </div>
@@ -4630,7 +4671,7 @@ function desenharFechamento(el) {
           ? `<span class="fe-valor"><input class="fi" type="number" step="0.01" inputmode="decimal" id="feV${i}" value="${g.precoSug||''}" placeholder="R$"><button class="addbtn" onclick="definirValorSessao(${i})">OK</button></span>`
           : g.precos.length ? g.precos.map(v=>fmtMoeda(v)).join(' / ') : '—'}</td>
         <td class="r"><b>${fmtMoeda(g.previsto)}</b></td>
-        <td class="r fe-perda">${g.faltasEv.length||'—'}</td>
+        <td class="r fe-perda">${g.faltasEv.length||'—'}${g.justEv.length?`<div class="fe-mini" style="color:var(--amber)">+ ${g.justEv.length} justificada${g.justEv.length>1?'s':''}</div>`:''}${g.repostas?`<div class="fe-mini" style="color:var(--ink3)">${g.repostas} reposiç${g.repostas>1?'ões':'ão'}</div>`:''}</td>
         <td class="r fe-perda">${g.perda?'−'+fmtMoeda(g.perda):'—'}</td>
         <td>${g.pago?'<span class="chip ch-sage">Pago</span>':g.parcial?'<span class="chip ch-amber">Parcial</span>':g.previsto?`<span class="chip ch-gray">${fmtMoeda(g.aberto + g.faltandoValor)}</span>`:'—'}</td>
         <td class="fe-acoes">${!g.pago && g.linhas.length && !g.faltando.length && !g.semValor.length ? `<span class="ff-rec" id="feR${i}"><button class="ff-ok" onclick="this.parentNode.classList.add('abre')">Recebi</button>
@@ -4660,7 +4701,7 @@ async function lancarFaltantes(i) {
     const ini = new Date(e.inicio);
     const r = await api('salvar',{tabela:'financeiro_servicos', dados:{
       data:diaISO(ini), mes:diaISO(ini).slice(0,7), paciente:g.nome, paciente_id:g.id||e.paciente_id||'', servico:e.servico||'',
-      profissional:e.profissional||'', sessoes:'1', valor:String((g.valorManual || g.precoPara(e.servico)) || ''), pago:'Não', origem:'agenda', evento_id:e.id}});
+      profissional:e.profissional||'', sessoes:'1', valor:String((g.valorManual || g.valorEv(e)) || ''), pago:'Não', origem:'agenda', evento_id:e.id}});
     if(r.ok) ok++;
   }
   showToast(ok+' '+(ok===1?'sessão lançada':'sessões lançadas'),'ok');
@@ -5189,6 +5230,7 @@ const AG_STATUS = {
   confirmado:  {t:'Confirmado', c:'ch-sky'},
   realizado:   {t:'Realizado',  c:'ch-sage'},
   falta:       {t:'Faltou',     c:'ch-rose'},
+  justificada: {t:'Ausência justificada', c:'ch-amber'},
 };
 
 function inicioDaSemana(d) {
@@ -5221,11 +5263,12 @@ let _agEstendeu = false;
 // próprias ("Sala: Sala 2" / "Repete: ... [r:id/7]"). Assim aparecem para
 // quem abre o Google e não exigem mudança no Code.gs.
 function prepEvento(e) {
-  const resto = []; e.sala = ''; e.rep = null; e.prog = null;
+  const resto = []; e.sala = ''; e.rep = null; e.prog = null; e.reposDe = null;
   String(e.obs||'').split('\n').forEach(l=>{
     const ms = l.match(/^Sala:\s*(.+)$/), mr = l.match(/^Repete:.*\[r:([\w-]+)\/(\d+)\]/),
-          mp = l.match(/^Programa:.*\[p:([\w-]+)\/(\d+)\/(\d+)\]/);
-    if(ms && !e.sala) e.sala = ms[1].trim();
+          mp = l.match(/^Programa:.*\[p:([\w-]+)\/(\d+)\/(\d+)\]/), mrp = l.match(/^Reposição:.*?(\d{2}\/\d{2})?\s*\[rp:([^\]]+)\]/);
+    if(mrp && !e.reposDe) e.reposDe = {data:mrp[1]||'', id:mrp[2]};
+    else if(ms && !e.sala) e.sala = ms[1].trim();
     else if(mr && !e.rep) e.rep = {id:mr[1], passo:+mr[2]};
     else if(mp && !e.prog) e.prog = {id:mp[1], k:+mp[2], n:+mp[3]};
     else resto.push(l);
@@ -5309,7 +5352,7 @@ async function estenderRepeticoes() {
       if(datas.has(diaISO(d))) continue;
       if(ehPilates(ult.servico) && alunasNoHorario(res.dados||[], ult.agenda_email, d, new Date(d.getTime()+dur), '').length >= PILATES_VAGAS) continue;
       const r = await api('salvar_evento',{agenda_email:ult.agenda_email, paciente_id:ult.paciente_id||'', paciente_nome:String(ult.titulo||'').split(' · ')[0],
-        servico:ult.servico||'', obs:ult.obs||'', inicio:d.toISOString(), fim:new Date(d.getTime()+dur).toISOString(), forcar:true});
+        servico:ult.servico||'', obs:ult.obs||'', ...(ult.valor!==undefined && ult.valor!=='' ? {valor:ult.valor} : {}), inicio:d.toISOString(), fim:new Date(d.getTime()+dur).toISOString(), forcar:true});
       if(r.ok) criados++;
     }
   }
@@ -5376,7 +5419,7 @@ function desenharAgenda(rolar) {
   if(_agVista!=='lista' && _agVista!=='mapa') ligarGrade(rolar);
 }
 
-const AG_ICONE = {'':'', confirmado:'✓', realizado:'✓', falta:'✕'};
+const AG_ICONE = {'':'', confirmado:'✓', realizado:'✓', falta:'✕', justificada:'J'};
 
 function listaAgenda(varias) {
   const eventos = _ag.eventos.filter(e=>!_agFiltro || e.agenda_email===_agFiltro);
@@ -5470,7 +5513,7 @@ function gradeAgenda(varias) {
       return `<button class="agx-ev st-${st||'agendado'}${e.do_sistema?' mov':''}${e.aviso?' avisou':''}" data-id="${esc(e.id)}" data-ag="${esc(e.agenda_email)}"
         style="--c:${cor};top:${top}px;height:${alt}px;left:calc(${faixa*100/de}% + 2px);width:calc(${100/de}% - 4px)"
         title="${esc(e.titulo)} · ${horaDe(e.inicio)}–${horaDe(e.fim)}${prof?' · '+prof:''}${sala?' · '+sala:''}${e.rep?' · repete sem data para acabar':''}">
-        <span class="agx-et">${st?`<b class="agx-st st-${st}">${AG_ICONE[st]}</b>`:''}<span class="agx-en">${esc(nome.replace(/^\[Não vem\] /,''))}</span>${e.aviso?'<span class="agx-nv">não vem</span>':''}${e.rep?'<span class="agx-rep" aria-label="Repete">↻</span>':''}${e.prog?`<span class="agx-rep" title="Sessão ${e.prog.k} de ${e.prog.n} do programa">${e.prog.k}/${e.prog.n}</span>`:''}${curto?`<span class="agx-eh">${horaDe(e.inicio)}</span>`:''}</span>
+        <span class="agx-et">${st?`<b class="agx-st st-${st}">${AG_ICONE[st]}</b>`:''}<span class="agx-en">${esc(nome.replace(/^\[Não vem\] /,''))}</span>${e.aviso?'<span class="agx-nv">não vem</span>':''}${e.reposDe?'<span class="agx-rp" title="Reposição">rep.</span>':''}${e.rep?'<span class="agx-rep" aria-label="Repete">↻</span>':''}${e.prog?`<span class="agx-rep" title="Sessão ${e.prog.k} de ${e.prog.n} do programa">${e.prog.k}/${e.prog.n}</span>`:''}${curto?`<span class="agx-eh">${horaDe(e.inicio)}</span>`:''}</span>
         ${curto?'':`<span class="agx-es">${horaDe(e.inicio)}–${horaDe(e.fim)}${serv?' · '+esc(serv):''}</span>${(prof||sala) && alt>=58?`<span class="agx-es agx-ep">${[prof,sala].filter(Boolean).join(' · ')}</span>`:''}`}
       </button>`;
     }).join('');
@@ -5606,8 +5649,12 @@ function detalheAtendimento(agendaEmail, eventoId) {
       <div class="agx-det-l"><span>Profissional</span><b><i style="background:${agCor(e.agenda_email)}"></i>${esc(e.profissional||agProfNome(e.agenda_email))}</b></div>
       ${e.servico?`<div class="agx-det-l"><span>Serviço</span><b>${esc(e.servico)}</b></div>`:''}
       ${e.sala?`<div class="agx-det-l"><span>Sala</span><b>${esc(e.sala)}</b></div>`:''}
+      ${_veValorCatalogo && e.servico && !ehPilates(e.servico) ? `<div class="agx-det-l"><span>Valor</span><b>${(()=>{ const v = numDe(e.valor) || precoCatalogo(e.servico);
+        return (v ? fmtMoeda(v) : 'sem valor')+(e.valor && Math.abs(numDe(e.valor)-precoCatalogo(e.servico))>0.009 ? ' <small style="font-weight:400;color:var(--ink3)">(combinado)</small>' : !e.valor && v ? ' <small style="font-weight:400;color:var(--ink3)">(tabela)</small>' : ''); })()}
+        ${e.do_sistema?`<button class="ff-link" style="margin-left:8px" onclick="novoAtendimento('${esc(e.agenda_email)}','${esc(e.id)}');setTimeout(()=>{const v=document.getElementById('agValor'); if(v){v.focus();v.select();}},900)">alterar</button>`:''}</b></div>` : ''}
       ${e.aviso?`<div class="agx-det-l agx-det-aviso"><span>Paciente avisou</span><b>Não vem${(()=>{const [q,m]=String(e.aviso).split(' | ');const d=new Date(q);return (isNaN(d)?'':' · avisou em '+d.toLocaleDateString('pt-BR')+' '+horaDe(q))+(m?'<div style="font-weight:500;margin-top:2px">Motivo: '+esc(m)+'</div>':'');})()}</b></div>`:''}
       ${!e.aviso&&e.confirmado_paciente?`<div class="agx-det-l"><span>Paciente</span><b>Confirmou pela área do paciente</b></div>`:''}
+      ${e.reposDe?`<div class="agx-det-l"><span>Reposição</span><b>Repõe a sessão${e.reposDe.data?' de '+esc(e.reposDe.data):''}</b></div>`:''}
       ${e.prog?`<div class="agx-det-l"><span>Programa</span><b>Sessão ${e.prog.k} de ${e.prog.n}${e.prog.k===e.prog.n?' · última do programa':e.prog.n-e.prog.k<=2?' · faltam '+(e.prog.n-e.prog.k):''}</b></div>`:''}
       ${e.rep?`<div class="agx-det-l"><span>Repetição</span><b>↻ ${e.rep.passo===14?'A cada 2 semanas':'Toda semana'}, sem data para acabar</b></div>`:''}
       ${e.nota?`<div class="agx-det-l"><span>Observação</span><b style="font-weight:500;white-space:pre-line">${esc(e.nota)}</b></div>`:''}
@@ -5617,15 +5664,18 @@ function detalheAtendimento(agendaEmail, eventoId) {
     <div class="agx-acoes">
       <button class="agx-ac${e.status==='confirmado'?' on':''}" ${passou?'disabled title="Já passou do horário"':''} onclick="statusAtendimento(${ref},'confirmado',true)">✓ Confirmado</button>
       <button class="agx-ac${e.status==='realizado'?' on':''}" ${passou?'':'disabled title="Disponível depois do horário"'} onclick="statusAtendimento(${ref},'realizado',true)">✓ Realizado</button>
-      <button class="agx-ac falta${e.status==='falta'?' on':''}" ${passou?'':'disabled title="Disponível depois do horário"'} onclick="statusAtendimento(${ref},'falta',true)">✕ Faltou</button>
+      <button class="agx-ac falta${e.status==='falta'?' on':''}" ${passou?'':'disabled title="Disponível depois do horário"'} onclick="marcarAusencia(${ref},'falta')">✕ Faltou</button>
+      <button class="agx-ac just${e.status==='justificada'?' on':''}" onclick="marcarAusencia(${ref},'justificada')">⦸ Ausência justificada</button>
     </div>
+    ${ehAusencia(e.status) ? `<div class="aus-box">${e.status==='falta'?'Faltou':'Ausência justificada'}${e.motivo_ausencia?': '+esc(e.motivo_ausencia):''}
+      ${e.do_sistema?`<div style="margin-top:8px"><button class="addbtn" onclick="remarcarAusencia(${ref})">Remarcar esta sessão</button></div>`:''}</div>` : ''}
     ${pac && e.status==='realizado' ? `<button class="savebtn" onclick="closeSheet(true);abrirPacienteDaAgenda('${esc(linhasDoPaciente(pac)[0]||'')}','${esc(pac.id)}')">Registrar evolução</button>` : ''}
     <div class="agx-acoes" style="margin-top:12px">
-      ${e.do_sistema ? `<button class="backbtn" onclick="novoAtendimento(${ref})">Remarcar</button>` : `<span class="pt-nota" style="margin:0">Criado direto no Google Agenda. Para mudar o horário, altere por lá.</span>`}
+      ${e.do_sistema ? `<button class="backbtn" onclick="novoAtendimento(${ref})">✎ Editar data, horário ou profissional</button>` : `<span class="pt-nota" style="margin:0">Criado direto no Google Agenda. Para mudar o horário, altere por lá.</span>`}
       <button class="backbtn" style="color:var(--rose);margin-left:auto" onclick="cancelarAtendimento(${ref})">Excluir agendamento</button>
     </div>
     ${!e.rep && !passou ? `<div class="agx-encerrar"><div><b>Excluir este e os próximos iguais</b><div class="pt-nota" style="margin:2px 0 0">Tira da agenda todas as sessões de ${esc(String(e.titulo||'').split(' · ')[0])} ${esc(DIAS_SEMANA[new Date(e.inicio).getDay()].toLowerCase())} às ${horaDe(e.inicio)} com esta profissional, a partir desta.</div></div>
-      <button class="backbtn" style="color:var(--rose)" onclick="excluirProximosIguais(${ref})">Excluir a partir de ${new Date(e.inicio).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})}</button></div>` : ''}
+      <button class="backbtn" style="color:var(--rose)" onclick="excluirProximosIguais(${ref},this)">Excluir a partir de ${new Date(e.inicio).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})}</button></div>` : ''}
     ${e.paciente_id ? `<button class="backbtn" style="margin-top:12px" onclick="abrirPlanoPaciente('${esc(e.paciente_id)}','${esc(String(e.titulo||'').split(' · ')[0].replace(/'/g,''))}')">Ver ou mudar o plano de horários do paciente</button>` : ''}
     ${e.rep && e.do_sistema ? `<div class="agx-encerrar"><div><b>Encerrar a repetição</b><div class="pt-nota" style="margin:2px 0 0">Cancela este e os próximos atendimentos da série. Os anteriores ficam como estão.</div></div>
       <button class="backbtn" style="color:var(--rose)" onclick="encerrarRepeticao(${ref})">Encerrar a partir de ${new Date(e.inicio).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})}</button></div>` : ''}`;
@@ -5650,9 +5700,10 @@ function cartaoAtendimento(e, mostrarProf) {
     <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px">
       ${!passou && e.status!=='confirmado' ? `<button class="backbtn" style="padding:5px 10px;font-size:12px" onclick="statusAtendimento(${ref},'confirmado')">Confirmado</button>` : ''}
       ${passou && e.status!=='realizado' ? `<button class="backbtn" style="padding:5px 10px;font-size:12px" onclick="statusAtendimento(${ref},'realizado')">Realizado</button>` : ''}
-      ${passou && e.status!=='falta' ? `<button class="backbtn" style="padding:5px 10px;font-size:12px" onclick="statusAtendimento(${ref},'falta')">Faltou</button>` : ''}
+      ${passou && e.status!=='falta' ? `<button class="backbtn" style="padding:5px 10px;font-size:12px" onclick="marcarAusencia(${ref},'falta')">Faltou</button>` : ''}
+      ${e.status!=='justificada' ? `<button class="backbtn" style="padding:5px 10px;font-size:12px" onclick="marcarAusencia(${ref},'justificada')">Justificada</button>` : ''}
       ${pac && e.status==='realizado' ? `<button class="backbtn" style="padding:5px 10px;font-size:12px" onclick="abrirPacienteDaAgenda('${esc(linhasDoPaciente(pac)[0]||'')}','${esc(pac.id)}')">Registrar evolução</button>` : ''}
-      ${e.do_sistema ? `<button class="backbtn" style="padding:5px 10px;font-size:12px" onclick="novoAtendimento(${ref})">Remarcar</button>` : ''}
+      ${e.do_sistema ? `<button class="backbtn" style="padding:5px 10px;font-size:12px" onclick="novoAtendimento(${ref})">Editar</button>` : ''}
       <button class="backbtn" style="padding:5px 10px;font-size:12px;color:var(--rose)" onclick="cancelarAtendimento(${ref})">Excluir</button>
     </div>
   </div>`;
@@ -5675,9 +5726,9 @@ function servicosAgendaHTML(atual, pac) {
   const outras = cat.filter(s=>!LINHAS[s.linha]);
   const temAtual = !atual || cat.some(s=>normalizar(s.nome)===normalizar(atual));
   if(!cat.length) return `<input class="fi" id="agServ" value="${esc(atual)}" placeholder="Cadastre os serviços na tela Serviços">`;
-  return `<select class="fs" id="agServ" onchange="document.getElementById('agServNota').innerHTML=servicoInfo(this.value);sugerirDuracaoServico(this.value)">
+  return `<select class="fs" id="agServ" onchange="document.getElementById('agServNota').innerHTML=servicoInfo(this.value);sugerirDuracaoServico(this.value);valorDoServicoNoForm(this.value);const g=document.getElementById('agRepPermG');if(g)g.style.display=ehPilates(this.value)?'':'none'">
     <option value="">Escolha o serviço…</option>
-    ${grupos.map(g=>`<optgroup label="${esc(LINHAS[g.k].label)}${doPac.includes(g.k)?' · do paciente':''}">${g.lista.map(s=>`<option value="${esc(s.nome)}"${normalizar(s.nome)===normalizar(atual)?' selected':''}>${esc(s.nome)}${_veValorCatalogo&&s.valor?' · R$ '+esc(s.valor):''}</option>`).join('')}</optgroup>`).join('')}
+    ${grupos.map(g=>`<optgroup label="${esc(LINHAS[g.k].label)}${doPac.includes(g.k)?' · do paciente':''}">${g.lista.map(s=>`<option value="${esc(s.nome)}"${normalizar(s.nome)===normalizar(atual)?' selected':''}>${esc(s.nome)}</option>`).join('')}</optgroup>`).join('')}
     ${outras.length?`<optgroup label="Outros">${outras.map(s=>`<option value="${esc(s.nome)}"${normalizar(s.nome)===normalizar(atual)?' selected':''}>${esc(s.nome)}</option>`).join('')}</optgroup>`:''}
     ${temAtual?'':`<option value="${esc(atual)}" selected>${esc(atual)} (fora do catálogo)</option>`}
   </select>`;
@@ -5687,7 +5738,6 @@ function servicoInfo(nome) {
   const c = (_catalogo||[]).find(s=>normalizar(s.nome)===normalizar(nome));
   const partes = [];
   if(c && c.descricao) partes.push(esc(c.descricao));
-  if(c && _veValorCatalogo && c.valor) partes.push('Valor da sessão: <b>R$ '+esc(c.valor)+'</b>');
   if(ehPilates(nome)) partes.push('No Pilates, cada profissional recebe até '+PILATES_VAGAS+' alunas por horário.');
   if(!c) partes.push('<span style="color:var(--amber)">Este serviço não está no catálogo: o Financeiro não terá o preço dele.</span>');
   return partes.join(' · ');
@@ -5705,17 +5755,40 @@ async function servicosDoPacienteAgenda(nome) {
   if(!pac) return;
   const atual = sel.value;
   sel.outerHTML = servicosAgendaHTML(atual, pac);
+  const rm = document.getElementById('agRepMes'); if(rm) rm.value = pac.reposicoes_mes!=null ? pac.reposicoes_mes : '';
   const novo = document.getElementById('agServ');
   // paciente com um serviço só no cadastro: já vem escolhido
   const seus = servicosDoPaciente(pac).filter(n=>(_catalogo||[]).some(s=>normalizar(s.nome)===normalizar(n)));
   if(!atual && seus.length===1) { novo.value = (_catalogo.find(s=>normalizar(s.nome)===normalizar(seus[0]))||{}).nome || ''; novo.dispatchEvent(new Event('change')); }
+}
+// ── Valor da sessão no agendamento ──
+// Vem da tela Serviços e pode ser mudado à mão (desconto, valor combinado).
+// Fica guardado no próprio atendimento e é o que o Financeiro usa.
+// Só aparece para quem vê valores (gestão, coordenação, recepção, administrativo).
+function fmtValorCampo(v) { const n = numDe(String(v||'').replace(/[^\d,.-]/g,'')); return n ? n.toFixed(2).replace('.',',') : ''; }
+function notaValorTxt(serv, manual) {
+  const cat = precoCatalogo(serv);
+  if(!serv) return 'Escolha o serviço: o valor vem da tela Serviços.';
+  if(!cat) return 'Este serviço está sem preço na tela Serviços. Informe o valor aqui.';
+  return manual ? 'Valor da tabela: R$ '+fmtValorCampo(cat)+'. Este atendimento usa o valor acima.' : 'Valor da tabela (tela Serviços). Mude se for um valor combinado diferente.';
+}
+function valorDoServicoNoForm(serv) {
+  const el = document.getElementById('agValor'); if(!el) return;
+  if(!el.dataset.manual) el.value = fmtValorCampo(precoCatalogo(serv));
+  notaValorAgenda();
+}
+function notaValorAgenda() {
+  const el = document.getElementById('agValor'), n = document.getElementById('agValorNota'); if(!el || !n) return;
+  const serv = (document.getElementById('agServ')||{}).value || '';
+  const cat = precoCatalogo(serv), v = numDe(el.value);
+  n.innerHTML = notaValorTxt(serv, el.dataset.manual && v && Math.abs(v-cat)>0.009);
 }
 // novoAtendimento(agendaEmail, eventoId) remarca; novoAtendimento(null,null,{inicio,email}) vem do clique na grade
 async function novoAtendimento(agendaEmail, eventoId, pre) {
   const e = eventoId ? _ag.eventos.find(x=>x.id===eventoId && x.agenda_email===agendaEmail) : null;
   const profs = _ag.profissionais.filter(p=>p.tem_agenda);
   if(!profs.length) { showToast('Nenhuma agenda disponível ainda','err'); return; }
-  document.getElementById('sheetTitle').textContent = e ? 'Remarcar' : 'Novo atendimento';
+  document.getElementById('sheetTitle').textContent = e ? 'Editar atendimento' : 'Novo atendimento';
   document.getElementById('sheetBody').innerHTML = loadingHTML();
   openSheet();
   const [pacs] = await Promise.all([carregarTodosPacientes(), carregarSalas(), carregarCatalogo()]);
@@ -5725,23 +5798,34 @@ async function novoAtendimento(agendaEmail, eventoId, pre) {
   if(!ini) { ini = new Date(_agVista==='dia'?_agDia:new Date()); const ag=new Date(); ini.setHours(Math.min(19,Math.max(8,ag.getHours()+1)),0,0,0); }
   const dur = e ? Math.round((new Date(e.fim)-new Date(e.inicio))/60000) : ((pre&&pre.dur) || 50);
   const servAtual = e ? (e.servico||'') : ((pre&&pre.servico) || '');
-  const pacAtual = e && e.paciente_id ? pacs.find(p=>String(p.id)===String(e.paciente_id)) : null;
-  const nomeAtual = pacAtual ? pacAtual.nome : (e ? String(e.titulo||'').split(' · ')[0] : '');
+  const pacAtual = e && e.paciente_id ? pacs.find(p=>String(p.id)===String(e.paciente_id))
+    : (!e && pre && pre.paciente ? pacs.find(p=>normalizar(p.nome)===normalizar(pre.paciente)) : null) || null;
+  const nomeAtual = pacAtual ? pacAtual.nome : (e ? String(e.titulo||'').split(' · ')[0] : ((pre&&pre.paciente) || ''));
+  _agReposDe = e ? (e.reposDe||null) : ((pre&&pre.reposicaoDe) || null);
   const salaAtual = e ? e.sala : ((pre&&pre.sala) || '');
   const durs = [30,40,50,60,90,120]; if(!durs.includes(dur)) durs.push(dur);
   const salas = [...(_agSalas||[])]; if(salaAtual && !salas.some(x=>agMesmaSala(x,salaAtual))) salas.push(salaAtual);
   const marca = (grupo, btn) => { btn.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); };
   document.getElementById('sheetBody').innerHTML = `
+    ${_agReposDe?`<div class="aus-box" style="margin-top:0">↻ <b>Reposição</b> da sessão${_agReposDe.data?' de '+esc(_agReposDe.data):''}. Escolha o novo dia e horário.</div>`:''}
     ${pre&&pre.inicio?`<div class="agx-pre">${pre.email?`<i style="background:${agCor(profPadrao)}"></i>`:''}${esc(maiuscula(ini.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'short'})))} · ${horaDe(ini)}${!_agFiltro&&pre.email?' · '+esc(agProfNome(pre.email)):''}${pre.sala?' · '+esc(pre.sala):''}</div>`:''}
     <div class="f2">
       <div class="fg fa"><label class="fl" for="agPac">Paciente</label>
         <input class="fi" id="agPac" list="agPacs" value="${esc(nomeAtual)}" placeholder="Comece a digitar o nome" autocomplete="off" onchange="servicosDoPacienteAgenda(this.value)">
         <datalist id="agPacs">${pacs.map(p=>`<option value="${esc(p.nome)}">`).join('')}</datalist></div>
       <div class="fg fa"><label class="fl" for="agProf">Profissional</label>
-        <select class="fs" id="agProf" ${e?'disabled':''}>${profs.map(p=>`<option value="${esc(p.email)}"${p.email===profPadrao?' selected':''}>${esc(p.nome)}</option>`).join('')}</select></div>
+        <select class="fs" id="agProf">${profs.map(p=>`<option value="${esc(p.email)}"${p.email===profPadrao?' selected':''}>${esc(p.nome)}</option>`).join('')}</select></div>
       <div class="fg fa"><label class="fl" for="agServ">Serviço</label>
         ${servicosAgendaHTML(servAtual, pacAtual)}
         <div class="pt-nota" style="margin:6px 0 0" id="agServNota">${servicoInfo(servAtual)}</div></div>
+      ${_veValorCatalogo ? `<div class="fg"><label class="fl" for="agValor">Valor da sessão</label>
+        <div class="ag-valor"><span>R$</span><input class="fi" id="agValor" inputmode="decimal" placeholder="0,00"
+          value="${esc(e && e.valor ? fmtValorCampo(e.valor) : pre && pre.valor ? fmtValorCampo(pre.valor) : fmtValorCampo(precoCatalogo(servAtual)))}" data-manual="${(e && e.valor) || (pre && pre.valor) ? '1' : ''}"
+          oninput="this.dataset.manual='1';notaValorAgenda()"></div>
+        <div class="pt-nota" style="margin:4px 0 0" id="agValorNota">${notaValorTxt(servAtual, e && e.valor)}</div></div>` : ''}
+      <div class="fg" id="agRepPermG" style="${ehPilates(servAtual)?'':'display:none'}"><label class="fl" for="agRepMes">Reposições permitidas por mês</label>
+        <input class="fi" id="agRepMes" type="number" min="0" max="20" inputmode="numeric" style="max-width:120px" placeholder="—" value="${esc(pacAtual && pacAtual.reposicoes_mes!=null ? pacAtual.reposicoes_mes : '')}">
+        <div class="pt-nota" style="margin:4px 0 0">Do plano da aluna. Fica no cadastro dela e aparece ao marcar falta ou ausência justificada.</div></div>
       <div class="fg fa"><label class="fl" for="agSala">Sala</label>
         ${salas.length?`<div class="agx-chips" id="agSalaChips">${salas.map(s=>`<button type="button" class="agx-chip${agMesmaSala(s,salaAtual)?' on':''}" onclick="escolherChip(this,'agSala')">${esc(s)}</button>`).join('')}</div>`:''}
         <input class="fi" id="agSala" value="${esc(salaAtual)}" placeholder="${salas.length?'Ou escreva outra sala':'Ex.: Sala 2, Ateliê, Domicílio'}" style="${salas.length?'margin-top:8px':''}" oninput="sincronizarChips('agSalaChips',this.value)">
@@ -5776,7 +5860,7 @@ async function novoAtendimento(agendaEmail, eventoId, pre) {
         <input class="fi" id="agObs" value="${esc(e?e.nota:'')}" placeholder="Ex.: trazer exames"></div>
     </div>
     <div id="agErr" class="errbox"></div>
-    <button class="savebtn" id="agBtn" onclick="salvarAtendimento(${e?`'${esc(e.id)}'`:''})">${e?'Salvar novo horário':'Agendar'}</button>`;
+    <button class="savebtn" id="agBtn" onclick="salvarAtendimento(${e?`'${esc(e.id)}'`:''})">${e?'Salvar alterações':'Agendar'}</button>`;
   _agSlotsExtra = [];
   previaRepeticao();
   if(!e) setTimeout(()=>{ const i=document.getElementById('agPac'); if(i && matchMedia('(hover:hover)').matches) i.focus(); }, 60);
@@ -5888,7 +5972,9 @@ async function salvarAtendimento(eventoId, forcar) {
   const durEl = document.querySelector('#agDurChips .agx-chip.on');
   const dur = durEl ? +durEl.dataset.min : 50;
   const e = eventoId ? _ag.eventos.find(x=>x.id===eventoId) : null;
-  const email = e ? e.agenda_email : v('agProf');
+  const email = v('agProf') || (e ? e.agenda_email : '');
+  // Trocar a profissional muda a agenda do Google: cria na agenda nova e tira da antiga
+  const trocaProf = !!(e && email !== e.agenda_email);
   const sala = v('agSala');
   // Sem data para acabar: cada dia da semana vira uma série própria
   const novoRep = () => ({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6), passo:r.passo});
@@ -5896,7 +5982,8 @@ async function salvarAtendimento(eventoId, forcar) {
   let datas = eventoId ? [{dt:v('agData'), hora:v('agHora'), slot:0}] : ocorrenciasRepeticao();
   // Remarcar mantém a posição no programa; série nova com fim ganha numeração
   const progId = !e && r.passo && !r.nunca ? Date.now().toString(36)+'p' : '';
-  const obsDe = (o, i) => montaObs(sala, e ? e.rep : (r.passo && r.nunca ? (reps[o.slot] = reps[o.slot] || novoRep()) : null), v('agObs'),
+  const notaObs = [_agReposDe ? 'Reposição: sessão de '+(_agReposDe.data||'')+' [rp:'+_agReposDe.id+']' : '', v('agObs')].filter(Boolean).join('\n');
+  const obsDe = (o, i) => montaObs(sala, e ? e.rep : (r.passo && r.nunca ? (reps[o.slot] = reps[o.slot] || novoRep()) : null), notaObs,
                                    e ? e.prog : (progId && datas.length>1 ? {id:progId, k:i+1, n:datas.length} : null));
   if(!datas.length) return erro('Nenhuma data para agendar com essas opções.');
   const servico = v('agServ');
@@ -5945,9 +6032,16 @@ async function salvarAtendimento(eventoId, forcar) {
     const inicio = new Date(datas[i].dt+'T'+datas[i].hora+':00');
     const fim = new Date(inicio.getTime() + dur*60000);
     const body = {agenda_email:email, paciente_id: pac?pac.id:'', paciente_nome:nomePac,
-                  servico, inicio:inicio.toISOString(), fim:fim.toISOString(), obs:obsDe(datas[i], i),
-                  evento_id: eventoId||'', forcar: !!forcar || forcarGrupo};
+                  servico, inicio:inicio.toISOString(), fim:fim.toISOString(), ...(document.getElementById('agValor') ? {valor:String(numDe(document.getElementById('agValor').value)||'')} : {}), obs:obsDe(datas[i], i),
+                  evento_id: trocaProf ? '' : (eventoId||''), forcar: !!forcar || forcarGrupo};
     const res = await api('salvar_evento', body);
+    if(res.ok && trocaProf) {
+      // Realizado: tira o lançamento da sessão antiga antes, para não lançar duas vezes
+      if(e.status==='realizado') await api('status_evento',{agenda_email:e.agenda_email, evento_id:e.id, status:''});
+      const rx = await api('excluir_evento',{agenda_email:e.agenda_email, evento_id:e.id});
+      if(e.status) await api('status_evento',{agenda_email:email, evento_id:res.dados.id, status:e.status, ...(e.motivo_ausencia?{motivo:e.motivo_ausencia}:{})});
+      if(!rx.ok) showToast('Criado na agenda de '+agProfNome(email)+', mas não deu para tirar da agenda antiga: '+(rx.erro||''),'err');
+    }
     if(!res.ok && res.lotado) {
       if(datas.length===1) { btn.disabled = false; btn.textContent = textoBtn; return erro(res.erro); }
       choques.push(inicio.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})); continue;
@@ -5966,8 +6060,16 @@ async function salvarAtendimento(eventoId, forcar) {
   btn.disabled = false; btn.textContent = textoBtn;
   closeSheet(true);
   if(primeiro) { _agDia = new Date(primeiro); _agDia.setHours(0,0,0,0); _agSemana = inicioDaSemana(primeiro); }
+  // Reposições do Pilates: guarda no cadastro da aluna quando mudou
+  const rmEl = document.getElementById('agRepMes');
+  if(pac && rmEl && ehPilates(servico) && String(rmEl.value).trim()!==String(pac.reposicoes_mes??'').trim()) {
+    const novo = String(rmEl.value).trim()==='' ? '' : String(Math.max(0, Math.round(numDe(rmEl.value))));
+    const ru = await api('atualizar',{tabela:'pacientes', id:pac.id, dados:{reposicoes_mes:novo}});
+    if(ru.ok) pac.reposicoes_mes = novo;
+  }
+  _agReposDe = null;
   await loadAgenda();
-  const msg = eventoId ? 'Remarcado' : rp ? 'Agendado sem data para acabar. As próximas semanas já estão marcadas' : (feitos>1?feitos+' atendimentos agendados':'Agendado');
+  const msg = eventoId ? 'Atendimento atualizado' : rp ? 'Agendado sem data para acabar. As próximas semanas já estão marcadas' : (feitos>1?feitos+' atendimentos agendados':'Agendado');
   if(choques.length) showToast(feitos+' agendados. Ficaram de fora por choque de horário ou turma cheia: '+choques.join(', '),'err');
   else showToast(msg,'ok');
 }
@@ -6011,6 +6113,78 @@ async function salvarSalas() {
   closeSheet(true);
   desenharAgenda();
   showToast('Salas salvas','ok');
+}
+
+// ── Faltas, ausências justificadas e remarcação ──
+// Faltou: conta como falta (e como perda no financeiro). Ausência justificada:
+// avisou com motivo, não conta como falta e pode ser reposta. Nos dois casos,
+// dá para remarcar na hora; a nova sessão fica marcada como reposição.
+let _agReposDe = null;
+async function reposicoesDoMes(pacienteId, quando) {
+  const d = new Date(quando), de = new Date(d.getFullYear(), d.getMonth(), 1), ate = new Date(d.getFullYear(), d.getMonth()+1, 1);
+  const res = await api('listar_agenda',{de:de.toISOString(), ate:ate.toISOString()});
+  if(!res.ok) return null;
+  const evs = (res.dados||[]).map(prepEvento).filter(x=>String(x.paciente_id||'')===String(pacienteId));
+  return {repostas: evs.filter(x=>x.reposDe).length, faltas: evs.filter(x=>x.status==='falta').length, justificadas: evs.filter(x=>x.status==='justificada').length};
+}
+async function marcarAusencia(agendaEmail, eventoId, tipo) {
+  const e = _ag.eventos.find(x=>x.id===eventoId && x.agenda_email===agendaEmail); if(!e) return;
+  const pac = e.paciente_id ? (await carregarTodosPacientes()).find(p=>String(p.id)===String(e.paciente_id)) : null;
+  const pil = ehPilates(e.servico);
+  const perm = pac && pac.reposicoes_mes!=null && pac.reposicoes_mes!=='' ? numDe(pac.reposicoes_mes) : null;
+  const nome = String(e.titulo||'').split(' · ')[0];
+  const quando = new Date(e.inicio).toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit'})+' às '+horaDe(e.inicio);
+  document.getElementById('sheetTitle').textContent = tipo==='falta' ? 'Faltou' : 'Ausência justificada';
+  document.getElementById('sheetBody').innerHTML = `
+    <div style="margin-bottom:12px"><button class="backbtn" onclick="detalheAtendimento('${esc(agendaEmail)}','${esc(eventoId)}')">‹ Voltar</button></div>
+    <div class="aprov-alvo">${esc(nome)} · ${esc(quando)}${e.servico?' · '+esc(e.servico):''}</div>
+    <div class="pt-nota" style="margin-top:0">${tipo==='falta'
+      ? 'Falta sem aviso: conta no placar de faltas e, nos serviços por sessão, como perda no financeiro.'
+      : 'Avisou e tem motivo: não conta como falta no placar e pode ser reposta.'}</div>
+    <div class="fg"><label class="fl" for="ausMotivo">Motivo ${tipo==='justificada'?'*':'(opcional)'}</label>
+      <textarea class="ft" id="ausMotivo" rows="2" placeholder="${tipo==='falta'?'Ex.: não avisou; não atendeu o telefone':'Ex.: atestado médico; viagem avisada com antecedência'}">${esc(e.motivo_ausencia||e.aviso&&String(e.aviso).split(' | ')[1]||'')}</textarea></div>
+    ${pil && pac ? `<div class="aus-box" id="ausRep">Reposições de ${esc(String(pac.nome).split(' ')[0])} neste mês: <b>carregando…</b></div>` : ''}
+    <div id="ausErr" class="errbox"></div>
+    <button class="savebtn" id="ausBtn1" onclick="confirmarAusencia('${esc(agendaEmail)}','${esc(eventoId)}','${tipo}',true)">${tipo==='falta'?'Marcar falta':'Marcar ausência justificada'} e remarcar</button>
+    <button class="backbtn" id="ausBtn2" style="width:100%;margin-top:8px" onclick="confirmarAusencia('${esc(agendaEmail)}','${esc(eventoId)}','${tipo}',false)">Só marcar, sem remarcar agora</button>`;
+  openSheet();
+  setTimeout(()=>{ const t=document.getElementById('ausMotivo'); if(t) t.focus(); }, 60);
+  if(pil && pac) {
+    const r = await reposicoesDoMes(pac.id, e.inicio); const box = document.getElementById('ausRep'); if(!box) return;
+    if(!r) { box.innerHTML = 'Não deu para contar as reposições do mês.'; return; }
+    const esgotou = perm!=null && r.repostas >= perm;
+    box.innerHTML = `Reposições de ${esc(String(pac.nome).split(' ')[0])} neste mês: <b>${r.repostas}${perm!=null?' de '+perm+' permitidas':''}</b>`+
+      ` · ${r.faltas} ${r.faltas===1?'falta':'faltas'} e ${r.justificadas} ${r.justificadas===1?'justificada':'justificadas'}`+
+      (perm==null ? '<div class="pt-nota" style="margin:4px 0 0">Defina as reposições permitidas no agendamento de Pilates dela.</div>'
+        : esgotou ? '<div style="color:var(--rose);margin-top:4px"><b>Já usou todas as reposições do mês.</b> Remarcar fica fora do combinado do plano.</div>' : '');
+    if(esgotou) { const b = document.getElementById('ausBtn1'); if(b) b.textContent += ' mesmo assim'; }
+  }
+}
+async function confirmarAusencia(agendaEmail, eventoId, tipo, remarcar) {
+  const motivo = (document.getElementById('ausMotivo').value||'').trim();
+  const err = document.getElementById('ausErr');
+  if(tipo==='justificada' && motivo.length<3) { err.textContent = 'Escreva o motivo da ausência.'; err.style.display='block'; return; }
+  ['ausBtn1','ausBtn2'].forEach(id=>{ const b=document.getElementById(id); if(b) b.disabled = true; });
+  const res = await api('status_evento',{agenda_email:agendaEmail, evento_id:eventoId, status:tipo, motivo});
+  if(!res.ok) { ['ausBtn1','ausBtn2'].forEach(id=>{ const b=document.getElementById(id); if(b) b.disabled = false; }); err.textContent = 'Erro: '+(res.erro||''); err.style.display='block'; return; }
+  const e = _ag.eventos.find(x=>x.id===eventoId && x.agenda_email===agendaEmail);
+  if(e) { e.status = tipo; e.motivo_ausencia = motivo; }
+  desenharAgenda();
+  const aviso = {retirado:' · lançamento retirado do Financeiro', pago_mantido:' · o lançamento já estava pago e continua no Financeiro'}[res.lancamento] || '';
+  showToast((tipo==='falta'?'Falta marcada':'Ausência justificada marcada')+aviso,'ok');
+  if(remarcar) remarcarAusencia(agendaEmail, eventoId);
+  else detalheAtendimento(agendaEmail, eventoId);
+}
+// Nova sessão para repor: mesmo paciente, profissional, serviço, sala, duração e valor
+function remarcarAusencia(agendaEmail, eventoId) {
+  const e = _ag.eventos.find(x=>x.id===eventoId && x.agenda_email===agendaEmail); if(!e) return;
+  const pac = e.paciente_id ? (_todosPacientes||[]).find(p=>String(p.id)===String(e.paciente_id)) : null;
+  const orig = new Date(e.inicio), ini = new Date(Math.max(Date.now(), +orig)); ini.setDate(ini.getDate()+1);
+  while(ini.getDay()===0) ini.setDate(ini.getDate()+1);
+  ini.setHours(orig.getHours(), orig.getMinutes(), 0, 0);
+  novoAtendimento(null, null, {inicio:ini, email:e.agenda_email, sala:e.sala||'', servico:e.servico||'',
+    dur:Math.round((new Date(e.fim)-orig)/60000), paciente: pac ? pac.nome : String(e.titulo||'').split(' · ')[0], valor:e.valor||'',
+    reposicaoDe:{id:e.id, data:orig.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})}});
 }
 
 async function statusAtendimento(agendaEmail, eventoId, status, doDetalhe) {
@@ -6098,15 +6272,15 @@ async function excluirEmLote(lista, rotulo, btn) {
   if(!confirm('Excluir '+lista.length+(lista.length===1?' agendamento':' agendamentos')+' de '+rotulo+'?\n\nDe '+fmt(lista[0].inicio)+' a '+fmt(lista[lista.length-1].inicio)+'. Saem também do Google Agenda. Não tem volta.')) return 0;
   let ok = 0, i = 0;
   for(const x of lista) {
-    if(btn) { btn.disabled = true; btn.textContent = 'Excluindo… '+(++i)+'/'+lista.length; }
+    i++; if(btn && btn.tagName==='BUTTON') { btn.disabled = true; btn.textContent = 'Excluindo… '+i+'/'+lista.length; }
     const r = await api('excluir_evento',{agenda_email:x.agenda_email, evento_id:x.id}); if(r.ok) ok++;
   }
   return ok;
 }
-async function excluirProximosIguais(agendaEmail, eventoId) {
+async function excluirProximosIguais(agendaEmail, eventoId, btn) {
   const e = _ag.eventos.find(x=>x.id===eventoId && x.agenda_email===agendaEmail); if(!e) return;
   const lista = await sessoesIguais(e, new Date(e.inicio)); if(!lista) return;
-  const n = await excluirEmLote(lista, String(e.titulo||'').split(' · ')[0]+' ('+DIAS_SEMANA[new Date(e.inicio).getDay()].toLowerCase()+' '+horaDe(e.inicio)+')', document.activeElement);
+  const n = await excluirEmLote(lista, String(e.titulo||'').split(' · ')[0]+' ('+DIAS_SEMANA[new Date(e.inicio).getDay()].toLowerCase()+' '+horaDe(e.inicio)+')', btn);
   if(!n) return;
   closeSheet(true);
   await loadAgenda();
@@ -6122,7 +6296,7 @@ async function excluirProximosIguais(agendaEmail, eventoId) {
 const PILATES_VAGAS = 3;
 const ehPilates = s => /pilates/i.test(String(s||''));
 function alunasNoHorario(lista, email, ini, fim, ignorarId) {
-  return lista.filter(o=>o.agenda_email===email && o.id!==ignorarId && ehPilates(o.servico) && o.status!=='falta'
+  return lista.filter(o=>o.agenda_email===email && o.id!==ignorarId && ehPilates(o.servico) && !ehAusencia(o.status)
     && new Date(o.inicio)<fim && new Date(o.fim)>ini);
 }
 function outroAtendimentoNoHorario(lista, email, ini, fim, ignorarId) {
@@ -6156,7 +6330,7 @@ function mapaPilates() {
   evs.forEach(e=>{ const h=new Date(e.inicio).getHours(); h0=Math.min(h0,h); h1=Math.max(h1,h); });
   const hoje = new Date();
   let vagasLivres = 0, turmasCheias = 0;
-  const alunas = new Set(evs.filter(e=>e.status!=='falta').map(e=>e.paciente_id||normalizar(String(e.titulo||'').split(' · ')[0])));
+  const alunas = new Set(evs.filter(e=>!ehAusencia(e.status)).map(e=>e.paciente_id||normalizar(String(e.titulo||'').split(' · ')[0])));
 
   const linhas = [];
   for(let h=h0; h<=h1; h++) {
@@ -6166,7 +6340,7 @@ function mapaPilates() {
       const grupos = profs.map(p=>({p, evs:doHorario.filter(e=>e.agenda_email===p.email)})).filter(g=>g.evs.length);
       let estado = 'vazio';
       if(grupos.length) {
-        const ocupadas = g => g.evs.filter(e=>e.status!=='falta').length;
+        const ocupadas = g => g.evs.filter(e=>!ehAusencia(e.status)).length;
         const livres = grupos.reduce((s,g)=>s+Math.max(0, PILATES_VAGAS-ocupadas(g)),0);
         vagasLivres += livres;
         estado = livres ? 'vaga' : 'cheio';
@@ -6176,7 +6350,7 @@ function mapaPilates() {
       const passou = ini < hoje && !agMesmoDia(ini,hoje);
       return `<td class="mp-c mp-${estado}${passou?' mp-passou':''}" onclick="cliqueMapaPilates(${di},${h})" title="${esc(maiuscula(d.toLocaleDateString('pt-BR',{weekday:'long'})))} às ${String(h).padStart(2,'0')}h">
         ${grupos.map(g=>{
-          const n = g.evs.filter(e=>e.status!=='falta').length;
+          const n = g.evs.filter(e=>!ehAusencia(e.status)).length;
           return `<div class="mp-g">
             ${profs.length>1?`<div class="mp-gh"><i style="background:${agCor(g.p.email)}"></i>${esc(g.p.nome.split(' ').slice(-1)[0])}<b class="${n>=PILATES_VAGAS?'cheio':''}">${n}/${PILATES_VAGAS}</b></div>`:`<div class="mp-gh mp-gh1"><b class="${n>=PILATES_VAGAS?'cheio':''}">${n}/${PILATES_VAGAS}</b></div>`}
             ${g.evs.map(e=>`<button class="mp-n st-${e.status||'agendado'}" onclick="event.stopPropagation();detalheAtendimento('${esc(e.agenda_email)}','${esc(e.id)}')">${esc(String(e.titulo||'').split(' · ')[0])}${new Date(e.inicio).getMinutes()?` <small>${horaDe(e.inicio)}</small>`:''}${e.rep?' <small>↻</small>':''}</button>`).join('')}
@@ -6337,7 +6511,7 @@ async function salvarPlano() {
   const desde = new Date((document.getElementById('plDesde').value||diaISO(new Date()))+'T00:00:00');
   const removerSlots = P.slots.filter(s=>!s.novo && (s.removido || slotMudou(s)));
   const criarSlots = P.slots.filter(s=>!s.removido && (s.novo || slotMudou(s)));
-  const apagar = removerSlots.flatMap(s=>s.eventos.filter(e=>new Date(e.inicio)>=desde && e.status!=='realizado' && e.status!=='falta'));
+  const apagar = removerSlots.flatMap(s=>s.eventos.filter(e=>new Date(e.inicio)>=desde && e.status!=='realizado' && !ehAusencia(e.status)));
   const msg = [removerSlots.length?`${apagar.length} ${apagar.length===1?'sessão sai':'sessões saem'} da agenda`:'', criarSlots.length?`${criarSlots.length} ${criarSlots.length===1?'horário novo entra':'horários novos entram'}`:'']
     .filter(Boolean).join(' e ');
   if(!confirm('Ajustar o plano de '+P.pac.nome+' a partir de '+desde.toLocaleDateString('pt-BR')+'?\n\n'+msg+'. A agenda das profissionais é atualizada junto.')) return;
@@ -6398,8 +6572,13 @@ async function abrirPlanoPaciente(pacId, nome) {
 // sair: quem está em risco aparece primeiro.
 // ═══════════════════════════════════════════════
 let _placarSemanas = 6;
+let _placarEscopo = 'pilates';   // 'pilates' ou 'todos' (todos os serviços)
 let _placar = [];
+const ehAusencia = s => s==='falta' || s==='justificada';
 
+// Placar de presença e faltas: por paciente, sessões agendadas no período,
+// realizadas, faltas, ausências justificadas e reposições. Quem está em risco
+// de sair aparece primeiro. Pilates mostra também as reposições do mês.
 async function carregarPlacarPilates(el) {
   const box = document.getElementById(el||'placarPil'); if(!box) return;
   box.innerHTML = `<div class="ck">${loadingHTML()}</div>`;
@@ -6407,14 +6586,16 @@ async function carregarPlacarPilates(el) {
   const de = somaDias(hoje, -_placarSemanas*7), ate = somaDias(hoje, Math.min(14, 61 - _placarSemanas*7));
   const [ag, pacs] = await Promise.all([api('listar_agenda',{de:de.toISOString(), ate:ate.toISOString()}), carregarTodosPacientes()]);
   if(!ag.ok) { box.innerHTML = `<div class="ck"><div class="pt-nota">Não deu para ler a agenda: ${esc(ag.erro||'')}</div></div>`; return; }
-  const agora = new Date();
-  const aulas = (ag.dados||[]).map(prepEvento).filter(e=>ehPilates(e.servico) && !e.dia_inteiro);
+  const agora = new Date(), mes = diaISO(agora).slice(0,7);
+  const aulas = (ag.dados||[]).map(prepEvento).filter(e=>!e.dia_inteiro && (e.paciente_id || e.servico) && (_placarEscopo==='todos' || ehPilates(e.servico)));
   const G = {};
   aulas.forEach(e=>{
     const nomeEv = String(e.titulo||'').replace(/^\[Não vem\] /,'').split(' · ')[0];
     const p = (pacs||[]).find(x=>e.paciente_id && String(x.id)===String(e.paciente_id));
     const k = p ? 'id:'+p.id : 'nome:'+normalizar(nomeEv);
-    const g = G[k] = G[k] || {k, id:p?p.id:'', nome:p?p.nome:nomeEv, tel:p?(p.telefone||''):'', passadas:[], futuras:[]};
+    const g = G[k] = G[k] || {k, id:p?p.id:'', nome:p?p.nome:nomeEv, tel:p?(p.telefone||''):'', repPerm: p && p.reposicoes_mes!=='' && p.reposicoes_mes!=null ? numDe(p.reposicoes_mes) : null, servicos:new Set(), todas:[], passadas:[], futuras:[]};
+    if(e.servico) g.servicos.add(e.servico);
+    g.todas.push(e);
     (new Date(e.inicio) < agora ? g.passadas : g.futuras).push(e);
   });
   const quatroSem = somaDias(hoje, -28), duasSem = somaDias(hoje, -14);
@@ -6422,7 +6603,10 @@ async function carregarPlacarPilates(el) {
     g.passadas.sort((a,b)=>a.inicio.localeCompare(b.inicio));
     const pres = g.passadas.filter(e=>e.status==='realizado');
     const falt = g.passadas.filter(e=>e.status==='falta');
-    const semReg = g.passadas.filter(e=>e.status!=='realizado' && e.status!=='falta');
+    const just = g.todas.filter(e=>e.status==='justificada');
+    const semReg = g.passadas.filter(e=>e.status!=='realizado' && !ehAusencia(e.status));
+    const repos = g.todas.filter(e=>e.reposDe);
+    const reposMes = g.todas.filter(e=>e.reposDe && diaISO(new Date(e.inicio)).slice(0,7)===mes).length;
     const avisos = g.passadas.filter(e=>e.aviso).length + g.futuras.filter(e=>e.aviso).length;
     let seguidas = 0;
     for(let i=g.passadas.length-1;i>=0;i--) { const st=g.passadas[i].status; if(st==='falta') seguidas++; else if(st==='realizado') break; }
@@ -6432,66 +6616,81 @@ async function carregarPlacarPilates(el) {
     const taxa = marcadas ? Math.round(pres.length/marcadas*100) : null;
     const falt4 = falt.filter(e=>new Date(e.inicio)>=quatroSem).length;
     const falt2 = falt.filter(e=>new Date(e.inicio)>=duasSem).length;
-    const proxima = g.futuras.filter(e=>!e.aviso).sort((a,b)=>a.inicio.localeCompare(b.inicio))[0];
+    const just4 = just.filter(e=>new Date(e.inicio)>=quatroSem).length;
+    const proxima = g.futuras.filter(e=>!e.aviso && !ehAusencia(e.status)).sort((a,b)=>a.inicio.localeCompare(b.inicio))[0];
     const motivos = [];
     if(seguidas>=2) motivos.push(seguidas+' faltas seguidas');
     if(taxa!==null && taxa<60) motivos.push('presença de '+taxa+'%');
     if(diasSem!==null && diasSem>21) motivos.push(diasSem+' dias sem vir');
-    if(!proxima) motivos.push('sem aula marcada');
+    if(!proxima) motivos.push('sem sessão marcada');
     let nivel = motivos.length ? 'risco' : 'ok';
-    if(nivel==='ok' && (falt2>=1 || (taxa!==null && taxa<80) || avisos>=2)) {
+    if(nivel==='ok' && (falt2>=1 || (taxa!==null && taxa<80) || avisos>=2 || just4>=3)) {
       nivel = 'atencao';
       if(falt2) motivos.push(falt2===1?'faltou nas últimas 2 semanas':falt2+' faltas nas últimas 2 semanas');
       else if(taxa!==null && taxa<80) motivos.push('presença de '+taxa+'%');
+      else if(just4>=3) motivos.push(just4+' ausências justificadas em 4 semanas');
       else motivos.push(avisos+' avisos de ausência');
     }
-    return {...g, pres:pres.length, falt:falt.length, semReg:semReg.length, avisos, seguidas, diasSem, taxa, falt4, proxima, nivel, motivos};
+    if(g.repPerm!=null && reposMes>g.repPerm) motivos.push('reposições acima do combinado');
+    return {...g, servicos:[...g.servicos], agend:g.todas.length, pres:pres.length, falt:falt.length, just:just.length, repos:repos.length, reposMes,
+      semReg:semReg.length, avisos, seguidas, diasSem, taxa, falt4, proxima, nivel, motivos};
   }).sort((a,b)=>({risco:0,atencao:1,ok:2}[a.nivel]-{risco:0,atencao:1,ok:2}[b.nivel]) || (a.taxa??101)-(b.taxa??101) || String(a.nome).localeCompare(String(b.nome),'pt-BR'));
   desenharPlacar(box);
 }
 
 function desenharPlacar(box) {
-  const P = _placar;
+  const P = _placar, pil = _placarEscopo==='pilates';
   const n = k => P.filter(x=>x.nivel===k).length;
-  const pres = P.reduce((s,x)=>s+x.pres,0), falt = P.reduce((s,x)=>s+x.falt,0), semReg = P.reduce((s,x)=>s+x.semReg,0);
+  const soma = k => P.reduce((s,x)=>s+x[k],0);
+  const pres = soma('pres'), falt = soma('falt'), just = soma('just'), semReg = soma('semReg'), agend = soma('agend'), repos = soma('repos');
   const taxa = pres+falt ? Math.round(pres/(pres+falt)*100) : null;
   const rot = {risco:'Em risco', atencao:'Atenção', ok:'Engajado'};
   const zap = x => {
     const tel = String(x.tel||'').replace(/\D/g,''); if(!tel) return '';
-    const txt = `Oi, ${String(x.nome||'').split(' ')[0]}! Tudo bem? Sentimos sua falta no Pilates. Está tudo certo por aí? Se quiser, a gente encontra um horário que funcione melhor para você. Um abraço da Casa Oliveira`;
+    const txt = `Oi, ${String(x.nome||'').split(' ')[0]}! Tudo bem? Sentimos sua falta ${pil?'no Pilates':'aqui na Casa'}. Está tudo certo por aí? Se quiser, a gente encontra um horário que funcione melhor para você. Um abraço da Casa Oliveira`;
     return `<a class="chip ch-sage" style="text-decoration:none" target="_blank" rel="noopener" href="https://wa.me/${tel.length<=11?'55'+tel:tel}?text=${encodeURIComponent(txt)}">mensagem</a>`;
   };
+  const id = box.id;
   box.innerHTML = `<div class="ck">
-    <div class="ck-h"><b>Placar de faltas · engajamento</b>
-      <div class="agx-seg">${[4,6].map(w=>`<button class="${_placarSemanas===w?'on':''}" onclick="_placarSemanas=${w};carregarPlacarPilates('${box.id}')">${w} semanas</button>`).join('')}</div></div>
+    <div class="ck-h"><b>Presença e faltas</b>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <div class="agx-seg">${[['pilates','Pilates'],['todos','Todos os serviços']].map(([k,r])=>`<button class="${_placarEscopo===k?'on':''}" onclick="_placarEscopo='${k}';carregarPlacarPilates('${id}')">${r}</button>`).join('')}</div>
+        <div class="agx-seg">${[4,6].map(w=>`<button class="${_placarSemanas===w?'on':''}" onclick="_placarSemanas=${w};carregarPlacarPilates('${id}')">${w} semanas</button>`).join('')}</div>
+      </div></div>
     <div class="pc-res">
+      <div class="pc-n"><b>${agend}</b><span>sessões agendadas</span></div>
+      <div class="pc-n ok"><b>${pres}</b><span>realizadas</span></div>
+      <div class="pc-n risco"><b>${falt}</b><span>faltas</span></div>
+      <div class="pc-n atencao"><b>${just}</b><span>ausências justificadas</span></div>
+      <div class="pc-n"><b>${repos}</b><span>reposições</span></div>
+      <div class="pc-n"><b>${taxa==null?'—':taxa+'%'}</b><span>presença média</span></div>
       <div class="pc-n risco"><b>${n('risco')}</b><span>em risco</span></div>
       <div class="pc-n atencao"><b>${n('atencao')}</b><span>atenção</span></div>
-      <div class="pc-n ok"><b>${n('ok')}</b><span>engajados</span></div>
-      <div class="pc-n"><b>${taxa==null?'—':taxa+'%'}</b><span>presença média</span></div>
-      <div class="pc-n"><b>${falt}</b><span>faltas no período</span></div>
     </div>
-    ${semReg?`<div class="fe-aviso" style="margin:10px 0 0"><div><b>${semReg} ${semReg===1?'aula já passou':'aulas já passaram'} sem presença marcada.</b> Marque "Realizado" ou "Faltou" na agenda para o placar ficar certo.</div></div>`:''}
+    ${semReg?`<div class="fe-aviso" style="margin:10px 0 0"><div><b>${semReg} ${semReg===1?'sessão já passou':'sessões já passaram'} sem presença marcada.</b> Marque "Realizado", "Faltou" ou "Ausência justificada" na agenda para o placar ficar certo.</div></div>`:''}
     ${P.length ? `<div style="overflow-x:auto;margin-top:10px"><table class="fin-tabela pc-tab">
-      <thead><tr><th>Aluno</th><th>Situação</th><th class="r">Presença</th><th class="r">Faltas</th><th class="r">Últimas 4 sem.</th><th class="r">Seguidas</th><th>Última aula</th><th>Próxima</th><th></th></tr></thead>
+      <thead><tr><th>${pil?'Aluna':'Paciente'}</th><th>Situação</th><th class="r">Agendadas</th><th class="r">Realizadas</th><th class="r">Faltas</th><th class="r">Justificadas</th><th class="r">Reposições</th><th class="r">Presença</th><th class="r">Seguidas</th><th>Última</th><th>Próxima</th><th></th></tr></thead>
       <tbody>${P.map(x=>`<tr class="pc-${x.nivel}">
-        <td><b>${esc(x.nome)}</b>${x.motivos.length?`<div class="fe-mini">${esc(x.motivos.join(' · '))}</div>`:''}</td>
+        <td><b>${esc(x.nome)}</b>${!pil&&x.servicos.length?`<div class="fe-mini">${esc(x.servicos.join(', '))}</div>`:''}${x.motivos.length?`<div class="fe-mini">${esc(x.motivos.join(' · '))}</div>`:''}</td>
         <td><span class="pc-chip pc-${x.nivel}">${rot[x.nivel]}</span></td>
+        <td class="r">${x.agend}</td>
+        <td class="r">${x.pres}</td>
+        <td class="r">${x.falt?`<b style="color:var(--rose)">${x.falt}</b>`:'0'}${x.falt4?`<span class="fe-mini"> · ${x.falt4} em 4 sem.</span>`:''}</td>
+        <td class="r">${x.just||'0'}</td>
+        <td class="r">${x.repos||'0'}${pil&&x.repPerm!=null?`<div class="fe-mini" style="${x.reposMes>x.repPerm?'color:var(--rose)':''}">${x.reposMes} de ${x.repPerm} no mês</div>`:''}</td>
         <td class="r">${x.taxa==null?'—':`<span class="pc-bar"><i style="width:${x.taxa}%"></i></span> ${x.taxa}%`}</td>
-        <td class="r">${x.falt}<span class="fe-mini"> de ${x.pres+x.falt}</span></td>
-        <td class="r">${x.falt4}</td>
         <td class="r">${x.seguidas?`<b style="color:${x.seguidas>=2?'var(--rose)':'inherit'}">${x.seguidas}</b>`:'0'}</td>
         <td>${x.diasSem==null?'—':x.diasSem===0?'hoje':x.diasSem===1?'ontem':'há '+x.diasSem+' dias'}</td>
         <td>${x.proxima?esc(new Date(x.proxima.inicio).toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit'}))+' '+horaDe(x.proxima.inicio):'<span style="color:var(--rose)">nenhuma</span>'}</td>
         <td>${x.nivel!=='ok'?zap(x):''}</td>
       </tr>`).join('')}</tbody></table></div>`
-    : `<div class="pt-nota">Nenhuma aula de Pilates nas últimas ${_placarSemanas} semanas.</div>`}
-    <div class="pt-nota">Em risco: 2 faltas seguidas, presença abaixo de 60%, mais de 21 dias sem vir ou sem aula marcada. Atenção: faltou nas últimas 2 semanas, presença abaixo de 80% ou avisou ausência mais de uma vez.</div>
+    : `<div class="pt-nota">Nenhuma sessão ${pil?'de Pilates ':''}nas últimas ${_placarSemanas} semanas.</div>`}
+    <div class="pt-nota">Presença = realizadas ÷ (realizadas + faltas); ausência justificada não conta como falta. Em risco: 2 faltas seguidas, presença abaixo de 60%, mais de 21 dias sem vir ou sem sessão marcada. Atenção: faltou nas últimas 2 semanas, presença abaixo de 80%, 3 ou mais ausências justificadas em 4 semanas ou avisou ausência mais de uma vez.</div>
   </div>`;
 }
 
 function abrirPlacarPilates() {
-  document.getElementById('sheetTitle').textContent = 'Placar do Pilates';
+  document.getElementById('sheetTitle').textContent = 'Presença e faltas';
   document.getElementById('sheetBody').innerHTML = '<div id="placarSheet"></div>';
   openSheet();
   carregarPlacarPilates('placarSheet');
@@ -9586,8 +9785,8 @@ function desenharVisaoGeral() {
   const box = document.getElementById('vgPac'); if(!box || !_vg) return;
   const {p, passadas, futuras, itensFin, lead, evos, ms, alertas} = _vg;
   const hoje = new Date(); hoje.setHours(0,0,0,0);
-  const real = passadas.filter(e=>e.status==='realizado'), falt = passadas.filter(e=>e.status==='falta');
-  const semReg = passadas.filter(e=>e.status!=='realizado' && e.status!=='falta');
+  const real = passadas.filter(e=>e.status==='realizado'), falt = passadas.filter(e=>e.status==='falta'), justi = passadas.filter(e=>e.status==='justificada');
+  const semReg = passadas.filter(e=>e.status!=='realizado' && !ehAusencia(e.status));
   const taxa = real.length+falt.length ? Math.round(real.length/(real.length+falt.length)*100) : null;
   let seguidas = 0; for(let i=passadas.length-1;i>=0;i--){ const st=passadas[i].status; if(st==='falta') seguidas++; else if(st==='realizado') break; }
   const ult = real[real.length-1], prox = futuras.find(e=>!e.aviso);
@@ -9619,7 +9818,7 @@ function desenharVisaoGeral() {
   const ativo = !p.status || String(p.status).toLowerCase()==='ativo';
   if(ativo && _vg.histOk && !prox) add('warn', 'Nenhuma sessão marcada daqui para frente', 'Plano e horários');
   futuras.filter(e=>e.aviso).forEach(e=>add('warn', 'Avisou que não vem em '+dLonga(e.inicio), null));
-  const faltam = [['telefone','telefone'],['email','e-mail'],['cpf','CPF'],['data_nascimento','data de nascimento']].filter(([k])=>!String(p[k]||'').trim()).map(x=>x[1]);
+  const faltam = [['telefone','telefone'],['email','e-mail'],['cpf','CPF'],['data_nascimento','data de nascimento'],['endereco','endereço']].filter(([k])=>!String(p[k]||'').trim()).map(x=>x[1]);
   if(faltam.length) add('info', 'Cadastro sem '+faltam.join(', '), 'editar');
   if(currentRole!=='profissional' && p.email && String(p.acesso||'').toLowerCase()!=='liberado') add('info', 'Ainda sem acesso à área do paciente', 'Área do paciente');
 
@@ -9635,7 +9834,7 @@ function desenharVisaoGeral() {
   if(lead) tl.push({t:'contato', d:lead.data_contato||lead.criado_em, tit:'Primeiro contato'+(lead.origem?' · '+lead.origem:''),
     sub:[lead.nome && normalizar(lead.nome)!==normalizar(p.nome) ? 'Quem procurou: '+lead.nome+(lead.parentesco?' ('+lead.parentesco+')':'') : '', lead.indicado_por?'Indicação de '+lead.indicado_por:'', lead.campanha||'', lead.observacoes||''].filter(Boolean).join(' · ')});
   if(p.criado_em) tl.push({t:'contato', d:p.criado_em, tit:'Cadastro como paciente', sub:[rotuloLinhas(p.linha), p.criado_por?'por '+nomeDoEmail(p.criado_por):''].filter(Boolean).join(' · ')});
-  passadas.forEach(e=>tl.push({t:'atend', d:e.inicio, tit:(e.servico||'Atendimento')+(e.status==='falta'?' · faltou':e.status==='realizado'?'':' · sem presença marcada'), sub:[e.profissional, e.sala, e.aviso?'avisou ausência':''].filter(Boolean).join(' · '), st:e.status==='falta'?'falta':e.status==='realizado'?'ok':'neutro'}));
+  passadas.forEach(e=>tl.push({t:'atend', d:e.inicio, tit:(e.servico||'Atendimento')+(e.status==='falta'?' · faltou':e.status==='justificada'?' · ausência justificada':e.status==='realizado'?'':' · sem presença marcada')+(e.reposDe?' · reposição':''), sub:[e.profissional, e.sala, e.aviso?'avisou ausência':''].filter(Boolean).join(' · '), st:e.status==='falta'?'falta':e.status==='realizado'?'ok':'neutro'}));
   evos.forEach(e=>tl.push({t:'evo', d:e.data, tit:'Evolução registrada', sub:[e.autor_nome, String(e.texto||'').slice(0,110)+(String(e.texto||'').length>110?'…':'')].filter(Boolean).join(' · ')}));
   (itensFin||[]).forEach(i=>{ if(i.pago && i.data_pagamento) tl.push({t:'fin', d:i.data_pagamento, tit:'Pagamento · '+fmtMoeda(i.valor), sub:[i.titulo, i.forma].filter(Boolean).join(' · '), st:'ok'});
     else if(!i.pago && i.ref) tl.push({t:'fin', d:i.venc||i.ref, tit:'Cobrança '+(i.atrasado?'atrasada':'em aberto')+' · '+fmtMoeda(i.valor), sub:i.titulo, st:i.atrasado?'falta':'neutro'}); });
@@ -9658,6 +9857,7 @@ function desenharVisaoGeral() {
       <div class="vg-l"><span>Terapeutas de referência</span><b>${terapeutasDe(p).map(t=>`<span class="vg-ter">${avatarHTML(t,22)}${esc(t)}</span>`).join('')||'—'}</b></div>
       ${p.responsavel?`<div class="vg-l"><span>Responsável</span><b>${esc(p.responsavel)}</b></div>`:''}
       <div class="vg-l"><span>Contato</span><b>${esc([p.telefone, p.email].filter(Boolean).join(' · ')||'—')}</b></div>
+      ${p.endereco?`<div class="vg-l"><span>Endereço</span><b style="font-weight:500">${esc(p.endereco)}${p.cep?' · CEP '+esc(p.cep):''}</b></div>`:''}
     </div>
     <div class="vg-card">
       <div class="vg-k">Pendências ${pend.length?`<span class="vg-n">${pend.length}</span>`:''}</div>
@@ -9668,7 +9868,7 @@ function desenharVisaoGeral() {
 
   <div class="vg-nums">
     <div class="vg-num"><b>${real.length}</b><span>atendimentos realizados</span></div>
-    <div class="vg-num"><b>${taxa==null?'—':taxa+'%'}</b><span>presença${falt.length?' · '+falt.length+(falt.length===1?' falta':' faltas'):''}</span></div>
+    <div class="vg-num"><b>${taxa==null?'—':taxa+'%'}</b><span>presença${falt.length?' · '+falt.length+(falt.length===1?' falta':' faltas'):''}${justi.length?' · '+justi.length+(justi.length===1?' justificada':' justificadas'):''}</span></div>
     <div class="vg-num"><b>${ult?esc(dCurta(ult.inicio)):'—'}</b><span>última sessão</span></div>
     <div class="vg-num"><b>${prox?esc(dCurta(prox.inicio)):'—'}</b><span>${prox?esc('próxima · '+horaDe(prox.inicio)):'próxima sessão'}</span></div>
     ${fin?`<div class="vg-num"><b style="color:${fin.aberto?(fin.atras?'var(--rose)':'var(--amber)'):'inherit'}">${fmtMoeda(fin.aberto)}</b><span>em aberto</span></div>
@@ -9799,7 +9999,7 @@ function editarPaciente(linha, id) {
 // têm lugar fixo na tela (convênio, CPF, diagnóstico...). Sem isto o dado
 // entra na planilha e ninguém enxerga.
 const CAD_ROTULOS = {
-  data_nascimento:'Nascimento', telefone:'Telefone', responsavel:'Responsável',
+  data_nascimento:'Nascimento', telefone:'Telefone', endereco:'Endereço', cep:'CEP', reposicoes_mes:'Reposições permitidas por mês (Pilates)', responsavel:'Responsável',
   escola:'Escola', terapeuta_nome:'Terapeuta', servicos:'Serviços',
   observacoes:'Observações', status:'Status', criado_em:'Cadastrado em',
   criado_por:'Cadastrado por', atualizado_em:'Última alteração',
@@ -10624,19 +10824,19 @@ async function calcularAlertas() {
 // ═══════════════════════════════════════════════
 const GS_DIAS = [1,2,3,4,5,6];          // segunda a sábado
 const GS_PX = 1.15;                     // pixels por minuto na grade das salas
-let _gs = {aba:'salas', dia:(()=>{ const d=new Date(); d.setHours(0,0,0,0); return d; })(), semana:inicioDaSemana(new Date()), cap:null, abertoProf:''};
+let _gs = {area:'', aba:'salas', dia:(()=>{ const d=new Date(); d.setHours(0,0,0,0); return d; })(), semana:inicioDaSemana(new Date()), cap:null, abertoProf:''};
 const podeVerGestao = () => currentRole==='admin' || ehAdministracao();
 
 function renderGestao() {
   if(!podeVerGestao()) return `<div class="ph"><div class="ph-title">Acesso restrito</div></div>`;
   return `<div class="ph"><div class="ph-title">Painel da gestão</div><div class="ph-sub">Salas, ocupação da equipe e pedidos de aprovação</div></div>
-  <div class="agx-seg gs-abas" id="gsAbas">${[['salas','Salas'],['equipe','Equipe e ocupação'],['relatorio','Relatório de atendimentos'],['aprov','Aprovações']].map(([k,r])=>
+  <div class="agx-seg gs-abas" id="gsAbas">${[['salas','Salas'],['equipe','Equipe e ocupação'],['faltas','Presença e faltas'],['relatorio','Relatório de atendimentos'],['aprov','Aprovações']].map(([k,r])=>
     `<button class="${_gs.aba===k?'on':''}" onclick="abaGestao('${k}')">${r}<span class="gs-badge" id="gsBadge_${k}"></span></button>`).join('')}</div>
   <div id="gsBody">${loadingHTML()}</div>`;
 }
 function abaGestao(k) {
   _gs.aba = k;
-  document.querySelectorAll('#gsAbas button').forEach((b,i)=>b.classList.toggle('on', ['salas','equipe','relatorio','aprov'][i]===k));
+  document.querySelectorAll('#gsAbas button').forEach((b,i)=>b.classList.toggle('on', ['salas','equipe','faltas','relatorio','aprov'][i]===k));
   carregarGestao();
 }
 async function carregarGestao() {
@@ -10646,6 +10846,7 @@ async function carregarGestao() {
   if(_gs.aba==='salas') return painelSalas();
   if(_gs.aba==='equipe') return painelEquipe();
   if(_gs.aba==='relatorio') return painelRelatorio();
+  if(_gs.aba==='faltas') { box.innerHTML = '<div id="gsPlacar"></div>'; _placarEscopo='todos'; return carregarPlacarPilates('gsPlacar'); }
   box.innerHTML = '<div id="aprovBox"></div><div id="aprovVazio"></div>';
   await carregarAprovacoes();
   if(!document.querySelector('#aprovBox .aprov-item')) document.getElementById('aprovVazio').innerHTML = '<div class="card" style="text-align:center;color:var(--ink3);padding:30px">Nenhum pedido esperando a sua decisão.</div>';
@@ -10790,7 +10991,12 @@ async function painelEquipe() {
   if(!res.ok) { box.innerHTML = `<div class="card" style="color:var(--rose)">Não foi possível ler a agenda: ${esc(res.erro||'')}</div>`; return; }
   const evs = (res.dados||[]).map(prepEvento);
   const profs = (_ag.profissionais||[]).filter(p=>p.tem_agenda!==false);
-  const linhas = profs.map(p=>({p, cfg:cap[p.email]||{}, o:calcularOcupacao(p, cap[p.email]||{}, evs, seg)}));
+  const todas = profs.map(p=>({p, cfg:cap[p.email]||{}, o:calcularOcupacao(p, cap[p.email]||{}, evs, seg), areas:areasDaProf(p)}));
+  const daArea = k => todas.filter(x=>x.areas.includes(k));
+  const linhas = _gs.area ? daArea(_gs.area) : todas;
+  const resumo = lista => { const c = lista.filter(x=>x.o.capacidade);
+    const cap = c.reduce((s,x)=>s+x.o.capacidade,0), ag = c.reduce((s,x)=>s+Math.min(x.o.agendados,x.o.capacidade),0);
+    return {n:lista.length, cap, ag, taxa: cap ? Math.round(ag/cap*100) : null, vagas: c.reduce((s,x)=>s+x.o.vagos.reduce((a,v)=>a+v.livres,0),0), semCfg: lista.filter(x=>!x.o.temCfg).length}; };
   const comCfg = linhas.filter(x=>x.o.capacidade);
   const capT = comCfg.reduce((s,x)=>s+x.o.capacidade,0), agT = comCfg.reduce((s,x)=>s+Math.min(x.o.agendados,x.o.capacidade),0);
   const vagT = comCfg.reduce((s,x)=>s+x.o.vagos.reduce((a,v)=>a+v.livres,0),0);
@@ -10799,8 +11005,14 @@ async function painelEquipe() {
   const corTaxa = t => t==null ? 'var(--ink3)' : t>=85 ? 'var(--teal)' : t>=60 ? 'var(--amber)' : 'var(--rose)';
   const fmtDia = d => maiuscula(d.toLocaleDateString('pt-BR',{weekday:'short', day:'2-digit', month:'2-digit'})).replace('.','');
   const admin = currentRole==='admin';
+  const areas = Object.keys(LINHAS).filter(k=>daArea(k).length);
+  const semArea = todas.filter(x=>!x.areas.length);
 
   box.innerHTML = `
+  <div class="agx-seg gs-areas">
+    <button class="${!_gs.area?'on':''}" onclick="_gs.area='';painelEquipe()">Geral</button>
+    ${areas.map(k=>`<button class="${_gs.area===k?'on':''}" onclick="_gs.area='${k}';painelEquipe()">${esc(LINHAS[k].label)}</button>`).join('')}
+  </div>
   <div class="gs-nav">
     <button class="backbtn" onclick="trocarSemanaGestao(-1)" aria-label="Semana anterior">‹</button>
     <button class="backbtn" onclick="trocarSemanaGestao(0)">Esta semana</button>
@@ -10808,18 +11020,28 @@ async function painelEquipe() {
     <b class="gs-tit">${esc(seg.toLocaleDateString('pt-BR',{day:'numeric',month:'short'}))} a ${esc(fimSem.toLocaleDateString('pt-BR',{day:'numeric',month:'short'}))}</b>
   </div>
   <div class="vg-nums" style="margin-bottom:12px">
-    <div class="vg-num"><b>${capT||'—'}</b><span>capacidade da equipe (sessões na semana)</span></div>
+    <div class="vg-num"><b>${capT||'—'}</b><span>capacidade ${_gs.area?'da área':'da equipe'} (sessões na semana)</span></div>
     <div class="vg-num"><b>${agT}</b><span>agendadas dentro da capacidade</span></div>
     <div class="vg-num"><b style="color:${corTaxa(taxaT)}">${taxaT==null?'—':taxaT+'%'}</b><span>ocupação geral</span></div>
     <div class="vg-num"><b>${vagT}</b><span>vagas livres daqui para frente</span></div>
   </div>
+  ${!_gs.area && areas.length ? `<div class="vg-card" style="margin-bottom:12px"><div class="vg-k">Por área</div>
+    <div style="overflow-x:auto"><table class="fin-tabela gs-areas-tab"><thead><tr><th>Área</th><th class="r">Profissionais</th><th class="r">Capacidade</th><th class="r">Agendadas</th><th>Ocupação</th><th class="r">Vagas livres</th></tr></thead>
+    <tbody>${areas.map(k=>{ const r = resumo(daArea(k)); return `<tr onclick="_gs.area='${k}';painelEquipe()">
+      <td><span class="chip ch-${LINHAS[k].color}">${esc(LINHAS[k].label)}</span></td><td class="r">${r.n}${r.semCfg?` <small style="color:var(--amber)">(${r.semCfg} sem disp.)</small>`:''}</td>
+      <td class="r">${r.cap||'—'}</td><td class="r">${r.ag}</td>
+      <td>${r.taxa==null?'—':`<span class="gs-tx"><span class="gs-ocbar"><i style="width:${r.taxa}%;background:${corTaxa(r.taxa)}"></i></span><b style="color:${corTaxa(r.taxa)}">${r.taxa}%</b></span>`}</td>
+      <td class="r">${r.cap?r.vagas:'—'}</td></tr>`; }).join('')}</tbody></table></div>
+    <div class="pt-nota" style="margin:6px 0 0">A área vem do cadastro de cada profissional (Cadastro da equipe › Linhas). Quem atende em mais de uma área entra em todas elas.${semArea.length?' '+semArea.length+(semArea.length===1?' profissional está':' profissionais estão')+' sem área no cadastro.':''}</div></div>` : ''}
   ${linhas.some(x=>!x.o.temCfg) ? `<div class="fe-aviso" style="margin-bottom:12px"><div><b>${linhas.filter(x=>!x.o.temCfg).length} ${linhas.filter(x=>!x.o.temCfg).length===1?'profissional ainda sem':'profissionais ainda sem'} disponibilidade.</b> ${admin?'Toque em "definir disponibilidade" para dizer em que dias e horários cada uma atende.':'A gestão define a disponibilidade de cada uma.'}</div></div>` : ''}
-  <div class="gs-equipe">${linhas.map(({p,cfg,o})=>{
+  <div class="gs-equipe">${linhas.map(({p,cfg,o,areas:ar})=>{
     const aberto = _gs.abertoProf===p.email;
     const porDia = {}; o.vagos.forEach(v=>{ const k=diaISO(v.d); (porDia[k]=porDia[k]||{d:v.d, l:[]}).l.push(v); });
     return `<div class="gs-prof">
       <div class="gs-prof-h">
-        <div class="gs-prof-n"><i style="background:${agCor(p.email)}"></i><div><b>${esc(p.nome)}</b><span>${o.temCfg?`${o.capacidade} sessões possíveis · ${o.dur} min${o.vagas>1?' · '+o.vagas+' por horário':''}${o.folgas?' · '+o.folgas+(o.folgas===1?' dia de folga':' dias de folga'):''}`:'sem disponibilidade definida'}</span></div></div>
+        <div class="gs-prof-n"><i style="background:${agCor(p.email)}"></i><div><b>${esc(p.nome)}</b>
+          <div class="gs-prof-l">${ar.length ? ar.map(k=>`<span class="chip ch-${(LINHAS[k]||{}).color||'gray'}">${esc((LINHAS[k]||{label:k}).label)}</span>`).join('') : '<span class="chip ch-gray">sem área no cadastro</span>'}</div>
+          <span>${o.temCfg?`${o.capacidade} sessões possíveis · ${o.dur} min${o.vagas>1?' · '+o.vagas+' por horário':''}${o.folgas?' · '+o.folgas+(o.folgas===1?' dia de folga':' dias de folga'):''}`:'sem disponibilidade definida'}</span></div></div>
         <div class="gs-prof-k"><b>${o.agendados}</b><span>agendadas</span></div>
         <div class="gs-prof-k gs-taxa"><b style="color:${corTaxa(o.taxa)}">${o.taxa==null?'—':o.taxa+'%'}</b><span>ocupação</span>
           ${o.taxa!=null?`<div class="gs-ocbar"><i style="width:${o.taxa}%;background:${corTaxa(o.taxa)}"></i></div>`:''}</div>
@@ -10836,6 +11058,11 @@ async function painelEquipe() {
   <div class="pt-nota">Capacidade = horários de atendimento que cabem na disponibilidade de cada profissional na semana (vezes as vagas por horário, no caso de turma). Dias com evento de dia inteiro na agenda dela (folga, férias, curso) não contam. Horários vagos mostram só o que ainda está por vir; toque num deles para agendar.</div>`;
 }
 
+// Linhas (áreas) em que a profissional atende, do cadastro da equipe; "todos" = todas
+function areasDaProf(p) {
+  const l = (Array.isArray(p.linhas) ? p.linhas : String(p.linhas||'').split(',')).map(x=>String(x).trim().toLowerCase()).filter(Boolean);
+  return l.includes('todos') ? Object.keys(LINHAS) : l.filter(k=>LINHAS[k]);
+}
 function editarDisponibilidade(email) {
   if(currentRole!=='admin') return;
   const p = (_ag.profissionais||[]).find(x=>x.email===email) || {nome:email};
@@ -11079,8 +11306,8 @@ function desenharRelatorio() {
     if(_rel.linha && !(p && linhasDoPaciente(p).includes(_rel.linha))) return false;
     return !busca || normalizar(p?p.nome:nome).includes(busca); };
   const A = evs.filter(e=>(!_rel.prof || e.agenda_email===_rel.prof) && okPac(e.paciente_id, nomePacEv(e))).sort((a,b)=>a.inicio.localeCompare(b.inicio));
-  const real = A.filter(e=>e.status==='realizado'), falt = A.filter(e=>e.status==='falta');
-  const agora = new Date(), semMarcar = A.filter(e=>new Date(e.fim)<agora && e.status!=='realizado' && e.status!=='falta');
+  const real = A.filter(e=>e.status==='realizado'), falt = A.filter(e=>e.status==='falta'), justi = A.filter(e=>e.status==='justificada');
+  const agora = new Date(), semMarcar = A.filter(e=>new Date(e.fim)<agora && e.status!=='realizado' && !ehAusencia(e.status));
   const profNome = em => agProfNome(em) || em;
   const nomeProfSel = _rel.prof ? normalizar(profNome(_rel.prof)) : '';
   const noPeriodo = d => { const x = String(d||'').slice(0,10); return x>=_rel.de && x<=_rel.ate; };
@@ -11094,7 +11321,7 @@ function desenharRelatorio() {
   const pacientesAtendidos = new Set(real.map(e=>e.paciente_id||nomePacEv(e))).size;
   const porProf = {};
   A.forEach(e=>{ const k=e.agenda_email; const g=porProf[k]=porProf[k]||{nome:profNome(k), r:0, f:0, s:0, pacs:new Set(), evo:0, av:0};
-    if(e.status==='realizado'){ g.r++; g.pacs.add(e.paciente_id||nomePacEv(e)); if(evoDoAtend(e)) g.evo++; } else if(e.status==='falta') g.f++; else if(new Date(e.fim)<agora) g.s++; });
+    if(e.status==='realizado'){ g.r++; g.pacs.add(e.paciente_id||nomePacEv(e)); if(evoDoAtend(e)) g.evo++; } else if(e.status==='falta') g.f++; else if(e.status==='justificada') g.j=(g.j||0)+1; else if(new Date(e.fim)<agora) g.s++; });
   avals.forEach(a=>{ const g = Object.values(porProf).find(x=>normalizar(x.nome)===normalizar(a.autor_nome)); if(g) g.av++; });
   const porServ = {};
   A.forEach(e=>{ const k=e.servico||'Sem serviço'; const g=porServ[k]=porServ[k]||{r:0,f:0,t:0}; g.t++; if(e.status==='realizado') g.r++; else if(e.status==='falta') g.f++; });
@@ -11102,13 +11329,13 @@ function desenharRelatorio() {
   const per = fmtDataBR(_rel.de)+' a '+fmtDataBR(_rel.ate);
   _rel.linhasCsv = [['Data','Hora','Paciente','Profissional','Serviço','Sala','Situação','Evolução registrada'],
     ...A.map(e=>[diaISO(new Date(e.inicio)), horaDe(e.inicio), nomeP(e), profNome(e.agenda_email), e.servico||'', e.sala||'',
-      e.status==='realizado'?'Realizado':e.status==='falta'?'Faltou':new Date(e.fim)<agora?'Sem presença marcada':'Agendado', e.status==='realizado'?(evoDoAtend(e)?'Sim':'Não'):''])];
+      e.status==='realizado'?'Realizado':e.status==='falta'?'Faltou':e.status==='justificada'?'Ausência justificada':new Date(e.fim)<agora?'Sem presença marcada':'Agendado', e.status==='realizado'?(evoDoAtend(e)?'Sim':'Não'):''])];
   out.innerHTML = `<div id="relDoc">
   <div class="rel-cab"><b>Relatório de atendimentos</b><span>${esc(per)}${_rel.prof?' · '+esc(profNome(_rel.prof)):''}${_rel.linha?' · '+esc(LINHAS[_rel.linha].label):''}${_rel.busca?' · '+esc(_rel.busca):''}</span></div>
   ${erro?`<div class="fe-aviso"><div>Parte da agenda não pôde ser lida: ${esc(erro)}</div></div>`:''}
   <div class="vg-nums" style="margin-bottom:12px">
     <div class="vg-num"><b style="color:var(--teal)">${real.length}</b><span>atendimentos realizados</span></div>
-    <div class="vg-num"><b style="color:var(--rose)">${falt.length}</b><span>faltas</span></div>
+    <div class="vg-num"><b style="color:var(--rose)">${falt.length}</b><span>faltas${justi.length?' · '+justi.length+' justificadas':''}</span></div>
     <div class="vg-num"><b>${A.length}</b><span>agendados no período</span></div>
     <div class="vg-num"><b>${pacientesAtendidos}</b><span>pacientes atendidos</span></div>
     <div class="vg-num"><b>${E.length}</b><span>evoluções registradas${real.length?' · '+Math.round(comEvo/real.length*100)+'% dos atendimentos':''}</span></div>
@@ -11117,15 +11344,15 @@ function desenharRelatorio() {
   ${semMarcar.length?`<div class="fe-aviso" style="margin-bottom:12px"><div><b>${semMarcar.length} ${semMarcar.length===1?'atendimento passou':'atendimentos passaram'} sem presença marcada</b> e não entram como realizados.</div></div>`:''}
   <div class="rel-grid">
     <div class="vg-card"><div class="vg-k">Por profissional</div>
-      <div style="overflow-x:auto"><table class="fin-tabela"><thead><tr><th>Profissional</th><th class="r">Realizados</th><th class="r">Faltas</th><th class="r">Sem marcar</th><th class="r">Pacientes</th><th class="r">Com evolução</th><th class="r">Avaliações</th></tr></thead>
-      <tbody>${Object.values(porProf).sort((a,b)=>b.r-a.r).map(g=>`<tr style="cursor:default"><td><b>${esc(g.nome)}</b></td><td class="r">${g.r}</td><td class="r">${g.f}</td><td class="r">${g.s||'—'}</td><td class="r">${g.pacs.size}</td><td class="r">${g.r?g.evo+' <small>('+Math.round(g.evo/g.r*100)+'%)</small>':'—'}</td><td class="r">${g.av||'—'}</td></tr>`).join('')||'<tr><td colspan="7">Nenhum atendimento.</td></tr>'}</tbody></table></div></div>
+      <div style="overflow-x:auto"><table class="fin-tabela"><thead><tr><th>Profissional</th><th class="r">Realizados</th><th class="r">Faltas</th><th class="r">Justificadas</th><th class="r">Sem marcar</th><th class="r">Pacientes</th><th class="r">Com evolução</th><th class="r">Avaliações</th></tr></thead>
+      <tbody>${Object.values(porProf).sort((a,b)=>b.r-a.r).map(g=>`<tr style="cursor:default"><td><b>${esc(g.nome)}</b></td><td class="r">${g.r}</td><td class="r">${g.f}</td><td class="r">${g.j||'—'}</td><td class="r">${g.s||'—'}</td><td class="r">${g.pacs.size}</td><td class="r">${g.r?g.evo+' <small>('+Math.round(g.evo/g.r*100)+'%)</small>':'—'}</td><td class="r">${g.av||'—'}</td></tr>`).join('')||'<tr><td colspan="8">Nenhum atendimento.</td></tr>'}</tbody></table></div></div>
     <div class="vg-card"><div class="vg-k">Por serviço</div>
       ${Object.entries(porServ).sort((a,b)=>b[1].r-a[1].r).map(([n,g])=>`<div class="vg-l"><span>${esc(n)}</span><b>${g.r} <small>realizados${g.f?' · '+g.f+' faltas':''}</small></b></div>`).join('')||'<div class="vg-tudo">—</div>'}</div>
   </div>
   <details class="vg-card rel-det" open><summary class="vg-k">Atendimentos (${A.length})</summary>
     <div style="overflow-x:auto"><table class="fin-tabela"><thead><tr><th>Data</th><th>Paciente</th><th>Profissional</th><th>Serviço</th><th>Situação</th><th>Evolução</th></tr></thead>
     <tbody>${A.map(e=>`<tr style="cursor:default"><td>${esc(fmtD(e.inicio))} ${horaDe(e.inicio)}</td><td>${esc(nomeP(e))}</td><td>${esc(profNome(e.agenda_email))}</td><td>${esc(e.servico||'—')}</td>
-      <td>${e.status==='realizado'?'<span class="chip ch-sage">Realizado</span>':e.status==='falta'?'<span class="chip ch-rose">Faltou</span>':new Date(e.fim)<agora?'<span class="chip ch-amber">Sem marcar</span>':'<span class="chip ch-gray">Agendado</span>'}</td>
+      <td>${e.status==='realizado'?'<span class="chip ch-sage">Realizado</span>':e.status==='falta'?'<span class="chip ch-rose">Faltou</span>':e.status==='justificada'?'<span class="chip ch-amber">Justificada</span>':new Date(e.fim)<agora?'<span class="chip ch-amber">Sem marcar</span>':'<span class="chip ch-gray">Agendado</span>'}</td>
       <td>${e.status==='realizado'?(evoDoAtend(e)?'✓':'<span style="color:var(--amber)">falta</span>'):''}</td></tr>`).join('')||'<tr><td colspan="6">Nenhum atendimento no período.</td></tr>'}</tbody></table></div></details>
   <details class="vg-card rel-det"><summary class="vg-k">Evoluções (${E.length})</summary>
     ${E.sort((a,b)=>String(b.data).localeCompare(String(a.data))).map(e=>{ const p=pacs.find(x=>String(x.id)===String(e.paciente_id)); return `<div class="vg-ev"><div class="vg-ev-txt"><b>${esc(p?p.nome:'Paciente')} · ${esc(e.autor_nome||'')}</b><span>${esc(String(e.texto||'').slice(0,220))}</span></div><time>${esc(fmtDataBR(String(e.data).slice(0,10)))}</time></div>`; }).join('')||'<div class="vg-tudo">Nenhuma evolução no período.</div>'}</details>

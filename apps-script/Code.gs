@@ -805,7 +805,7 @@ function minhaAgenda(token) {
       servico: ev.getTag('servico') || '', sala: salaDaDescricao(ev.getDescription()),
       status: ev.getTag('status') || '', aviso: ev.getTag('aviso_paciente') || '',
       confirmado_paciente: ev.getTag('confirmado_paciente') || ''};
-  }).filter(function(e){ return e.status !== 'falta'; });
+  }).filter(function(e){ return e.status !== 'falta' && e.status !== 'justificada'; });
   return {ok:true, dados: dados};
 }
 function responderPresenca(body, token) {
@@ -1696,7 +1696,7 @@ function listarCatalogo(token) {
   // Preco e informacao comercial: o profissional ve o que oferecer, a gestao
   // e a coordenacao veem por quanto. O valor nem sai daqui para quem nao ve,
   // porque esconder so na tela nao esconde de quem olha a resposta.
-  const veValor = perfil.role === 'admin' || perfil.role === 'coordenador';
+  const veValor = veValorSessao(perfil);
   const saida = [];
   for (let i=1;i<dados.length;i++) {
     const o = {}; h.forEach(function(k,j){ o[k] = dados[i][j]; });
@@ -2382,7 +2382,10 @@ function listar(body, token) {
     if (!perfil) return {ok:false, erro:'Sem permiss\u00e3o'};
     if (perfil.role !== 'admin') {
       if (body.tabela==='pacientes') {
-        rows = rows.filter(r => podeVerPaciente(perfil, r));
+        // Recepção e administrativo trabalham com o cadastro de todos (agendar,
+        // cobrar, atender o telefone); o prontuário continua restrito abaixo
+        const cadastroTodo = /recep|comercial|administra/i.test(String(perfil.funcao||''));
+        rows = rows.filter(r => cadastroTodo || podeVerPaciente(perfil, r));
       } else {
         const pacs = mapaPacientes(), vis = {};
         rows = rows.filter(r => {
@@ -2776,7 +2779,9 @@ function eventoParaTela(ev, prof) {
     obs: ev.getDescription() || '',
     do_sistema: ev.getTag('origem') === 'sistema',
     aviso: ev.getTag('aviso_paciente') || '',
-    confirmado_paciente: ev.getTag('confirmado_paciente') || ''
+    confirmado_paciente: ev.getTag('confirmado_paciente') || '',
+    valor: ev.getTag('valor') || '',
+    motivo_ausencia: ev.getTag('motivo_ausencia') || ''
   };
 }
 
@@ -2786,13 +2791,14 @@ function listarAgenda(body, token) {
   const de = new Date(body.de), ate = new Date(body.ate);
   if (isNaN(de) || isNaN(ate) || ate <= de) return {ok:false, erro:'Período inválido'};
   if ((ate - de) > 62*86400000) return {ok:false, erro:'Período longo demais (máximo 2 meses)'};
+  const veValor = veValorSessao(perfil);
   const visiveis = agendasVisiveis(perfil);
   const eventos = [], semAcesso = [];
   visiveis.forEach(function(prof) {
     if (!prof.agenda_id) return;
     const cal = agendaDe(prof);
     if (!cal) { semAcesso.push(prof.nome); return; }
-    cal.getEvents(de, ate).forEach(function(ev){ eventos.push(eventoParaTela(ev, prof)); });
+    cal.getEvents(de, ate).forEach(function(ev){ const o = eventoParaTela(ev, prof); if (!veValor) delete o.valor; eventos.push(o); });
   });
   eventos.sort(function(a,b){ return a.inicio.localeCompare(b.inicio); });
   return {ok:true, dados:eventos, sem_acesso:semAcesso,
@@ -2840,7 +2846,7 @@ function salvarEvento(body, token) {
   const ehPilates = /pilates/i.test(String(body.servico||''));
   const noHorario = cal.getEvents(inicio, fim).filter(function(ev){ return ev.getId() !== body.evento_id && !ev.isAllDayEvent(); });
   if (ehPilates) {
-    const alunas = noHorario.filter(function(ev){ return /pilates/i.test(String(ev.getTag('servico')||'')) && ev.getTag('status') !== 'falta'; });
+    const alunas = noHorario.filter(function(ev){ return /pilates/i.test(String(ev.getTag('servico')||'')) && ev.getTag('status') !== 'falta' && ev.getTag('status') !== 'justificada'; });
     if (alunas.length >= PILATES_VAGAS) return {ok:false, lotado:true, erro:'Turma cheia: ' + prof.nome + ' já tem ' + PILATES_VAGAS + ' alunas nesse horário'};
   }
   // Choque de horario na mesma agenda (o proprio evento, ao editar, nao conta)
@@ -2862,7 +2868,11 @@ function salvarEvento(body, token) {
   ev.setTag('paciente_id', pid);
   ev.setTag('servico', String(body.servico||''));
   ev.setTag('marcado_por', perfil.email);
-  return {ok:true, dados: eventoParaTela(ev, prof)};
+  // Valor da sessão fica numa etiqueta do evento, fora da descrição: não
+  // aparece no Google Agenda da profissional
+  if (body.valor !== undefined && veValorSessao(perfil)) ev.setTag('valor', String(body.valor||''));
+  const saida = eventoParaTela(ev, prof); if (!veValorSessao(perfil)) delete saida.valor;
+  return {ok:true, dados: saida};
 }
 
 function eventoComPermissao(body, token) {
@@ -2876,12 +2886,16 @@ function eventoComPermissao(body, token) {
   return {ev:ev, prof:prof};
 }
 
-const STATUS_EVENTO = ['', 'confirmado', 'realizado', 'falta'];
+const STATUS_EVENTO = ['', 'confirmado', 'realizado', 'falta', 'justificada'];
 function statusEvento(body, token) {
   if (STATUS_EVENTO.indexOf(String(body.status||'')) === -1) return {ok:false, erro:'Situação inválida'};
   const r = eventoComPermissao(body, token);
   if (r.erro) return {ok:false, erro:r.erro};
   r.ev.setTag('status', String(body.status||''));
+  // Falta ou ausência justificada: guarda o motivo (some quando volta a outra situação)
+  if (body.status === 'falta' || body.status === 'justificada') {
+    if (body.motivo !== undefined) r.ev.setTag('motivo_ausencia', String(body.motivo||'').slice(0, 300));
+  } else if (r.ev.getTag('motivo_ausencia')) r.ev.deleteTag('motivo_ausencia');
   let lancamento = '';
   if (body.status === 'realizado') lancamento = lancarAtendimento(r.ev, r.prof);
   else lancamento = retirarLancamento(r.ev);
@@ -2892,6 +2906,11 @@ function statusEvento(body, token) {
 // o faturamento e os repasses: acaba a digitacao dupla. O id da linha fica
 // na tag fin_id do evento, entao marcar "realizado" de novo nao duplica.
 // Pilates fica de fora: e mensalidade, lancada na aba propria.
+// Quem vê e mexe no valor das sessões: gestão, coordenação, recepção e administrativo
+function veValorSessao(perfil) {
+  return !!perfil && (perfil.role === 'admin' || perfil.role === 'coordenador' || /recep|comercial|administra/i.test(String(perfil.funcao||'')));
+}
+
 function lancarAtendimento(ev, prof) {
   const servico = String(ev.getTag('servico')||'');
   if (/pilates/i.test(servico)) return 'pilates';
@@ -2908,7 +2927,7 @@ function lancarAtendimento(ev, prof) {
     servico: servico,
     profissional: prof.nome,
     sessoes: 1,
-    valor: precoDoCatalogo(servico),
+    valor: ev.getTag('valor') || precoDoCatalogo(servico),
     pago: 'N\u00e3o',
     origem: 'agenda',
     evento_id: ev.getId()
