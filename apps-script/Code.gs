@@ -2745,6 +2745,7 @@ function equipeComAgenda() {
       funcao: col('funcao') === -1 ? '' : String(r[col('funcao')]||''),
       linhas: col('linhas') === -1 ? [] : String(r[col('linhas')]||'').toLowerCase().split(',').map(function(x){return x.trim();}).filter(Boolean),
       agenda_id: col('agenda_id') === -1 ? '' : String(r[col('agenda_id')]||'').trim(),
+      nivel: col('nivel_acesso') === -1 ? '' : String(r[col('nivel_acesso')]||'').trim().toLowerCase(),
       linhaPlanilha: i+1
     });
   }
@@ -2756,8 +2757,15 @@ function veTodasAgendas(perfil) {
   return perfil.role === 'admin' || ehRecepcao(perfil);
 }
 
-function agendasVisiveis(perfil) {
+// Agenda de quem e da gestao (nivel admin) e privada: so a gestao ve e marca
+// nela. Recepcao, coordenacao e profissionais nao enxergam nem conseguem
+// colocar atendimento ou reuniao ali.
+function equipeQueEnxerga(perfil) {
   const equipe = equipeComAgenda();
+  return perfil.role === 'admin' ? equipe : equipe.filter(function(p){ return p.nivel !== 'admin'; });
+}
+function agendasVisiveis(perfil) {
+  const equipe = equipeQueEnxerga(perfil);
   const eu = String(perfil.email||'').toLowerCase();
   if (veTodasAgendas(perfil)) return equipe;
   if (perfil.role === 'coordenador') {
@@ -2822,7 +2830,7 @@ function listarAgenda(body, token) {
   return {ok:true, dados:eventos, sem_acesso:semAcesso,
     profissionais: visiveis.map(function(p){ return {email:p.email, nome:p.nome, linhas:p.linhas, tem_agenda:!!p.agenda_id}; }),
     // Toda a equipe com agenda: reuniao pode juntar quem a pessoa nao ve na agenda
-    equipe: equipeComAgenda().filter(function(p){ return p.agenda_id; }).map(function(p){ return {email:p.email, nome:p.nome}; }),
+    equipe: equipeQueEnxerga(perfil).filter(function(p){ return p.agenda_id; }).map(function(p){ return {email:p.email, nome:p.nome}; }),
     feriados: feriadosEntre(de, ate).filter(function(f){ return !f.profissionais.length || f.profissionais.some(function(e){ return visEmails.indexOf(e) !== -1; }); }),
     pode_feriados: podeFeriados(perfil),
     pode_criar_agendas: perfil.role === 'admin'};
@@ -3317,7 +3325,7 @@ function salvarReuniao(body, token) {
   if (!titulo) return {ok:false, erro:'Informe o assunto da reunião'};
   const inicio = new Date(body.inicio), fim = new Date(body.fim);
   if (isNaN(inicio) || isNaN(fim) || fim <= inicio) return {ok:false, erro:'Horário inválido'};
-  const equipe = equipeComAgenda();
+  const equipe = equipeQueEnxerga(perfil);
   const quer = (body.participantes||[]).map(function(e){ return String(e).toLowerCase().trim(); });
   const part = equipe.filter(function(p){ return quer.indexOf(p.email) !== -1; });
   if (!part.length) return {ok:false, erro:'Escolha ao menos uma profissional'};

@@ -1967,8 +1967,9 @@ function demoAgenda(action, body) {
   const linhasDe = p => String(p.linhas||'').toLowerCase().split(',').map(x=>x.trim()).filter(Boolean);
   const minhas = linhasDe(equipe.find(p=>p.email===eu)||{});
   const todas = currentRole==='admin' || ehRecepcao();
-  const visiveis = equipe.filter(p=> todas || p.email===eu ||
-    (currentRole==='coordenador' && (!minhas.length || minhas.includes('todos') || linhasDe(p).some(l=>minhas.includes(l)))));
+  // Agenda de quem é da gestão (admin) é privada: só a gestão vê (como no Code.gs)
+  const visiveis = equipe.filter(p=> (currentRole==='admin' || p.nivel_acesso!=='admin') && (todas || p.email===eu ||
+    (currentRole==='coordenador' && (!minhas.length || minhas.includes('todos') || linhasDe(p).some(l=>minhas.includes(l))))));
   const visivel = email => visiveis.find(p=>p.email===String(email||'').toLowerCase());
   const comNome = e => ({...e, profissional:(equipe.find(p=>p.email===e.agenda_email)||{}).nome||''});
   // Feriados e reuniões: mesmo comportamento do Code.gs
@@ -1980,7 +1981,7 @@ function demoAgenda(action, body) {
     return {ok:true, dados:DEMO_DB.agenda.filter(e=>visivel(e.agenda_email) && new Date(e.inicio)<ate && new Date(e.fim)>de && (body.com_reunioes || e.tipo!=='reuniao'))
               .map(comNome).sort((a,b)=>a.inicio.localeCompare(b.inicio)),
             profissionais:visiveis.map(p=>({email:p.email, nome:p.nome, linhas:linhasDe(p), tem_agenda:!!p.agenda_id})),
-            equipe:equipe.filter(p=>p.agenda_id).map(p=>({email:p.email, nome:p.nome})),
+            equipe:equipe.filter(p=>p.agenda_id && (currentRole==='admin' || p.nivel_acesso!=='admin')).map(p=>({email:p.email, nome:p.nome})),
             feriados:fers.filter(f=>f.data>=diaISO(de) && f.data<=diaISO(ate)),
             pode_feriados:podeFer, sem_acesso:[], pode_criar_agendas: currentRole==='admin'};
   }
