@@ -2850,6 +2850,12 @@ function profVisivel(perfil, email) {
 }
 
 const PILATES_VAGAS = 3;
+function capacidadeDaProf(email, servico) {
+  let cfg = {};
+  try { cfg = JSON.parse(String(lerConfig().capacidade_equipe || '{}')) || {}; } catch(e) {}
+  const v = Number((cfg[String(email||'').toLowerCase()] || {}).vagas) || 0;
+  return v > 0 ? v : (/pilates/i.test(String(servico||'')) ? PILATES_VAGAS : 1);
+}
 function salvarEvento(body, token) {
   const perfil = perfilDaEquipe(token);
   if (!perfil) return {ok:false, erro:'Sem permissão'};
@@ -2877,13 +2883,15 @@ function salvarEvento(body, token) {
   // choque com outro tipo de atendimento).
   const ehPilates = /pilates/i.test(String(body.servico||''));
   const noHorario = cal.getEvents(inicio, fim).filter(function(ev){ return ev.getId() !== body.evento_id && !ev.isAllDayEvent(); });
-  if (ehPilates) {
-    const alunas = noHorario.filter(function(ev){ return /pilates/i.test(String(ev.getTag('servico')||'')) && ev.getTag('status') !== 'falta' && ev.getTag('status') !== 'justificada'; });
-    if (alunas.length >= PILATES_VAGAS) return {ok:false, lotado:true, erro:'Turma cheia: ' + prof.nome + ' já tem ' + PILATES_VAGAS + ' alunas nesse horário'};
-  }
+  // Pacientes por horario da profissional (Salas e capacidade, na gestao).
+  // Sem cadastro: PILATES_VAGAS no Pilates e 1 no resto. Com mais de 1 vaga,
+  // o horario cheio trava mesmo com "forcar"; com 1, o choque pede confirmacao.
+  const cap = capacidadeDaProf(prof.email, body.servico);
+  const pacientes = noHorario.filter(function(ev){ return ev.getTag('tipo') !== 'reuniao' && ev.getTag('status') !== 'falta' && ev.getTag('status') !== 'justificada'; });
+  if (cap > 1 && pacientes.length >= cap) return {ok:false, lotado:true, erro:(ehPilates ? 'Turma cheia: ' : 'Horário cheio: ') + prof.nome + ' já tem ' + cap + (ehPilates ? ' alunas' : ' pacientes') + ' nesse horário'};
   // Choque de horario na mesma agenda (o proprio evento, ao editar, nao conta)
   if (!body.forcar) {
-    const choque = noHorario.filter(function(ev){ return !(ehPilates && /pilates/i.test(String(ev.getTag('servico')||''))); });
+    const choque = cap > 1 ? noHorario.filter(function(ev){ return ev.getTag('tipo') === 'reuniao'; }) : noHorario;
     if (choque.length) return {ok:false, conflito:true, erro:'Já existe "' + choque[0].getTitle() + '" nesse horário na agenda de ' + prof.nome};
   }
 
