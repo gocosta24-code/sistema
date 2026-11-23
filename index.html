@@ -1257,7 +1257,19 @@ function sessaoExpirou() {
   }, 1200);
 }
 
+// obter_config é pedido por várias telas ao mesmo tempo (salas, capacidade,
+// timbrado): um pedido só, guardado por 1 minuto; salvar a config renova.
+let _cfgPromessa = null, _cfgEm = 0;
 async function apiBruto(action, body={}) {
+  if(action==='obter_config') {
+    if(_cfgPromessa && Date.now()-_cfgEm < 60000) return _cfgPromessa;
+    _cfgEm = Date.now(); _cfgPromessa = apiBrutoRede(action, body).then(r=>{ if(!r.ok) _cfgPromessa = null; return r; });
+    return _cfgPromessa;
+  }
+  if(action==='salvar_config') _cfgPromessa = null;
+  return apiBrutoRede(action, body);
+}
+async function apiBrutoRede(action, body={}) {
   const payload = JSON.stringify({...body, action, token: authToken});
 
   // POST não tem limite prático de tamanho — testado até 200 KB. Antes tudo
@@ -1862,6 +1874,7 @@ function demoApi(action, body) {
     }
     case 'redefinir_senha': return {ok:false, erro:'Não disponível no modo demonstração.'};
     case 'convidar_prof': return {ok:false, erro:'Não disponível no modo demonstração.'};
+    case 'ultimas_evolucoes': { const out={}; (DEMO_DB.evolucoes||[]).forEach(e=>{ if(e.origem==='infantil') return; const pid=String(e.paciente_id), d=String(e.data||'').slice(0,10); if(d && (!out[pid]||d>out[pid])) out[pid]=d; }); return {ok:true, dados:out}; }
     default: return {ok:false, erro:'Ação desconhecida no modo demo'};
   }
 }
@@ -5571,7 +5584,9 @@ async function loadAgenda() {
   if(_ag.profissionais.length===1) _agFiltro = _ag.profissionais[0].email;
   await Promise.all([carregarSalas(), carregarCapacidade()]);
   desenharAgenda(true);
-  if(!_agEstendeu) { _agEstendeu = true; estenderRepeticoes(); }
+  // Completar as séries "sem data para acabar" basta uma vez por dia em cada aparelho
+  if(!_agEstendeu) { _agEstendeu = true; let ult = ''; try { ult = localStorage.getItem('ag_estendeu')||''; } catch(e) {}
+    if(ult !== diaISO(new Date())) { try { localStorage.setItem('ag_estendeu', diaISO(new Date())); } catch(e) {} estenderRepeticoes(); } }
 }
 
 // Repetição sem data para acabar: o sistema mantém cerca de 6 semanas
@@ -11177,16 +11192,18 @@ const DIAS_SEM_EVOLUCAO = 14;
 
 async function calcularAlertas() {
   const pacs = await carregarTodosPacientes();
-  const [res, resReun, resPosAlta, resScore, resEvo] = await Promise.all([
+  const [res, resReun, resPosAlta, resScore, resUlt] = await Promise.all([
     api('listar',{tabela:'checklists'}),
     api('listar',{tabela:'reunioes'}),
     api('listar',{tabela:'monitoramentos'}),
     api('listar',{tabela:'myscore'}),
-    api('listar',{tabela:'evolucoes'}),
+    api('ultimas_evolucoes',{}),
   ]);
-  // Última evolução de cada paciente. Os registros internos da Avaliação
-  // infantil (origem 'infantil') não são atendimento e ficam de fora.
-  const ultimaEvo = {};
+  // Última evolução de cada paciente: o servidor já manda pronto (só a data).
+  // Servidor antigo, sem essa ação: baixa as evoluções como antes.
+  // Os registros internos da Avaliação infantil não contam como atendimento.
+  const ultimaEvo = resUlt.ok ? {...(resUlt.dados||{})} : {};
+  const resEvo = resUlt.ok ? {ok:false} : await api('listar',{tabela:'evolucoes'});
   (resEvo.ok?resEvo.dados||[]:[]).forEach(e=>{
     if(e.origem==='infantil') return;
     const pid = String(e.paciente_id), d = String(e.data||'').slice(0,10);

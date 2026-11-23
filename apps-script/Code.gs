@@ -20,10 +20,31 @@ const SHEET_ID = '12HfN3lxg-JVC-vT7_4FXC334xAakItc5jjYQt8lyCWk';
 // Endereco do sistema publicado - usado no e-mail de convite
 const URL_SISTEMA = 'https://gocosta24-code.github.io/sistema/';
 
+// --- VELOCIDADE -----------------------------------------------
+// Cada pedido do app e uma execucao nova do Apps Script. Abrir a planilha e
+// ler a mesma aba varias vezes no mesmo pedido era o que mais pesava: agora a
+// planilha abre uma vez e as abas de consulta (Tokens, Profissionais, Config,
+// Feriados) sao lidas uma vez por pedido. A sessao (token) e a Config ficam
+// tambem no cache do Google por alguns minutos, entre um pedido e outro.
+let _SS = null;
+const _MEMO = {};
 function getSpreadsheet() {
-  try { return SpreadsheetApp.openById(SHEET_ID); }
-  catch(e) { return SpreadsheetApp.getActiveSpreadsheet(); }
+  if (_SS) return _SS;
+  try { _SS = SpreadsheetApp.openById(SHEET_ID); }
+  catch(e) { _SS = SpreadsheetApp.getActiveSpreadsheet(); }
+  return _SS;
 }
+// Valores de uma aba de consulta, lidos uma vez por pedido
+function valoresAba(nome) {
+  if (_MEMO['aba:'+nome]) return _MEMO['aba:'+nome];
+  const sh = getSpreadsheet().getSheetByName(nome);
+  const v = sh ? sh.getDataRange().getValues() : [];
+  _MEMO['aba:'+nome] = v;
+  return v;
+}
+function esquecerAba(nome) { delete _MEMO['aba:'+nome]; }
+function cacheScript() { try { return CacheService.getScriptCache(); } catch(e) { return null; } }
+function esquecerToken(tk) { const c = cacheScript(); if (c && tk) try { c.remove('tk:'+tk); } catch(e) {} }
 
 const ABAS = {
   pacientes:      'Pacientes',
@@ -288,6 +309,7 @@ function handle(e) {
       case 'salvar_evento':     return resp(salvarEvento(body, token));
       case 'status_evento':     return resp(statusEvento(body, token));
       case 'excluir_evento':    return resp(excluirEvento(body, token));
+      case 'ultimas_evolucoes': return resp(ultimasEvolucoes(token));
       case 'listar_feriados':   return resp(listarFeriados(body, token));
       case 'salvar_feriado':    return resp(salvarFeriado(body, token));
       case 'excluir_feriado':   return resp(excluirFeriado(body, token));
@@ -388,10 +410,12 @@ function logout(token) {
   for (let i=dados.length-1;i>=1;i--) {
     if (dados[i][0]===token) sheet.deleteRow(i+1);
   }
+  esquecerToken(token);
   return {ok:true};
 }
 
 function salvarToken(token, email, role, refId) {
+  esquecerAba('Tokens');
   const ss = getSpreadsheet();
   const sheet = getOuCria(ss,'Tokens');
   if (sheet.getLastRow() === 0) {
@@ -408,32 +432,36 @@ function salvarToken(token, email, role, refId) {
   sheet.appendRow([token,email,role,expira.toISOString(), refId||'']);
 }
 
+// Sessao: procura no cache (10 min) e, se nao tiver, na aba Tokens
+function sessaoDoToken(token) {
+  if (!token) return null;
+  if (_MEMO['tk:'+token] !== undefined) return _MEMO['tk:'+token];
+  const c = cacheScript();
+  let s = null;
+  try { const x = c && c.get('tk:'+token); if (x) s = JSON.parse(x); } catch(e) {}
+  if (!s) {
+    try {
+      const dados = valoresAba('Tokens');
+      for (let i=1;i<dados.length;i++) {
+        if (dados[i][0]===token) {
+          s = {email:dados[i][1], role:dados[i][2], refId:dados[i][4]||'', expira:new Date(dados[i][3]).toISOString()};
+          try { if (c) c.put('tk:'+token, JSON.stringify(s), 600); } catch(e) {}
+          break;
+        }
+      }
+    } catch(e) {}
+  }
+  _MEMO['tk:'+token] = s;
+  return s;
+}
 function validarToken(token) {
-  if (!token) return false;
-  try {
-    const ss = getSpreadsheet();
-    const sheet = ss.getSheetByName('Tokens');
-    if (!sheet) return false;
-    const dados = sheet.getDataRange().getValues();
-    const agora = new Date();
-    for (let i=1;i<dados.length;i++) {
-      if (dados[i][0]===token && agora < new Date(dados[i][3])) return true;
-    }
-  } catch(e){}
-  return false;
+  const s = sessaoDoToken(token);
+  return !!s && new Date() < new Date(s.expira);
 }
 
 function getInfoToken(token) {
-  try {
-    const ss = getSpreadsheet();
-    const sheet = ss.getSheetByName('Tokens');
-    if (!sheet) return null;
-    const dados = sheet.getDataRange().getValues();
-    for (let i=1;i<dados.length;i++) {
-      if (dados[i][0]===token) return {email:dados[i][1], role:dados[i][2], refId:dados[i][4]||''};
-    }
-  } catch(e){}
-  return null;
+  const s = sessaoDoToken(token);
+  return s ? {email:s.email, role:s.role, refId:s.refId} : null;
 }
 
 function alterarSenha(body, token) {
@@ -471,7 +499,8 @@ const RESET_INTERVALO_MIN = 2;   // espera minima entre dois pedidos
 function acharProfissional(email) {
   const ss = getSpreadsheet();
   const sheet = getOuCria(ss,'Profissionais');
-  const dados = sheet.getDataRange().getValues();
+  const dados = valoresAba('Profissionais');
+  if (!dados.length) return null;
   const h = dados[0];
   const iEmail = h.indexOf('email');
   for (let i=1;i<dados.length;i++) {
@@ -613,7 +642,7 @@ function redefinirSenha(body) {
     if (st) {
       const td = st.getDataRange().getValues();
       for (let j=td.length-1;j>=1;j--) {
-        if (String(td[j][1]||'').toLowerCase() === email.toLowerCase()) st.deleteRow(j+1);
+        if (String(td[j][1]||'').toLowerCase() === email.toLowerCase()) { esquecerToken(td[j][0]); st.deleteRow(j+1); }
       }
     }
     return {ok:true};
@@ -2014,6 +2043,15 @@ const CONFIG_PADRAO = {
 };
 
 function lerConfig() {
+  if (_MEMO.config) return _MEMO.config;
+  const c = cacheScript();
+  try { const x = c && c.get('config'); if (x) { _MEMO.config = JSON.parse(x); return _MEMO.config; } } catch(e) {}
+  const cfg = lerConfigDaPlanilha();
+  try { if (c) c.put('config', JSON.stringify(cfg), 300); } catch(e) {}
+  _MEMO.config = cfg;
+  return cfg;
+}
+function lerConfigDaPlanilha() {
   const ss = getSpreadsheet();
   const sheet = ss.getSheetByName('Config');
   const cfg = {};
@@ -2043,6 +2081,7 @@ function obterConfig(token) {
 function salvarConfigClinica(body, token) {
   const info = getInfoToken(token);
   if (!info || info.role !== 'admin') return {ok:false, erro:'Sem permissao de admin'};
+  delete _MEMO.config; try { const c = cacheScript(); if (c) c.remove('config'); } catch(e) {}
 
   const ss = getSpreadsheet();
   const sheet = getOuCria(ss, 'Config');
@@ -2452,6 +2491,7 @@ function ocultarReservado(rows, token) {
 }
 
 function salvar(body) {
+  esquecerAba('Profissionais'); delete _MEMO.equipe;
   const tabela = ABAS[body.tabela];
   if (!tabela) return {ok:false,erro:'Tabela inv\u00e1lida'};
   if (!body.dados) return {ok:false,erro:'Dados vazios'};
@@ -2484,6 +2524,7 @@ function salvar(body) {
 }
 
 function atualizar(body) {
+  esquecerAba('Profissionais'); delete _MEMO.equipe;
   const tabela = ABAS[body.tabela];
   if (!tabela) return {ok:false,erro:'Tabela inv\u00e1lida'};
   if (!body.id) return {ok:false,erro:'ID n\u00e3o fornecido'};
@@ -2728,8 +2769,9 @@ function migrarSenhasParaHash() {
 // que nao aparecem para o paciente nem no titulo.
 
 function equipeComAgenda() {
-  const sheet = getOuCria(getSpreadsheet(), 'Profissionais');
-  const dados = sheet.getDataRange().getValues();
+  if (_MEMO.equipe) return _MEMO.equipe;
+  getOuCria(getSpreadsheet(), 'Profissionais');
+  const dados = valoresAba('Profissionais');
   if (dados.length < 2) return [];
   const h = dados[0];
   const col = function(n){ return h.indexOf(n); };
@@ -2750,7 +2792,8 @@ function equipeComAgenda() {
     });
   }
   // Recepcao e administrativo nao atendem: nao tem agenda de atendimento
-  return lista.filter(function(p){ return !ehRecepcao(p) && !ehAdministracao(p); });
+  _MEMO.equipe = lista.filter(function(p){ return !ehRecepcao(p) && !ehAdministracao(p); });
+  return _MEMO.equipe;
 }
 
 function veTodasAgendas(perfil) {
@@ -3121,6 +3164,7 @@ function apagarTokensDe(email, role) {
   for (let i = dados.length-1; i >= 1; i--) {
     if (String(dados[i][1]||'').toLowerCase() !== email.toLowerCase()) continue;
     if (role && (role === 'paciente') !== (String(dados[i][2]) === 'paciente')) continue;
+    esquecerToken(dados[i][0]);
     sheet.deleteRow(i+1);
   }
 }
@@ -3230,6 +3274,7 @@ function dataISOdaCelula(v) {
   return String(v||'').slice(0,10);
 }
 function todosFeriados() {
+  if (_MEMO.feriados) return _MEMO.feriados;
   const sheet = abaComCabecalho('Feriados', FERIADO_CAB);
   const dados = sheet.getDataRange().getValues();
   const h = dados[0], out = [];
@@ -3242,6 +3287,7 @@ function todosFeriados() {
     o.linha = i+1;
     out.push(o);
   }
+  _MEMO.feriados = out;
   return out;
 }
 function feriadosEntre(de, ate) {
@@ -3288,6 +3334,7 @@ function salvarFeriado(body, token) {
     linhas.push(h.map(function(k){ return v[k] === undefined ? '' : v[k]; }));
   });
   if (linhas.length) sheet.getRange(sheet.getLastRow()+1, 1, linhas.length, h.length).setValues(linhas);
+  delete _MEMO.feriados;
   // Atendimentos que ja estavam marcados nesses dias: a tela avisa para remarcar
   const tz = Session.getScriptTimeZone();
   const marcados = [];
@@ -3501,4 +3548,33 @@ function excluirLead(body, token) {
     if (pac && String(pac.obj.status||'').toLowerCase() === 'lead') { pac.sheet.deleteRow(pac.linha); pacienteRemovido = true; }
   }
   return {ok:true, paciente_removido:pacienteRemovido};
+}
+
+
+// Data da ultima evolucao de cada paciente que a pessoa ve. Os alertas da
+// tela inicial so precisam disso; antes a tela baixava a aba Evolucoes
+// inteira a cada entrada, e ela so cresce.
+function ultimasEvolucoes(token) {
+  const perfil = perfilDaEquipe(token);
+  if (!perfil) return {ok:false, erro:'Sem permissão'};
+  const sh = getSpreadsheet().getSheetByName(ABAS.evolucoes);
+  if (!sh || sh.getLastRow() < 2) return {ok:true, dados:{}};
+  const h = sh.getRange(1,1,1,sh.getLastColumn()).getValues()[0];
+  const iP = h.indexOf('paciente_id'), iD = h.indexOf('data'), iO = h.indexOf('origem');
+  if (iP === -1 || iD === -1) return {ok:true, dados:{}};
+  const n = sh.getLastRow()-1;
+  const col = function(i){ return i === -1 ? null : sh.getRange(2, i+1, n, 1).getValues(); };
+  const P = col(iP), D = col(iD), O = col(iO);
+  const tz = Session.getScriptTimeZone();
+  const pacs = perfil.role === 'admin' ? null : mapaPacientes(), vis = {};
+  const out = {};
+  for (let k=0;k<n;k++) {
+    const pid = String(P[k][0]||''); if (!pid) continue;
+    if (O && String(O[k][0]||'') === 'infantil') continue;
+    if (pacs) { if (!(pid in vis)) vis[pid] = podeVerPaciente(perfil, pacs[pid]); if (!vis[pid]) continue; }
+    const v = D[k][0];
+    const d = v instanceof Date ? Utilities.formatDate(v, tz, 'yyyy-MM-dd') : String(v||'').slice(0,10);
+    if (d && (!out[pid] || d > out[pid])) out[pid] = d;
+  }
+  return {ok:true, dados:out};
 }
