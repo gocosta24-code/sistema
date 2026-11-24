@@ -2827,6 +2827,32 @@ function agendaDe(prof) {
   try { return CalendarApp.getCalendarById(prof.agenda_id); } catch(e) { return null; }
 }
 
+// ── PRIMEIRO ATENDIMENTO NA CASA ──
+// Marcado na hora de criar o agendamento: a pessoa nunca teve evolução
+// registrada nem sessão antes dessa (falta e ausência justificada não contam).
+// Quem já veio fica guardado no cache por 6 h, para séries não pesarem.
+function pacientesComEvolucao() {
+  if (_MEMO.comEvo) return _MEMO.comEvo;
+  const out = {};
+  const sh = getSpreadsheet().getSheetByName(ABAS.evolucoes);
+  if (sh && sh.getLastRow() > 1) {
+    const h = sh.getRange(1,1,1,sh.getLastColumn()).getValues()[0], i = h.indexOf('paciente_id');
+    if (i !== -1) sh.getRange(2, i+1, sh.getLastRow()-1, 1).getValues().forEach(function(r){ if (r[0]) out[String(r[0])] = true; });
+  }
+  return (_MEMO.comEvo = out);
+}
+function ehPrimeiraVez(pid, inicio, idNovo) {
+  const c = cacheScript(), k = 'javeio:' + pid;
+  const lembrar = function(){ if (c) try { c.put(k, '1', 21600); } catch(e) {} return false; };
+  if (c) try { if (c.get(k)) return false; } catch(e) {}
+  if (pacientesComEvolucao()[String(pid)]) return lembrar();
+  const antes = sessoesDoPaciente(pid, new Date(inicio.getTime() - 730*86400000), inicio).filter(function(x){
+    const st = x.ev.getTag('status') || '';
+    return x.ev.getId() !== idNovo && x.ev.getTag('tipo') !== 'reuniao' && st !== 'falta' && st !== 'justificada';
+  });
+  return antes.length ? lembrar() : true;
+}
+
 function eventoParaTela(ev, prof) {
   return {
     id: ev.getId(),
@@ -2847,7 +2873,8 @@ function eventoParaTela(ev, prof) {
     motivo_ausencia: ev.getTag('motivo_ausencia') || '',
     tipo: ev.getTag('tipo') || '',
     reuniao_id: ev.getTag('reuniao_id') || '',
-    participantes: ev.getTag('participantes') || ''
+    participantes: ev.getTag('participantes') || '',
+    primeira: ev.getTag('primeira') === '1'
   };
 }
 
@@ -2949,6 +2976,7 @@ function salvarEvento(body, token) {
   } else {
     ev = cal.createEvent(titulo, inicio, fim, {description: String(body.obs||'')});
     ev.setTag('origem', 'sistema');
+    if (pid && ehPrimeiraVez(pid, inicio, ev.getId())) ev.setTag('primeira', '1');
   }
   ev.setTag('paciente_id', pid);
   ev.setTag('servico', String(body.servico||''));
@@ -3250,7 +3278,7 @@ function historicoPaciente(body, token) {
   const de = new Date(agora.getTime() - 548*86400000), ate = new Date(agora.getTime() + 120*86400000);
   const dados = sessoesDoPaciente(body.paciente_id, de, ate).map(function(x) {
     const ev = x.ev;
-    return {id: ev.getId(), agenda_email: x.prof.email, profissional: x.prof.nome, titulo: ev.getTitle(),
+    return {id: ev.getId(), agenda_email: x.prof.email, profissional: x.prof.nome, titulo: ev.getTitle(), primeira: ev.getTag('primeira') === '1',
       inicio: ev.getStartTime().toISOString(), fim: ev.getEndTime().toISOString(),
       servico: ev.getTag('servico') || '', sala: salaDaDescricao(ev.getDescription()),
       status: ev.getTag('status') || '', aviso: ev.getTag('aviso_paciente') || '',

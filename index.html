@@ -794,6 +794,9 @@ tr.pc-atencao td:first-child{box-shadow:inset 3px 0 0 var(--amber);}
 .agx-nv{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;background:var(--amber);color:#fff;border-radius:4px;padding:1px 5px;flex-shrink:0;}
 .agx-ev.avisou{background:repeating-linear-gradient(135deg,#fff 0 6px,var(--amber-lt) 6px 12px);box-shadow:inset 3px 0 0 var(--amber),0 0 0 1.5px var(--sur);}
 .agx-det-aviso b{color:var(--amber);}
+.agx-1a{display:inline-block;margin-left:5px;padding:0 6px;border-radius:9px;background:#C9A227;color:#fff;font-size:10px;font-weight:700;line-height:16px;vertical-align:1px;white-space:nowrap;}
+.agx-1a-p{position:absolute;top:2px;right:2px;width:7px;height:7px;border-radius:50%;background:#C9A227;}
+.agx-det-1a b{color:#8a6d12;}
 .ps-item{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--bor);}
 .ps-item:last-of-type{border-bottom:0;}
 .ps-q{display:flex;flex-direction:column;font-size:14px;min-width:0;}
@@ -2051,7 +2054,11 @@ function demoAgenda(action, body) {
     const partes = String(body.paciente_nome||'Paciente').trim().split(/\s+/);
     const titulo = partes[0]+(partes.length>1?' '+partes[partes.length-1].charAt(0)+'.':'')+(body.servico?' · '+body.servico:'');
     let e = DEMO_DB.agenda.find(x=>x.id===body.evento_id);
-    if(!e) { e = {id:'ev'+Date.now(), agenda_email:prof.email, status:'', do_sistema:true}; DEMO_DB.agenda.push(e); }
+    if(!e) { e = {id:'ev'+Date.now(), agenda_email:prof.email, status:'', do_sistema:true};
+      const pid = body.paciente_id||'';
+      if(pid && !(DEMO_DB.evolucoes||[]).some(v=>String(v.paciente_id)===String(pid))
+         && !DEMO_DB.agenda.some(x=>x.paciente_id===pid && x.tipo!=='reuniao' && new Date(x.inicio)<ini && x.status!=='falta' && x.status!=='justificada')) e.primeira = true;
+      DEMO_DB.agenda.push(e); }
     Object.assign(e, {titulo, inicio:ini.toISOString(), fim:fim.toISOString(), paciente_id:body.paciente_id||'', servico:body.servico||'', obs:body.obs||''});
     if(body.valor!==undefined) e.valor = String(body.valor||'');
     return {ok:true, dados:comNome(e)};
@@ -3211,6 +3218,108 @@ function copiarPix() {
 // mensagens novas da equipe). O paciente confirma ou avisa que não vem; o
 // aviso chega na central de mensagens, na agenda e no e-mail da profissional.
 // ═══════════════════════════════════════════════
+// ── Sessões na agenda do celular do paciente ──
+// Um arquivo .ics (abre no iPhone, Android, Outlook e Google) com as próximas
+// sessões, cada uma com lembrete 2 h antes, e links do Google Agenda. É uma
+// fotografia do momento: se a sessão mudar, é só mandar de novo.
+const CASA_ENDERECO = 'Casa Oliveira Saúde, Rua Dr. Samuel Porto, 396 - Saúde, São Paulo - SP';
+const CASA_ZAP = '(11) 96579-0254';
+const sessoesParaAgenda = lista => (lista||[]).filter(e=>new Date(e.inicio) > new Date() && !e.aviso && !ehAusencia(e.status))
+  .sort((a,b)=>String(a.inicio).localeCompare(String(b.inicio)));
+const tituloAgenda = e => (e.servico||'Atendimento')+' · Casa Oliveira';
+const textoAgenda = e => [e.profissional?'Com '+e.profissional:'', e.sala||''].filter(Boolean).join(' · ')
+  + '\nNão vai conseguir vir? Avise pela área do paciente ou pelo WhatsApp '+CASA_ZAP+'.';
+const icsHora = iso => new Date(iso).toISOString().replace(/[-:]/g,'').replace(/\.\d+/,'');
+const icsTxt = s => String(s||'').replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\r?\n/g,'\\n');
+function icsDobra(l) { // linhas de até 75 bytes, sem partir acento ao meio
+  const enc = new TextEncoder(), out = []; let cur = '', n = 0;
+  for(const ch of l) { const b = enc.encode(ch).length; if(n + b > 74) { out.push(cur); cur = ' '; n = 1; } cur += ch; n += b; }
+  out.push(cur); return out.join('\r\n');
+}
+function icsDasSessoes(lista) {
+  const agora = icsHora(new Date().toISOString());
+  const L = ['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Casa Oliveira Saude//Agenda//PT','CALSCALE:GREGORIAN','METHOD:PUBLISH','X-WR-CALNAME:Casa Oliveira'];
+  lista.forEach(e=>{
+    L.push('BEGIN:VEVENT', 'UID:'+String(e.id||e.inicio).replace(/[^\w.@-]/g,'')+'.casaoliveira', 'DTSTAMP:'+agora,
+      'DTSTART:'+icsHora(e.inicio), 'DTEND:'+icsHora(e.fim||new Date(new Date(e.inicio).getTime()+3600000).toISOString()),
+      'SUMMARY:'+icsTxt(tituloAgenda(e)), 'LOCATION:'+icsTxt(CASA_ENDERECO), 'DESCRIPTION:'+icsTxt(textoAgenda(e)),
+      'BEGIN:VALARM','ACTION:DISPLAY','DESCRIPTION:'+icsTxt(tituloAgenda(e)),'TRIGGER:-PT2H','END:VALARM', 'END:VEVENT');
+  });
+  L.push('END:VCALENDAR');
+  return L.map(icsDobra).join('\r\n')+'\r\n';
+}
+const arquivoAgenda = lista => new File([icsDasSessoes(lista)], 'sessoes-casa-oliveira.ics', {type:'text/calendar'});
+const linkGoogleSessao = e => 'https://calendar.google.com/calendar/render?action=TEMPLATE'
+  + '&text='+encodeURIComponent(tituloAgenda(e))
+  + '&dates='+icsHora(e.inicio)+'/'+icsHora(e.fim||e.inicio)
+  + '&details='+encodeURIComponent(textoAgenda(e))
+  + '&location='+encodeURIComponent(CASA_ENDERECO);
+const ehIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+function baixarAgenda(lista) {
+  const ics = icsDasSessoes(lista);
+  if(ehIOS()) { location.href = 'data:text/calendar;charset=utf-8,'+encodeURIComponent(ics); return; } // abre o "Adicionar ao Calendário"
+  const url = URL.createObjectURL(new Blob([ics], {type:'text/calendar;charset=utf-8'}));
+  const a = document.createElement('a'); a.href = url; a.download = 'sessoes-casa-oliveira.ics';
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url), 4000);
+}
+const fmtCurtoAgenda = e => maiuscula(new Date(e.inicio).toLocaleDateString('pt-BR',{weekday:'short', day:'2-digit', month:'2-digit'}).replace('.',''))+' às '+horaDe(e.inicio);
+
+// Área do paciente: "Colocar na minha agenda"
+function agendaCelularPaciente() {
+  const lista = sessoesParaAgenda(_pacAgenda);
+  if(!lista.length) { showToast('Nenhuma sessão marcada para colocar na agenda'); return; }
+  popupPaciente(`<div class="pp-ico">${icone('agenda',26)}</div>
+    <div class="pp-t">Colocar na minha agenda</div>
+    <div class="pp-d">${lista.length===1?'Sua próxima sessão vai':'Suas '+lista.length+' próximas sessões vão'} para a agenda do celular, com aviso 2 horas antes.</div>
+    <div class="pp-bts" style="flex-direction:column;align-items:stretch">
+      <button class="savebtn" style="margin:0" onclick="baixarAgenda(sessoesParaAgenda(_pacAgenda))">Adicionar todas${ehIOS()?'':' (arquivo de agenda)'}</button>
+    </div>
+    <div class="pt-nota" style="text-align:left;margin-top:14px">Usa o Google Agenda? Adicione uma por uma:</div>
+    <div style="text-align:left;max-height:210px;overflow:auto">${lista.map(e=>`<div class="ps-item" style="padding:7px 0"><span style="font-size:13.5px">${esc(fmtCurtoAgenda(e))}${e.servico?' · '+esc(e.servico):''}</span>
+      <a class="chip ch-sage" style="text-decoration:none" target="_blank" rel="noopener" href="${linkGoogleSessao(e)}">Google Agenda</a></div>`).join('')}</div>
+    <div class="pt-nota" style="text-align:left">Se um horário mudar, a equipe avisa e você adiciona de novo.</div>
+    <button class="ff-link pp-x" onclick="fecharPopupPaciente()">Fechar</button>`);
+}
+
+// Equipe: mandar as próximas sessões para a agenda do paciente pelo WhatsApp
+async function enviarAgendaAoPaciente(pacId) {
+  const p = (_todosPacientes||[]).find(x=>String(x.id)===String(pacId)) || {};
+  document.getElementById('sheetTitle').textContent = 'Agenda do paciente';
+  document.getElementById('sheetBody').innerHTML = loadingHTML();
+  openSheet();
+  const r = await api('historico_paciente',{paciente_id:pacId});
+  if(!r.ok) { document.getElementById('sheetBody').innerHTML = `<div class="pt-nota">${esc(r.erro||'Não foi possível ler a agenda')}</div>`; return; }
+  const lista = sessoesParaAgenda((r.dados||[]).map(e=>({...e, servico:e.servico||String(e.titulo||'').split(' · ')[1]||''})));
+  if(!lista.length) { document.getElementById('sheetBody').innerHTML = '<div class="pt-nota">Nenhuma sessão futura marcada para este paciente.</div>'; return; }
+  const nome = String(p.nome||'').split(' ')[0];
+  const tel = String(p.telefone||p.whatsapp||'').replace(/\D/g,'');
+  const zap = tel ? 'https://wa.me/'+(tel.length<=11?'55'+tel:tel) : 'https://wa.me/';
+  const linhas = lista.slice(0,12).map(e=>'• '+fmtCurtoAgenda(e)+(e.servico?' · '+e.servico:'')+(e.profissional?' com '+e.profissional.split(' ')[0]:'')).join('\n')
+    + (lista.length>12 ? '\n… e mais '+(lista.length-12)+' sessões' : '');
+  const msg = (anexo) => `Oi${nome?', '+nome:''}! Aqui são os seus próximos horários na Casa Oliveira 💛\n\n${linhas}\n\n`
+    + (anexo ? 'No arquivo anexo estão todas as sessões: é só abrir e tocar em "Adicionar" para entrarem na agenda do seu celular, com aviso 2 horas antes.\n\n' : '')
+    + 'Se precisar remarcar, é só responder aqui.';
+  const file = arquivoAgenda(lista);
+  document.getElementById('sheetBody').innerHTML = `
+    <div class="pt-nota" style="margin-top:0">${lista.length===1?'1 sessão marcada':lista.length+' sessões marcadas'} para ${esc(p.nome||'o paciente')}. O arquivo coloca todas na agenda do celular da pessoa (iPhone, Android, Google ou Outlook), com aviso 2 horas antes.</div>
+    <div class="card" style="white-space:pre-line;font-size:13.5px;padding:12px 14px;margin:10px 0">${esc(msg(true))}</div>
+    <div class="agx-acoes" style="flex-direction:column;align-items:stretch">
+      <button class="savebtn" style="margin:0" id="agpEnviar">Enviar arquivo e mensagem</button>
+      <a class="backbtn" style="text-align:center;text-decoration:none" target="_blank" rel="noopener" href="${zap}?text=${encodeURIComponent(msg(false))}">Enviar só a mensagem${tel?'':' (sem telefone no cadastro)'}</a>
+      <button class="backbtn" id="agpBaixar">Baixar arquivo da agenda (.ics)</button>
+    </div>
+    <div class="pt-nota">No computador, o arquivo é baixado e a conversa abre com a mensagem pronta: é só anexar o arquivo. Se um horário mudar depois, mande de novo.</div>`;
+  document.getElementById('agpBaixar').onclick = () => baixarAgenda(lista);
+  document.getElementById('agpEnviar').onclick = async () => {
+    if(navigator.canShare && navigator.canShare({files:[file]})) {
+      try { await navigator.share({files:[file], text:msg(true)}); return; }
+      catch(err) { if(err && err.name==='AbortError') return; }
+    }
+    baixarAgenda(lista);
+    window.open(zap+'?text='+encodeURIComponent(msg(true)), '_blank', 'noopener');
+  };
+}
+
 let _pacAgenda = [];
 const fmtSessao = e => maiuscula(new Date(e.inicio).toLocaleDateString('pt-BR',{weekday:'long', day:'numeric', month:'long'}))+' às '+horaDe(e.inicio);
 
@@ -3226,6 +3335,7 @@ function proximasSessoesHTML() {
         : `<button class="addbtn" onclick="responderSessao('${esc(e.id)}','confirmar')">Confirmar</button>`}
         ${e.aviso ? `<button class="ff-link" onclick="responderSessao('${esc(e.id)}','confirmar')">Vou sim</button>` : `<button class="ff-link" onclick="avisarAusencia('${esc(e.id)}')">Não vou poder ir</button>`}</div>
     </div>`).join('')}
+    <button class="backbtn" style="margin-top:12px;display:flex;align-items:center;gap:8px" onclick="agendaCelularPaciente()">${icone('agenda',16)} Colocar na minha agenda do celular</button>
     <div class="pt-nota">Não vai conseguir vir? Avise por aqui o quanto antes: a equipe é avisada na hora e combina outro horário com você.</div>
   </div>`;
 }
@@ -5775,11 +5885,11 @@ function gradeAgenda(varias) {
       const sala = e.sala && !porSala ? esc(e.sala) : '';
       if(estreito) return `<button class="agx-ev agx-mini st-${st||'agendado'}${e.do_sistema&&!reun?' mov':''}${reun?' reun':''}" data-id="${esc(e.id)}" data-ag="${esc(e.agenda_email)}"
         style="--c:${cor};top:${top}px;height:${alt}px;left:calc(${faixa*100/de}% + 1px);width:calc(${100/de}% - 2px)"
-        title="${esc(e.titulo)} · ${horaDe(e.inicio)}–${horaDe(e.fim)}${prof?' · '+prof:''}${sala?' · '+sala:''}">${st?`<b class="agx-st st-${st}">${AG_ICONE[st]}</b>`:''}<span class="agx-ini">${esc(nome.split(' ').map(x=>x[0]).join('').slice(0,2))}</span></button>`;
+        title="${e.primeira?'1ª vez na Casa · ':''}${esc(e.titulo)} · ${horaDe(e.inicio)}–${horaDe(e.fim)}${prof?' · '+prof:''}${sala?' · '+sala:''}">${e.primeira&&!reun?'<i class="agx-1a-p"></i>':''}${st?`<b class="agx-st st-${st}">${AG_ICONE[st]}</b>`:''}<span class="agx-ini">${esc(nome.split(' ').map(x=>x[0]).join('').slice(0,2))}</span></button>`;
       return `<button class="agx-ev st-${st||'agendado'}${e.do_sistema&&!reun?' mov':''}${e.aviso?' avisou':''}${reun?' reun':''}" data-id="${esc(e.id)}" data-ag="${esc(e.agenda_email)}"
         style="--c:${cor};top:${top}px;height:${alt}px;left:calc(${faixa*100/de}% + 2px);width:calc(${100/de}% - 4px)"
         title="${esc(e.titulo)} · ${horaDe(e.inicio)}–${horaDe(e.fim)}${prof?' · '+prof:''}${sala?' · '+sala:''}${e.rep?' · repete sem data para acabar':''}">
-        <span class="agx-et">${st?`<b class="agx-st st-${st}">${AG_ICONE[st]}</b>`:''}${reun?'<span class="agx-rep" aria-label="Reunião">👥</span>':''}<span class="agx-en">${esc(nome.replace(/^\[Não vem\] /,''))}</span>${e.aviso?'<span class="agx-nv">não vem</span>':''}${e.reposDe?'<span class="agx-rp" title="Reposição">rep.</span>':''}${e.rep?'<span class="agx-rep" aria-label="Repete">↻</span>':''}${e.prog?`<span class="agx-rep" title="Sessão ${e.prog.k} de ${e.prog.n} do programa">${e.prog.k}/${e.prog.n}</span>`:''}${curto?`<span class="agx-eh">${horaDe(e.inicio)}</span>`:''}</span>
+        <span class="agx-et">${st?`<b class="agx-st st-${st}">${AG_ICONE[st]}</b>`:''}${reun?'<span class="agx-rep" aria-label="Reunião">👥</span>':''}<span class="agx-en">${esc(nome.replace(/^\[Não vem\] /,''))}</span>${e.primeira&&!reun?'<span class="agx-1a" title="Primeiro atendimento na Casa">1ª vez</span>':''}${e.aviso?'<span class="agx-nv">não vem</span>':''}${e.reposDe?'<span class="agx-rp" title="Reposição">rep.</span>':''}${e.rep?'<span class="agx-rep" aria-label="Repete">↻</span>':''}${e.prog?`<span class="agx-rep" title="Sessão ${e.prog.k} de ${e.prog.n} do programa">${e.prog.k}/${e.prog.n}</span>`:''}${curto?`<span class="agx-eh">${horaDe(e.inicio)}</span>`:''}</span>
         ${curto?'':`<span class="agx-es">${horaDe(e.inicio)}–${horaDe(e.fim)}${serv?' · '+esc(serv):''}</span>${(prof||sala) && alt>=58?`<span class="agx-es agx-ep">${[prof,sala].filter(Boolean).join(' · ')}</span>`:''}`}
       </button>`;
     }).join('');
@@ -5916,6 +6026,7 @@ function detalheAtendimento(agendaEmail, eventoId) {
       <div class="agx-det-l"><span>Quando</span><b>${esc(maiuscula(ini.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'})))} · ${horaDe(e.inicio)} às ${horaDe(e.fim)}</b></div>
       <div class="agx-det-l"><span>Profissional</span><b><i style="background:${agCor(e.agenda_email)}"></i>${esc(e.profissional||agProfNome(e.agenda_email))}</b></div>
       ${e.servico?`<div class="agx-det-l"><span>Serviço</span><b>${esc(e.servico)}</b></div>`:''}
+      ${e.primeira?`<div class="agx-det-l agx-det-1a"><span>Primeira vez</span><b>Primeiro atendimento na Casa: receber com acolhimento, apresentar o espaço e conferir o cadastro</b></div>`:''}
       ${e.sala?`<div class="agx-det-l"><span>Sala</span><b>${esc(e.sala)}</b></div>`:''}
       ${_veValorCatalogo && e.servico && !ehPilates(e.servico) ? `<div class="agx-det-l"><span>Valor</span><b>${(()=>{ const v = numDe(e.valor) || precoCatalogo(e.servico);
         return (v ? fmtMoeda(v) : 'sem valor')+(e.valor && Math.abs(numDe(e.valor)-precoCatalogo(e.servico))>0.009 ? ' <small style="font-weight:400;color:var(--ink3)">(combinado)</small>' : !e.valor && v ? ' <small style="font-weight:400;color:var(--ink3)">(tabela)</small>' : ''); })()}
@@ -5944,6 +6055,7 @@ function detalheAtendimento(agendaEmail, eventoId) {
     </div>
     ${!e.rep && !passou ? `<div class="agx-encerrar"><div><b>Excluir este e os próximos iguais</b><div class="pt-nota" style="margin:2px 0 0">Tira da agenda todas as sessões de ${esc(String(e.titulo||'').split(' · ')[0])} ${esc(DIAS_SEMANA[new Date(e.inicio).getDay()].toLowerCase())} às ${horaDe(e.inicio)} com esta profissional, a partir desta.</div></div>
       <button class="backbtn" style="color:var(--rose)" onclick="excluirProximosIguais(${ref},this)">Excluir a partir de ${new Date(e.inicio).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})}</button></div>` : ''}
+    ${e.paciente_id && !passou ? `<button class="backbtn" style="margin-top:12px" onclick="enviarAgendaAoPaciente('${esc(e.paciente_id)}')">Enviar as próximas sessões para a agenda do paciente</button>` : ''}
     ${e.paciente_id ? `<button class="backbtn" style="margin-top:12px" onclick="abrirPlanoPaciente('${esc(e.paciente_id)}','${esc(String(e.titulo||'').split(' · ')[0].replace(/'/g,''))}')">Ver ou mudar o plano de horários do paciente</button>` : ''}
     ${e.rep && e.do_sistema ? `<div class="agx-encerrar"><div><b>Encerrar a repetição</b><div class="pt-nota" style="margin:2px 0 0">Cancela este e os próximos atendimentos da série. Os anteriores ficam como estão.</div></div>
       <button class="backbtn" style="color:var(--rose)" onclick="encerrarRepeticao(${ref})">Encerrar a partir de ${new Date(e.inicio).toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})}</button></div>` : ''}`;
@@ -5960,7 +6072,7 @@ function cartaoAtendimento(e, mostrarProf) {
       <div style="min-width:52px;font-weight:700">${e.dia_inteiro?'Dia todo':esc(horaDe(e.inicio))}
         ${e.dia_inteiro?'':`<div style="font-size:11px;font-weight:400;color:var(--ink3)">até ${esc(horaDe(e.fim))}</div>`}</div>
       <div style="flex:1;min-width:0">
-        <div style="font-weight:600">${esc(e.titulo||'(sem título)')}</div>
+        <div style="font-weight:600">${esc(e.titulo||'(sem título)')}${e.primeira?' <span class="agx-1a">1ª vez</span>':''}</div>
         <div style="font-size:12.5px;color:var(--ink3)">${[mostrarProf?esc(e.profissional):'', e.sala?esc(e.sala):'', e.rep?'↻ repete':'', e.nota?esc(e.nota):''].filter(Boolean).join(' · ')}</div>
       </div>
       <span class="chip ${st.c}">${st.t}</span>
@@ -6602,12 +6714,14 @@ async function lembretesWhats(dias) {
     const nome = String(p.nome||String(e.titulo||'').split(' · ')[0]).split(' ')[0];
     const ref = `'${esc(e.agenda_email)}','${esc(e.id)}'`;
     const quando = nomeDia+' ('+d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})+'), às '+horaDe(e.inicio);
-    const txt = `Oi, ${nome}! Passando para lembrar do seu atendimento${e.servico?' de '+e.servico:''} ${quando}, aqui na Casa Oliveira. Podemos confirmar?`;
+    const txt = e.primeira
+      ? `Oi, ${nome}! Que alegria receber você ${quando} para o seu primeiro atendimento${e.servico?' de '+e.servico:''} aqui na Casa Oliveira 💛 Estamos na Rua Dr. Samuel Porto, 396, pertinho do Metrô Saúde. Se puder, chegue uns 10 minutinhos antes para conhecer a Casa com calma. Podemos confirmar?`
+      : `Oi, ${nome}! Passando para lembrar do seu atendimento${e.servico?' de '+e.servico:''} ${quando}, aqui na Casa Oliveira. Podemos confirmar?`;
     const link = tel ? `https://wa.me/${tel.length<=11?'55'+tel:tel}?text=${encodeURIComponent(txt)}` : '';
     const env = lzEnviado(e.id), conf = e.status==='confirmado' || e.confirmado_paciente;
     return `<div class="lz-l${env||conf?' ok':''}">
       <div class="lz-h">${horaDe(e.inicio)}</div>
-      <div class="lz-n"><b>${esc(p.nome||String(e.titulo||'').split(' · ')[0])}</b><small>${esc([e.servico, e.profissional||agProfNome(e.agenda_email)].filter(Boolean).join(' · '))}</small></div>
+      <div class="lz-n"><b>${esc(p.nome||String(e.titulo||'').split(' · ')[0])}${e.primeira?' <span class="agx-1a">1ª vez</span>':''}</b><small>${esc([e.servico, e.profissional||agProfNome(e.agenda_email)].filter(Boolean).join(' · '))}</small></div>
       <div class="lz-a">${conf ? '<span class="chip ch-sage">confirmado</span>'
         : `${link ? `<a class="chip ${env?'':'ch-sage'}" style="text-decoration:none" target="_blank" rel="noopener" href="${link}" onclick="lzMarcar('${esc(e.id)}');this.closest('.lz-l').classList.add('ok');this.textContent='enviado'">${env?'enviado':'WhatsApp'}</a>` : '<small style="color:var(--rose)">sem telefone</small>'}
            <button class="ff-link" onclick="statusAtendimento(${ref},'confirmado');this.outerHTML='<span class=&quot;chip ch-sage&quot;>confirmado</span>'">confirmou</button>`}</div>
@@ -10387,6 +10501,7 @@ function desenharVisaoGeral() {
       ${futuras.length ? futuras.slice(0,5).map(e=>`<div class="vg-l"><span>${esc(dLonga(e.inicio))}</span><b>${esc(e.servico||'')}${e.aviso?' <span class="chip ch-amber">não vem</span>':e.confirmado_paciente||e.status==='confirmado'?' <span class="chip ch-sage">confirmado</span>':''}</b></div>`).join('')
         +(futuras.length>5?`<div class="pt-nota">e mais ${futuras.length-5} marcadas</div>`:'')
         : '<div class="vg-tudo">Nada marcado.</div>'}
+      ${futuras.some(e=>!e.aviso && !ehAusencia(e.status)) ? `<button class="backbtn" style="margin-top:10px;width:100%" onclick="enviarAgendaAoPaciente('${esc(p.id)}')">Enviar para a agenda do paciente</button>` : ''}
       <button class="ff-link" style="margin-top:8px" onclick="irAba('Plano e horários')">Plano e horários ›</button>
     </div>
   </div>
