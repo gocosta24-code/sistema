@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Teste de força das mãos · Casa Oliveira</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,500;0,600;1,500&family=Instrument+Sans:wght@400;500;600;700&display=swap">
+<style>
+:root{--bg:#F3EDE3;--card:#FFFCF7;--ink:#3A2A1F;--muted:#6B5A4C;--line:#E4D8C6;--terra:#A9573D;--terra2:#8E4530;--ok:#4D7A3A;--err:#A8432F}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Instrument Sans",system-ui,sans-serif;-webkit-text-size-adjust:100%}
+.w{max-width:760px;margin:0 auto;padding:18px 16px 60px}
+header{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+header img{width:42px;height:42px;object-fit:contain}
+header .b{font-family:Lora,serif;font-size:19px;line-height:1.15;flex:1}
+header .b small{display:block;font-family:"Instrument Sans",sans-serif;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.chip{font-size:12.5px;color:var(--muted);background:var(--card);border:1px solid var(--line);border-radius:99px;padding:4px 10px;white-space:nowrap}
+.chip.pend{color:#fff;background:#C98A2E;border-color:#C98A2E;cursor:pointer}
+h1{font-family:Lora,serif;font-weight:600;font-size:28px;line-height:1.15;margin:6px 0 4px}
+.lead{color:var(--muted);margin:0 0 16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:12px}
+label{display:block;font-size:13.5px;font-weight:600;margin:0 0 5px}
+input{width:100%;font:inherit;font-size:17px;border:1.5px solid var(--line);border-radius:11px;padding:11px 12px;background:#fff;color:var(--ink)}
+input:focus{outline:2px solid var(--terra);outline-offset:1px;border-color:var(--terra)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.f{margin-bottom:12px}
+.seg{display:flex;gap:8px}
+.seg button{flex:1;appearance:none;border:1.5px solid var(--line);background:#fff;border-radius:11px;min-height:48px;font:600 16px "Instrument Sans",sans-serif;color:var(--ink);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--terra);border-color:var(--terra);color:#fff}
+.maos{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mao h3{font-size:15px;margin:0 0 6px}
+.tent{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.tent input{text-align:center;padding:11px 4px}
+.hint{font-size:13px;color:var(--muted);margin:6px 0 0}
+.chk{display:flex;gap:10px;align-items:flex-start;font-weight:500;font-size:14.5px;margin-top:4px}
+.chk input{width:22px;height:22px;flex:none;margin-top:1px;accent-color:var(--terra)}
+.go{width:100%;min-height:56px;border:0;border-radius:14px;background:var(--terra);color:#fff;font:700 18px "Instrument Sans",sans-serif;cursor:pointer}
+.go:active{background:var(--terra2)}
+.go.sec{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.go.wa{background:#25A35A}
+.msg{color:var(--err);font-size:14px;min-height:20px;margin:8px 0 0}
+/* resultado */
+.res-top{text-align:center;padding:4px 0 2px}
+.res-top .ola{font-family:Lora,serif;font-size:26px;margin:0}
+.res-top .sub{color:var(--muted);margin:2px 0 0}
+.mres{border-top:1px solid var(--line);padding-top:14px;margin-top:14px}
+.mres:first-of-type{border-top:0;margin-top:0;padding-top:0}
+.mres .t{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.mres h3{font-family:Lora,serif;font-size:19px;margin:0}
+.tag{color:#fff;font-weight:700;font-size:13px;padding:4px 11px;border-radius:99px}
+.big{font-family:Lora,serif;font-size:46px;font-weight:600;line-height:1;margin:8px 0 2px}
+.big small{font-family:"Instrument Sans",sans-serif;font-size:16px;font-weight:500;color:var(--muted);margin-left:6px}
+.mean{margin:6px 0 0;font-size:15.5px}
+.leg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12.5px;color:var(--muted);margin-top:4px}
+.leg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+.alerta{background:#FBEDE8;border:1px solid #EFCFC4;color:#7E3322;border-radius:12px;padding:10px 12px;margin-top:10px;font-size:14.5px}
+.idade{background:#F4EADF;border-radius:12px;padding:10px 12px;margin-top:10px;font-size:15px}
+.cta{background:var(--ink);color:#FBF5EC;border-radius:18px;padding:18px;margin-bottom:12px}
+.cta h2{font-family:Lora,serif;font-weight:600;font-size:22px;margin:0 0 6px}
+.cta p{margin:0 0 4px;color:#E6D9C8}
+.cta b{color:#fff}
+.btns{display:grid;gap:10px}
+.ref{font-size:12px;color:var(--muted);margin-top:10px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line)}
+th{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}
+.hid{display:none!important}
+.camp{display:flex;gap:8px;align-items:center}
+.camp input{font-size:15px;padding:8px 10px}
+@media(max-width:560px){.maos,.row{grid-template-columns:1fr}.big{font-size:40px}}
+@media print{.noprint{display:none!important}body{background:#fff}}
+</style>
+</head>
+<body>
+<div class="w">
+  <header>
+    <img src="../logo-simbolo.png" alt="">
+    <div class="b"><small>Casa Oliveira</small>Teste de força das mãos</div>
+    <span class="chip noprint" id="hoje">0 hoje</span>
+    <span class="chip pend hid noprint" id="pend" title="Toque para enviar agora"></span>
+  </header>
+  <main id="app"></main>
+</div>
+<script>
+(function(){
+const API_PADRAO='https://script.google.com/macros/s/AKfycbzqrsPO-348xxzNw3Mm7KVc_KnSv36NX63qrsQU57KJ6ck2z4b2SWDnaZ-QZMRXoJkn/exec';
+const DEMO=/[?&]demo=1/.test(location.search);
+const LS=k=>{try{return localStorage.getItem(k)}catch(e){return null}}, LSset=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}};
+const API=LS('co_api_ativa')||LS('co_api_url')||API_PADRAO, TOKEN=LS('co_token');
+let USER=null;try{USER=JSON.parse(LS('co_user')||'null')}catch(e){}
+const WHATS_CASA='5511965790254', WHATS_CASA_TXT='(11) 96579-0254';
+const $=s=>document.querySelector(s), app=$('#app');
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fN=(v,d)=>Number(v).toLocaleString('pt-BR',{minimumFractionDigits:d||0,maximumFractionDigits:d||0});
+
+/* Referência: Massy-Westropp NM et al., BMC Res Notes 2011;4:127 (média e desvio-padrão por sexo, idade e mão; dinamômetro Jamar, média de 3 tentativas).
+   Dos 18 aos 19 anos vale a faixa de 20 a 29. Corte de força reduzida: EWGSOP2 (27 kgf homens, 16 kgf mulheres). */
+const GRIP={M:{D:[[29,47,9.5],[39,47,9.7],[49,47,9.5],[59,45,8.4],[69,40,8.3],[200,33,7.8]],E:[[29,45,8.8],[39,47,9.8],[49,45,9.3],[59,43,8.3],[69,38,8],[200,32,7.5]]},
+            F:{D:[[29,30,7],[39,31,6.4],[49,29,5.7],[59,28,6.3],[69,24,5.3],[200,20,5.8]],E:[[29,28,6.1],[39,29,6],[49,28,5.7],[59,26,5.7],[69,23,5],[200,19,5.5]]}};
+const GRP=['18 a 29 anos','30 a 39 anos','40 a 49 anos','50 a 59 anos','60 a 69 anos','70 anos ou mais'];
+const GRP_IDADE=['20 a 29 anos','30 a 39 anos','40 a 49 anos','50 a 59 anos','60 a 69 anos','70 anos ou mais'];
+function norma(sx,age,mao){if(age==null||age<18||!GRIP[sx])return null;const T=GRIP[sx][mao];const i=T.findIndex(x=>age<=x[0]);return{m:T[i][1],sd:T[i][2],i,grp:GRP[i],cut:sx==='M'?27:16}}
+const Phi=z=>{const t=1/(1+.2316419*Math.abs(z)),d=.3989423*Math.exp(-z*z/2);const p=d*t*(.3193815+t*(-.3565638+t*(1.781478+t*(-1.821256+t*1.330274))));return z>0?1-p:p};
+const ZC=['#C4553E','#E39B4A','#B9C25E','#7DAE59','#4FAE96','#4F86C6'];
+const ZT=['Muito abaixo do esperado','Abaixo do esperado','Dentro do esperado','Dentro do esperado','Acima do esperado','Muito acima do esperado'];
+const zoneOf=z=>z<-2?0:z<-1?1:z<0?2:z<=1?3:z<=2?4:5;
+/* A faixa de idade cuja média está mais perto do resultado ("sua força equivale a...") */
+function idadeDaForca(sx,mao,v){const T=GRIP[sx][mao];let best=0;T.forEach((x,i)=>{if(Math.abs(x[1]-v)<Math.abs(T[best][1]-v)-0.001)best=i});return best}
+function idadeEm(nasc){if(!nasc)return null;const b=new Date(nasc+'T12:00:00'),d=new Date();let a=d.getFullYear()-b.getFullYear();const m=d.getMonth()-b.getMonth();if(m<0||(m===0&&d.getDate()<b.getDate()))a--;return a>=0&&a<120?a:null}
+
+function bell(n,v){
+  const W=340,H=170,L=12,R=328,base=128,top=30;const lo=Math.max(0,n.m-3.2*n.sd),hi=n.m+3.2*n.sd;
+  const X=x=>L+(x-lo)/(hi-lo)*(R-L),Y=x=>{const z=(x-n.m)/n.sd;return base-(base-top)*Math.exp(-z*z/2)};
+  const seg=(a,b)=>{a=Math.max(lo,a);b=Math.min(hi,b);if(b<=a)return'';let d=`M${X(a).toFixed(1)},${base} `;for(let i=0;i<=24;i++){const x=a+(b-a)*i/24;d+=`L${X(x).toFixed(1)},${Y(x).toFixed(1)} `}return d+`L${X(b).toFixed(1)},${base}Z`};
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Curva do esperado para a idade e o sexo, com o resultado marcado">`;const c=[-Infinity,-2,-1,0,1,2,Infinity];
+  for(let i=0;i<6;i++){const a=n.m+c[i]*n.sd,b=n.m+c[i+1]*n.sd;s+=`<path d="${seg(isFinite(a)?a:lo,isFinite(b)?b:hi)}" fill="${ZC[i]}" opacity=".92"/>`}
+  for(let k=-2;k<=2;k++){const x0=n.m+k*n.sd;if(x0<lo)continue;const x=X(x0).toFixed(1);s+=`<line x1="${x}" x2="${x}" y1="${top-8}" y2="${base}" stroke="#3A2A1F" stroke-opacity=".18" stroke-dasharray="2 3"/><text x="${x}" y="${base+15}" text-anchor="middle" font-size="11" fill="#6B5A4C">${fN(x0)}</text>`}
+  s+=`<text x="${X(Math.max(lo+.07*(hi-lo),n.m-2.6*n.sd))}" y="${top-12}" text-anchor="middle" font-size="11" fill="#6B5A4C">menos força</text><text x="${X(n.m)}" y="${top-12}" text-anchor="middle" font-size="11" fill="#6B5A4C">esperado</text><text x="${X(n.m+2.6*n.sd)}" y="${top-12}" text-anchor="middle" font-size="11" fill="#6B5A4C">mais força</text>`;
+  s+=`<line x1="${L}" x2="${R}" y1="${base}" y2="${base}" stroke="#3A2A1F" stroke-opacity=".35"/>`;
+  const cv=Math.max(lo+.02*(hi-lo),Math.min(hi-.02*(hi-lo),v)),x=X(cv),y=Y(cv),zn=zoneOf((v-n.m)/n.sd);
+  s+=`<line x1="${x.toFixed(1)}" x2="${x.toFixed(1)}" y1="${base}" y2="${(y-2).toFixed(1)}" stroke="#fff" stroke-width="3.5"/><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="10" fill="${ZC[zn]}" stroke="#fff" stroke-width="3"/><text x="${x.toFixed(1)}" y="${base+33}" text-anchor="middle" font-size="13" font-weight="700" fill="#3A2A1F">você: ${fN(v,1)}</text>`;
+  return s+'</svg>'}
+
+/* ---------- envio ao sistema (com fila para quando a internet cair) ---------- */
+const FILA='camp_fila', FEITOS='camp_feitos';
+const fila=()=>{try{return JSON.parse(LS(FILA)||'[]')}catch(e){return[]}};
+const feitos=()=>{try{return JSON.parse(LS(FEITOS)||'[]')}catch(e){return[]}};
+async function api(action,body){
+  if(DEMO){await new Promise(r=>setTimeout(r,300));return action==='lead_campanha'?{ok:true,lead_id:'demo'}:{ok:true,dados:[]}}
+  try{const r=await fetch(API,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({...body,action,token:TOKEN}),redirect:'follow'});return JSON.parse(await r.text())}
+  catch(e){return{ok:false,rede:true,erro:'sem internet'}}
+}
+let enviando=false;
+async function enviarFila(){
+  if(enviando)return;enviando=true;
+  let f=fila();const resto=[];
+  for(const it of f){const r=await api('lead_campanha',it);if(!r.ok){resto.push(it);if(!r.rede&&/token|sess/i.test(r.erro||'')){break}}}
+  const ids=new Set(f.map(x=>x.id_local));const novos=fila().filter(x=>!ids.has(x.id_local));
+  LSset(FILA,JSON.stringify([...resto,...novos]));enviando=false;topo();
+}
+function topo(){
+  const k=new Date().toISOString().slice(0,10),n=feitos().filter(x=>x.em.slice(0,10)===k).length;
+  $('#hoje').textContent=n+(n===1?' participante hoje':' participantes hoje');
+  const p=fila().length;$('#pend').classList.toggle('hid',!p);$('#pend').textContent=p+(p===1?' a enviar':' a enviar');
+}
+$('#pend').onclick=enviarFila;
+window.addEventListener('online',enviarFila);
+setInterval(()=>{if(fila().length&&navigator.onLine)enviarFila()},60000);
+
+/* ---------- telas ---------- */
+let S={sexo:''};
+function form(){
+  const camp=LS('camp_nome')||('Força das mãos · '+new Date().toLocaleDateString('pt-BR',{month:'short',year:'2-digit'}).replace('.',''));
+  if(!TOKEN&&!DEMO){app.innerHTML=`<div class="card"><h1>Entre no sistema primeiro</h1><p class="lead">Esta tela salva os participantes direto no funil de leads. Entre com o seu acesso da Casa Oliveira e volte para cá.</p><a class="go" style="display:flex;align-items:center;justify-content:center;text-decoration:none" href="../">Entrar no sistema</a></div>`;return}
+  S={sexo:''};
+  app.innerHTML=`
+  <h1>Quanta força têm as suas mãos?</h1>
+  <p class="lead">A força das mãos é um dos sinais mais usados para acompanhar a saúde dos músculos, a autonomia e o envelhecimento. O teste leva 1 minuto.</p>
+  <div class="card">
+    <div class="f"><label for="nome">Nome</label><input id="nome" autocomplete="off" autocapitalize="words" placeholder="Nome e sobrenome"></div>
+    <div class="row">
+      <div class="f"><label for="tel">WhatsApp</label><input id="tel" type="tel" inputmode="tel" placeholder="(11) 90000-0000"></div>
+      <div class="f"><label for="nasc">Data de nascimento</label><input id="nasc" type="date" max="${new Date().toISOString().slice(0,10)}"></div>
+    </div>
+    <div class="f"><label>Sexo</label><div class="seg" id="sexo"><button type="button" data-v="F" aria-pressed="false">Feminino</button><button type="button" data-v="M" aria-pressed="false">Masculino</button></div></div>
+  </div>
+  <div class="card">
+    <div class="maos">
+      <div class="mao"><h3>Mão direita (kgf)</h3><div class="tent">${[1,2,3].map(i=>`<input inputmode="decimal" id="d${i}" placeholder="${i}ª" aria-label="Mão direita, ${i}ª tentativa">`).join('')}</div></div>
+      <div class="mao"><h3>Mão esquerda (kgf)</h3><div class="tent">${[1,2,3].map(i=>`<input inputmode="decimal" id="e${i}" placeholder="${i}ª" aria-label="Mão esquerda, ${i}ª tentativa">`).join('')}</div></div>
+    </div>
+    <p class="hint">Sentada, ombro junto ao corpo, cotovelo a 90° e punho neutro. Até 3 tentativas por mão, com um pequeno descanso: o resultado é a média, como no estudo de referência. Pode deixar uma mão em branco.</p>
+  </div>
+  <div class="card">
+    <label class="chk"><input type="checkbox" id="ok"> A pessoa autoriza a Casa Oliveira a enviar o resultado e entrar em contato pelo WhatsApp.</label>
+  </div>
+  <button class="go" id="ver">Ver resultado</button><p class="msg" id="msg" role="alert"></p>
+  <details class="card noprint" style="margin-top:14px"><summary style="cursor:pointer;font-weight:600">Campanha e participantes</summary>
+    <div class="f" style="margin-top:12px"><label for="camp">Nome da campanha (vai para o funil de leads)</label><input id="camp" value="${esc(camp)}"></div>
+    <div id="lista"></div></details>`;
+  $('#camp').oninput=e=>LSset('camp_nome',e.target.value.trim());
+  $('#sexo').onclick=e=>{const b=e.target.closest('button');if(!b)return;S.sexo=b.dataset.v;$('#sexo').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b?'true':'false'))};
+  $('#tel').oninput=e=>{let d=e.target.value.replace(/\D/g,'').slice(0,11);e.target.value=d.length>6?`(${d.slice(0,2)}) ${d.slice(2,d.length-4)}-${d.slice(-4)}`:d.length>2?`(${d.slice(0,2)}) ${d.slice(2)}`:d};
+  $('#ver').onclick=ver;
+  lista();
+}
+function lista(){
+  const l=feitos().slice(-30).reverse();
+  $('#lista').innerHTML=l.length?`<table><thead><tr><th>Quando</th><th>Nome</th><th>Resultado</th></tr></thead><tbody>${l.map(x=>`<tr><td>${new Date(x.em).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</td><td>${esc(x.nome)}</td><td>${x.zona!=null?`<span class="dot" style="background:${ZC[x.zona]}"></span>`:''}${esc(x.curto||'')}</td></tr>`).join('')}</tbody></table><p class="hint">Neste aparelho. Todos vão para o funil de leads, com origem "Campanha presencial".</p>`:'<p class="hint">Ninguém registrado ainda neste aparelho.</p>'}
+const num=v=>{const n=parseFloat(String(v||'').replace(',','.'));return isFinite(n)&&n>0&&n<120?n:null};
+const media=a=>a.length?a.reduce((s,x)=>s+x,0)/a.length:null;
+function ver(){
+  const msg=t=>{$('#msg').textContent=t};
+  const nome=$('#nome').value.trim(),tel=$('#tel').value.trim(),nasc=$('#nasc').value;
+  const D=[1,2,3].map(i=>num($('#d'+i).value)).filter(Boolean),E=[1,2,3].map(i=>num($('#e'+i).value)).filter(Boolean);
+  if(!nome)return msg('Falta o nome.');if(tel.replace(/\D/g,'').length<10)return msg('Confira o WhatsApp com DDD.');
+  if(!nasc)return msg('Falta a data de nascimento.');if(!S.sexo)return msg('Escolha o sexo.');
+  const age=idadeEm(nasc);if(age==null||age<18)return msg('O teste compara com adultos a partir de 18 anos.');
+  if(!D.length&&!E.length)return msg('Registre a força de pelo menos uma mão.');
+  const r={nome,tel,nasc,age,sexo:S.sexo,aceita:$('#ok').checked,maos:[]};
+  [['D','Mão direita',D],['E','Mão esquerda',E]].forEach(([k,t,a])=>{if(!a.length)return;const v=Math.round(media(a)*10)/10,n=norma(r.sexo,age,k),z=(v-n.m)/n.sd;r.maos.push({k,t,v,n,z,zn:zoneOf(z),pc:Math.round(Phi(z)*100),idx:idadeDaForca(r.sexo,k,v),baixa:v<n.cut})});
+  const grpT=(r.sexo==='F'?'mulheres':'homens')+' de '+r.maos[0].n.grp;
+  r.texto=r.maos.map(m=>`${m.t.toLowerCase()} ${fN(m.v,1)} kgf (${ZT[m.zn].toLowerCase()}; esperado ${fN(m.n.m)} kgf)`).join(' · ')+` · comparado a ${grpT}`;
+  const pior=r.maos.reduce((a,b)=>b.zn<a.zn?b:a);
+  // fila e envio
+  const id='cp_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  const camp=(LS('camp_nome')||$('#camp').value||'').trim()||'Força das mãos';
+  const item={id_local:id,campanha:camp,nome,telefone:tel,nascimento:nasc,sexo:r.sexo,idade:age,
+    d:(r.maos.find(m=>m.k==='D')||{}).v||'',e:(r.maos.find(m=>m.k==='E')||{}).v||'',resultado:r.texto,aceita_contato:r.aceita,linha:'reabilitacao'};
+  LSset(FILA,JSON.stringify([...fila(),item]));
+  LSset(FEITOS,JSON.stringify([...feitos(),{em:new Date().toISOString(),nome,zona:pior.zn,curto:pior.t.replace('Mão ','')+' '+fN(pior.v,1)+' kgf'}].slice(-500)));
+  topo();enviarFila();
+  resultado(r);
+}
+function resultado(r){
+  const grpT=(r.sexo==='F'?'mulheres':'homens')+' de '+r.maos[0].n.grp;
+  const pn=r.nome.split(' ')[0];
+  const cartao=m=>{
+    const fx=GRP_IDADE[m.idx], mesmo=m.idx===m.n.i;
+    return `<div class="mres"><div class="t"><h3>${m.t}</h3><span class="tag" style="background:${ZC[m.zn]}">${ZT[m.zn]}</span></div>
+    <div class="big">${fN(m.v,1)}<small>kgf</small></div>${bell(m.n,m.v)}
+    <div class="leg">${[[0,'muito abaixo'],[1,'abaixo'],[3,'esperado'],[4,'acima'],[5,'muito acima']].map(([i,t])=>`<span><i style="background:${ZC[i]}"></i>${t}</span>`).join('')}</div>
+    <p class="mean">Para ${grpT}, o esperado é cerca de <b>${fN(m.n.m)} kgf</b>. ${m.pc<1?'Hoje a força ficou abaixo de quase todas as pessoas dessa faixa.':m.pc>99?'Hoje a força superou quase todas as pessoas dessa faixa.':`Hoje a força foi maior que a de cerca de <b>${m.pc} em cada 100</b> pessoas dessa faixa.`}</p>
+    ${mesmo?'':`<div class="idade">Sua força equivale à média de ${r.sexo==='F'?'mulheres':'homens'} de <b>${fx}</b>.</div>`}
+    ${m.baixa?`<div class="alerta"><b>Atenção:</b> abaixo de ${r.sexo==='M'?27:16} kgf é considerado força reduzida pelo consenso europeu de sarcopenia (EWGSOP2). Vale uma avaliação.</div>`:''}</div>`};
+  const pior=r.maos.reduce((a,b)=>b.zn<a.zn?b:a);
+  const gancho=pior.zn<=1?'Seu resultado mostra espaço para recuperar força, e isso se treina em qualquer idade.':pior.zn>=4?'Que resultado! Manter essa força é um dos melhores investimentos para envelhecer com autonomia.':'Você está na faixa esperada. A força das mãos acompanha a dos músculos do corpo todo, e vale cuidar dela.';
+  const txt=`Oi, ${pn}! Aqui é da Casa Oliveira 💛\n\nSeu resultado no teste de força das mãos:\n${r.maos.map(m=>`• ${m.t}: ${fN(m.v,1)} kgf (${ZT[m.zn].toLowerCase()})`).join('\n')}\n\nPara ${grpT}, o esperado é cerca de ${r.maos.map(m=>fN(m.n.m)+' kgf').join(' e ')}.\n\n${gancho} Se quiser entender o que esse resultado diz sobre você e o que fazer com ele, a gente conversa numa avaliação. É só responder esta mensagem.\n\nCasa Oliveira Saúde · Rua Dr. Samuel Porto, 396 · Saúde`;
+  const telP=r.tel.replace(/\D/g,'');const waP='https://wa.me/55'+telP+'?text='+encodeURIComponent(txt);
+  app.innerHTML=`
+  <div class="card">
+    <div class="res-top"><p class="ola">${esc(pn)}, este é o seu resultado</p><p class="sub">Comparado a ${esc(grpT)} · ${r.age} anos</p></div>
+    ${r.maos.map(cartao).join('')}
+    <p class="ref">Referência: Massy-Westropp et al., BMC Research Notes, 2011 (2.678 adultos, média de 3 tentativas). Força reduzida: EWGSOP2, 2019. É um rastreio: não substitui a avaliação.</p>
+  </div>
+  <div class="cta"><h2>${pior.zn<=1?'Força se recupera.':'E agora?'}</h2><p>${gancho}</p><p style="margin-top:8px">Na Casa Oliveira, a avaliação olha força, equilíbrio e mobilidade e vira um programa de cuidado feito para você.</p><p style="margin-top:8px"><b>WhatsApp ${WHATS_CASA_TXT}</b> · Rua Dr. Samuel Porto, 396 · Saúde</p></div>
+  <div class="btns noprint">
+    ${r.aceita?`<a class="go wa" style="display:flex;align-items:center;justify-content:center;text-decoration:none" href="${waP}" target="_blank" rel="noopener">Enviar resultado no WhatsApp de ${esc(pn)}</a>`:`<p class="hint" style="text-align:center">Sem autorização de contato: o resultado não é enviado por WhatsApp.</p>`}
+    <button class="go" id="prox">Próximo participante</button>
+  </div>`;
+  window.scrollTo({top:0,behavior:'smooth'});
+  $('#prox').onclick=()=>{form();window.scrollTo({top:0})};
+}
+topo();form();if(fila().length)enviarFila();
+})();
+</script>
+</body>
+</html>

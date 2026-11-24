@@ -516,6 +516,12 @@ input,select,textarea{outline:none;}
 .agx-fer-p{position:absolute;top:0;left:0;right:0;z-index:1;font-size:10.5px;line-height:1.3;padding:3px 5px;background:rgba(214,170,90,.18);color:var(--ink2);pointer-events:none}
 .agx-ev.reun{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--c) 16%,#fff) 0 6px,color-mix(in srgb,var(--c) 9%,#fff) 6px 12px);border-style:dashed}
 .agx-part{display:flex;flex-wrap:wrap;gap:6px}
+.sc-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.sc-row .fi:first-child{flex:1}
+.sc-num{width:84px;flex:none;text-align:center}
+.sc-u{font-size:12.5px;color:var(--ink3);min-width:62px}
+.sc-nome{flex:1;display:flex;align-items:center;gap:7px;font-weight:600;font-size:14px}
+.sc-nome i{width:9px;height:9px;border-radius:50%}
 .agx-fer-l{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--bor)}
 .agx-fer-l b{min-width:86px}
 .agx-fer-l span{flex:1;font-size:13.5px}
@@ -1251,7 +1257,19 @@ function sessaoExpirou() {
   }, 1200);
 }
 
+// obter_config é pedido por várias telas ao mesmo tempo (salas, capacidade,
+// timbrado): um pedido só, guardado por 1 minuto; salvar a config renova.
+let _cfgPromessa = null, _cfgEm = 0;
 async function apiBruto(action, body={}) {
+  if(action==='obter_config') {
+    if(_cfgPromessa && Date.now()-_cfgEm < 60000) return _cfgPromessa;
+    _cfgEm = Date.now(); _cfgPromessa = apiBrutoRede(action, body).then(r=>{ if(!r.ok) _cfgPromessa = null; return r; });
+    return _cfgPromessa;
+  }
+  if(action==='salvar_config') _cfgPromessa = null;
+  return apiBrutoRede(action, body);
+}
+async function apiBrutoRede(action, body={}) {
   const payload = JSON.stringify({...body, action, token: authToken});
 
   // POST não tem limite prático de tamanho — testado até 200 KB. Antes tudo
@@ -1465,7 +1483,7 @@ function demoStatusMsg(m) {
 // também, senão o modo demonstração mostra um funil que não existe mais.
 const DEMO_ESTAGIOS = ['Novo Lead','Primeiro Contato Feito','Qualificado',
                        'Agendou Avaliação','Compareceu','Virou Paciente','Perdido'];
-const DEMO_ORIGENS = ['Instagram','Meta Ads','Indicação','Rua/Passante','Google','Outro'];
+const DEMO_ORIGENS = ['Instagram','Meta Ads','Indicação','Rua/Passante','Google','Campanha presencial','Outro'];
 const DEMO_MOTIVOS = ['Não respondeu','Não tinha orçamento','Desistiu',
                       'Fora da área de atendimento','Outro'];
 
@@ -1856,6 +1874,7 @@ function demoApi(action, body) {
     }
     case 'redefinir_senha': return {ok:false, erro:'Não disponível no modo demonstração.'};
     case 'convidar_prof': return {ok:false, erro:'Não disponível no modo demonstração.'};
+    case 'ultimas_evolucoes': { const out={}; (DEMO_DB.evolucoes||[]).forEach(e=>{ if(e.origem==='infantil') return; const pid=String(e.paciente_id), d=String(e.data||'').slice(0,10); if(d && (!out[pid]||d>out[pid])) out[pid]=d; }); return {ok:true, dados:out}; }
     default: return {ok:false, erro:'Ação desconhecida no modo demo'};
   }
 }
@@ -1967,8 +1986,9 @@ function demoAgenda(action, body) {
   const linhasDe = p => String(p.linhas||'').toLowerCase().split(',').map(x=>x.trim()).filter(Boolean);
   const minhas = linhasDe(equipe.find(p=>p.email===eu)||{});
   const todas = currentRole==='admin' || ehRecepcao();
-  const visiveis = equipe.filter(p=> todas || p.email===eu ||
-    (currentRole==='coordenador' && (!minhas.length || minhas.includes('todos') || linhasDe(p).some(l=>minhas.includes(l)))));
+  // Agenda de quem é da gestão (admin) é privada: só a gestão vê (como no Code.gs)
+  const visiveis = equipe.filter(p=> (currentRole==='admin' || p.nivel_acesso!=='admin') && (todas || p.email===eu ||
+    (currentRole==='coordenador' && (!minhas.length || minhas.includes('todos') || linhasDe(p).some(l=>minhas.includes(l))))));
   const visivel = email => visiveis.find(p=>p.email===String(email||'').toLowerCase());
   const comNome = e => ({...e, profissional:(equipe.find(p=>p.email===e.agenda_email)||{}).nome||''});
   // Feriados e reuniões: mesmo comportamento do Code.gs
@@ -1980,7 +2000,7 @@ function demoAgenda(action, body) {
     return {ok:true, dados:DEMO_DB.agenda.filter(e=>visivel(e.agenda_email) && new Date(e.inicio)<ate && new Date(e.fim)>de && (body.com_reunioes || e.tipo!=='reuniao'))
               .map(comNome).sort((a,b)=>a.inicio.localeCompare(b.inicio)),
             profissionais:visiveis.map(p=>({email:p.email, nome:p.nome, linhas:linhasDe(p), tem_agenda:!!p.agenda_id})),
-            equipe:equipe.filter(p=>p.agenda_id).map(p=>({email:p.email, nome:p.nome})),
+            equipe:equipe.filter(p=>p.agenda_id && (currentRole==='admin' || p.nivel_acesso!=='admin')).map(p=>({email:p.email, nome:p.nome})),
             feriados:fers.filter(f=>f.data>=diaISO(de) && f.data<=diaISO(ate)),
             pode_feriados:podeFer, sem_acesso:[], pode_criar_agendas: currentRole==='admin'};
   }
@@ -2019,8 +2039,11 @@ function demoAgenda(action, body) {
   if(action==='salvar_evento') {
     const ini=new Date(body.inicio), fim=new Date(body.fim);
     const fer = ferDoDia(ini, prof.email); if(fer) return {ok:false, feriado:true, erro:'Agenda bloqueada em '+ini.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})+': '+fer.titulo};
-    if(/pilates/i.test(body.servico||'') && DEMO_DB.agenda.filter(e=>e.agenda_email===prof.email && e.id!==body.evento_id && /pilates/i.test(e.servico||'') && e.status!=='falta' && e.status!=='justificada' && new Date(e.inicio)<fim && new Date(e.fim)>ini).length>=3)
-      return {ok:false, lotado:true, erro:'Turma cheia: '+prof.nome+' já tem 3 alunas nesse horário'};
+    let capP = 0; try { capP = +((JSON.parse((DEMO_DB.config||{}).capacidade_equipe||'{}')[prof.email]||{}).vagas)||0; } catch(x) {}
+    if(!capP) capP = /pilates/i.test(body.servico||'') ? 3 : 1;
+    const pacsNoHor = DEMO_DB.agenda.filter(e=>e.agenda_email===prof.email && e.id!==body.evento_id && e.tipo!=='reuniao' && e.status!=='falta' && e.status!=='justificada' && new Date(e.inicio)<fim && new Date(e.fim)>ini);
+    if(capP>1 && pacsNoHor.length>=capP) return {ok:false, lotado:true, erro:'Horário cheio: '+prof.nome+' já tem '+capP+' pacientes nesse horário'};
+    if(capP>1 && !body.forcar) { const reu = DEMO_DB.agenda.find(e=>e.agenda_email===prof.email && e.tipo==='reuniao' && new Date(e.inicio)<fim && new Date(e.fim)>ini); if(reu) return {ok:false, conflito:true, erro:'Já existe "'+reu.titulo+'" nesse horário na agenda de '+prof.nome}; body.forcar = true; }
     if(!body.forcar) {
       const choque = DEMO_DB.agenda.find(e=>e.agenda_email===prof.email && e.id!==body.evento_id && new Date(e.inicio)<fim && new Date(e.fim)>ini);
       if(choque) return {ok:false, conflito:true, erro:'Já existe "'+choque.titulo+'" nesse horário na agenda de '+prof.nome};
@@ -5515,10 +5538,14 @@ async function excluirFeriadoUI(id, btn) {
 }
 
 function agMesmaSala(a,b) { return !!a && !!b && normalizar(a)===normalizar(b); }
+let _agSalasCap = {};
+// Pessoas ao mesmo tempo na sala; 0 = sem capacidade cadastrada
+function capSala(nome) { const k = Object.keys(_agSalasCap||{}).find(x=>agMesmaSala(x,nome)); return k ? +_agSalasCap[k]||0 : 0; }
 async function carregarSalas(forcar) {
   if(_agSalas && !forcar) return _agSalas;
   const res = await api('obter_config',{});
   _agSalas = res.ok ? String((res.dados||{}).salas||'').split(/\n|;/).map(x=>x.trim()).filter(Boolean) : [];
+  try { _agSalasCap = JSON.parse((res.ok && res.dados && res.dados.salas_capacidade) || '{}') || {}; } catch(e) { _agSalasCap = {}; }
   return _agSalas;
 }
 function salasDoDia(dia) {
@@ -5555,9 +5582,11 @@ async function loadAgenda() {
          pode_criar_agendas:!!res.pode_criar_agendas, feriados:res.feriados||[], equipe:res.equipe||[], pode_feriados:!!res.pode_feriados};
   if(_agFiltro && !_ag.profissionais.some(p=>p.email===_agFiltro)) _agFiltro = '';
   if(_ag.profissionais.length===1) _agFiltro = _ag.profissionais[0].email;
-  await carregarSalas();
+  await Promise.all([carregarSalas(), carregarCapacidade()]);
   desenharAgenda(true);
-  if(!_agEstendeu) { _agEstendeu = true; estenderRepeticoes(); }
+  // Completar as séries "sem data para acabar" basta uma vez por dia em cada aparelho
+  if(!_agEstendeu) { _agEstendeu = true; let ult = ''; try { ult = localStorage.getItem('ag_estendeu')||''; } catch(e) {}
+    if(ult !== diaISO(new Date())) { try { localStorage.setItem('ag_estendeu', diaISO(new Date())); } catch(e) {} estenderRepeticoes(); } }
 }
 
 // Repetição sem data para acabar: o sistema mantém cerca de 6 semanas
@@ -5580,7 +5609,7 @@ async function estenderRepeticoes() {
     const datas = new Set(evs.map(e=>diaISO(new Date(e.inicio))));
     for(let d = somaDias(new Date(ult.inicio), passo); d < somaDias(hoje, AG_REP_JANELA+1); d = somaDias(d, passo)) {
       if(datas.has(diaISO(d))) continue;
-      if(ehPilates(ult.servico) && alunasNoHorario(res.dados||[], ult.agenda_email, d, new Date(d.getTime()+dur), '').length >= PILATES_VAGAS) continue;
+      if(ehPilates(ult.servico) && alunasNoHorario(res.dados||[], ult.agenda_email, d, new Date(d.getTime()+dur), '').length >= vagasDe(ult.agenda_email)) continue;
       const r = await api('salvar_evento',{agenda_email:ult.agenda_email, paciente_id:ult.paciente_id||'', paciente_nome:String(ult.titulo||'').split(' · ')[0],
         servico:ult.servico||'', obs:ult.obs||'', ...(ult.valor!==undefined && ult.valor!=='' ? {valor:ult.valor} : {}), inicio:d.toISOString(), fim:new Date(d.getTime()+dur).toISOString(), forcar:true});
       if(r.ok) criados++;
@@ -5622,6 +5651,7 @@ function desenharAgenda(rolar) {
     </div>
     <div class="agx-seg" role="tablist">${[['dia','Dia'],['semana','Semana'],['lista','Lista'],['mapa','Mapa do Pilates']].map(([v,t])=>`<button class="${_agVista===v?'on':''}" onclick="vistaAgenda('${v}')">${t}</button>`).join('')}</div>
     ${currentRole==='admin' || ehRecepcao() ? `<button class="backbtn" onclick="lembretesWhats(1)" title="Mensagem pronta para cada paciente de amanhã">Lembretes de amanhã</button>` : ''}
+    ${currentRole==='admin' ? `<button class="backbtn" onclick="editarSalas()">Salas e capacidade</button>` : ''}
     ${_ag.pode_feriados ? `<button class="backbtn" onclick="abrirFeriados()" title="Feriados, recessos e férias: a agenda fica bloqueada nesses dias">Feriados e bloqueios</button>` : ''}
     <button class="backbtn" onclick="novaReuniao()">+ Reunião</button>
     <button class="addbtn agx-add" onclick="novoAtendimento()">+ Agendar</button>
@@ -5853,8 +5883,8 @@ async function moverAtendimento(e, ini, dur, forcar) {
   const antes = {inicio:e.inicio, fim:e.fim};
   const fim = new Date(ini.getTime()+dur*60000);
   if(ehPilates(e.servico)) {
-    if(alunasNoHorario(_ag.eventos, e.agenda_email, ini, fim, e.id).length >= PILATES_VAGAS) {
-      desenharAgenda(); showToast('Turma cheia: já há '+PILATES_VAGAS+' alunas nesse horário com '+(agProfNome(e.agenda_email)||'essa profissional'),'err'); return;
+    if(alunasNoHorario(_ag.eventos, e.agenda_email, ini, fim, e.id).length >= vagasDe(e.agenda_email)) {
+      desenharAgenda(); showToast('Turma cheia: já há '+vagasDe(e.agenda_email)+' alunas nesse horário com '+(agProfNome(e.agenda_email)||'essa profissional'),'err'); return;
     }
     forcar = true;
   }
@@ -5992,7 +6022,7 @@ function servicoInfo(nome) {
   const c = (_catalogo||[]).find(s=>normalizar(s.nome)===normalizar(nome));
   const partes = [];
   if(c && c.descricao) partes.push(esc(c.descricao));
-  if(ehPilates(nome)) partes.push('No Pilates, cada profissional recebe até '+PILATES_VAGAS+' alunas por horário.');
+  if(ehPilates(nome)) partes.push('No Pilates, cada profissional recebe até '+PILATES_VAGAS+' alunas por horário (ou o que estiver em Salas e capacidade).');
   if(!c) partes.push('<span style="color:var(--amber)">Este serviço não está no catálogo: o Financeiro não terá o preço dele.</span>');
   return partes.join(' · ');
 }
@@ -6087,7 +6117,7 @@ async function novoAtendimento(agendaEmail, eventoId, pre) {
       <div class="fg fa"><label class="fl" for="agSala">Sala</label>
         ${salas.length?`<div class="agx-chips" id="agSalaChips">${salas.map(s=>`<button type="button" class="agx-chip${agMesmaSala(s,salaAtual)?' on':''}" onclick="escolherChip(this,'agSala')">${esc(s)}</button>`).join('')}</div>`:''}
         <input class="fi" id="agSala" value="${esc(salaAtual)}" placeholder="${salas.length?'Ou escreva outra sala':'Ex.: Sala 2, Ateliê, Domicílio'}" style="${salas.length?'margin-top:8px':''}" oninput="sincronizarChips('agSalaChips',this.value)">
-        ${!salas.length?`<div class="pt-nota" style="margin-top:6px">${currentRole==='admin'?'Cadastre as salas da clínica em Agenda › Dia › Salas da clínica para elas aparecerem aqui como botões.':'A gestão pode cadastrar as salas para elas aparecerem aqui como botões.'}</div>`:''}</div>
+        ${!salas.length?`<div class="pt-nota" style="margin-top:6px">${currentRole==='admin'?'Cadastre as salas em Agenda › Salas e capacidade para elas aparecerem aqui como botões.':'A gestão pode cadastrar as salas para elas aparecerem aqui como botões.'}</div>`:''}</div>
       <div class="fg"><label class="fl" for="agData">Data</label><input class="fi" type="date" id="agData" value="${diaISO(ini)}" oninput="previaRepeticao()"></div>
       <div class="fg"><label class="fl" for="agHora">Horário</label><input class="fi" type="time" id="agHora" step="300" value="${ini.toTimeString().slice(0,5)}" oninput="previaRepeticao()"></div>
       <div class="fg fa"><label class="fl">Duração</label>
@@ -6270,13 +6300,13 @@ async function salvarAtendimento(eventoId, forcar) {
     const cheias = [], outros = [];
     datas.forEach(o=>{
       const a = new Date(o.dt+'T'+o.hora+':00'), b = new Date(a.getTime()+dur*60000);
-      if(alunasNoHorario(periodo, email, a, b, eventoId).length >= PILATES_VAGAS) cheias.push(o);
+      if(alunasNoHorario(periodo, email, a, b, eventoId).length >= vagasDe(email)) cheias.push(o);
       const ou = outroAtendimentoNoHorario(periodo, email, a, b, eventoId);
       if(ou) outros.push(a.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})+' ('+String(ou.titulo||'')+')');
     });
     const fmt = o=>o.dt.split('-').reverse().slice(0,2).join('/')+' '+o.hora;
     const quem = agProfNome(email) || 'Essa profissional';
-    if(cheias.length===datas.length) return erro('Turma cheia: '+quem+' já tem '+PILATES_VAGAS+' alunas'+(datas.length===1?' em '+fmt(datas[0]):' em todos esses horários')+'. Escolha outro horário ou outra profissional.');
+    if(cheias.length===datas.length) return erro('Turma cheia: '+quem+' já tem '+vagasDe(email)+' alunas'+(datas.length===1?' em '+fmt(datas[0]):' em todos esses horários')+'. Escolha outro horário ou outra profissional.');
     if(cheias.length) {
       if(!confirm('A turma com '+quem+' está cheia em '+cheias.map(fmt).join(', ')+'.\n\nAgendar só nas outras '+(datas.length-cheias.length)+' datas?')) return;
       datas = datas.filter(o=>!cheias.includes(o));
@@ -6285,15 +6315,24 @@ async function salvarAtendimento(eventoId, forcar) {
     forcarGrupo = true;   // alunas da mesma turma se sobrepõem por natureza
   }
 
-  // Sala ocupada por outra pessoa no mesmo horário (dentro da semana carregada)
+  // Capacidade da sala (Salas e capacidade): com capacidade cadastrada a sala
+  // cheia trava; sem cadastro, qualquer ocupação pede confirmação
   if(sala && !forcar) {
-    const ocup = [];
+    const cap = capSala(sala);
+    const periodo = (datas.length===1 && _ag.eventos.length && new Date(datas[0].dt+'T12:00:00')>=_agSemana && new Date(datas[0].dt+'T12:00:00')<somaDias(_agSemana,7))
+      ? _ag.eventos : await agendaDoPeriodo(datas.map(o=>o.dt));
+    const cheias = [], ocupadas = [];
     datas.forEach(o=>{
       const a = new Date(o.dt+'T'+o.hora+':00'), b = new Date(a.getTime()+dur*60000);
-      const x = _ag.eventos.find(q=>q.id!==eventoId && agMesmaSala(q.sala,sala) && new Date(q.inicio)<b && new Date(q.fim)>a);
-      if(x) ocup.push(a.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})+' com '+String(x.titulo||'').split(' · ')[0]+' ('+(x.profissional||agProfNome(x.agenda_email))+')');
+      const la = periodo.filter(q=>q.id!==eventoId && agMesmaSala(q.sala,sala) && !ehAusencia(q.status) && !q.dia_inteiro && new Date(q.inicio)<b && new Date(q.fim)>a);
+      const quando = a.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})+' '+o.hora;
+      if(cap && la.length >= cap) cheias.push(o);
+      else if(!cap && la.length) ocupadas.push(quando+' com '+String(la[0].titulo||'').split(' · ')[0]+' ('+(la[0].profissional||agProfNome(la[0].agenda_email))+')');
     });
-    if(ocup.length && !confirm(sala+' já está ocupada: '+ocup.join('; ')+'.\n\nMarcar assim mesmo?')) return;
+    const fmtO = o => o.dt.split('-').reverse().slice(0,2).join('/')+' '+o.hora;
+    if(cheias.length===datas.length) return erro(sala+' está cheia ('+cap+' '+(cap===1?'pessoa':'pessoas')+' ao mesmo tempo)'+(datas.length===1?'':' em todas essas datas')+'. Escolha outra sala ou outro horário.');
+    if(cheias.length) { if(!confirm(sala+' está cheia em '+cheias.map(fmtO).join(', ')+' (capacidade '+cap+').\n\nAgendar só nas outras '+(datas.length-cheias.length)+' datas?')) return; datas = datas.filter(o=>!cheias.includes(o)); }
+    if(ocupadas.length && !confirm(sala+' já está ocupada: '+ocupadas.join('; ')+'.\n\nMarcar assim mesmo? (Para liberar mais de uma pessoa ao mesmo tempo, cadastre a capacidade da sala em Salas e capacidade.)')) return;
   }
 
   const textoBtn = btn.textContent;
@@ -6399,28 +6438,61 @@ async function encerrarRepeticao(agendaEmail, eventoId) {
 
 function colunasPor(v) { _agColunas = v; try{ localStorage.setItem('ag_colunas', v); }catch(e){} desenharAgenda(); }
 
+// ── SALAS E CAPACIDADE ─────────────────────────
+// Salas da clínica com quantas pessoas cabem ao mesmo tempo, e quantos
+// pacientes cada profissional atende no mesmo horário. A capacidade da
+// profissional vale também no servidor (salvar_evento); a da sala é conferida
+// ao agendar.
+let _scSalas = [];
 async function editarSalas() {
   if(currentRole!=='admin') return;
-  await carregarSalas(true);
-  document.getElementById('sheetTitle').textContent = 'Salas da clínica';
+  document.getElementById('sheetTitle').textContent = 'Salas e capacidade';
+  document.getElementById('sheetBody').innerHTML = loadingHTML(); openSheet();
+  await Promise.all([carregarSalas(true), carregarCapacidade(true)]);
+  if(!_ag.profissionais.length) { const r = await api('listar_agenda',{de:new Date().toISOString(), ate:somaDias(new Date(),1).toISOString()}); if(r.ok) _ag.profissionais = r.profissionais||[]; }
+  _scSalas = (_agSalas||[]).map(n=>({nome:n, cap:capSala(n)||''}));
+  desenharSalasCap();
+}
+function desenharSalasCap() {
+  const profs = (_ag.profissionais||[]).filter(p=>p.tem_agenda!==false);
+  const cap = _gs.cap || {};
   document.getElementById('sheetBody').innerHTML = `
-    <div class="pt-nota" style="margin-top:0">Uma sala por linha, na ordem em que devem aparecer na agenda e no agendamento.</div>
-    <div class="fg" style="margin-top:12px"><textarea class="ft" id="cfgSalas" rows="7" placeholder="Sala 1&#10;Sala 2&#10;Ateliê&#10;Pilates&#10;Domicílio">${esc((_agSalas||[]).join('\n'))}</textarea></div>
+    <div class="fl" style="margin-top:0">Salas</div>
+    <div class="pt-nota" style="margin:0 0 8px">Na ordem em que aparecem na agenda. Capacidade = quantas pessoas cabem na sala <b>ao mesmo tempo</b> (ex.: 1 numa sala de atendimento, 6 no estúdio de Pilates). Em branco: o sistema pergunta antes de colocar duas pessoas juntas.</div>
+    <div id="scSalas">${_scSalas.map((x,i)=>`<div class="sc-row">
+      <input class="fi" value="${esc(x.nome)}" placeholder="Nome da sala" oninput="_scSalas[${i}].nome=this.value">
+      <input class="fi sc-num" type="number" min="1" max="50" inputmode="numeric" value="${esc(x.cap)}" placeholder="—" oninput="_scSalas[${i}].cap=this.value" aria-label="Capacidade">
+      <span class="sc-u">pessoas</span>
+      <button class="ff-link" style="color:var(--rose)" onclick="_scSalas.splice(${i},1);desenharSalasCap()">tirar</button></div>`).join('')}</div>
+    <button class="backbtn" style="margin:6px 0 18px" onclick="_scSalas.push({nome:'',cap:''});desenharSalasCap();setTimeout(()=>{const l=document.querySelectorAll('#scSalas .sc-row input:first-child');l[l.length-1].focus()},30)">+ Sala</button>
+    <div class="fl">Pacientes por horário, por profissional</div>
+    <div class="pt-nota" style="margin:0 0 8px">Quantos pacientes ela atende ao mesmo tempo. 1 = individual. Em branco: ${PILATES_VAGAS} no Pilates e 1 nos outros serviços. Quando o horário enche, o sistema não deixa marcar mais ninguém com ela.</div>
+    ${profs.map(p=>`<div class="sc-row"><span class="sc-nome"><i style="background:${agCor(p.email)}"></i>${esc(p.nome)}</span>
+      <input class="fi sc-num" type="number" min="1" max="20" inputmode="numeric" data-email="${esc(p.email)}" value="${esc((cap[p.email]||{}).vagas||'')}" placeholder="—" aria-label="Pacientes por horário de ${esc(p.nome)}">
+      <span class="sc-u">por horário</span></div>`).join('')}
     <div id="salasErr" class="errbox"></div>
-    <button class="savebtn" id="salasBtn" onclick="salvarSalas()">Salvar salas</button>`;
-  openSheet();
+    <button class="savebtn" id="salasBtn" onclick="salvarSalas()">Salvar</button>`;
 }
 async function salvarSalas() {
-  const btn = document.getElementById('salasBtn');
-  const lista = document.getElementById('cfgSalas').value.split('\n').map(x=>x.trim()).filter(Boolean);
+  const btn = document.getElementById('salasBtn'), er = document.getElementById('salasErr');
+  const salas = _scSalas.map(x=>({nome:String(x.nome||'').trim(), cap:Math.round(+x.cap||0)})).filter(x=>x.nome);
+  const capSalas = {}; salas.forEach(x=>{ if(x.cap>0) capSalas[x.nome] = x.cap; });
+  const cap = {...(await carregarCapacidade(true))};
+  document.querySelectorAll('#sheetBody input[data-email]').forEach(inp=>{
+    const em = inp.dataset.email, v = Math.round(+inp.value||0);
+    const atual = {...(cap[em]||{})};
+    if(v>0) atual.vagas = v; else delete atual.vagas;
+    if(Object.keys(atual).length) cap[em] = atual; else delete cap[em];
+  });
   btn.disabled = true; btn.textContent = 'Salvando…';
-  const res = await api('salvar_config',{dados:{salas:lista.join('\n')}});
-  btn.disabled = false; btn.textContent = 'Salvar salas';
-  if(!res.ok) { const er=document.getElementById('salasErr'); er.textContent='Erro: '+(res.erro||''); er.style.display='block'; return; }
-  _agSalas = lista;
+  const res = await api('salvar_config',{dados:{salas:salas.map(x=>x.nome).join('\n'), salas_capacidade:JSON.stringify(capSalas), capacidade_equipe:JSON.stringify(cap)}});
+  btn.disabled = false; btn.textContent = 'Salvar';
+  if(!res.ok) { er.textContent='Erro: '+(res.erro||''); er.style.display='block'; return; }
+  _agSalas = salas.map(x=>x.nome); _agSalasCap = capSalas; _gs.cap = cap;
   closeSheet(true);
-  desenharAgenda();
-  showToast('Salas salvas','ok');
+  if(document.getElementById('agBody')) desenharAgenda();
+  if(document.getElementById('gsBody') && _gs.aba==='salas') painelSalas();
+  showToast('Salas e capacidade salvas','ok');
 }
 
 // ── Faltas, ausências justificadas e remarcação ──
@@ -6603,6 +6675,12 @@ async function excluirProximosIguais(agendaEmail, eventoId, btn) {
 // ═══════════════════════════════════════════════
 const PILATES_VAGAS = 3;
 const ehPilates = s => /pilates/i.test(String(s||''));
+// Pacientes por horário de cada profissional (Salas e capacidade). Sem nada
+// cadastrado: 3 no Pilates, 1 no resto.
+function vagasDe(email, servico) {
+  const v = +((((typeof _gs!=='undefined' && _gs.cap) || {})[email] || {}).vagas);
+  return v > 0 ? v : (ehPilates(servico===undefined ? 'pilates' : servico) ? PILATES_VAGAS : 1);
+}
 function alunasNoHorario(lista, email, ini, fim, ignorarId) {
   return lista.filter(o=>o.agenda_email===email && o.id!==ignorarId && ehPilates(o.servico) && !ehAusencia(o.status)
     && new Date(o.inicio)<fim && new Date(o.fim)>ini);
@@ -6639,7 +6717,7 @@ function renderMapaTurmas() {
 async function loadMapaTurmas() {
   const el = document.getElementById('mtBody'); if(!el) return;
   const hoje = new Date(); hoje.setHours(0,0,0,0); const seg = inicioDaSemana(hoje);
-  const [r, pacs] = await Promise.all([api('listar_agenda',{de:seg.toISOString(), ate:somaDias(seg,35).toISOString()}), carregarTodosPacientes()]);
+  const [r, pacs] = await Promise.all([api('listar_agenda',{de:seg.toISOString(), ate:somaDias(seg,35).toISOString()}), carregarTodosPacientes(), carregarCapacidade()]);
   if(!r.ok) { el.innerHTML = `<div class="card" style="color:var(--rose)">Não foi possível carregar a agenda: ${esc(r.erro||'')}</div>`; return; }
   const evs = (r.dados||[]).map(prepEvento).filter(e=>ehPilates(e.servico) && !e.dia_inteiro && !e.reposDe);
   const profs = (r.profissionais||[]).filter(p=>evs.some(e=>e.agenda_email===p.email));
@@ -6675,11 +6753,11 @@ function desenharMapaTurmas() {
     const tds = dias.map(dow=>{
       const aqui = vis.filter(x=>x.dow===dow && x.h===h).sort((a,b)=>(a.m-b.m)||a.nome.localeCompare(b.nome));
       const grupos = (varias ? profs : profs.filter(p=>!_mtFiltro||p.email===_mtFiltro)).map(p=>({p, xs:aqui.filter(x=>x.email===p.email)})).filter(g=>g.xs.length);
-      grupos.forEach(g=>{ const livres = Math.max(0, PILATES_VAGAS-g.xs.length); vagasLivres += livres; if(!livres) cheios++; });
-      const estado = !grupos.length ? 'vazio' : grupos.every(g=>g.xs.length>=PILATES_VAGAS) ? 'cheio' : 'vaga';
+      grupos.forEach(g=>{ const livres = Math.max(0, vagasDe(g.p.email)-g.xs.length); vagasLivres += livres; if(!livres) cheios++; });
+      const estado = !grupos.length ? 'vazio' : grupos.every(g=>g.xs.length>=vagasDe(g.p.email)) ? 'cheio' : 'vaga';
       return `<td class="mp-c mp-${estado}" onclick="novaAlunaMapa(${dow},${h})" title="${nomesD[dow]} às ${String(h).padStart(2,'0')}h">
         ${grupos.map(g=>`<div class="mp-g">
-          <div class="mp-gh${varias?'':' mp-gh1'}">${varias?`<i style="background:${agCor(g.p.email)}"></i>${esc(g.p.nome.split(' ').slice(-1)[0])}`:''}<b class="${g.xs.length>=PILATES_VAGAS?'cheio':''}">${g.xs.length}/${PILATES_VAGAS}</b></div>
+          <div class="mp-gh${varias?'':' mp-gh1'}">${varias?`<i style="background:${agCor(g.p.email)}"></i>${esc(g.p.nome.split(' ').slice(-1)[0])}`:''}<b class="${g.xs.length>=vagasDe(g.p.email)?'cheio':''}">${g.xs.length}/${vagasDe(g.p.email)}</b></div>
           ${g.xs.map(x=>`<button class="mp-n" ${x.pid?`onclick="event.stopPropagation();abrirCliente('${esc(x.pid)}')"`:'onclick="event.stopPropagation()"'} title="${esc(x.nome)}${x.acaba?' · plano até '+x.acaba.toLocaleDateString('pt-BR'):''}">${esc(curto(x.nome))}${x.m?` <small>${String(x.h).padStart(2,'0')}:${String(x.m).padStart(2,'0')}</small>`:''}${x.acaba?` <small class="mt-acaba">até ${x.acaba.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})}</small>`:''}</button>`).join('')}
         </div>`).join('')}
         ${estado!=='cheio'?'<span class="mp-mais">+ aluna</span>':''}</td>`;
@@ -6694,7 +6772,7 @@ function desenharMapaTurmas() {
       <div><b style="color:var(--teal)">${vagasLivres}</b><span>vagas livres nas turmas abertas</span></div>
       <div><b style="color:${cheios?'var(--rose)':'var(--ink)'}">${cheios}</b><span>${cheios===1?'turma cheia':'turmas cheias'}</span></div>
       <button class="backbtn" onclick="window.print()">Imprimir</button>
-      <div class="mp-leg"><span><i class="mp-sw mp-vaga"></i>Tem vaga</span><span><i class="mp-sw mp-cheio"></i>Cheia (${PILATES_VAGAS} por profissional)</span><span><i class="mp-sw mp-vazio"></i>Sem turma</span></div>
+      <div class="mp-leg"><span><i class="mp-sw mp-vaga"></i>Tem vaga</span><span><i class="mp-sw mp-cheio"></i>Cheia (vagas por profissional em Salas e capacidade)</span><span><i class="mp-sw mp-vazio"></i>Sem turma</span></div>
     </div>
     ${lista.length?'':`<div class="card" style="color:var(--ink3);margin-bottom:12px">Nenhum plano de Pilates nas próximas semanas. Quando um plano é agendado, a aluna aparece aqui sozinha.</div>`}
     <div class="mp-wrap"><table class="mp"><thead><tr><th></th>${dias.map(d=>`<th>${nomesD[d]}</th>`).join('')}</tr></thead><tbody>${linhas.join('')}</tbody></table></div>
@@ -6734,7 +6812,7 @@ function mapaPilates() {
       let estado = 'vazio';
       if(grupos.length) {
         const ocupadas = g => g.evs.filter(e=>!ehAusencia(e.status)).length;
-        const livres = grupos.reduce((s,g)=>s+Math.max(0, PILATES_VAGAS-ocupadas(g)),0);
+        const livres = grupos.reduce((s,g)=>s+Math.max(0, vagasDe(g.p.email)-ocupadas(g)),0);
         vagasLivres += livres;
         estado = livres ? 'vaga' : 'cheio';
         if(!livres) turmasCheias++;
@@ -6745,7 +6823,7 @@ function mapaPilates() {
         ${grupos.map(g=>{
           const n = g.evs.filter(e=>!ehAusencia(e.status)).length;
           return `<div class="mp-g">
-            ${profs.length>1?`<div class="mp-gh"><i style="background:${agCor(g.p.email)}"></i>${esc(g.p.nome.split(' ').slice(-1)[0])}<b class="${n>=PILATES_VAGAS?'cheio':''}">${n}/${PILATES_VAGAS}</b></div>`:`<div class="mp-gh mp-gh1"><b class="${n>=PILATES_VAGAS?'cheio':''}">${n}/${PILATES_VAGAS}</b></div>`}
+            ${profs.length>1?`<div class="mp-gh"><i style="background:${agCor(g.p.email)}"></i>${esc(g.p.nome.split(' ').slice(-1)[0])}<b class="${n>=vagasDe(g.p.email)?'cheio':''}">${n}/${vagasDe(g.p.email)}</b></div>`:`<div class="mp-gh mp-gh1"><b class="${n>=vagasDe(g.p.email)?'cheio':''}">${n}/${vagasDe(g.p.email)}</b></div>`}
             ${g.evs.map(e=>`<button class="mp-n st-${e.status||'agendado'}" onclick="event.stopPropagation();detalheAtendimento('${esc(e.agenda_email)}','${esc(e.id)}')">${esc(String(e.titulo||'').split(' · ')[0])}${new Date(e.inicio).getMinutes()?` <small>${horaDe(e.inicio)}</small>`:''}${e.rep?' <small>↻</small>':''}</button>`).join('')}
           </div>`;}).join('')}
         ${estado!=='cheio'?`<span class="mp-mais">+ aluna</span>`:''}
@@ -6758,7 +6836,7 @@ function mapaPilates() {
       <div><b style="color:var(--teal)">${vagasLivres}</b><span>vagas livres nas turmas abertas</span></div>
       <div><b style="color:${turmasCheias?'var(--rose)':'var(--ink)'}">${turmasCheias}</b><span>${turmasCheias===1?'horário cheio':'horários cheios'}</span></div>
       <button class="backbtn" onclick="abrirPlacarPilates()">Placar de faltas</button>
-      <div class="mp-leg"><span><i class="mp-sw mp-vaga"></i>Tem vaga</span><span><i class="mp-sw mp-cheio"></i>Cheio (${PILATES_VAGAS} por profissional)</span><span><i class="mp-sw mp-vazio"></i>Sem turma</span></div>
+      <div class="mp-leg"><span><i class="mp-sw mp-vaga"></i>Tem vaga</span><span><i class="mp-sw mp-cheio"></i>Cheio (vagas por profissional)</span><span><i class="mp-sw mp-vazio"></i>Sem turma</span></div>
     </div>
     ${profs.length?'':`<div class="card" style="color:var(--ink3)">Nenhuma aula de Pilates nesta semana. Clique num horário para marcar a primeira aluna.</div>`}
     <div class="agx"><div class="mp-scroll"><table class="mp">
@@ -6939,7 +7017,7 @@ async function salvarPlano() {
       const ini = new Date(d); ini.setHours(hh, mm, 0, 0);
       const ate = new Date(ini.getTime()+s.dur*60000);
       const quando = ini.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'})+' '+s.hora;
-      if(ehPilates(s.servico) && alunasNoHorario(periodo, s.email, ini, ate, '').length >= PILATES_VAGAS) { pulos.push(quando+' (turma cheia)'); continue; }
+      if(ehPilates(s.servico) && alunasNoHorario(periodo, s.email, ini, ate, '').length >= vagasDe(s.email)) { pulos.push(quando+' (turma cheia)'); continue; }
       const outro = outroAtendimentoNoHorario(periodo, s.email, ini, ate, '');
       if(outro && !ehPilates(outro.servico)) { pulos.push(quando+' (choque)'); continue; }
       btn.textContent = `Marcando horários novos… ${criados+1}`;
@@ -7340,6 +7418,7 @@ function desenharLeads() {
 
   el.innerHTML = `
     <div class="lead-topo">
+      <button class="backbtn" onclick="location.href='campanha/'" title="Teste de força das mãos em ação presencial: cada participante vira lead">Campanha: força das mãos</button>
       ${_leadCfg.pode_editar?`<button class="addbtn" onclick="novoLead()">+ Novo lead</button>`:''}
       <span style="font-size:13px;color:var(--ink3)">${lista.length} de ${_leads.length} lead${_leads.length!==1?'s':''}</span>
     </div>
@@ -11114,16 +11193,18 @@ const DIAS_SEM_EVOLUCAO = 14;
 
 async function calcularAlertas() {
   const pacs = await carregarTodosPacientes();
-  const [res, resReun, resPosAlta, resScore, resEvo] = await Promise.all([
+  const [res, resReun, resPosAlta, resScore, resUlt] = await Promise.all([
     api('listar',{tabela:'checklists'}),
     api('listar',{tabela:'reunioes'}),
     api('listar',{tabela:'monitoramentos'}),
     api('listar',{tabela:'myscore'}),
-    api('listar',{tabela:'evolucoes'}),
+    api('ultimas_evolucoes',{}),
   ]);
-  // Última evolução de cada paciente. Os registros internos da Avaliação
-  // infantil (origem 'infantil') não são atendimento e ficam de fora.
-  const ultimaEvo = {};
+  // Última evolução de cada paciente: o servidor já manda pronto (só a data).
+  // Servidor antigo, sem essa ação: baixa as evoluções como antes.
+  // Os registros internos da Avaliação infantil não contam como atendimento.
+  const ultimaEvo = resUlt.ok ? {...(resUlt.dados||{})} : {};
+  const resEvo = resUlt.ok ? {ok:false} : await api('listar',{tabela:'evolucoes'});
   (resEvo.ok?resEvo.dados||[]:[]).forEach(e=>{
     if(e.origem==='infantil') return;
     const pid = String(e.paciente_id), d = String(e.data||'').slice(0,10);
@@ -11318,10 +11399,11 @@ async function painelSalas() {
     <span class="gs-sub">${evs.length} ${evs.length===1?'atendimento':'atendimentos'} · ${salas.length} ${salas.length===1?'sala':'salas'}</span>
   </div>
   ${hoje && agora.length ? `<div class="gs-agora"><b>Agora na Casa</b>${agora.map(e=>`<span><i style="background:${agCor(e.agenda_email)}"></i>${esc(e.sala||'sem sala')}: ${esc(nomePacEv(e))} com ${esc(agProfNome(e.agenda_email))}</span>`).join('')}</div>` : ''}
-  ${!salas.length ? `<div class="fe-aviso"><div>Nenhuma sala cadastrada. Cadastre as salas na Agenda (botão "Salas") para ver a ocupação por sala.</div></div>` : ''}
+  ${currentRole==='admin' ? `<div style="margin:0 0 10px"><button class="backbtn" onclick="editarSalas()">Salas e capacidade</button></div>` : ''}
+  ${!salas.length ? `<div class="fe-aviso"><div>Nenhuma sala cadastrada. Cadastre em "Salas e capacidade" para ver a ocupação por sala.</div></div>` : ''}
   ${cols.length ? `<div class="gs-salas-wrap"><div class="gs-salas" style="grid-template-columns:52px repeat(${cols.length}, minmax(150px,1fr))">
     <div class="gs-hcel"></div>
-    ${cols.map(c=>`<div class="gs-hcel${c.sem?' sem':''}"><b>${esc(c.nome)}</b><span>${c.evs.length} ${c.evs.length===1?'atend.':'atend.'}${c.sem?'':' · '+ocup(c)+'% ocupada'}</span>
+    ${cols.map(c=>`<div class="gs-hcel${c.sem?' sem':''}"><b>${esc(c.nome)}${!c.sem&&capSala(c.nome)?` <small style="font-weight:400;color:var(--ink3)">· até ${capSala(c.nome)}</small>`:''}</b><span>${c.evs.length} ${c.evs.length===1?'atend.':'atend.'}${c.sem?'':' · '+ocup(c)+'% ocupada'}</span>
       ${c.sem?'':`<div class="gs-ocbar"><i style="width:${ocup(c)}%"></i></div>`}</div>`).join('')}
     <div class="gs-horas" style="height:${aberto*GS_PX}px">${[...Array(aberto/60+1)].map((_,i)=>`<span style="top:${i*60*GS_PX}px">${agHM(h0+i*60)}</span>`).join('')}</div>
     ${cols.map(c=>`<div class="gs-col" style="height:${aberto*GS_PX}px">

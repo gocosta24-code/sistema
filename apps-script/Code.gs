@@ -20,10 +20,31 @@ const SHEET_ID = '12HfN3lxg-JVC-vT7_4FXC334xAakItc5jjYQt8lyCWk';
 // Endereco do sistema publicado - usado no e-mail de convite
 const URL_SISTEMA = 'https://gocosta24-code.github.io/sistema/';
 
+// --- VELOCIDADE -----------------------------------------------
+// Cada pedido do app e uma execucao nova do Apps Script. Abrir a planilha e
+// ler a mesma aba varias vezes no mesmo pedido era o que mais pesava: agora a
+// planilha abre uma vez e as abas de consulta (Tokens, Profissionais, Config,
+// Feriados) sao lidas uma vez por pedido. A sessao (token) e a Config ficam
+// tambem no cache do Google por alguns minutos, entre um pedido e outro.
+let _SS = null;
+const _MEMO = {};
 function getSpreadsheet() {
-  try { return SpreadsheetApp.openById(SHEET_ID); }
-  catch(e) { return SpreadsheetApp.getActiveSpreadsheet(); }
+  if (_SS) return _SS;
+  try { _SS = SpreadsheetApp.openById(SHEET_ID); }
+  catch(e) { _SS = SpreadsheetApp.getActiveSpreadsheet(); }
+  return _SS;
 }
+// Valores de uma aba de consulta, lidos uma vez por pedido
+function valoresAba(nome) {
+  if (_MEMO['aba:'+nome]) return _MEMO['aba:'+nome];
+  const sh = getSpreadsheet().getSheetByName(nome);
+  const v = sh ? sh.getDataRange().getValues() : [];
+  _MEMO['aba:'+nome] = v;
+  return v;
+}
+function esquecerAba(nome) { delete _MEMO['aba:'+nome]; }
+function cacheScript() { try { return CacheService.getScriptCache(); } catch(e) { return null; } }
+function esquecerToken(tk) { const c = cacheScript(); if (c && tk) try { c.remove('tk:'+tk); } catch(e) {} }
 
 const ABAS = {
   pacientes:      'Pacientes',
@@ -288,6 +309,9 @@ function handle(e) {
       case 'salvar_evento':     return resp(salvarEvento(body, token));
       case 'status_evento':     return resp(statusEvento(body, token));
       case 'excluir_evento':    return resp(excluirEvento(body, token));
+      case 'ultimas_evolucoes': return resp(ultimasEvolucoes(token));
+      case 'lead_campanha':     return resp(leadCampanha(body, token));
+      case 'listar_campanha':   return resp(listarCampanha(body, token));
       case 'listar_feriados':   return resp(listarFeriados(body, token));
       case 'salvar_feriado':    return resp(salvarFeriado(body, token));
       case 'excluir_feriado':   return resp(excluirFeriado(body, token));
@@ -388,10 +412,12 @@ function logout(token) {
   for (let i=dados.length-1;i>=1;i--) {
     if (dados[i][0]===token) sheet.deleteRow(i+1);
   }
+  esquecerToken(token);
   return {ok:true};
 }
 
 function salvarToken(token, email, role, refId) {
+  esquecerAba('Tokens');
   const ss = getSpreadsheet();
   const sheet = getOuCria(ss,'Tokens');
   if (sheet.getLastRow() === 0) {
@@ -408,32 +434,36 @@ function salvarToken(token, email, role, refId) {
   sheet.appendRow([token,email,role,expira.toISOString(), refId||'']);
 }
 
+// Sessao: procura no cache (10 min) e, se nao tiver, na aba Tokens
+function sessaoDoToken(token) {
+  if (!token) return null;
+  if (_MEMO['tk:'+token] !== undefined) return _MEMO['tk:'+token];
+  const c = cacheScript();
+  let s = null;
+  try { const x = c && c.get('tk:'+token); if (x) s = JSON.parse(x); } catch(e) {}
+  if (!s) {
+    try {
+      const dados = valoresAba('Tokens');
+      for (let i=1;i<dados.length;i++) {
+        if (dados[i][0]===token) {
+          s = {email:dados[i][1], role:dados[i][2], refId:dados[i][4]||'', expira:new Date(dados[i][3]).toISOString()};
+          try { if (c) c.put('tk:'+token, JSON.stringify(s), 600); } catch(e) {}
+          break;
+        }
+      }
+    } catch(e) {}
+  }
+  _MEMO['tk:'+token] = s;
+  return s;
+}
 function validarToken(token) {
-  if (!token) return false;
-  try {
-    const ss = getSpreadsheet();
-    const sheet = ss.getSheetByName('Tokens');
-    if (!sheet) return false;
-    const dados = sheet.getDataRange().getValues();
-    const agora = new Date();
-    for (let i=1;i<dados.length;i++) {
-      if (dados[i][0]===token && agora < new Date(dados[i][3])) return true;
-    }
-  } catch(e){}
-  return false;
+  const s = sessaoDoToken(token);
+  return !!s && new Date() < new Date(s.expira);
 }
 
 function getInfoToken(token) {
-  try {
-    const ss = getSpreadsheet();
-    const sheet = ss.getSheetByName('Tokens');
-    if (!sheet) return null;
-    const dados = sheet.getDataRange().getValues();
-    for (let i=1;i<dados.length;i++) {
-      if (dados[i][0]===token) return {email:dados[i][1], role:dados[i][2], refId:dados[i][4]||''};
-    }
-  } catch(e){}
-  return null;
+  const s = sessaoDoToken(token);
+  return s ? {email:s.email, role:s.role, refId:s.refId} : null;
 }
 
 function alterarSenha(body, token) {
@@ -471,7 +501,8 @@ const RESET_INTERVALO_MIN = 2;   // espera minima entre dois pedidos
 function acharProfissional(email) {
   const ss = getSpreadsheet();
   const sheet = getOuCria(ss,'Profissionais');
-  const dados = sheet.getDataRange().getValues();
+  const dados = valoresAba('Profissionais');
+  if (!dados.length) return null;
   const h = dados[0];
   const iEmail = h.indexOf('email');
   for (let i=1;i<dados.length;i++) {
@@ -613,7 +644,7 @@ function redefinirSenha(body) {
     if (st) {
       const td = st.getDataRange().getValues();
       for (let j=td.length-1;j>=1;j--) {
-        if (String(td[j][1]||'').toLowerCase() === email.toLowerCase()) st.deleteRow(j+1);
+        if (String(td[j][1]||'').toLowerCase() === email.toLowerCase()) { esquecerToken(td[j][0]); st.deleteRow(j+1); }
       }
     }
     return {ok:true};
@@ -1748,7 +1779,7 @@ const ESTAGIOS_LEAD = [
 const ESTAGIO_GANHO  = 'Virou Paciente';
 const ESTAGIO_PERDIDO = 'Perdido';
 
-const ORIGENS_LEAD = ['Instagram','Meta Ads','Indica\u00e7\u00e3o','Rua/Passante','Google','Outro'];
+const ORIGENS_LEAD = ['Instagram','Meta Ads','Indica\u00e7\u00e3o','Rua/Passante','Google','Campanha presencial','Outro'];
 const MOTIVOS_PERDA = ['N\u00e3o respondeu','N\u00e3o tinha or\u00e7amento','Desistiu',
                        'Fora da \u00e1rea de atendimento','Outro'];
 
@@ -2014,6 +2045,15 @@ const CONFIG_PADRAO = {
 };
 
 function lerConfig() {
+  if (_MEMO.config) return _MEMO.config;
+  const c = cacheScript();
+  try { const x = c && c.get('config'); if (x) { _MEMO.config = JSON.parse(x); return _MEMO.config; } } catch(e) {}
+  const cfg = lerConfigDaPlanilha();
+  try { if (c) c.put('config', JSON.stringify(cfg), 300); } catch(e) {}
+  _MEMO.config = cfg;
+  return cfg;
+}
+function lerConfigDaPlanilha() {
   const ss = getSpreadsheet();
   const sheet = ss.getSheetByName('Config');
   const cfg = {};
@@ -2043,6 +2083,7 @@ function obterConfig(token) {
 function salvarConfigClinica(body, token) {
   const info = getInfoToken(token);
   if (!info || info.role !== 'admin') return {ok:false, erro:'Sem permissao de admin'};
+  delete _MEMO.config; try { const c = cacheScript(); if (c) c.remove('config'); } catch(e) {}
 
   const ss = getSpreadsheet();
   const sheet = getOuCria(ss, 'Config');
@@ -2452,6 +2493,7 @@ function ocultarReservado(rows, token) {
 }
 
 function salvar(body) {
+  esquecerAba('Profissionais'); delete _MEMO.equipe;
   const tabela = ABAS[body.tabela];
   if (!tabela) return {ok:false,erro:'Tabela inv\u00e1lida'};
   if (!body.dados) return {ok:false,erro:'Dados vazios'};
@@ -2484,6 +2526,7 @@ function salvar(body) {
 }
 
 function atualizar(body) {
+  esquecerAba('Profissionais'); delete _MEMO.equipe;
   const tabela = ABAS[body.tabela];
   if (!tabela) return {ok:false,erro:'Tabela inv\u00e1lida'};
   if (!body.id) return {ok:false,erro:'ID n\u00e3o fornecido'};
@@ -2728,8 +2771,9 @@ function migrarSenhasParaHash() {
 // que nao aparecem para o paciente nem no titulo.
 
 function equipeComAgenda() {
-  const sheet = getOuCria(getSpreadsheet(), 'Profissionais');
-  const dados = sheet.getDataRange().getValues();
+  if (_MEMO.equipe) return _MEMO.equipe;
+  getOuCria(getSpreadsheet(), 'Profissionais');
+  const dados = valoresAba('Profissionais');
   if (dados.length < 2) return [];
   const h = dados[0];
   const col = function(n){ return h.indexOf(n); };
@@ -2745,19 +2789,28 @@ function equipeComAgenda() {
       funcao: col('funcao') === -1 ? '' : String(r[col('funcao')]||''),
       linhas: col('linhas') === -1 ? [] : String(r[col('linhas')]||'').toLowerCase().split(',').map(function(x){return x.trim();}).filter(Boolean),
       agenda_id: col('agenda_id') === -1 ? '' : String(r[col('agenda_id')]||'').trim(),
+      nivel: col('nivel_acesso') === -1 ? '' : String(r[col('nivel_acesso')]||'').trim().toLowerCase(),
       linhaPlanilha: i+1
     });
   }
   // Recepcao e administrativo nao atendem: nao tem agenda de atendimento
-  return lista.filter(function(p){ return !ehRecepcao(p) && !ehAdministracao(p); });
+  _MEMO.equipe = lista.filter(function(p){ return !ehRecepcao(p) && !ehAdministracao(p); });
+  return _MEMO.equipe;
 }
 
 function veTodasAgendas(perfil) {
   return perfil.role === 'admin' || ehRecepcao(perfil);
 }
 
-function agendasVisiveis(perfil) {
+// Agenda de quem e da gestao (nivel admin) e privada: so a gestao ve e marca
+// nela. Recepcao, coordenacao e profissionais nao enxergam nem conseguem
+// colocar atendimento ou reuniao ali.
+function equipeQueEnxerga(perfil) {
   const equipe = equipeComAgenda();
+  return perfil.role === 'admin' ? equipe : equipe.filter(function(p){ return p.nivel !== 'admin'; });
+}
+function agendasVisiveis(perfil) {
+  const equipe = equipeQueEnxerga(perfil);
   const eu = String(perfil.email||'').toLowerCase();
   if (veTodasAgendas(perfil)) return equipe;
   if (perfil.role === 'coordenador') {
@@ -2822,7 +2875,7 @@ function listarAgenda(body, token) {
   return {ok:true, dados:eventos, sem_acesso:semAcesso,
     profissionais: visiveis.map(function(p){ return {email:p.email, nome:p.nome, linhas:p.linhas, tem_agenda:!!p.agenda_id}; }),
     // Toda a equipe com agenda: reuniao pode juntar quem a pessoa nao ve na agenda
-    equipe: equipeComAgenda().filter(function(p){ return p.agenda_id; }).map(function(p){ return {email:p.email, nome:p.nome}; }),
+    equipe: equipeQueEnxerga(perfil).filter(function(p){ return p.agenda_id; }).map(function(p){ return {email:p.email, nome:p.nome}; }),
     feriados: feriadosEntre(de, ate).filter(function(f){ return !f.profissionais.length || f.profissionais.some(function(e){ return visEmails.indexOf(e) !== -1; }); }),
     pode_feriados: podeFeriados(perfil),
     pode_criar_agendas: perfil.role === 'admin'};
@@ -2842,6 +2895,12 @@ function profVisivel(perfil, email) {
 }
 
 const PILATES_VAGAS = 3;
+function capacidadeDaProf(email, servico) {
+  let cfg = {};
+  try { cfg = JSON.parse(String(lerConfig().capacidade_equipe || '{}')) || {}; } catch(e) {}
+  const v = Number((cfg[String(email||'').toLowerCase()] || {}).vagas) || 0;
+  return v > 0 ? v : (/pilates/i.test(String(servico||'')) ? PILATES_VAGAS : 1);
+}
 function salvarEvento(body, token) {
   const perfil = perfilDaEquipe(token);
   if (!perfil) return {ok:false, erro:'Sem permissão'};
@@ -2869,13 +2928,15 @@ function salvarEvento(body, token) {
   // choque com outro tipo de atendimento).
   const ehPilates = /pilates/i.test(String(body.servico||''));
   const noHorario = cal.getEvents(inicio, fim).filter(function(ev){ return ev.getId() !== body.evento_id && !ev.isAllDayEvent(); });
-  if (ehPilates) {
-    const alunas = noHorario.filter(function(ev){ return /pilates/i.test(String(ev.getTag('servico')||'')) && ev.getTag('status') !== 'falta' && ev.getTag('status') !== 'justificada'; });
-    if (alunas.length >= PILATES_VAGAS) return {ok:false, lotado:true, erro:'Turma cheia: ' + prof.nome + ' já tem ' + PILATES_VAGAS + ' alunas nesse horário'};
-  }
+  // Pacientes por horario da profissional (Salas e capacidade, na gestao).
+  // Sem cadastro: PILATES_VAGAS no Pilates e 1 no resto. Com mais de 1 vaga,
+  // o horario cheio trava mesmo com "forcar"; com 1, o choque pede confirmacao.
+  const cap = capacidadeDaProf(prof.email, body.servico);
+  const pacientes = noHorario.filter(function(ev){ return ev.getTag('tipo') !== 'reuniao' && ev.getTag('status') !== 'falta' && ev.getTag('status') !== 'justificada'; });
+  if (cap > 1 && pacientes.length >= cap) return {ok:false, lotado:true, erro:(ehPilates ? 'Turma cheia: ' : 'Horário cheio: ') + prof.nome + ' já tem ' + cap + (ehPilates ? ' alunas' : ' pacientes') + ' nesse horário'};
   // Choque de horario na mesma agenda (o proprio evento, ao editar, nao conta)
   if (!body.forcar) {
-    const choque = noHorario.filter(function(ev){ return !(ehPilates && /pilates/i.test(String(ev.getTag('servico')||''))); });
+    const choque = cap > 1 ? noHorario.filter(function(ev){ return ev.getTag('tipo') === 'reuniao'; }) : noHorario;
     if (choque.length) return {ok:false, conflito:true, erro:'Já existe "' + choque[0].getTitle() + '" nesse horário na agenda de ' + prof.nome};
   }
 
@@ -3105,6 +3166,7 @@ function apagarTokensDe(email, role) {
   for (let i = dados.length-1; i >= 1; i--) {
     if (String(dados[i][1]||'').toLowerCase() !== email.toLowerCase()) continue;
     if (role && (role === 'paciente') !== (String(dados[i][2]) === 'paciente')) continue;
+    esquecerToken(dados[i][0]);
     sheet.deleteRow(i+1);
   }
 }
@@ -3214,6 +3276,7 @@ function dataISOdaCelula(v) {
   return String(v||'').slice(0,10);
 }
 function todosFeriados() {
+  if (_MEMO.feriados) return _MEMO.feriados;
   const sheet = abaComCabecalho('Feriados', FERIADO_CAB);
   const dados = sheet.getDataRange().getValues();
   const h = dados[0], out = [];
@@ -3226,6 +3289,7 @@ function todosFeriados() {
     o.linha = i+1;
     out.push(o);
   }
+  _MEMO.feriados = out;
   return out;
 }
 function feriadosEntre(de, ate) {
@@ -3272,6 +3336,7 @@ function salvarFeriado(body, token) {
     linhas.push(h.map(function(k){ return v[k] === undefined ? '' : v[k]; }));
   });
   if (linhas.length) sheet.getRange(sheet.getLastRow()+1, 1, linhas.length, h.length).setValues(linhas);
+  delete _MEMO.feriados;
   // Atendimentos que ja estavam marcados nesses dias: a tela avisa para remarcar
   const tz = Session.getScriptTimeZone();
   const marcados = [];
@@ -3317,7 +3382,7 @@ function salvarReuniao(body, token) {
   if (!titulo) return {ok:false, erro:'Informe o assunto da reunião'};
   const inicio = new Date(body.inicio), fim = new Date(body.fim);
   if (isNaN(inicio) || isNaN(fim) || fim <= inicio) return {ok:false, erro:'Horário inválido'};
-  const equipe = equipeComAgenda();
+  const equipe = equipeQueEnxerga(perfil);
   const quer = (body.participantes||[]).map(function(e){ return String(e).toLowerCase().trim(); });
   const part = equipe.filter(function(p){ return quer.indexOf(p.email) !== -1; });
   if (!part.length) return {ok:false, erro:'Escolha ao menos uma profissional'};
@@ -3485,4 +3550,93 @@ function excluirLead(body, token) {
     if (pac && String(pac.obj.status||'').toLowerCase() === 'lead') { pac.sheet.deleteRow(pac.linha); pacienteRemovido = true; }
   }
   return {ok:true, paciente_removido:pacienteRemovido};
+}
+
+
+// Data da ultima evolucao de cada paciente que a pessoa ve. Os alertas da
+// tela inicial so precisam disso; antes a tela baixava a aba Evolucoes
+// inteira a cada entrada, e ela so cresce.
+function ultimasEvolucoes(token) {
+  const perfil = perfilDaEquipe(token);
+  if (!perfil) return {ok:false, erro:'Sem permissão'};
+  const sh = getSpreadsheet().getSheetByName(ABAS.evolucoes);
+  if (!sh || sh.getLastRow() < 2) return {ok:true, dados:{}};
+  const h = sh.getRange(1,1,1,sh.getLastColumn()).getValues()[0];
+  const iP = h.indexOf('paciente_id'), iD = h.indexOf('data'), iO = h.indexOf('origem');
+  if (iP === -1 || iD === -1) return {ok:true, dados:{}};
+  const n = sh.getLastRow()-1;
+  const col = function(i){ return i === -1 ? null : sh.getRange(2, i+1, n, 1).getValues(); };
+  const P = col(iP), D = col(iD), O = col(iO);
+  const tz = Session.getScriptTimeZone();
+  const pacs = perfil.role === 'admin' ? null : mapaPacientes(), vis = {};
+  const out = {};
+  for (let k=0;k<n;k++) {
+    const pid = String(P[k][0]||''); if (!pid) continue;
+    if (O && String(O[k][0]||'') === 'infantil') continue;
+    if (pacs) { if (!(pid in vis)) vis[pid] = podeVerPaciente(perfil, pacs[pid]); if (!vis[pid]) continue; }
+    const v = D[k][0];
+    const d = v instanceof Date ? Utilities.formatDate(v, tz, 'yyyy-MM-dd') : String(v||'').slice(0,10);
+    if (d && (!out[pid] || d > out[pid])) out[pid] = d;
+  }
+  return {ok:true, dados:out};
+}
+
+
+// =============================================================
+// CAMPANHA PRESENCIAL: TESTE DE PREENSAO PALMAR
+// Na acao (feira, evento, porta da Casa) qualquer pessoa da equipe registra
+// nome, telefone, nascimento, sexo e a forca das maos. Cada participante vira
+// lead no funil (origem "Campanha presencial") e o resultado fica na aba
+// CampanhaPreensao. Telefone que ja esta no funil nao duplica: ganha uma nota.
+// =============================================================
+const CAMP_CAB = ['id','em','campanha','nome','telefone','data_nascimento','sexo','idade','mao_direita','mao_esquerda',
+                  'resultado','aceita_contato','lead_id','registrado_por'];
+function soDigitos(t) { return String(t||'').replace(/\D/g,''); }
+function leadCampanha(body, token) {
+  const perfil = perfilDaEquipe(token);
+  if (!perfil) return {ok:false, erro:'Sem permissão'};
+  const nome = String(body.nome||'').trim().slice(0,120);
+  const tel = String(body.telefone||'').trim();
+  if (!nome) return {ok:false, erro:'Informe o nome'};
+  if (soDigitos(tel).length < 10) return {ok:false, erro:'Confira o telefone com DDD'};
+  const camp = String(body.campanha||'Teste de preensão').trim().slice(0,80);
+  const res = String(body.resultado||'').slice(0,600);
+  const agora = new Date().toISOString();
+  const lock = LockService.getScriptLock(); try { lock.waitLock(20000); } catch(e) { return {ok:false, erro:'Tente de novo'}; }
+  try {
+    // mesmo pedido enviado de novo (fila do celular sem internet): nao repete
+    const sc = abaComCabecalho('CampanhaPreensao', CAMP_CAB);
+    if (body.id_local) {
+      const dc = sc.getDataRange().getValues(), iId = dc[0].indexOf('id');
+      for (let i=1;i<dc.length;i++) if (String(dc[i][iId]) === String(body.id_local)) return {ok:true, repetido:true, lead_id:dc[i][dc[0].indexOf('lead_id')]};
+    }
+    const sheet = abaComCabecalho('Leads', LEAD_CABECALHO);
+    const h = sheet.getRange(1,1,1,sheet.getLastColumn()).getValues()[0];
+    const dados = sheet.getDataRange().getValues(), iT = h.indexOf('telefone'), iI = h.indexOf('id');
+    let leadId = '';
+    for (let i=1;i<dados.length;i++) if (soDigitos(dados[i][iT]) && soDigitos(dados[i][iT]).slice(-9) === soDigitos(tel).slice(-9)) { leadId = String(dados[i][iI]); break; }
+    const nota = 'Teste de preensão (' + camp + '): ' + res + (body.aceita_contato ? '' : ' · NÃO autorizou contato');
+    if (leadId) registrarInteracao(leadId, '', '', nota, perfil.nome || perfil.email);
+    else {
+      leadId = 'ld_' + Date.now() + '_' + Math.floor(Math.random()*9999);
+      const v = {id:leadId, nome:nome, telefone:tel, email:'', data_contato:agora.slice(0,10), origem:'Campanha presencial', campanha:camp,
+        linha:String(body.linha||''), responsavel:perfil.nome||perfil.email, estagio:ESTAGIOS_LEAD[0], observacoes:nota,
+        data_nascimento:String(body.nascimento||''), criado_em:agora, atualizado_em:agora};
+      sheet.appendRow(h.map(function(k){ return v[k] === undefined ? '' : v[k]; }));
+      registrarInteracao(leadId, '', ESTAGIOS_LEAD[0], nota, perfil.nome || perfil.email);
+    }
+    const hc = sc.getRange(1,1,1,sc.getLastColumn()).getValues()[0];
+    const c = {id:body.id_local || ('cp_' + Date.now()), em:agora, campanha:camp, nome:nome, telefone:tel, data_nascimento:String(body.nascimento||''),
+      sexo:String(body.sexo||''), idade:body.idade||'', mao_direita:body.d||'', mao_esquerda:body.e||'', resultado:res,
+      aceita_contato:body.aceita_contato ? 'Sim' : 'Não', lead_id:leadId, registrado_por:perfil.nome||perfil.email};
+    sc.appendRow(hc.map(function(k){ return c[k] === undefined ? '' : c[k]; }));
+    return {ok:true, lead_id:leadId};
+  } finally { lock.releaseLock(); }
+}
+function listarCampanha(body, token) {
+  const perfil = perfilDaEquipe(token);
+  if (!perfil) return {ok:false, erro:'Sem permissão'};
+  const linhas = lerAba(abaComCabecalho('CampanhaPreensao', CAMP_CAB));
+  const camp = String(body.campanha||'');
+  return {ok:true, dados: linhas.filter(function(r){ return !camp || r.campanha === camp; }).reverse().slice(0, 500)};
 }
