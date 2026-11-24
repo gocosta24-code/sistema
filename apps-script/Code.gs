@@ -310,6 +310,7 @@ function handle(e) {
       case 'salvar_evento':     return resp(salvarEvento(body, token));
       case 'status_evento':     return resp(statusEvento(body, token));
       case 'listar_pacotes':    return resp(listarPacotes(body, token));
+      case 'painel_atendimento': return resp(painelAtendimento(body, token));
       case 'salvar_pacote':     return resp(salvarPacote(body, token));
       case 'encerrar_pacote':   return resp(encerrarPacote(body, token));
       case 'excluir_pacote':    return resp(excluirPacote(body, token));
@@ -2992,6 +2993,55 @@ function excluirPacote(body, token) {
   }
   P.sh.deleteRow(o._linha);
   return {ok:true};
+}
+
+// =============================================================
+// EM ATENDIMENTO: pacientes de cada linha de cuidado
+// Sai da agenda das ultimas 4 semanas e das proximas 4. A linha de cada
+// sessao e a do servico no Catalogo (senao, a do paciente). Coordenadora
+// recebe so as linhas dela (coluna "linhas" da aba Profissionais) - o
+// filtro e aqui no servidor, nao so na tela.
+// =============================================================
+function linhasPermitidas(perfil) {
+  if (perfil.role === 'admin' || /administra|recep|comercial/i.test(String(perfil.funcao||''))) return null;   // todas
+  if (perfil.role === 'coordenador') return (!perfil.linhas.length || perfil.linhas.indexOf('todos') !== -1) ? null : perfil.linhas;
+  return [];
+}
+function painelAtendimento(body, token) {
+  const perfil = perfilDaEquipe(token);
+  if (!perfil) return {ok:false, erro:'Sem permissão'};
+  const perm = linhasPermitidas(perfil);
+  if (perm && !perm.length) return {ok:false, erro:'Painel da gestão e da coordenação'};
+  const agora = new Date();
+  const de = new Date(agora.getTime() - 28*86400000), ate = new Date(agora.getTime() + 28*86400000);
+  const ag = listarAgenda({de: de.toISOString(), ate: ate.toISOString()}, token);
+  if (!ag.ok) return ag;
+  // servico -> linha, pelo Catalogo
+  const linhaServ = {};
+  const cat = valoresAba('Catalogo');
+  if (cat.length > 1) { const h = cat[0], iN = h.indexOf('nome'), iL = h.indexOf('linha');
+    if (iN !== -1 && iL !== -1) for (let i=1;i<cat.length;i++) linhaServ[semAcento(cat[i][iN])] = String(cat[i][iL]||'').toLowerCase().trim(); }
+  const pacs = mapaPacientes();
+  const ok = function(l){ return !perm || perm.indexOf(l) !== -1; };
+  const eventos = [], usados = {};
+  ag.dados.forEach(function(e) {
+    if (!e.paciente_id || e.tipo === 'reuniao' || e.dia_inteiro) return;
+    const pac = pacs[e.paciente_id]; if (!pac) return;
+    let linha = /pilates/i.test(e.servico) ? 'pilates' : linhaServ[semAcento(e.servico)] || '';
+    if (!linha) { const lp = linhasDoPaciente(pac); linha = lp.filter(ok)[0] || lp[0] || ''; }
+    if (!linha || !ok(linha)) return;
+    usados[e.paciente_id] = true;
+    eventos.push({paciente_id: e.paciente_id, linha: linha, inicio: e.inicio, status: e.status, servico: e.servico,
+      profissional: e.profissional, aviso: !!e.aviso, primeira: !!e.primeira, pacote_id: e.pacote_id || ''});
+  });
+  const pacientes = Object.keys(usados).map(function(id){ const p = pacs[id];
+    return {id: id, nome: p.nome, linha: p.linha || ''}; });
+  const ult = ultimasEvolucoes(token), ultimas = {};
+  if (ult.ok) Object.keys(usados).forEach(function(id){ if (ult.dados[id]) ultimas[id] = ult.dados[id]; });
+  const pks = lerPacotes().lista.filter(function(o){ return usados[o.paciente_id] && o.status !== 'encerrado'; })
+    .map(function(o){ return {id:o.id, paciente_id:o.paciente_id, servico:o.servico, sessoes:o.sessoes, usadas:o.consumo.length, validade:o.validade||''}; });
+  return {ok:true, linhas: perm, eventos: eventos, pacientes: pacientes, ultimas_evolucoes: ultimas, pacotes: pks,
+    profissionais: (ag.profissionais||[]).map(function(p){ return p.nome; })};
 }
 
 function eventoParaTela(ev, prof) {

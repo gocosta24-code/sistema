@@ -794,6 +794,34 @@ tr.pc-atencao td:first-child{box-shadow:inset 3px 0 0 var(--amber);}
 .agx-nv{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;background:var(--amber);color:#fff;border-radius:4px;padding:1px 5px;flex-shrink:0;}
 .agx-ev.avisou{background:repeating-linear-gradient(135deg,#fff 0 6px,var(--amber-lt) 6px 12px);box-shadow:inset 3px 0 0 var(--amber),0 0 0 1.5px var(--sur);}
 .agx-det-aviso b{color:var(--amber);}
+.ea-linhas{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:14px;}
+.ea-lc{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;background:var(--card,#fff);border:1px solid var(--bor);border-top:4px solid var(--lc);border-radius:14px;padding:10px 12px;cursor:pointer;font:inherit;color:inherit;}
+.ea-lc.on{outline:2px solid var(--lc);outline-offset:-1px;}
+.ea-lc span{font-size:12.5px;color:var(--ink3);}
+.ea-lc b{font-size:24px;line-height:1.1;}
+.ea-lc small{font-size:12px;color:var(--ink3);}
+.ea-lc small.ea-alerta{color:var(--rose);font-weight:600;}
+.ea-filtro{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.ea-filtro select{max-width:260px;}
+.ea-grade{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;}
+@media(max-width:900px){.ea-grade{grid-template-columns:repeat(2,minmax(0,1fr));}}
+@media(max-width:560px){.ea-grade{grid-template-columns:1fr;}}
+.ea-col{background:var(--card,#fff);border:1px solid var(--bor);border-radius:14px;padding:10px 12px;min-width:0;}
+.ea-col.ea-at{border-color:var(--rose);}
+.ea-h{font-weight:700;font-size:14px;}
+.ea-h span{font-weight:500;color:var(--ink3);margin-left:4px;}
+.ea-at .ea-h{color:var(--rose);}
+.ea-dica{font-size:11.5px;color:var(--ink3);margin-bottom:6px;}
+.ea-p{display:block;width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--bor);padding:8px 0;cursor:pointer;font:inherit;color:inherit;}
+.ea-p:hover b{text-decoration:underline;}
+.ea-p b{display:block;font-size:14px;}
+.ea-p small{display:block;font-size:12px;color:var(--ink3);}
+.ea-s{display:block;font-size:12px;color:var(--ink2,var(--ink3));margin-top:2px;}
+.ea-1a{color:#8a6d12;font-weight:600;}
+.ea-m{display:inline-block;font-size:11.5px;border-radius:8px;padding:0 6px;margin:2px 2px 0 0;}
+.ea-r{background:#f6e1df;color:#9b2c22;}
+.ea-a{background:#f7ecd5;color:#7a5410;}
+.ea-vazio{font-size:12.5px;color:var(--ink3);padding:8px 0;border-top:1px solid var(--bor);}
 .pk-item{display:block;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--bor);padding:10px 0;cursor:pointer;font:inherit;color:inherit;}
 .pk-item:last-child{border-bottom:0;}
 .pk-top{display:flex;justify-content:space-between;align-items:center;gap:8px;}
@@ -1176,6 +1204,7 @@ button .ico{vertical-align:-3px}
     <div id="pgAgenda" class="page"></div>
     <div id="pgPilates" class="page"></div>
     <div id="pgPacotes" class="page"></div>
+    <div id="pgAtend" class="page"></div>
     <div id="pgCasa" class="page"></div>
     <div id="pgLeads"     class="page"></div>
     <div id="pgEspera"    class="page"></div>
@@ -1648,6 +1677,26 @@ function demoApi(action, body) {
     case 'salvar_capacidade_pilates': {
       DEMO_DB.config={...(DEMO_DB.config||{}), pilates_capacidade:body.capacidade, pilates_vagas_abertas:body.vagas_abertas};
       return {ok:true};
+    }
+    case 'painel_atendimento': {
+      if(!DEMO_DB.agenda) demoAgenda('listar_agenda',{de:new Date().toISOString(), ate:new Date().toISOString()});
+      const eu = (DEMO_DB.profissionais||[]).find(x=>x.email===currentUser.email)||{};
+      const minhas = String(eu.linhas||'').toLowerCase().split(',').map(x=>x.trim()).filter(Boolean);
+      const perm = currentRole==='admin' || ehAdministracao() || ehRecepcao() ? null : currentRole==='coordenador' ? (minhas.length && !minhas.includes('todos') ? minhas : null) : [];
+      if(perm && !perm.length) return {ok:false, erro:'Painel da gestão e da coordenação'};
+      const ok = l => !perm || perm.includes(l), profs = DEMO_DB.profissionais||[];
+      const de = Date.now()-28*864e5, ate = Date.now()+28*864e5, usados = {};
+      const eventos = (DEMO_DB.agenda||[]).filter(e=>e.paciente_id && e.tipo!=='reuniao' && +new Date(e.inicio)>=de && +new Date(e.inicio)<=ate).map(e=>{
+        const pac = (DEMO_DB.pacientes||[]).find(p=>p.id===e.paciente_id); if(!pac) return null;
+        const c = (DEMO_DB.catalogo||[]).find(c=>normalizar(c.nome)===normalizar(e.servico));
+        let linha = /pilates/i.test(e.servico||'') ? 'pilates' : (c&&c.linha)||'';
+        if(!linha) { const lp = String(pac.linha||'').split(',').map(x=>x.trim()).filter(Boolean); linha = lp.find(ok)||lp[0]||''; }
+        if(!linha || !ok(linha)) return null; usados[e.paciente_id]=1;
+        return {paciente_id:e.paciente_id, linha, inicio:e.inicio, status:e.status||'', servico:e.servico, profissional:(profs.find(p=>p.email===e.agenda_email)||{}).nome||'', aviso:!!e.aviso, primeira:!!e.primeira, pacote_id:e.pacote_id||''};
+      }).filter(Boolean);
+      const ult = {}; (DEMO_DB.evolucoes||[]).forEach(v=>{ const d=String(v.data||'').slice(0,10); if(usados[v.paciente_id] && d && (!ult[v.paciente_id]||d>ult[v.paciente_id])) ult[v.paciente_id]=d; });
+      return {ok:true, linhas:perm, eventos, pacientes:(DEMO_DB.pacientes||[]).filter(p=>usados[p.id]).map(p=>({id:p.id, nome:p.nome, linha:p.linha})), ultimas_evolucoes:ult,
+        pacotes:(DEMO_DB.pacotes||[]).filter(o=>usados[o.paciente_id] && o.status!=='encerrado').map(o=>({id:o.id, paciente_id:o.paciente_id, servico:o.servico, sessoes:o.sessoes, usadas:(o.consumo||[]).length, validade:o.validade||''}))};
     }
     case 'listar_pacotes': {
       const L = (DEMO_DB.pacotes = DEMO_DB.pacotes || []);
@@ -2356,6 +2405,7 @@ const ICONES = {
   apoio:      '<circle cx="10" cy="4.5" r="2"/><path d="M10 7v6l-3 8M10 13l3 8M10 9l4 2v10"/>',
   lixeira:    '<path d="M4 7h16M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13M9 7V4h6v3"/>',
   olho:       '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  pulso:      '<path d="M3 12h4l2.5-6 4 12 2.5-6H21"/>',
   pacote:     '<path d="M3.5 7.5 12 3l8.5 4.5v9L12 21l-8.5-4.5z"/><path d="M3.5 7.5 12 12l8.5-4.5M12 12v9"/>',
   cadeira:    '<path d="M7 3v9h10V3M5 12h14M7 12v9M17 12v9"/>',
 };
@@ -2365,8 +2415,8 @@ function icone(nome, tam) {
 }
 
 const NAVS = {
-  admin:        [{id:'home',icon:'casa',label:'Início'},{id:'agenda',icon:'agenda',label:'Agenda'},{id:'pilates',icon:'pilates',label:'Mapa de Pilates',barra:false},{id:'gestao',icon:'painel',label:'Painel da gestão',barra:false},{id:'linhas',icon:'folha',label:'Linhas'},{id:'clientes',icon:'cliente',label:'Clientes',barra:false},{id:'casa',icon:'coracao',label:'Nossa Casa',barra:false},{id:'mensagens',icon:'mensagem',label:'Mensagens',num:true},{id:'leads',icon:'megafone',label:'Leads'},{id:'servicos',icon:'grade',label:'Serviços',barra:false},{id:'tarefas',icon:'tarefa',label:'Tarefas',barra:false},{id:'financeiro',icon:'carteira',label:'Financeiro',barra:false},{id:'pacotes',icon:'pacote',label:'Pacotes',barra:false},{id:'espera',icon:'cadeira',label:'Espera',barra:false},{id:'equipe',icon:'equipe',label:'Cadastro da equipe',barra:false},{id:'alertas',icon:'sino',label:'Alertas',badge:true}],
-  coordenador:  [{id:'home',icon:'casa',label:'Início'},{id:'agenda',icon:'agenda',label:'Agenda'},{id:'pilates',icon:'pilates',label:'Mapa de Pilates',barra:false},{id:'casa',icon:'coracao',label:'Nossa Casa',barra:false},{id:'linhas',icon:'folha',label:'Pacientes'},{id:'clientes',icon:'cliente',label:'Clientes',barra:false},{id:'mensagens',icon:'mensagem',label:'Mensagens',num:true},{id:'leads',icon:'megafone',label:'Leads'},{id:'servicos',icon:'grade',label:'Serviços',barra:false},{id:'tarefas',icon:'tarefa',label:'Tarefas',barra:false},{id:'pacotes',icon:'pacote',label:'Pacotes',barra:false},{id:'espera',icon:'cadeira',label:'Espera',barra:false},{id:'alertas',icon:'sino',label:'Alertas',badge:true}],
+  admin:        [{id:'home',icon:'casa',label:'Início'},{id:'agenda',icon:'agenda',label:'Agenda'},{id:'pilates',icon:'pilates',label:'Mapa de Pilates',barra:false},{id:'gestao',icon:'painel',label:'Painel da gestão',barra:false},{id:'atendimento',icon:'pulso',label:'Em atendimento',barra:false},{id:'linhas',icon:'folha',label:'Linhas'},{id:'clientes',icon:'cliente',label:'Clientes',barra:false},{id:'casa',icon:'coracao',label:'Nossa Casa',barra:false},{id:'mensagens',icon:'mensagem',label:'Mensagens',num:true},{id:'leads',icon:'megafone',label:'Leads'},{id:'servicos',icon:'grade',label:'Serviços',barra:false},{id:'tarefas',icon:'tarefa',label:'Tarefas',barra:false},{id:'financeiro',icon:'carteira',label:'Financeiro',barra:false},{id:'pacotes',icon:'pacote',label:'Pacotes',barra:false},{id:'espera',icon:'cadeira',label:'Espera',barra:false},{id:'equipe',icon:'equipe',label:'Cadastro da equipe',barra:false},{id:'alertas',icon:'sino',label:'Alertas',badge:true}],
+  coordenador:  [{id:'home',icon:'casa',label:'Início'},{id:'agenda',icon:'agenda',label:'Agenda'},{id:'pilates',icon:'pilates',label:'Mapa de Pilates',barra:false},{id:'atendimento',icon:'pulso',label:'Em atendimento',barra:false},{id:'casa',icon:'coracao',label:'Nossa Casa',barra:false},{id:'linhas',icon:'folha',label:'Pacientes'},{id:'clientes',icon:'cliente',label:'Clientes',barra:false},{id:'mensagens',icon:'mensagem',label:'Mensagens',num:true},{id:'leads',icon:'megafone',label:'Leads'},{id:'servicos',icon:'grade',label:'Serviços',barra:false},{id:'tarefas',icon:'tarefa',label:'Tarefas',barra:false},{id:'pacotes',icon:'pacote',label:'Pacotes',barra:false},{id:'espera',icon:'cadeira',label:'Espera',barra:false},{id:'alertas',icon:'sino',label:'Alertas',badge:true}],
   profissional: [{id:'home',icon:'casa',label:'Hoje'},{id:'agenda',icon:'agenda',label:'Agenda'},{id:'pilates',icon:'pilates',label:'Mapa de Pilates',barra:false},{id:'linhas',icon:'folha',label:'Meus Pcts'},{id:'casa',icon:'coracao',label:'Nossa Casa'},{id:'mensagens',icon:'mensagem',label:'Mensagens',num:true},{id:'servicos',icon:'grade',label:'Serviços',barra:false},{id:'alertas',icon:'sino',label:'Pendências',badge:true}],
 };
 
@@ -2399,6 +2449,9 @@ function navDoUsuario() {
   }
   if(!itens.some(i=>i.id==='pacotes') && (ehRecepcao() || ehAdministracao())) {
     itens.push({id:'pacotes',icon:'pacote',label:'Pacotes',barra:false});
+  }
+  if(!itens.some(i=>i.id==='atendimento') && ehAdministracao()) {
+    itens.push({id:'atendimento',icon:'pulso',label:'Em atendimento',barra:false});
   }
   if(!itens.some(i=>i.id==='gestao') && ehAdministracao()) {
     itens.push({id:'gestao',icon:'painel',label:'Painel da gestão',barra:false});
@@ -2507,11 +2560,11 @@ let _activePage = '';
 function loadPage(id) {
   _activePage = id;
   marcarAtivo(id);
-  const map={casa:'pgCasa',agenda:'pgAgenda',pilates:'pgPilates',pacotes:'pgPacotes',home:'pgHome',linhas:'pgLinhas',equipe:'pgEquipe',alertas:'pgAlertas',mensagens:'pgMensagens',servicos:'pgServicos',tarefas:'pgTarefas',financeiro:'pgFinanceiro',gestao:'pgGestao',clientes:'pgClientes',leads:'pgLeads',espera:'pgEspera',programas:'pgProgramas',biblioteca:'pgBiblioteca'};
+  const map={casa:'pgCasa',agenda:'pgAgenda',pilates:'pgPilates',pacotes:'pgPacotes',atendimento:'pgAtend',home:'pgHome',linhas:'pgLinhas',equipe:'pgEquipe',alertas:'pgAlertas',mensagens:'pgMensagens',servicos:'pgServicos',tarefas:'pgTarefas',financeiro:'pgFinanceiro',gestao:'pgGestao',clientes:'pgClientes',leads:'pgLeads',espera:'pgEspera',programas:'pgProgramas',biblioteca:'pgBiblioteca'};
   document.querySelectorAll('.page').forEach(e=>{e.classList.remove('active');e.innerHTML='';});
   const el = document.getElementById(map[id]);
   if(!el) return;
-  const renders={casa:renderCasa,agenda:renderAgenda,pilates:renderMapaTurmas,pacotes:renderPacotes,home:renderHome,linhas:renderLinhas,equipe:renderEquipe,alertas:renderAlertas,mensagens:renderMensagensCentral,servicos:renderServicos,tarefas:renderTarefas,financeiro:renderFinanceiro,gestao:renderGestao,clientes:renderClientes,leads:renderLeads,espera:renderEspera,programas:renderProgramas,biblioteca:renderBiblioteca};
+  const renders={casa:renderCasa,agenda:renderAgenda,pilates:renderMapaTurmas,pacotes:renderPacotes,atendimento:renderEmAtendimento,home:renderHome,linhas:renderLinhas,equipe:renderEquipe,alertas:renderAlertas,mensagens:renderMensagensCentral,servicos:renderServicos,tarefas:renderTarefas,financeiro:renderFinanceiro,gestao:renderGestao,clientes:renderClientes,leads:renderLeads,espera:renderEspera,programas:renderProgramas,biblioteca:renderBiblioteca};
   if(renders[id]){el.innerHTML=renders[id]();el.classList.add('active');}
 }
 
@@ -7141,6 +7194,107 @@ function escolherPacientePacote() {
   openSheet(); setTimeout(()=>{ const b=document.getElementById('pkBusca'); if(b) b.focus(); }, 60);
 }
 function pkFiltrarPac() { const q = normalizar(document.getElementById('pkBusca').value); document.querySelectorAll('#pkPacs .pk-pac').forEach(b=>b.style.display = !q || b.dataset.n.includes(q) ? '' : 'none'); }
+
+// ═══════════════════════════════════════════════
+// EM ATENDIMENTO — quem está sendo atendido em cada linha de cuidado
+// Montado da agenda (4 semanas para trás e 4 para frente), das evoluções e
+// dos pacotes. Coordenadora recebe do servidor só as linhas dela.
+// ═══════════════════════════════════════════════
+let _ea = null, _eaLinha = '', _eaProf = '';
+const EA_DIAS_SEM_EVO = 14;
+function renderEmAtendimento() {
+  return `<div class="ph"><div class="ph-title">Em atendimento</div>
+    <div class="ph-sub">Quem está sendo atendido em cada linha de cuidado, pela agenda das últimas e das próximas 4 semanas. Toque no nome para abrir a ficha.</div></div>
+  <div id="eaBody">${loadingHTML()}</div>`;
+}
+async function loadEmAtendimento() {
+  const el = document.getElementById('eaBody'); if(!el) return;
+  const [r] = await Promise.all([api('painel_atendimento',{}), carregarTodosPacientes()]);
+  if(!r.ok) { el.innerHTML = `<div class="card" style="color:var(--rose)">${esc(r.erro||'Não foi possível carregar')}</div>`; return; }
+  _ea = montarEmAtendimento(r);
+  const linhas = Object.keys(_ea.porLinha);
+  if(!_eaLinha || !linhas.includes(_eaLinha)) _eaLinha = linhas.sort((a,b)=>_ea.porLinha[b].total-_ea.porLinha[a].total)[0] || '';
+  desenharEmAtendimento();
+}
+function montarEmAtendimento(r) {
+  const agora = new Date(), hoje = hojeISO();
+  const nomeDe = id => ((r.pacientes||[]).find(p=>String(p.id)===String(id))||{}).nome || '';
+  const G = {};
+  (r.eventos||[]).forEach(e=>{ const k = e.linha+'|'+e.paciente_id; (G[k] = G[k] || {linha:e.linha, id:e.paciente_id, evs:[]}).evs.push(e); });
+  const porLinha = {};
+  Object.values(G).forEach(g=>{
+    g.evs.sort((a,b)=>a.inicio.localeCompare(b.inicio));
+    const pass = g.evs.filter(e=>new Date(e.inicio) < agora), fut = g.evs.filter(e=>new Date(e.inicio) >= agora && !ehAusencia(e.status));
+    const veio = pass.filter(e=>e.status==='realizado' || (!e.status && !e.aviso));
+    const prox = fut.find(e=>!e.aviso);
+    const profs = [...new Set(g.evs.map(e=>e.profissional).filter(Boolean))];
+    const pk = (r.pacotes||[]).find(o=>String(o.paciente_id)===String(g.id) && normalizar(o.servico)===normalizar((g.evs[g.evs.length-1]||{}).servico));
+    const motivos = [];
+    const ult2 = pass.filter(e=>e.status).slice(-2);
+    if(ult2.length===2 && ult2.every(e=>e.status==='falta')) motivos.push(['2 faltas seguidas','r']);
+    else if(ult2.length && ult2[ult2.length-1].status==='falta') motivos.push(['faltou na última','a']);
+    const ue = (r.ultimas_evolucoes||{})[g.id];
+    const semEvo = g.linha!=='pilates' && pass.some(e=>e.status==='realizado') && (!ue || (new Date(hoje+'T12:00:00')-new Date(String(ue).slice(0,10)+'T12:00:00'))/864e5 > EA_DIAS_SEM_EVO);
+    if(semEvo) motivos.push([ue ? 'sem evolução há '+Math.round((new Date(hoje+'T12:00:00')-new Date(String(ue).slice(0,10)+'T12:00:00'))/864e5)+' dias' : 'sem evolução registrada','r']);
+    if(pk) { const rest = pk.sessoes - pk.usadas; if(rest<=1) motivos.push([rest<=0?'pacote acabou':'pacote: última sessão','a']);
+      if(pk.validade && pk.validade < hoje) motivos.push(['pacote vencido','a']); }
+    if(fut.some(e=>e.aviso)) motivos.push(['avisou que não vem','a']);
+    const validos = g.evs.filter(e=>!ehAusencia(e.status));
+    const semanas = new Set(validos.map(e=>diaISO(inicioDaSemana(new Date(e.inicio))))).size || 1, freq = validos.length / semanas;
+    let col;
+    if(!pass.some(e=>e.status==='realizado') && (prox && (prox.primeira || !pass.length))) col = 'chegando';
+    else if(!fut.length) col = 'sem';
+    else if(motivos.some(m=>m[1]==='r') || motivos.length) col = 'atencao';
+    else col = 'trat';
+    const ultVeio = veio[veio.length-1];
+    const L = porLinha[g.linha] = porLinha[g.linha] || {total:0, chegando:[], trat:[], atencao:[], sem:[]};
+    L.total++;
+    L[col].push({id:g.id, nome:nomeDe(g.id), profs, prox, ultVeio, motivos, freq, pk, primeira: prox && prox.primeira,
+      servicos:[...new Set(g.evs.map(e=>e.servico).filter(Boolean))]});
+  });
+  return {porLinha, profs:[...new Set((r.eventos||[]).map(e=>e.profissional).filter(Boolean))].sort(), linhas:r.linhas};
+}
+function desenharEmAtendimento() {
+  const el = document.getElementById('eaBody'); if(!el || !_ea) return;
+  const ordem = Object.keys(LINHAS).filter(k=>_ea.porLinha[k]).concat(Object.keys(_ea.porLinha).filter(k=>!LINHAS[k]));
+  if(!ordem.length) { el.innerHTML = `<div class="card"><div class="pt-nota" style="margin:0">Nenhum atendimento na agenda das últimas e das próximas 4 semanas${_ea.linhas?' nas suas linhas':''}.</div></div>`; return; }
+  const filtra = arr => _eaProf ? arr.filter(x=>x.profs.includes(_eaProf)) : arr;
+  const L = _ea.porLinha[_eaLinha] || {chegando:[],trat:[],atencao:[],sem:[]};
+  const dCurta = e => e ? maiuscula(new Date(e.inicio).toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit'}).replace('.',''))+' '+horaDe(e.inicio) : '';
+  const freqTxt = f => f>=1.75 ? Math.round(f)+'x/sem' : f>=0.9 ? '1x/sem' : f>=0.4 ? 'quinzenal' : 'esporádico';
+  const item = (x, col) => {
+    const sub = col==='chegando' ? `<span class="${x.primeira?'ea-1a':''}">${x.primeira?'1ª vez · ':''}${esc(dCurta(x.prox))}</span>`
+      : col==='sem' ? `última ${x.ultVeio?esc(fmtDataBR(x.ultVeio.inicio.slice(0,10))):'—'}`
+      : col==='atencao' ? x.motivos.map(m=>`<span class="ea-m ea-${m[1]}">${esc(m[0])}</span>`).join(' ')
+      : [freqTxt(x.freq), x.pk?`pacote ${x.pk.usadas}/${x.pk.sessoes}`:'', x.prox?'próx. '+dCurta(x.prox):''].filter(Boolean).map(esc).join(' · ');
+    return `<button class="ea-p" onclick="abrirDoPainelAtend('${esc(x.id)}')">
+      <b>${esc(x.nome||'Paciente')}</b>
+      <small>${esc(x.profs.map(n=>primeiroNome(n)||n).join(', '))}${x.servicos.length>1||_eaLinha==='pilates'?'':''}</small>
+      <span class="ea-s">${sub}</span></button>`;
+  };
+  const coluna = (k, t, dica, cls) => { const a = filtra(L[k]).sort((p,q)=>String(p.nome).localeCompare(String(q.nome),'pt-BR'));
+    return `<div class="ea-col ${cls||''}"><div class="ea-h">${t} <span>${a.length}</span></div><div class="ea-dica">${dica}</div>
+      ${a.map(x=>item(x,k)).join('') || '<div class="ea-vazio">Ninguém aqui.</div>'}</div>`; };
+  el.innerHTML = `
+    <div class="ea-linhas">${ordem.map(k=>{ const X=_ea.porLinha[k], at=filtra(X.atencao).length+filtra(X.sem).length, tot=filtra(X.chegando).length+filtra(X.trat).length+filtra(X.atencao).length+filtra(X.sem).length;
+      return `<button class="ea-lc${k===_eaLinha?' on':''}" style="--lc:var(--${(LINHAS[k]||{}).color||'teal'})" onclick="_eaLinha='${esc(k)}';desenharEmAtendimento()">
+        <span>${esc((LINHAS[k]||{label:k}).label)}</span><b>${tot}</b><small class="${at?'ea-alerta':''}">${at?at+' para olhar':'tudo em dia'}</small></button>`; }).join('')}</div>
+    <div class="ea-filtro"><label class="fl" for="eaProf" style="margin:0">Profissional</label>
+      <select class="fs" id="eaProf" onchange="_eaProf=this.value;desenharEmAtendimento()"><option value="">Todas</option>${_ea.profs.map(n=>`<option${n===_eaProf?' selected':''}>${esc(n)}</option>`).join('')}</select></div>
+    <div class="ea-grade">
+      ${coluna('chegando','Chegando','1ª vez ou começando agora')}
+      ${coluna('trat','Em tratamento','frequência em dia')}
+      ${coluna('atencao','Atenção','faltas, evolução, pacote','ea-at')}
+      ${coluna('sem','Sem próxima sessão','veio, mas não tem nada marcado','ea-sem')}
+    </div>
+    <div class="pt-nota">Sem próxima sessão: vale ligar para remarcar ou registrar a alta na ficha. Evolução atrasada conta a partir de ${EA_DIAS_SEM_EVO} dias (não vale para o Pilates).</div>`;
+}
+async function abrirDoPainelAtend(id) {
+  const p = (_todosPacientes||[]).find(x=>String(x.id)===String(id));
+  if(!p) { showToast('Você não tem acesso à ficha deste paciente','err'); return; }
+  const linhas = linhasDoPaciente(p);
+  await abrirPacienteDaAgenda(linhas.includes(_eaLinha) ? _eaLinha : (linhas[0]||_eaLinha), id);
+}
 
 // ── MAPA DE TURMAS DO PILATES (aba própria) ──
 // O mapa fixo das turmas, como o de papel: quem faz Pilates em cada dia da
@@ -12447,6 +12601,7 @@ const _afterRender = {
   agenda: ()=>setTimeout(loadAgenda,50),
   pilates: ()=>setTimeout(loadMapaTurmas,50),
   pacotes: ()=>setTimeout(loadPacotes,50),
+  atendimento: ()=>setTimeout(loadEmAtendimento,50),
   casa: ()=>setTimeout(loadCasa,50),
   leads: ()=>setTimeout(loadLeads,50),
   espera: ()=>setTimeout(loadEspera,50),
