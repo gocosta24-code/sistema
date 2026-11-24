@@ -77,6 +77,7 @@ const ABAS = {
   financeiro_servicos:  'FinanceiroServicos',
   financeiro_jornadas:  'FinanceiroJornadas',
   aprovacoes:     'Aprovacoes',
+  pacotes:        'Pacotes',
 };
 
 // Onde os anexos ficam guardados no Drive da clinica. A pasta e criada
@@ -308,6 +309,10 @@ function handle(e) {
       case 'listar_agenda':     return resp(listarAgenda(body, token));
       case 'salvar_evento':     return resp(salvarEvento(body, token));
       case 'status_evento':     return resp(statusEvento(body, token));
+      case 'listar_pacotes':    return resp(listarPacotes(body, token));
+      case 'salvar_pacote':     return resp(salvarPacote(body, token));
+      case 'encerrar_pacote':   return resp(encerrarPacote(body, token));
+      case 'excluir_pacote':    return resp(excluirPacote(body, token));
       case 'excluir_evento':    return resp(excluirEvento(body, token));
       case 'ultimas_evolucoes': return resp(ultimasEvolucoes(token));
       case 'lead_campanha':     return resp(leadCampanha(body, token));
@@ -2853,6 +2858,142 @@ function ehPrimeiraVez(pid, inicio, idNovo) {
   return antes.length ? lembrar() : true;
 }
 
+// =============================================================
+// PACOTES DE SESSOES
+// Uma linha por pacote vendido na aba Pacotes. A venda vira uma ou mais
+// linhas em Financeiro > Servicos (parcelas), e e ali que se controla o que
+// foi pago. Cada sessao marcada "realizado" na agenda desconta sozinha do
+// pacote mais antigo do mesmo servico (e falta / ausencia justificada, se as
+// regras da Config mandarem). A sessao descontada nao vira cobranca avulsa.
+// =============================================================
+const PACOTE_CAB = ['id','criado_em','paciente_id','paciente','servico','sessoes','usadas','valor','data_venda','validade','status','consumo','obs','vendido_por','atualizado_em'];
+function semAcento(t) { return String(t||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase().trim(); }
+function abaPacotes() {
+  const sh = getOuCria(getSpreadsheet(), ABAS.pacotes);
+  if (sh.getLastRow() === 0) sh.appendRow(PACOTE_CAB);
+  return sh;
+}
+function lerPacotes() {
+  const sh = abaPacotes(), v = sh.getDataRange().getValues(), h = v[0], out = [];
+  for (let i=1;i<v.length;i++) {
+    const o = {_linha: i+1}; h.forEach(function(k,j){ o[k] = v[i][j] instanceof Date ? Utilities.formatDate(v[i][j], Session.getScriptTimeZone(), 'yyyy-MM-dd') : v[i][j]; });
+    if (!o.id) continue;
+    try { o.consumo = o.consumo ? JSON.parse(o.consumo) : []; } catch(e) { o.consumo = []; }
+    o.sessoes = Number(o.sessoes)||0; o.usadas = o.consumo.length;
+    out.push(o);
+  }
+  return {sh: sh, h: h, lista: out};
+}
+function gravarPacote(P, o) {
+  const campos = {usadas: o.consumo.length, consumo: JSON.stringify(o.consumo), status: o.status, atualizado_em: new Date().toISOString()};
+  Object.keys(campos).forEach(function(k){ const c = P.h.indexOf(k); if (c !== -1) P.sh.getRange(o._linha, c+1).setValue(campos[k]); });
+}
+function podeVenderPacote(perfil) { return veValorSessao(perfil); }
+function sessaoConsomePacote(status) {
+  if (status === 'realizado') return true;
+  const c = lerConfig() || {};
+  if (status === 'falta') return String(c.pacote_falta_consome||'') === 'sim';
+  if (status === 'justificada') return String(c.pacote_justificada_consome||'') === 'sim';
+  return false;
+}
+function consumirPacote(ev, prof, status) {
+  const pid = String(ev.getTag('paciente_id')||''), serv = semAcento(ev.getTag('servico'));
+  if (!pid || !serv) return '';
+  const P = lerPacotes(), atual = ev.getTag('pacote_id');
+  if (atual) {
+    const o = P.lista.filter(function(x){ return x.id === atual; })[0];
+    if (o) { o.consumo.forEach(function(c){ if (c.evento_id === ev.getId()) c.status = status; }); gravarPacote(P, o); return o.id; }
+  }
+  const dia = Utilities.formatDate(ev.getStartTime(), Session.getScriptTimeZone(), 'yyyy-MM-dd');
+  const cand = P.lista.filter(function(o){
+    return String(o.paciente_id) === pid && semAcento(o.servico) === serv && o.status !== 'encerrado'
+      && o.consumo.length < o.sessoes && String(o.data_venda||'') <= dia && (!o.validade || String(o.validade) >= dia);
+  }).sort(function(a,b){ return String(a.data_venda).localeCompare(String(b.data_venda)) || String(a.criado_em).localeCompare(String(b.criado_em)); });
+  if (!cand.length) return '';
+  const o = cand[0];
+  o.consumo.push({evento_id: ev.getId(), data: ev.getStartTime().toISOString(), profissional: prof.nome, status: status});
+  o.consumo.sort(function(a,b){ return String(a.data).localeCompare(String(b.data)); });
+  gravarPacote(P, o);
+  ev.setTag('pacote_id', o.id);
+  return o.id;
+}
+function devolverPacote(ev) {
+  const id = ev.getTag('pacote_id');
+  if (!id) return;
+  const P = lerPacotes(), o = P.lista.filter(function(x){ return x.id === id; })[0];
+  if (o) { o.consumo = o.consumo.filter(function(c){ return c.evento_id !== ev.getId(); }); gravarPacote(P, o); }
+  ev.deleteTag('pacote_id');
+}
+function listarPacotes(body, token) {
+  const perfil = perfilDaEquipe(token);
+  if (!perfil) return {ok:false, erro:'Sem permissão'};
+  const veValor = veValorSessao(perfil), pacs = mapaPacientes(), vis = {};
+  const lista = lerPacotes().lista.filter(function(o){
+    if (body.paciente_id && String(o.paciente_id) !== String(body.paciente_id)) return false;
+    if (perfil.role === 'admin' || /recep|comercial|administra/i.test(String(perfil.funcao||''))) return true;
+    const k = String(o.paciente_id); if (!(k in vis)) vis[k] = podeVerPaciente(perfil, pacs[k]); return vis[k];
+  }).map(function(o){ delete o._linha; if (!veValor) delete o.valor; return o; });
+  return {ok:true, dados: lista};
+}
+function salvarPacote(body, token) {
+  const perfil = perfilDaEquipe(token);
+  if (!podeVenderPacote(perfil)) return {ok:false, erro:'Só gestão, coordenação e recepção registram pacotes'};
+  const d = body.dados || {};
+  const pac = mapaPacientes()[String(d.paciente_id||'')];
+  if (!pac) return {ok:false, erro:'Paciente não encontrado'};
+  const n = parseInt(d.sessoes, 10);
+  if (!d.servico || !(n > 0)) return {ok:false, erro:'Informe o serviço e o número de sessões'};
+  const P = lerPacotes();
+  const id = 'pac_' + Date.now() + '_' + Math.floor(Math.random()*999);
+  const tz = Session.getScriptTimeZone();
+  const venda = String(d.data_venda || Utilities.formatDate(new Date(), tz, 'yyyy-MM-dd')).slice(0,10);
+  const linha = {id: id, criado_em: new Date().toISOString(), paciente_id: String(d.paciente_id), paciente: pac.nome, servico: String(d.servico),
+    sessoes: n, usadas: 0, valor: String(d.valor||''), data_venda: venda, validade: String(d.validade||'').slice(0,10),
+    status: 'ativo', consumo: '[]', obs: String(d.obs||'').slice(0,500), vendido_por: perfil.email, atualizado_em: ''};
+  P.sh.appendRow(P.h.map(function(k){ return k in linha ? linha[k] : ''; }));
+  // Parcelas no Financeiro > Servicos (sem profissional e sem contar sessao:
+  // as sessoes entram nos repasses quando acontecem)
+  const parcelas = (body.parcelas && body.parcelas.length) ? body.parcelas : [{valor: d.valor, vencimento: venda, pago: false}];
+  parcelas.forEach(function(pc, i) {
+    const venc = String(pc.vencimento || venda).slice(0,10);
+    salvar({tabela:'financeiro_servicos', dados:{
+      data: venc, mes: venc.slice(0,7), paciente: pac.nome, paciente_id: String(d.paciente_id),
+      servico: 'Pacote · ' + d.servico, pacote_id: id, pacote_servico: String(d.servico),
+      plano: 'Pacote de ' + n + ' sessões' + (parcelas.length > 1 ? ' · parcela ' + (i+1) + '/' + parcelas.length : ''),
+      profissional: '', sessoes: '', valor: String(pc.valor||''),
+      pago: pc.pago ? 'Sim' : 'Não', data_pagamento: pc.pago ? (pc.data_pagamento || Utilities.formatDate(new Date(), tz, 'yyyy-MM-dd')) : '',
+      forma_pagamento: pc.forma || '', origem: 'pacote'}});
+  });
+  return {ok:true, id: id};
+}
+function encerrarPacote(body, token) {
+  const perfil = perfilDaEquipe(token);
+  if (!podeVenderPacote(perfil)) return {ok:false, erro:'Sem permissão'};
+  const P = lerPacotes(), o = P.lista.filter(function(x){ return x.id === body.id; })[0];
+  if (!o) return {ok:false, erro:'Pacote não encontrado'};
+  o.status = body.reabrir ? 'ativo' : 'encerrado';
+  gravarPacote(P, o);
+  return {ok:true};
+}
+function excluirPacote(body, token) {
+  const perfil = perfilDaEquipe(token);
+  if (!podeVenderPacote(perfil)) return {ok:false, erro:'Sem permissão'};
+  const P = lerPacotes(), o = P.lista.filter(function(x){ return x.id === body.id; })[0];
+  if (!o) return {ok:false, erro:'Pacote não encontrado'};
+  if (o.consumo.length) return {ok:false, erro:'O pacote já tem sessões usadas. Use "Encerrar".'};
+  const fin = getSpreadsheet().getSheetByName(ABAS.financeiro_servicos);
+  if (fin && fin.getLastRow() > 1) {
+    const v = fin.getDataRange().getValues(), h = v[0], iP = h.indexOf('pacote_id'), iG = h.indexOf('pago');
+    if (iP !== -1) for (let i=v.length-1;i>=1;i--) {
+      if (String(v[i][iP]) !== o.id) continue;
+      if (iG !== -1 && String(v[i][iG]).toLowerCase() === 'sim') return {ok:false, erro:'Já tem parcela paga. Use "Encerrar".'};
+    }
+    if (iP !== -1) for (let i=v.length-1;i>=1;i--) if (String(v[i][iP]) === o.id) fin.deleteRow(i+1);
+  }
+  P.sh.deleteRow(o._linha);
+  return {ok:true};
+}
+
 function eventoParaTela(ev, prof) {
   return {
     id: ev.getId(),
@@ -2874,7 +3015,8 @@ function eventoParaTela(ev, prof) {
     tipo: ev.getTag('tipo') || '',
     reuniao_id: ev.getTag('reuniao_id') || '',
     participantes: ev.getTag('participantes') || '',
-    primeira: ev.getTag('primeira') === '1'
+    primeira: ev.getTag('primeira') === '1',
+    pacote_id: ev.getTag('pacote_id') || ''
   };
 }
 
@@ -3009,10 +3151,14 @@ function statusEvento(body, token) {
   if (body.status === 'falta' || body.status === 'justificada') {
     if (body.motivo !== undefined) r.ev.setTag('motivo_ausencia', String(body.motivo||'').slice(0, 300));
   } else if (r.ev.getTag('motivo_ausencia')) r.ev.deleteTag('motivo_ausencia');
-  let lancamento = '';
-  if (body.status === 'realizado') lancamento = lancarAtendimento(r.ev, r.prof);
-  else lancamento = retirarLancamento(r.ev);
-  return {ok:true, dados: eventoParaTela(r.ev, r.prof), lancamento: lancamento};
+  let lancamento = '', pacote = '';
+  // Sessao de pacote: desconta do pacote e nao vira cobranca avulsa
+  if (sessaoConsomePacote(body.status)) pacote = consumirPacote(r.ev, r.prof, body.status);
+  else devolverPacote(r.ev);
+  if (body.status === 'realizado' && !pacote) lancamento = lancarAtendimento(r.ev, r.prof);
+  else if (body.status !== 'realizado') lancamento = retirarLancamento(r.ev);
+  else lancamento = 'pacote';
+  return {ok:true, dados: eventoParaTela(r.ev, r.prof), lancamento: lancamento, pacote: pacote};
 }
 
 // Atendimento realizado vira uma linha em Financeiro > Servicos, que alimenta
@@ -3081,6 +3227,7 @@ function precoDoCatalogo(servico) {
 function excluirEvento(body, token) {
   const r = eventoComPermissao(body, token);
   if (r.erro) return {ok:false, erro:r.erro};
+  devolverPacote(r.ev);
   r.ev.deleteEvent();
   return {ok:true};
 }

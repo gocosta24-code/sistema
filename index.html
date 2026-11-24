@@ -794,6 +794,18 @@ tr.pc-atencao td:first-child{box-shadow:inset 3px 0 0 var(--amber);}
 .agx-nv{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.3px;background:var(--amber);color:#fff;border-radius:4px;padding:1px 5px;flex-shrink:0;}
 .agx-ev.avisou{background:repeating-linear-gradient(135deg,#fff 0 6px,var(--amber-lt) 6px 12px);box-shadow:inset 3px 0 0 var(--amber),0 0 0 1.5px var(--sur);}
 .agx-det-aviso b{color:var(--amber);}
+.pk-item{display:block;width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--bor);padding:10px 0;cursor:pointer;font:inherit;color:inherit;}
+.pk-item:last-child{border-bottom:0;}
+.pk-top{display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.pk-sub{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12.5px;color:var(--ink3);margin-top:5px;}
+.pk-barra{height:7px;border-radius:4px;background:var(--bor);overflow:hidden;margin-top:7px;}
+.pk-barra i{display:block;height:100%;background:var(--teal);border-radius:4px;}
+.pk-resumo{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;}
+.pk-resumo div{background:var(--card,#fff);border:1px solid var(--bor);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;}
+.pk-resumo b{font-size:22px;}
+.pk-resumo span{font-size:12.5px;color:var(--ink3);}
+.pk-regra{display:flex;gap:10px;align-items:flex-start;margin-top:10px;font-size:14px;}
+.pk-pac{display:block;width:100%;text-align:left;padding:10px 4px;border:0;border-bottom:1px solid var(--bor);background:none;font:inherit;cursor:pointer;}
 .agx-1a{display:inline-block;margin-left:5px;padding:0 6px;border-radius:9px;background:#C9A227;color:#fff;font-size:10px;font-weight:700;line-height:16px;vertical-align:1px;white-space:nowrap;}
 .agx-1a-p{position:absolute;top:2px;right:2px;width:7px;height:7px;border-radius:50%;background:#C9A227;}
 .agx-det-1a b{color:#8a6d12;}
@@ -1163,6 +1175,7 @@ button .ico{vertical-align:-3px}
     <div id="pgClientes" class="page"></div>
     <div id="pgAgenda" class="page"></div>
     <div id="pgPilates" class="page"></div>
+    <div id="pgPacotes" class="page"></div>
     <div id="pgCasa" class="page"></div>
     <div id="pgLeads"     class="page"></div>
     <div id="pgEspera"    class="page"></div>
@@ -1636,6 +1649,30 @@ function demoApi(action, body) {
       DEMO_DB.config={...(DEMO_DB.config||{}), pilates_capacidade:body.capacidade, pilates_vagas_abertas:body.vagas_abertas};
       return {ok:true};
     }
+    case 'listar_pacotes': {
+      const L = (DEMO_DB.pacotes = DEMO_DB.pacotes || []);
+      return {ok:true, dados: L.filter(o=>!body.paciente_id || String(o.paciente_id)===String(body.paciente_id)).map(o=>({...o, consumo:[...(o.consumo||[])], usadas:(o.consumo||[]).length}))};
+    }
+    case 'salvar_pacote': {
+      const d = body.dados||{}, pac = (DEMO_DB.pacientes||[]).find(p=>p.id===d.paciente_id);
+      if(!pac) return {ok:false, erro:'Paciente não encontrado'};
+      const id = 'pac_'+Date.now();
+      (DEMO_DB.pacotes = DEMO_DB.pacotes||[]).push({id, criado_em:new Date().toISOString(), paciente_id:pac.id, paciente:pac.nome, servico:d.servico, sessoes:+d.sessoes, valor:d.valor,
+        data_venda:d.data_venda, validade:d.validade||'', status:'ativo', consumo:[], obs:d.obs||''});
+      const fin = DEMO_DB.financeiro_servicos = DEMO_DB.financeiro_servicos||[];
+      (body.parcelas||[]).forEach((pc,i,a)=>fin.push({id:'fin_'+Date.now()+i, data:pc.vencimento, mes:String(pc.vencimento).slice(0,7), paciente:pac.nome, paciente_id:pac.id,
+        servico:'Pacote · '+d.servico, pacote_id:id, pacote_servico:d.servico, plano:'Pacote de '+d.sessoes+' sessões'+(a.length>1?' · parcela '+(i+1)+'/'+a.length:''),
+        profissional:'', sessoes:'', valor:String(pc.valor), pago:pc.pago?'Sim':'Não', data_pagamento:pc.pago?pc.data_pagamento:'', forma_pagamento:pc.forma||'', origem:'pacote'}));
+      return {ok:true, id};
+    }
+    case 'encerrar_pacote': { const o=(DEMO_DB.pacotes||[]).find(x=>x.id===body.id); if(!o) return {ok:false, erro:'Pacote não encontrado'}; o.status = body.reabrir?'ativo':'encerrado'; return {ok:true}; }
+    case 'excluir_pacote': {
+      const o=(DEMO_DB.pacotes||[]).find(x=>x.id===body.id); if(!o) return {ok:false, erro:'Pacote não encontrado'};
+      if((o.consumo||[]).length) return {ok:false, erro:'O pacote já tem sessões usadas. Use "Encerrar".'};
+      const fin = DEMO_DB.financeiro_servicos||[];
+      if(fin.some(r=>r.pacote_id===o.id && String(r.pago).toLowerCase()==='sim')) return {ok:false, erro:'Já tem parcela paga. Use "Encerrar".'};
+      DEMO_DB.financeiro_servicos = fin.filter(r=>r.pacote_id!==o.id); DEMO_DB.pacotes = DEMO_DB.pacotes.filter(x=>x!==o); return {ok:true};
+    }
     case 'historico_paciente': {
       if(!DEMO_DB.agenda) demoAgenda('listar_agenda',{de:new Date().toISOString(), ate:new Date().toISOString()});
       const profs=DEMO_DB.profissionais||[];
@@ -2068,11 +2105,27 @@ function demoAgenda(action, body) {
   if(action==='status_evento') {
     e.status = body.status||'';
     if(e.status==='falta'||e.status==='justificada'){ if(body.motivo!==undefined) e.motivo_ausencia = body.motivo||''; } else e.motivo_ausencia = '';
+    // Pacote (mesmo comportamento do Code.gs: consumirPacote / devolverPacote)
+    const cfgD = DEMO_DB.config||{};
+    const consome = e.status==='realizado' || (e.status==='falta' && cfgD.pacote_falta_consome==='sim') || (e.status==='justificada' && cfgD.pacote_justificada_consome==='sim');
+    const pkDe = id => (DEMO_DB.pacotes||[]).find(o=>o.id===id);
+    let pacote = '';
+    if(consome) {
+      const at = e.pacote_id && pkDe(e.pacote_id);
+      if(at) { at.consumo.forEach(c=>{ if(c.evento_id===e.id) c.status=e.status; }); pacote = at.id; }
+      else {
+        const dia = diaISO(new Date(e.inicio));
+        const o = (DEMO_DB.pacotes||[]).filter(o=>o.paciente_id===e.paciente_id && normalizar(o.servico)===normalizar(e.servico) && o.status!=='encerrado'
+          && o.consumo.length < o.sessoes && String(o.data_venda)<=dia && (!o.validade || o.validade>=dia)).sort((a,b)=>String(a.data_venda).localeCompare(String(b.data_venda)))[0];
+        if(o) { o.consumo.push({evento_id:e.id, data:e.inicio, profissional:prof.nome, status:e.status}); o.consumo.sort((a,b)=>a.data.localeCompare(b.data)); e.pacote_id = o.id; pacote = o.id; }
+      }
+    } else if(e.pacote_id) { const o = pkDe(e.pacote_id); if(o) o.consumo = o.consumo.filter(c=>c.evento_id!==e.id); e.pacote_id = ''; }
     // Mesmo comportamento do Code.gs (lancarAtendimento / retirarLancamento)
     const fin = DEMO_DB.financeiro_servicos = DEMO_DB.financeiro_servicos||[];
     let lancamento = '';
     const atual = fin.find(x=>x.id===e.fin_id);
-    if(e.status==='realizado' && !/pilates/i.test(e.servico||'')) {
+    if(e.status==='realizado' && pacote) lancamento = 'pacote';
+    else if(e.status==='realizado' && !/pilates/i.test(e.servico||'')) {
       if(!atual) {
         const pac=(DEMO_DB.pacientes||[]).find(p=>p.id===e.paciente_id)||{};
         const id='fin_'+Date.now(); const dia=diaISO(new Date(e.inicio));
@@ -2084,8 +2137,9 @@ function demoAgenda(action, body) {
       if(String(atual.pago).toLowerCase()==='sim') lancamento='pago_mantido';
       else { DEMO_DB.financeiro_servicos = fin.filter(x=>x!==atual); e.fin_id=''; lancamento='retirado'; }
     }
-    return {ok:true, dados:comNome(e), lancamento};
+    return {ok:true, dados:comNome(e), lancamento, pacote};
   }
+  if(e.pacote_id) { const o = (DEMO_DB.pacotes||[]).find(x=>x.id===e.pacote_id); if(o) o.consumo = o.consumo.filter(c=>c.evento_id!==e.id); }
   DEMO_DB.agenda = DEMO_DB.agenda.filter(x=>x!==e);
   return {ok:true};
 }
@@ -2302,6 +2356,7 @@ const ICONES = {
   apoio:      '<circle cx="10" cy="4.5" r="2"/><path d="M10 7v6l-3 8M10 13l3 8M10 9l4 2v10"/>',
   lixeira:    '<path d="M4 7h16M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13M9 7V4h6v3"/>',
   olho:       '<path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',
+  pacote:     '<path d="M3.5 7.5 12 3l8.5 4.5v9L12 21l-8.5-4.5z"/><path d="M3.5 7.5 12 12l8.5-4.5M12 12v9"/>',
   cadeira:    '<path d="M7 3v9h10V3M5 12h14M7 12v9M17 12v9"/>',
 };
 function icone(nome, tam) {
@@ -2310,8 +2365,8 @@ function icone(nome, tam) {
 }
 
 const NAVS = {
-  admin:        [{id:'home',icon:'casa',label:'Início'},{id:'agenda',icon:'agenda',label:'Agenda'},{id:'pilates',icon:'pilates',label:'Mapa de Pilates',barra:false},{id:'gestao',icon:'painel',label:'Painel da gestão',barra:false},{id:'linhas',icon:'folha',label:'Linhas'},{id:'clientes',icon:'cliente',label:'Clientes',barra:false},{id:'casa',icon:'coracao',label:'Nossa Casa',barra:false},{id:'mensagens',icon:'mensagem',label:'Mensagens',num:true},{id:'leads',icon:'megafone',label:'Leads'},{id:'servicos',icon:'grade',label:'Serviços',barra:false},{id:'tarefas',icon:'tarefa',label:'Tarefas',barra:false},{id:'financeiro',icon:'carteira',label:'Financeiro',barra:false},{id:'espera',icon:'cadeira',label:'Espera',barra:false},{id:'equipe',icon:'equipe',label:'Cadastro da equipe',barra:false},{id:'alertas',icon:'sino',label:'Alertas',badge:true}],
-  coordenador:  [{id:'home',icon:'casa',label:'Início'},{id:'agenda',icon:'agenda',label:'Agenda'},{id:'pilates',icon:'pilates',label:'Mapa de Pilates',barra:false},{id:'casa',icon:'coracao',label:'Nossa Casa',barra:false},{id:'linhas',icon:'folha',label:'Pacientes'},{id:'clientes',icon:'cliente',label:'Clientes',barra:false},{id:'mensagens',icon:'mensagem',label:'Mensagens',num:true},{id:'leads',icon:'megafone',label:'Leads'},{id:'servicos',icon:'grade',label:'Serviços',barra:false},{id:'tarefas',icon:'tarefa',label:'Tarefas',barra:false},{id:'espera',icon:'cadeira',label:'Espera',barra:false},{id:'alertas',icon:'sino',label:'Alertas',badge:true}],
+  admin:        [{id:'home',icon:'casa',label:'Início'},{id:'agenda',icon:'agenda',label:'Agenda'},{id:'pilates',icon:'pilates',label:'Mapa de Pilates',barra:false},{id:'gestao',icon:'painel',label:'Painel da gestão',barra:false},{id:'linhas',icon:'folha',label:'Linhas'},{id:'clientes',icon:'cliente',label:'Clientes',barra:false},{id:'casa',icon:'coracao',label:'Nossa Casa',barra:false},{id:'mensagens',icon:'mensagem',label:'Mensagens',num:true},{id:'leads',icon:'megafone',label:'Leads'},{id:'servicos',icon:'grade',label:'Serviços',barra:false},{id:'tarefas',icon:'tarefa',label:'Tarefas',barra:false},{id:'financeiro',icon:'carteira',label:'Financeiro',barra:false},{id:'pacotes',icon:'pacote',label:'Pacotes',barra:false},{id:'espera',icon:'cadeira',label:'Espera',barra:false},{id:'equipe',icon:'equipe',label:'Cadastro da equipe',barra:false},{id:'alertas',icon:'sino',label:'Alertas',badge:true}],
+  coordenador:  [{id:'home',icon:'casa',label:'Início'},{id:'agenda',icon:'agenda',label:'Agenda'},{id:'pilates',icon:'pilates',label:'Mapa de Pilates',barra:false},{id:'casa',icon:'coracao',label:'Nossa Casa',barra:false},{id:'linhas',icon:'folha',label:'Pacientes'},{id:'clientes',icon:'cliente',label:'Clientes',barra:false},{id:'mensagens',icon:'mensagem',label:'Mensagens',num:true},{id:'leads',icon:'megafone',label:'Leads'},{id:'servicos',icon:'grade',label:'Serviços',barra:false},{id:'tarefas',icon:'tarefa',label:'Tarefas',barra:false},{id:'pacotes',icon:'pacote',label:'Pacotes',barra:false},{id:'espera',icon:'cadeira',label:'Espera',barra:false},{id:'alertas',icon:'sino',label:'Alertas',badge:true}],
   profissional: [{id:'home',icon:'casa',label:'Hoje'},{id:'agenda',icon:'agenda',label:'Agenda'},{id:'pilates',icon:'pilates',label:'Mapa de Pilates',barra:false},{id:'linhas',icon:'folha',label:'Meus Pcts'},{id:'casa',icon:'coracao',label:'Nossa Casa'},{id:'mensagens',icon:'mensagem',label:'Mensagens',num:true},{id:'servicos',icon:'grade',label:'Serviços',barra:false},{id:'alertas',icon:'sino',label:'Pendências',badge:true}],
 };
 
@@ -2341,6 +2396,9 @@ function navDoUsuario() {
   }
   if(!itens.some(i=>i.id==='clientes') && (ehRecepcao() || ehAdministracao())) {
     itens.splice(3, 0, {id:'clientes',icon:'cliente',label:'Clientes',barra:false});
+  }
+  if(!itens.some(i=>i.id==='pacotes') && (ehRecepcao() || ehAdministracao())) {
+    itens.push({id:'pacotes',icon:'pacote',label:'Pacotes',barra:false});
   }
   if(!itens.some(i=>i.id==='gestao') && ehAdministracao()) {
     itens.push({id:'gestao',icon:'painel',label:'Painel da gestão',barra:false});
@@ -2449,11 +2507,11 @@ let _activePage = '';
 function loadPage(id) {
   _activePage = id;
   marcarAtivo(id);
-  const map={casa:'pgCasa',agenda:'pgAgenda',pilates:'pgPilates',home:'pgHome',linhas:'pgLinhas',equipe:'pgEquipe',alertas:'pgAlertas',mensagens:'pgMensagens',servicos:'pgServicos',tarefas:'pgTarefas',financeiro:'pgFinanceiro',gestao:'pgGestao',clientes:'pgClientes',leads:'pgLeads',espera:'pgEspera',programas:'pgProgramas',biblioteca:'pgBiblioteca'};
+  const map={casa:'pgCasa',agenda:'pgAgenda',pilates:'pgPilates',pacotes:'pgPacotes',home:'pgHome',linhas:'pgLinhas',equipe:'pgEquipe',alertas:'pgAlertas',mensagens:'pgMensagens',servicos:'pgServicos',tarefas:'pgTarefas',financeiro:'pgFinanceiro',gestao:'pgGestao',clientes:'pgClientes',leads:'pgLeads',espera:'pgEspera',programas:'pgProgramas',biblioteca:'pgBiblioteca'};
   document.querySelectorAll('.page').forEach(e=>{e.classList.remove('active');e.innerHTML='';});
   const el = document.getElementById(map[id]);
   if(!el) return;
-  const renders={casa:renderCasa,agenda:renderAgenda,pilates:renderMapaTurmas,home:renderHome,linhas:renderLinhas,equipe:renderEquipe,alertas:renderAlertas,mensagens:renderMensagensCentral,servicos:renderServicos,tarefas:renderTarefas,financeiro:renderFinanceiro,gestao:renderGestao,clientes:renderClientes,leads:renderLeads,espera:renderEspera,programas:renderProgramas,biblioteca:renderBiblioteca};
+  const renders={casa:renderCasa,agenda:renderAgenda,pilates:renderMapaTurmas,pacotes:renderPacotes,home:renderHome,linhas:renderLinhas,equipe:renderEquipe,alertas:renderAlertas,mensagens:renderMensagensCentral,servicos:renderServicos,tarefas:renderTarefas,financeiro:renderFinanceiro,gestao:renderGestao,clientes:renderClientes,leads:renderLeads,espera:renderEspera,programas:renderProgramas,biblioteca:renderBiblioteca};
   if(renders[id]){el.innerHTML=renders[id]();el.classList.add('active');}
 }
 
@@ -5249,18 +5307,20 @@ let _repDados = null;
 
 async function loadRepasses() {
   const el = document.getElementById('finBody');
-  const [pil, ser, jor, profs] = await Promise.all([
+  const [pil, ser, jor, profs, pks] = await Promise.all([
     api('listar',{tabela:'financeiro_pilates'}),
     api('listar',{tabela:'financeiro_servicos'}),
     api('listar',{tabela:'financeiro_jornadas'}),
     api('listar_profs',{incluir_inativos:true}),
+    api('listar_pacotes',{}),
   ]);
   const falha = [pil,ser,jor].find(r=>!r.ok);
   if(falha) {
     el.innerHTML = abasFinHTML()+`<div class="card" style="color:var(--rose)">Não foi possível carregar: ${esc(falha.erro||'')}</div>`;
     return;
   }
-  _repDados = {pilates:normalizarFin(pil.dados), servicos:normalizarFin(ser.dados), jornadas:normalizarFin(jor.dados), profs:profs.ok?profs.dados||[]:[]};
+  _repDados = {pilates:normalizarFin(pil.dados), servicos:normalizarFin(ser.dados), jornadas:normalizarFin(jor.dados), profs:profs.ok?profs.dados||[]:[],
+    pacotes: pks && pks.ok ? pks.dados||[] : []};
   desenharRepasses();
 }
 
@@ -5272,7 +5332,13 @@ function calcularRepasses(D, mes) {
     const p = pessoas[k] = pessoas[k] || {nome: String(nome||'').trim() || 'Sem profissional informado', itens:[], total:0};
     p.itens.push({t, v}); p.total += v;
   };
-  const ser = D.servicos.filter(r=>String(r.mes||'')===mes);
+  // Sessões de pacote não têm linha própria no Financeiro: entram aqui, com o
+  // valor do pacote dividido pelas sessões (para comissão em %)
+  const dePacote = [];
+  (D.pacotes||[]).forEach(o=>{ const unit = numDe(o.valor)/(numDe(o.sessoes)||1);
+    (Array.isArray(o.consumo)?o.consumo:[]).forEach(c=>{ if(c.status==='realizado' && diaISO(new Date(c.data)).slice(0,7)===mes)
+      dePacote.push({profissional:c.profissional, servico:o.servico, sessoes:1, valor:String(unit), mes, pacote:true}); }); });
+  const ser = D.servicos.filter(r=>String(r.mes||'')===mes && !r.pacote_id).concat(dePacote);
 
   // Comissão combinada no cadastro da profissional vale antes da tabela padrão
   const comissaoDe = nome => { const p = (D.profs||[]).find(x=>chave(x.nome)===chave(nome)); return p && p.comissao_tipo && numDe(p.comissao_valor) ? {tipo:p.comissao_tipo, v:numDe(p.comissao_valor)} : null; };
@@ -5314,7 +5380,7 @@ function calcularRepasses(D, mes) {
   // Coordenações
   const pilPrev = D.pilates.filter(r=>String(r.mes||'')===mes && String(r.status||'Ativo')!=='Inativo')
     .reduce((s,r)=>s+numDe(r.valor_plano),0);
-  const fisioCaixa = D.servicos.filter(r=>REPASSE.coordFisioServicos.includes(r.servico) && ehPago(r) && mesDoCaixa(r)===mes)
+  const fisioCaixa = D.servicos.filter(r=>REPASSE.coordFisioServicos.includes(r.pacote_servico||r.servico) && ehPago(r) && mesDoCaixa(r)===mes)
     .reduce((s,r)=>s+numDe(r.valor),0);
   const sessoesTO = ser.filter(r=>REPASSE.coordTOServicos.includes(r.servico)).reduce((s,r)=>s+(numDe(r.sessoes)||1),0);
   const coord = [
@@ -6026,6 +6092,7 @@ function detalheAtendimento(agendaEmail, eventoId) {
       <div class="agx-det-l"><span>Quando</span><b>${esc(maiuscula(ini.toLocaleDateString('pt-BR',{weekday:'long',day:'numeric',month:'long'})))} · ${horaDe(e.inicio)} às ${horaDe(e.fim)}</b></div>
       <div class="agx-det-l"><span>Profissional</span><b><i style="background:${agCor(e.agenda_email)}"></i>${esc(e.profissional||agProfNome(e.agenda_email))}</b></div>
       ${e.servico?`<div class="agx-det-l"><span>Serviço</span><b>${esc(e.servico)}</b></div>`:''}
+      ${e.pacote_id?`<div class="agx-det-l"><span>Pacote</span><b>Descontada do pacote de ${esc(e.servico||'sessões')}</b></div>`:''}
       ${e.primeira?`<div class="agx-det-l agx-det-1a"><span>Primeira vez</span><b>Primeiro atendimento na Casa: receber com acolhimento, apresentar o espaço e conferir o cadastro</b></div>`:''}
       ${e.sala?`<div class="agx-det-l"><span>Sala</span><b>${esc(e.sala)}</b></div>`:''}
       ${_veValorCatalogo && e.servico && !ehPilates(e.servico) ? `<div class="agx-det-l"><span>Valor</span><b>${(()=>{ const v = numDe(e.valor) || precoCatalogo(e.servico);
@@ -6686,7 +6753,8 @@ async function statusAtendimento(agendaEmail, eventoId, status, doDetalhe) {
   if(e) e.status = status;
   desenharAgenda();
   if(doDetalhe) detalheAtendimento(agendaEmail, eventoId);
-  const aviso = {lancado:'Lançado em Financeiro › Serviços', retirado:'Lançamento retirado do Financeiro',
+  if(e && res.dados) e.pacote_id = res.dados.pacote_id||'';
+  const aviso = {pacote:'Realizado · descontado do pacote', lancado:'Lançado em Financeiro › Serviços', retirado:'Lançamento retirado do Financeiro',
                  pago_mantido:'O lançamento já estava pago e continua no Financeiro'}[res.lancamento];
   showToast(aviso || (AG_STATUS[status]||{}).t || 'Atualizado','ok');
 }
@@ -6816,6 +6884,263 @@ async function agendaDoPeriodo(datas) {
   }
   return out;
 }
+
+// ═══════════════════════════════════════════════
+// PACOTES DE SESSÕES — vendido, pago e consumido num lugar só
+// Venda: aba Pacotes + parcelas em Financeiro › Serviços (é ali que se marca
+// o pagamento). Consumo: cada sessão "realizado" na agenda desconta sozinha
+// do pacote mais antigo do mesmo serviço (falta e ausência justificada só se
+// as regras mandarem). Sessão de pacote não vira cobrança avulsa.
+// ═══════════════════════════════════════════════
+const PAC_RESTAM_AVISO = 2, PAC_DIAS_AVISO = 15;
+let _pk = {lista:[], fin:[], filtro:'ativos', cfg:{}};
+const podeVenderPacote = () => currentRole==='admin' || currentRole==='coordenador' || ehRecepcao() || ehAdministracao();
+const veValorPacote = () => currentRole==='admin' || currentRole==='coordenador' || ehRecepcao() || ehAdministracao();
+
+function infoPacote(o, fin) {
+  const cons = Array.isArray(o.consumo) ? o.consumo : [];
+  const n = numDe(o.sessoes) || 0, usadas = cons.length, restam = Math.max(0, n - usadas);
+  const hoje = hojeISO();
+  const val = o.validade ? String(o.validade).slice(0,10) : '';
+  const dias = val ? Math.round((new Date(val+'T12:00:00') - new Date(hoje+'T12:00:00'))/864e5) : null;
+  const parc = (fin||[]).filter(r=>String(r.pacote_id||'')===String(o.id));
+  const total = numDe(o.valor) || parc.reduce((s,r)=>s+numDe(r.valor),0);
+  const pago = parc.filter(ehPago).reduce((s,r)=>s+numDe(r.valor),0);
+  const atrasado = parc.some(r=>!ehPago(r) && r.data && String(r.data).slice(0,10) < hoje);
+  const encerrado = o.status==='encerrado', concluido = !encerrado && n>0 && restam===0;
+  const vencido = !encerrado && !concluido && dias!==null && dias < 0;
+  const ativo = !encerrado && !concluido && !vencido;
+  const sit = encerrado ? ['Encerrado','ch-gray'] : concluido ? ['Concluído','ch-sage'] : vencido ? ['Vencido','ch-rose']
+    : restam<=PAC_RESTAM_AVISO ? [restam===1?'Última sessão':'Faltam '+restam,'ch-amber']
+    : dias!==null && dias<=PAC_DIAS_AVISO ? ['Vence em '+dias+(dias===1?' dia':' dias'),'ch-amber'] : ['Ativo','ch-teal'];
+  return {n, usadas, restam, val, dias, parc, total, pago, aberto:Math.max(0,total-pago), atrasado, encerrado, concluido, vencido, ativo, sit,
+    renovar: ativo && restam<=PAC_RESTAM_AVISO, vencendo: ativo && dias!==null && dias<=PAC_DIAS_AVISO};
+}
+
+function barraPacote(i) {
+  const pct = i.n ? Math.round(i.usadas/i.n*100) : 0;
+  return `<div class="pk-barra" role="img" aria-label="${i.usadas} de ${i.n} sessões usadas"><i style="width:${pct}%"></i></div>`;
+}
+
+function linhaPacoteHTML(o, fin, comNome) {
+  const i = infoPacote(o, fin);
+  const dinheiro = veValorPacote() && i.total ? `<span>${i.aberto>0.009 ? `<b style="color:${i.atrasado?'var(--rose)':'var(--amber)'}">${fmtMoeda(i.aberto)} em aberto</b>` : 'Pago'} · ${fmtMoeda(i.total)}</span>` : '';
+  return `<button class="pk-item" onclick="detalhePacote('${esc(o.id)}')">
+    <div class="pk-top"><b>${comNome?esc(o.paciente||'')+' · ':''}${esc(o.servico)}</b><span class="chip ${i.sit[1]}">${esc(i.sit[0])}</span></div>
+    ${barraPacote(i)}
+    <div class="pk-sub"><span><b>${i.usadas} de ${i.n}</b> usadas${i.restam&&!i.encerrado?' · restam '+i.restam:''}</span>${i.val?`<span>validade ${esc(fmtDataBR(i.val))}</span>`:''}${dinheiro}</div>
+  </button>`;
+}
+
+// Cartão na visão geral do paciente
+function pacotesCardHTML(p, lista, fin) {
+  if(!lista.length && !podeVenderPacote()) return '';
+  const ord = [...lista].sort((a,b)=>{ const A=infoPacote(a,fin), B=infoPacote(b,fin); return (A.ativo===B.ativo?0:A.ativo?-1:1) || String(b.data_venda).localeCompare(String(a.data_venda)); });
+  return `<div class="vg-card" style="margin:12px 0">
+    <div class="vg-k">Pacotes de sessões</div>
+    ${ord.length ? ord.map(o=>linhaPacoteHTML(o, fin)).join('') : '<div class="vg-tudo">Nenhum pacote.</div>'}
+    ${podeVenderPacote() ? `<button class="backbtn" style="margin-top:10px" onclick="venderPacote('${esc(p.id)}')">+ Registrar pacote vendido</button>` : ''}
+  </div>`;
+}
+
+async function carregarDadosPacotes(pacId) {
+  const [r, fin] = await Promise.all([api('listar_pacotes', pacId?{paciente_id:pacId}:{}),
+    veValorPacote() ? api('listar',{tabela:'financeiro_servicos'}) : Promise.resolve({ok:true, dados:[]})]);
+  _pk.lista = r.ok ? r.dados||[] : []; _pk.fin = fin.ok ? normalizarFin(fin.dados).filter(x=>x.pacote_id) : [];
+  return r;
+}
+
+// ── Vender ──
+function venderPacote(pacId) {
+  const p = (_todosPacientes||[]).find(x=>String(x.id)===String(pacId)) || {};
+  // Catálogo + serviços que já aparecem na agenda do paciente (o desconto casa pelo nome do serviço)
+  const daAgenda = (_vg && _vg.p && String(_vg.p.id)===String(pacId) ? _vg.sess : []).map(e=>e.servico).filter(Boolean);
+  const servs = [...new Set([...daAgenda, ...(_catalogo||[]).map(s=>s.nome)])].filter(n=>!ehPilates(n));
+  document.getElementById('sheetTitle').textContent = 'Registrar pacote';
+  document.getElementById('sheetBody').innerHTML = `
+    <div class="pt-nota" style="margin-top:0">${esc(p.nome||'')}</div>
+    <div class="fg"><label class="fl" for="pkServ">Serviço</label>
+      <select class="fs" id="pkServ" onchange="pkSugerir()"><option value="">Escolha…</option>${servs.map(s=>`<option>${esc(s)}</option>`).join('')}</select></div>
+    <div class="fg fa"><label class="fl" for="pkN">Número de sessões</label>
+      <input class="fi" id="pkN" type="number" min="1" max="200" inputmode="numeric" value="10" oninput="pkSugerir()"></div>
+    <div class="fg fa"><label class="fl" for="pkValor">Valor total do pacote (R$)</label>
+      <input class="fi" id="pkValor" inputmode="decimal" placeholder="Ex.: 1.500,00" oninput="this.dataset.mexeu=1;pkParcelasPrevia()"><div class="pt-nota" id="pkSug" style="margin:4px 0 0"></div></div>
+    <div class="fg fa"><label class="fl" for="pkData">Data da venda</label><input class="fi" id="pkData" type="date" value="${hojeISO()}"></div>
+    <div class="fg fa"><label class="fl" for="pkVal">Validade <span style="font-weight:400;color:var(--ink3)">(opcional)</span></label>
+      <input class="fi" id="pkVal" type="date">
+      <div class="agx-chips" style="margin-top:6px">${[30,60,90,180].map(d=>`<button type="button" class="agx-chip" onclick="pkValidade(${d})">${d} dias</button>`).join('')}<button type="button" class="agx-chip" onclick="document.getElementById('pkVal').value=''">Sem validade</button></div></div>
+    <div class="fg"><label class="fl">Pagamento</label>
+      <div class="agx-seg agx-seg-f" id="pkPag">${[['vista','Pago à vista'],['parc','Parcelado'],['depois','Vai pagar depois']].map(([v,t],k)=>`<button type="button" class="${k===0?'on':''}" data-v="${v}" onclick="this.parentNode.querySelectorAll('button').forEach(b=>b.classList.remove('on'));this.classList.add('on');pkParcelasPrevia()">${t}</button>`).join('')}</div></div>
+    <div id="pkParcBox" style="display:none" class="fg fa">
+      <label class="fl" for="pkParc">Parcelas</label>
+      <input class="fi" id="pkParc" type="number" min="2" max="12" value="2" inputmode="numeric" oninput="pkParcelasPrevia()">
+      <label style="display:flex;gap:8px;align-items:center;margin-top:8px;font-size:13.5px"><input type="checkbox" id="pkPrimPaga" checked onchange="pkParcelasPrevia()"> A 1ª parcela foi paga na venda</label>
+    </div>
+    <div class="fg fa" id="pkFormaBox"><label class="fl" for="pkForma">Forma de pagamento</label>
+      <select class="fs" id="pkForma"><option>Pix</option><option>Cartão de crédito</option><option>Cartão de débito</option><option>Dinheiro</option><option>Transferência</option></select></div>
+    <div class="agx-prev" id="pkPrev"></div>
+    <div class="fg"><label class="fl" for="pkObs">Observação</label><input class="fi" id="pkObs" placeholder="Ex.: condição especial, combinado com a família"></div>
+    <div class="err" id="pkErr" style="display:none"></div>
+    <button class="savebtn" id="pkBtn" onclick="salvarPacoteUI('${esc(pacId)}')">Registrar pacote</button>`;
+  openSheet();
+  pkSugerir();
+}
+function pkValidade(d) { const b = document.getElementById('pkData').value || hojeISO(); document.getElementById('pkVal').value = diaISO(somaDias(new Date(b+'T12:00:00'), d)); }
+function pkSugerir() {
+  const s = document.getElementById('pkServ').value, n = +document.getElementById('pkN').value || 0, v = document.getElementById('pkValor');
+  const unit = s ? precoCatalogo(s) : 0;
+  document.getElementById('pkSug').textContent = unit && n ? `Tabela: ${n} × ${fmtMoeda(unit)} = ${fmtMoeda(unit*n)}` : '';
+  if(unit && n && !v.dataset.mexeu) v.value = String((unit*n).toFixed(2)).replace('.',',');
+  pkParcelasPrevia();
+}
+function pkModo() { const b = document.querySelector('#pkPag button.on'); return b ? b.dataset.v : 'vista'; }
+function pkParcelas() {
+  const total = numDe(document.getElementById('pkValor').value), modo = pkModo();
+  const base = document.getElementById('pkData').value || hojeISO(), forma = document.getElementById('pkForma').value;
+  if(modo==='vista') return [{valor:total, vencimento:base, pago:true, forma, data_pagamento:base}];
+  if(modo==='depois') return [{valor:total, vencimento:base, pago:false, forma:''}];
+  const k = Math.min(12, Math.max(2, parseInt(document.getElementById('pkParc').value,10)||2));
+  const cada = Math.floor(total/k*100)/100, out = [];
+  for(let i=0;i<k;i++) {
+    const d = new Date(base+'T12:00:00'); d.setMonth(d.getMonth()+i);
+    const v = i===k-1 ? Math.round((total - cada*(k-1))*100)/100 : cada;
+    const paga = i===0 && document.getElementById('pkPrimPaga').checked;
+    out.push({valor:v, vencimento:diaISO(d), pago:paga, forma:paga?forma:'', data_pagamento:paga?base:''});
+  }
+  return out;
+}
+function pkParcelasPrevia() {
+  const modo = pkModo();
+  document.getElementById('pkParcBox').style.display = modo==='parc' ? '' : 'none';
+  document.getElementById('pkFormaBox').style.display = modo==='depois' ? 'none' : '';
+  const total = numDe(document.getElementById('pkValor').value), el = document.getElementById('pkPrev');
+  if(!total) { el.innerHTML = ''; return; }
+  el.innerHTML = pkParcelas().map((x,i,a)=>`${a.length>1?(i+1)+'ª ':''}${fmtMoeda(x.valor)} · ${x.pago?'paga':'vence '+fmtDataBR(x.vencimento)}`).join('<br>')
+    + '<br><small>Entra em Financeiro › Serviços, onde você marca cada pagamento.</small>';
+}
+async function salvarPacoteUI(pacId) {
+  const err = document.getElementById('pkErr'), btn = document.getElementById('pkBtn');
+  const erro = m => { err.textContent = m; err.style.display = 'block'; };
+  const servico = document.getElementById('pkServ').value, n = parseInt(document.getElementById('pkN').value,10);
+  const valor = numDe(document.getElementById('pkValor').value);
+  if(!servico) return erro('Escolha o serviço.');
+  if(!(n>0)) return erro('Informe o número de sessões.');
+  if(!valor) return erro('Informe o valor total do pacote.');
+  const val = document.getElementById('pkVal').value, venda = document.getElementById('pkData').value || hojeISO();
+  if(val && val < venda) return erro('A validade não pode ser antes da venda.');
+  btn.disabled = true; btn.textContent = 'Registrando…';
+  const r = await api('salvar_pacote',{dados:{paciente_id:pacId, servico, sessoes:n, valor:String(valor), data_venda:venda, validade:val,
+    obs:document.getElementById('pkObs').value.trim()}, parcelas:pkParcelas()});
+  if(!r.ok) { btn.disabled = false; btn.textContent = 'Registrar pacote'; return erro(r.erro||'Não foi possível registrar'); }
+  closeSheet(true);
+  showToast('Pacote registrado','ok');
+  depoisDeMexerEmPacote(pacId);
+}
+function depoisDeMexerEmPacote(pacId) {
+  if(_activePage==='pacotes') return loadPacotes();
+  if(String(_pacienteAberto)===String(pacId) && document.getElementById('vgPac')) { const p=(_todosPacientes||[]).find(x=>String(x.id)===String(pacId)); if(p) carregarVisaoGeral(p); }
+}
+
+// ── Detalhe ──
+function detalhePacote(id) {
+  const o = _pk.lista.find(x=>x.id===id); if(!o) return;
+  const i = infoPacote(o, _pk.fin);
+  const cons = Array.isArray(o.consumo) ? o.consumo : [];
+  const ST = {realizado:'realizada', falta:'falta (descontou)', justificada:'ausência justificada (descontou)'};
+  document.getElementById('sheetTitle').textContent = o.servico;
+  document.getElementById('sheetBody').innerHTML = `
+    <div class="agx-det">
+      <div class="agx-det-l"><span>Paciente</span><b>${esc(o.paciente||'')}</b></div>
+      <div class="agx-det-l"><span>Sessões</span><b>${i.usadas} de ${i.n} usadas${i.restam?' · restam '+i.restam:''}${barraPacote(i)}</b></div>
+      <div class="agx-det-l"><span>Situação</span><b><span class="chip ${i.sit[1]}">${esc(i.sit[0])}</span></b></div>
+      <div class="agx-det-l"><span>Venda</span><b>${esc(fmtDataBR(String(o.data_venda||'').slice(0,10)))}</b></div>
+      <div class="agx-det-l"><span>Validade</span><b>${i.val?esc(fmtDataBR(i.val))+(i.dias!==null&&i.dias>=0&&!i.concluido&&!i.encerrado?' · '+i.dias+(i.dias===1?' dia':' dias'):''):'Sem validade'}</b></div>
+      ${veValorPacote() && i.total ? `<div class="agx-det-l"><span>Pagamento</span><b>${fmtMoeda(i.pago)} pagos de ${fmtMoeda(i.total)}${i.aberto>0.009?` · <span style="color:${i.atrasado?'var(--rose)':'var(--amber)'}">${fmtMoeda(i.aberto)} em aberto${i.atrasado?' (atrasado)':''}</span>`:''}
+        ${i.parc.length?`<div style="font-weight:400;font-size:12.5px;color:var(--ink3);margin-top:4px">${i.parc.sort((a,b)=>String(a.data).localeCompare(String(b.data))).map(r=>`${fmtMoeda(numDe(r.valor))} · ${ehPago(r)?'pago'+(r.data_pagamento?' em '+fmtDataBR(String(r.data_pagamento).slice(0,10)):''):'vence '+fmtDataBR(String(r.data).slice(0,10))}`).join('<br>')}</div>`:''}</b></div>` : ''}
+      ${o.obs?`<div class="agx-det-l"><span>Observação</span><b style="font-weight:500">${esc(o.obs)}</b></div>`:''}
+    </div>
+    <div class="fl" style="margin-top:16px">Sessões usadas</div>
+    ${cons.length ? cons.map((c,k)=>`<div class="vg-l"><span>${k+1}. ${esc(maiuscula(new Date(c.data).toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit',year:'2-digit'})))} · ${horaDe(c.data)}</span><b>${esc(ST[c.status]||c.status||'')}${c.profissional?' · '+esc(c.profissional):''}</b></div>`).join('')
+      : '<div class="pt-nota">Nenhuma ainda. Cada sessão marcada como <b>Realizado</b> na agenda desconta daqui sozinha.</div>'}
+    ${veValorPacote() && i.aberto>0.009 ? `<div class="pt-nota">Para dar baixa no pagamento, use Financeiro › Serviços (linha "Pacote · ${esc(o.servico)}").</div>` : ''}
+    ${podeVenderPacote() ? `<div class="agx-acoes" style="margin-top:14px">
+      ${i.renovar||i.concluido||i.vencido ? `<button class="addbtn" onclick="closeSheet(true);venderPacote('${esc(o.paciente_id)}')">Renovar pacote</button>` : ''}
+      ${o.status==='encerrado' ? `<button class="backbtn" onclick="encerrarPacoteUI('${esc(o.id)}',true)">Reabrir</button>`
+        : `<button class="backbtn" onclick="encerrarPacoteUI('${esc(o.id)}')">Encerrar pacote</button>`}
+      ${!cons.length ? `<button class="backbtn" style="color:var(--rose);margin-left:auto" onclick="excluirPacoteUI('${esc(o.id)}')">Excluir</button>` : ''}
+    </div>` : ''}`;
+  openSheet();
+}
+async function encerrarPacoteUI(id, reabrir) {
+  const o = _pk.lista.find(x=>x.id===id);
+  if(!reabrir && !confirm('Encerrar este pacote? As sessões que ainda restam deixam de ser descontadas (por exemplo, desistência ou reembolso).')) return;
+  const r = await api('encerrar_pacote',{id, reabrir:!!reabrir});
+  if(!r.ok) return showToast(r.erro||'Erro','err');
+  closeSheet(true); showToast(reabrir?'Pacote reaberto':'Pacote encerrado','ok'); depoisDeMexerEmPacote(o&&o.paciente_id);
+}
+async function excluirPacoteUI(id) {
+  const o = _pk.lista.find(x=>x.id===id);
+  if(!confirm('Excluir este pacote e as parcelas em aberto dele no Financeiro?')) return;
+  const r = await api('excluir_pacote',{id});
+  if(!r.ok) return showToast(r.erro||'Erro','err');
+  closeSheet(true); showToast('Pacote excluído','ok'); depoisDeMexerEmPacote(o&&o.paciente_id);
+}
+
+// ── Página Pacotes ──
+function renderPacotes() {
+  return `<div class="ph"><div class="ph-title">Pacotes</div>
+    <div class="ph-sub">Sessões vendidas, pagas e usadas. O consumo sai sozinho da agenda.</div></div>
+  <div id="pkBody">${loadingHTML()}</div>`;
+}
+async function loadPacotes() {
+  const el = document.getElementById('pkBody'); if(!el) return;
+  const [r, cfg] = await Promise.all([carregarDadosPacotes(), api('obter_config',{}), carregarTodosPacientes()]);
+  if(!r.ok) { el.innerHTML = `<div class="card" style="color:var(--rose)">Não foi possível carregar: ${esc(r.erro||'')}</div>`; return; }
+  _pk.cfg = cfg.ok ? cfg.dados||{} : {};
+  desenharPacotes();
+}
+function desenharPacotes() {
+  const el = document.getElementById('pkBody'); if(!el) return;
+  const L = _pk.lista.map(o=>({o, i:infoPacote(o, _pk.fin)}));
+  const ativos = L.filter(x=>x.i.ativo);
+  const F = {ativos:['Ativos', x=>x.i.ativo], renovar:['Para renovar', x=>x.i.renovar||x.i.concluido&&!x.o.renovado], vencendo:['Vencendo', x=>x.i.vencendo||x.i.vencido],
+    aberto:['Pagamento em aberto', x=>x.i.aberto>0.009 && !x.i.encerrado], fim:['Concluídos e encerrados', x=>x.i.concluido||x.i.encerrado]};
+  if(!veValorPacote()) delete F.aberto;
+  const lista = L.filter(F[_pk.filtro] ? F[_pk.filtro][1] : F.ativos[1]).sort((a,b)=>(a.i.restam-b.i.restam) || String(a.o.paciente).localeCompare(String(b.o.paciente),'pt-BR'));
+  const aRecebeR = L.filter(x=>!x.i.encerrado).reduce((s,x)=>s+x.i.aberto,0);
+  const cfg = _pk.cfg, regra = k => String(cfg[k]||'')==='sim';
+  el.innerHTML = `
+    <div class="pk-resumo">
+      <div><b>${ativos.length}</b><span>pacotes ativos</span></div>
+      <div><b>${ativos.reduce((s,x)=>s+x.i.restam,0)}</b><span>sessões a usar</span></div>
+      <div><b>${L.filter(x=>x.i.renovar).length}</b><span>perto de acabar</span></div>
+      ${veValorPacote()?`<div><b>${fmtMoeda(aRecebeR)}</b><span>a receber</span></div>`:''}
+    </div>
+    <div class="agx-chips" style="margin:14px 0">${Object.entries(F).map(([k,[t,f]])=>`<button class="agx-chip${_pk.filtro===k?' on':''}" onclick="_pk.filtro='${k}';desenharPacotes()">${t} <small>${L.filter(f).length}</small></button>`).join('')}</div>
+    ${podeVenderPacote()?`<button class="addbtn" style="margin-bottom:12px" onclick="escolherPacientePacote()">+ Registrar pacote vendido</button>`:''}
+    <div class="card" style="padding:6px 14px">${lista.length ? lista.map(x=>linhaPacoteHTML(x.o, _pk.fin, true)).join('') : '<div class="pt-nota">Nada aqui.</div>'}</div>
+    <div class="card" style="margin-top:14px">
+      <div class="fl" style="margin-top:0">Regras de consumo</div>
+      <div class="pt-nota" style="margin-top:4px">Sessão realizada sempre desconta. Falta e ausência justificada só descontam se a regra estiver ligada.${currentRole==='admin'?'':' Só a gestão muda as regras.'}</div>
+      <label class="pk-regra"><input type="checkbox" ${regra('pacote_falta_consome')?'checked':''} ${currentRole==='admin'?'':'disabled'} onchange="regraPacote('pacote_falta_consome',this)"> Falta sem aviso desconta uma sessão do pacote</label>
+      <label class="pk-regra"><input type="checkbox" ${regra('pacote_justificada_consome')?'checked':''} ${currentRole==='admin'?'':'disabled'} onchange="regraPacote('pacote_justificada_consome',this)"> Ausência justificada desconta uma sessão do pacote</label>
+      <div class="pt-nota">Validade: definida em cada pacote, na hora da venda (ou sem validade). Vale a partir das próximas marcações na agenda.</div>
+    </div>`;
+}
+async function regraPacote(k, cb) {
+  const v = cb.checked ? 'sim' : '';
+  const r = await api('salvar_config',{dados:{[k]:v}});
+  if(!r.ok) { cb.checked = !cb.checked; return showToast(r.erro||'Erro','err'); }
+  _pk.cfg[k] = v; showToast('Regra salva','ok');
+}
+function escolherPacientePacote() {
+  const pacs = (_todosPacientes||[]).filter(p=>String(p.status||'').toLowerCase()!=='lead').sort((a,b)=>String(a.nome).localeCompare(String(b.nome),'pt-BR'));
+  document.getElementById('sheetTitle').textContent = 'Para quem é o pacote?';
+  document.getElementById('sheetBody').innerHTML = `<input class="fi" id="pkBusca" placeholder="Buscar paciente" oninput="pkFiltrarPac()" autocomplete="off">
+    <div id="pkPacs" style="margin-top:8px;max-height:55vh;overflow:auto">${pacs.map(p=>`<button class="pk-pac" data-n="${esc(normalizar(p.nome))}" onclick="venderPacote('${esc(p.id)}')">${esc(p.nome)}</button>`).join('')}</div>`;
+  openSheet(); setTimeout(()=>{ const b=document.getElementById('pkBusca'); if(b) b.focus(); }, 60);
+}
+function pkFiltrarPac() { const q = normalizar(document.getElementById('pkBusca').value); document.querySelectorAll('#pkPacs .pk-pac').forEach(b=>b.style.display = !q || b.dataset.n.includes(q) ? '' : 'none'); }
 
 // ── MAPA DE TURMAS DO PILATES (aba própria) ──
 // O mapa fixo das turmas, como o de papel: quem faz Pilates em cada dia da
@@ -10363,7 +10688,7 @@ async function carregarVisaoGeral(p) {
   const box = document.getElementById('vgPac'); if(!box) return;
   const fin = podeVerFinanceiro();
   const nada = Promise.resolve({ok:false});
-  const [hist, pil, ser, msgs, leads, evo, alertas, docs] = await Promise.all([
+  const [hist, pil, ser, msgs, leads, evo, alertas, docs, pks] = await Promise.all([
     api('historico_paciente',{paciente_id:p.id}),
     fin ? api('listar',{tabela:'financeiro_pilates'}) : nada,
     fin ? api('listar',{tabela:'financeiro_servicos'}) : nada,
@@ -10372,6 +10697,7 @@ async function carregarVisaoGeral(p) {
     api('listar',{tabela:'evolucoes', filtros:{paciente_id:p.id}}),
     calcularAlertas().catch(()=>({criticos:[], altos:[], proximos:[]})),
     api('listar',{tabela:'documentos', filtros:{paciente_id:p.id}}),
+    api('listar_pacotes',{paciente_id:p.id}).catch(()=>({ok:false})),
   ]);
   if(String(_pacienteAberto)!==String(p.id) || !document.getElementById('vgPac')) return;
   const agora = new Date();
@@ -10382,6 +10708,11 @@ async function carregarVisaoGeral(p) {
   const evos = (evo.ok ? evo.dados||[] : []).filter(e=>e.origem!=='infantil' && !(e.origem==='sensor' && /"type"\s*:\s*"(perfil|publicado)"/.test(String(e.sensor||''))));
   const ms = msgs.ok ? msgs.dados||[] : [];
   const todasEvo = evo.ok ? evo.dados||[] : [];
+  _pk.lista = pks && pks.ok ? pks.dados||[] : [];
+  _pk.fin = ser && ser.ok ? normalizarFin(ser.dados).filter(x=>x.pacote_id) : [];
+  if(!fin && veValorPacote() && _pk.lista.length) { const f = await api('listar',{tabela:'financeiro_servicos'}); _pk.fin = f.ok ? normalizarFin(f.dados).filter(x=>x.pacote_id) : []; }
+  if(podeVenderPacote()) await carregarCatalogo();
+  if(String(_pacienteAberto)!==String(p.id) || !document.getElementById('vgPac')) return;
   _vg = {p, sess, passadas, futuras, itensFin, lead, evos, ms, alertas, histOk:hist.ok, histErro:hist.erro,
          avals: avaliacoesDoPaciente(todasEvo, docs.ok ? docs.dados||[] : [], p.id)};
   desenharVisaoGeral();
@@ -10505,6 +10836,7 @@ function desenharVisaoGeral() {
       <button class="ff-link" style="margin-top:8px" onclick="irAba('Plano e horários')">Plano e horários ›</button>
     </div>
   </div>
+  ${pacotesCardHTML(p, _pk.lista, _pk.fin)}
 
   ${avaliacoesCardHTML(_vg.avals)}
 
@@ -12114,6 +12446,7 @@ const _afterRender = {
   clientes: ()=>setTimeout(loadClientes,50),
   agenda: ()=>setTimeout(loadAgenda,50),
   pilates: ()=>setTimeout(loadMapaTurmas,50),
+  pacotes: ()=>setTimeout(loadPacotes,50),
   casa: ()=>setTimeout(loadCasa,50),
   leads: ()=>setTimeout(loadLeads,50),
   espera: ()=>setTimeout(loadEspera,50),
