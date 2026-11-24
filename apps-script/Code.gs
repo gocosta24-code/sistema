@@ -310,6 +310,8 @@ function handle(e) {
       case 'status_evento':     return resp(statusEvento(body, token));
       case 'excluir_evento':    return resp(excluirEvento(body, token));
       case 'ultimas_evolucoes': return resp(ultimasEvolucoes(token));
+      case 'lead_campanha':     return resp(leadCampanha(body, token));
+      case 'listar_campanha':   return resp(listarCampanha(body, token));
       case 'listar_feriados':   return resp(listarFeriados(body, token));
       case 'salvar_feriado':    return resp(salvarFeriado(body, token));
       case 'excluir_feriado':   return resp(excluirFeriado(body, token));
@@ -1777,7 +1779,7 @@ const ESTAGIOS_LEAD = [
 const ESTAGIO_GANHO  = 'Virou Paciente';
 const ESTAGIO_PERDIDO = 'Perdido';
 
-const ORIGENS_LEAD = ['Instagram','Meta Ads','Indica\u00e7\u00e3o','Rua/Passante','Google','Outro'];
+const ORIGENS_LEAD = ['Instagram','Meta Ads','Indica\u00e7\u00e3o','Rua/Passante','Google','Campanha presencial','Outro'];
 const MOTIVOS_PERDA = ['N\u00e3o respondeu','N\u00e3o tinha or\u00e7amento','Desistiu',
                        'Fora da \u00e1rea de atendimento','Outro'];
 
@@ -3577,4 +3579,64 @@ function ultimasEvolucoes(token) {
     if (d && (!out[pid] || d > out[pid])) out[pid] = d;
   }
   return {ok:true, dados:out};
+}
+
+
+// =============================================================
+// CAMPANHA PRESENCIAL: TESTE DE PREENSAO PALMAR
+// Na acao (feira, evento, porta da Casa) qualquer pessoa da equipe registra
+// nome, telefone, nascimento, sexo e a forca das maos. Cada participante vira
+// lead no funil (origem "Campanha presencial") e o resultado fica na aba
+// CampanhaPreensao. Telefone que ja esta no funil nao duplica: ganha uma nota.
+// =============================================================
+const CAMP_CAB = ['id','em','campanha','nome','telefone','data_nascimento','sexo','idade','mao_direita','mao_esquerda',
+                  'resultado','aceita_contato','lead_id','registrado_por'];
+function soDigitos(t) { return String(t||'').replace(/\D/g,''); }
+function leadCampanha(body, token) {
+  const perfil = perfilDaEquipe(token);
+  if (!perfil) return {ok:false, erro:'Sem permissão'};
+  const nome = String(body.nome||'').trim().slice(0,120);
+  const tel = String(body.telefone||'').trim();
+  if (!nome) return {ok:false, erro:'Informe o nome'};
+  if (soDigitos(tel).length < 10) return {ok:false, erro:'Confira o telefone com DDD'};
+  const camp = String(body.campanha||'Teste de preensão').trim().slice(0,80);
+  const res = String(body.resultado||'').slice(0,600);
+  const agora = new Date().toISOString();
+  const lock = LockService.getScriptLock(); try { lock.waitLock(20000); } catch(e) { return {ok:false, erro:'Tente de novo'}; }
+  try {
+    // mesmo pedido enviado de novo (fila do celular sem internet): nao repete
+    const sc = abaComCabecalho('CampanhaPreensao', CAMP_CAB);
+    if (body.id_local) {
+      const dc = sc.getDataRange().getValues(), iId = dc[0].indexOf('id');
+      for (let i=1;i<dc.length;i++) if (String(dc[i][iId]) === String(body.id_local)) return {ok:true, repetido:true, lead_id:dc[i][dc[0].indexOf('lead_id')]};
+    }
+    const sheet = abaComCabecalho('Leads', LEAD_CABECALHO);
+    const h = sheet.getRange(1,1,1,sheet.getLastColumn()).getValues()[0];
+    const dados = sheet.getDataRange().getValues(), iT = h.indexOf('telefone'), iI = h.indexOf('id');
+    let leadId = '';
+    for (let i=1;i<dados.length;i++) if (soDigitos(dados[i][iT]) && soDigitos(dados[i][iT]).slice(-9) === soDigitos(tel).slice(-9)) { leadId = String(dados[i][iI]); break; }
+    const nota = 'Teste de preensão (' + camp + '): ' + res + (body.aceita_contato ? '' : ' · NÃO autorizou contato');
+    if (leadId) registrarInteracao(leadId, '', '', nota, perfil.nome || perfil.email);
+    else {
+      leadId = 'ld_' + Date.now() + '_' + Math.floor(Math.random()*9999);
+      const v = {id:leadId, nome:nome, telefone:tel, email:'', data_contato:agora.slice(0,10), origem:'Campanha presencial', campanha:camp,
+        linha:String(body.linha||''), responsavel:perfil.nome||perfil.email, estagio:ESTAGIOS_LEAD[0], observacoes:nota,
+        data_nascimento:String(body.nascimento||''), criado_em:agora, atualizado_em:agora};
+      sheet.appendRow(h.map(function(k){ return v[k] === undefined ? '' : v[k]; }));
+      registrarInteracao(leadId, '', ESTAGIOS_LEAD[0], nota, perfil.nome || perfil.email);
+    }
+    const hc = sc.getRange(1,1,1,sc.getLastColumn()).getValues()[0];
+    const c = {id:body.id_local || ('cp_' + Date.now()), em:agora, campanha:camp, nome:nome, telefone:tel, data_nascimento:String(body.nascimento||''),
+      sexo:String(body.sexo||''), idade:body.idade||'', mao_direita:body.d||'', mao_esquerda:body.e||'', resultado:res,
+      aceita_contato:body.aceita_contato ? 'Sim' : 'Não', lead_id:leadId, registrado_por:perfil.nome||perfil.email};
+    sc.appendRow(hc.map(function(k){ return c[k] === undefined ? '' : c[k]; }));
+    return {ok:true, lead_id:leadId};
+  } finally { lock.releaseLock(); }
+}
+function listarCampanha(body, token) {
+  const perfil = perfilDaEquipe(token);
+  if (!perfil) return {ok:false, erro:'Sem permissão'};
+  const linhas = lerAba(abaComCabecalho('CampanhaPreensao', CAMP_CAB));
+  const camp = String(body.campanha||'');
+  return {ok:true, dados: linhas.filter(function(r){ return !camp || r.campanha === camp; }).reverse().slice(0, 500)};
 }
