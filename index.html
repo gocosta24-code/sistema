@@ -10498,33 +10498,57 @@ function mostrarPreviaImport(idx, problemas) {
       ${_impLinhas.length>5?`<div class="imp-d" style="margin-top:6px">…e mais ${_impLinhas.length-5} não mostrados</div>`:''}
     </div>
 
-    <div class="fg"><label class="fl">Importar todos para a linha clínica *</label>
+    <div class="fg"><label class="fl">Linha clínica (opcional)</label>
       <select class="fs" id="impLinha">
-        <option value="">Selecione...</option>
+        <option value="">Sem linha — só cadastro em Clientes</option>
         ${Object.entries(LINHAS).map(([k,v])=>`<option value="${k}">${v.label}</option>`).join('')}
       </select>
     </div>
     <div class="imp-d" style="margin-bottom:12px">
-      Pacientes com nome já cadastrado nessa linha são pulados — dá para importar de novo sem duplicar.
+      Sem linha, o cliente fica só no cadastro (tela Clientes) e pode ser incluído numa linha depois.
+      Quem já está cadastrado é pulado — pelo nome ou pelo CPF —, então dá para importar de novo sem duplicar.
     </div>
     <button class="savebtn" id="impBtn" onclick="executarImport()">Importar ${_impLinhas.length} paciente${_impLinhas.length!==1?'s':''}</button>
     <div id="impProgresso" style="margin-top:10px"></div>`;
 }
 
+// A planilha do Google interpreta o que recebe: "06460295840" vira número e
+// perde o zero do CPF, e "+55 11..." ou "=..." vira fórmula e aparece como
+// #ERROR!. O apóstrofo na frente faz a célula guardar o texto como veio.
+function textoProtegidoImport(p) {
+  const out = {};
+  Object.entries(p).forEach(([k,v])=>{
+    const s = v;
+    out[k] = (typeof s === 'string' && k !== 'data_nascimento' &&
+      (/^[=+\-@]/.test(s) || /^0\d+$/.test(s) || /^\d{9,}$/.test(s))) ? "'" + s : s;
+  });
+  return out;
+}
+
 async function executarImport() {
   if(currentRole !== 'admin') { showToast('Só a gestão pode importar pacientes.','err'); return; }
+  // Linha é opcional: sem ela, o cliente entra só no cadastro geral (Clientes)
   const linha = document.getElementById('impLinha').value;
   const err = document.getElementById('impErr');
-  if(!linha){ err.textContent='Escolha a linha clínica.'; err.style.display='block'; return; }
   err.style.display='none';
 
   const btn = document.getElementById('impBtn');
   const prog = document.getElementById('impProgresso');
   btn.disabled = true;
 
-  // Quem já existe nessa linha não entra de novo
-  const resEx = await api('listar',{tabela:'pacientes', filtros:{linha}});
-  const existentes = new Set((resEx.ok?resEx.dados||[]:[]).map(p=>normalizar(p.nome)));
+  // Quem já existe não entra de novo. Com linha: confere quem já está nela.
+  // Sem linha: confere o cadastro inteiro, porque a pessoa pode já estar em
+  // qualquer linha. O CPF também conta — o nome às vezes vem escrito diferente.
+  let base;
+  if(linha) {
+    const resEx = await api('listar',{tabela:'pacientes', filtros:{linha}});
+    if(!resEx.ok){ btn.disabled=false; err.textContent='Não consegui ler os pacientes já cadastrados: '+(resEx.erro||''); err.style.display='block'; return; }
+    base = resEx.dados||[];
+  } else {
+    base = await carregarTodosPacientes(true);
+  }
+  const existentes = new Set(base.map(p=>normalizar(p.nome)));
+  const cpfsExistentes = new Set(base.map(p=>soDigitos(p.cpf)).filter(c=>c.length===11));
 
   let criados=0, pulados=0, falhas=0;
   const errosDetalhe=[];
@@ -10534,17 +10558,27 @@ async function executarImport() {
     prog.innerHTML = `<div class="loading-inline"><div class="loading-spin"></div>
       Importando ${i+1} de ${_impLinhas.length}… (${criados} criados, ${pulados} já existiam)</div>`;
 
-    if(existentes.has(normalizar(p.nome))){ pulados++; continue; }
+    const cpf = soDigitos(p.cpf);
+    if(existentes.has(normalizar(p.nome)) || (cpf.length===11 && cpfsExistentes.has(cpf))){ pulados++; continue; }
 
+    // O servidor manda e-mail de "Novo paciente" a cada cadastro que não é
+    // lead. Numa importação em massa isso viraria centenas de e-mails, então
+    // o registro entra como lead e logo em seguida recebe o status real.
+    const statusReal = p.status || 'Ativo';
+    const ehLeadDeVerdade = statusReal.toLowerCase() === 'lead';
     const res = await api('salvar',{tabela:'pacientes', dados:{
-      ...p, linha, criado_por: currentUser.email
+      ...textoProtegidoImport(p), linha, status: ehLeadDeVerdade ? statusReal : 'Lead', criado_por: currentUser.email
     }});
+    if(res.ok && !ehLeadDeVerdade) {
+      const resSt = await api('atualizar',{tabela:'pacientes', id:res.id, dados:{status:statusReal}});
+      if(!resSt.ok && errosDetalhe.length<5) errosDetalhe.push(p.nome+': entrou como Lead — ajuste o status ('+(resSt.erro||'erro')+')');
+    }
 
-    if(res.ok){ criados++; existentes.add(normalizar(p.nome)); }
+    if(res.ok){ criados++; existentes.add(normalizar(p.nome)); if(cpf.length===11) cpfsExistentes.add(cpf); }
     else { falhas++; if(errosDetalhe.length<5) errosDetalhe.push(p.nome+': '+(res.erro||'erro')); }
   }
 
-  delete _pacientesCache[linha];
+  if(linha) delete _pacientesCache[linha];
   _todosPacientes = null;
 
   prog.innerHTML = `
@@ -10554,7 +10588,7 @@ async function executarImport() {
       ${pulados?`<div class="imp-d">↩️ ${pulados} já existia${pulados!==1?'m':''} — não duplicado${pulados!==1?'s':''}</div>`:''}
       ${falhas?`<div class="imp-d" style="color:var(--rose)">${falhas} não entrou${falhas!==1?'ram':''}:<br>${errosDetalhe.map(esc).join('<br>')}</div>`:''}
     </div>
-    <button class="savebtn" onclick="openLinha('${linha}')">Ver os pacientes →</button>`;
+    <button class="savebtn" onclick="${linha?`openLinha('${linha}')`:`closeSheet();showPage('clientes')`}">Ver os pacientes →</button>`;
   btn.style.display='none';
   showToast(''+criados+' paciente(s) importado(s)','ok');
 }
