@@ -720,6 +720,12 @@ body.agx-movendo{cursor:grabbing;user-select:none;}
 .vg-l small{font-weight:400;color:var(--ink3);}
 .vg-ter{display:inline-flex;align-items:center;gap:5px;}
 .vg-pend{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--bor);font-size:13.5px;}
+.pp-linha{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 0;border-bottom:1px solid var(--bor);}
+.pp-linha small{display:block;font-size:12px;color:var(--ink3);}
+.pp-linha.ok b{color:var(--teal);}
+.pp-bts2{display:flex;gap:6px;flex-wrap:wrap;}
+.vg-pend-link{cursor:pointer;} .vg-pend-link:hover span{text-decoration:underline;}
+.astrip-ir{font-size:12.5px;font-weight:600;color:var(--teal);white-space:nowrap;align-self:center;}
 .vg-pend:last-child{border-bottom:0;} .vg-pend span{flex:1;} .vg-pend i{width:8px;height:8px;border-radius:50%;flex:none;background:var(--sky);}
 .vg-pend.crit i{background:var(--rose);} .vg-pend.warn i{background:var(--amber);}
 .vg-tudo{font-size:13.5px;color:var(--ink3);padding:4px 0;}
@@ -8610,6 +8616,27 @@ async function chamarDaEspera(id) {
 // acontecem várias vezes ao longo do tratamento. Guardar só o estado atual
 // apagava o anterior a cada gravação — a v1 do PTS não voltava mais.
 // ═══════════════════════════════════════════════
+// PTS da Reabilitação (fisioterapia): começa pelo encaminhamento médico
+const PTS_REAB = [
+  {k:'prazo_reavaliacao',   l:'Prazo de reavaliação', t:'date'},
+  {k:'medico_encaminhador', l:'Médico encaminhador', t:'text', ph:'Nome e CRM. Ex.: Dr. João Lima — CRM-SP 123456'},
+  {k:'encaminhamento',      l:'Encaminhado para', t:'textarea', ph:'O que o médico pediu e quando. Ex.: fisioterapia ortopédica, 10 sessões, pedido de 20/11/2026'},
+  {k:'diagnostico',         l:'Diagnóstico', t:'textarea', ph:'Diagnóstico médico e CID. Ex.: pós-operatório de reconstrução de LCA joelho D — CID S83.5'},
+  {k:'hipotese',            l:'Diagnóstico fisioterapêutico', t:'textarea', ph:'Cinético-funcional: limitações, dor, função...'},
+  {k:'objetivos',           l:'Objetivos terapêuticos', t:'textarea', ph:'Ex.: reduzir dor para EVA ≤ 3, ganhar ADM de flexão até 120°, voltar a subir escadas sem apoio...'},
+  {k:'acoes',               l:'Conduta e intervenções', t:'textarea', ph:'Recursos, exercícios, frequência...'},
+  {k:'meta_curto',          l:'Meta — curto prazo', t:'textarea'},
+  {k:'meta_medio',          l:'Meta — médio prazo', t:'textarea'},
+  {k:'meta_longo',          l:'Meta — longo prazo', t:'textarea'},
+];
+// Campos do formulário: o PTS da Reabilitação tem os seus; no histórico,
+// mostra tudo o que tiver conteúdo (versões antigas continuam legíveis)
+function camposHist(tipo, paraLista) {
+  const cfg = HIST[tipo];
+  if(tipo!=='pts' || _currentLinha!=='reabilitacao') return cfg.campos;
+  if(!paraLista) return PTS_REAB;
+  return PTS_REAB.concat(cfg.campos.filter(c=>!PTS_REAB.some(x=>x.k===c.k)));
+}
 const HIST = {
   pts: {
     tabela: 'pts',
@@ -8816,7 +8843,7 @@ function listaHistHTML(tipo) {
         <span class="hist-data">${quando?esc(fmtDataBR(String(quando).slice(0,10))):''}</span>
       </summary>
       <div class="hist-corpo">
-        ${cfg.campos.filter(c=>c.k!=='status').map(c=>{
+        ${camposHist(tipo, true).filter(c=>c.k!=='status').map(c=>{
           const v = r[c.k];
           if(!String(v||'').trim()) return '';
           const mostrar = c.t==='date' ? fmtDataBR(String(v).slice(0,10)) : v;
@@ -8895,7 +8922,7 @@ function novoRegistroHist(tipo, pacienteId) {
   f.innerHTML = `<div class="evo-form">
     ${cfg.versionado?`<div class="hist-tit" style="margin-bottom:10px">Versão ${proxVersao}
       ${(_hist[tipo]||[]).length?`<span style="font-size:12px;color:var(--ink3);font-weight:400"> — partindo da v${base.versao||1}</span>`:''}</div>`:''}
-    ${cfg.campos.map(c=>{
+    ${camposHist(tipo).map(c=>{
       const v = cfg.versionado ? (base[c.k]||'') : (c.t==='date'?hojeISO():'');
       if(c.t==='textarea') return `<div class="fg"><label class="fl">${esc(c.l)}</label>
         <textarea class="ft" data-hk="${c.k}" placeholder="${esc(c.ph||'')}">${esc(v)}</textarea></div>`;
@@ -8923,7 +8950,7 @@ async function salvarRegistroHist(tipo, pacienteId, versao) {
   const dados = {paciente_id: pacienteId};
   f.querySelectorAll('[data-hk]').forEach(el=>{ dados[el.dataset.hk] = el.value; });
 
-  const preenchido = cfg.campos.some(c=>String(dados[c.k]||'').trim());
+  const preenchido = camposHist(tipo).some(c=>String(dados[c.k]||'').trim());
   if(!preenchido){ err.textContent='Preencha ao menos um campo.'; err.style.display='block'; return; }
   err.style.display='none';
 
@@ -10777,18 +10804,18 @@ function desenharVisaoGeral() {
 
   // Pendências
   const pend = [];
-  const add = (nivel, txt, aba) => pend.push({nivel, txt, aba});
-  [...(alertas.criticos||[])].filter(a=>a.pid===String(p.id)).forEach(a=>add('crit', a.titulo, /PTS|Checklist|Ficha/.test(a.titulo)?null:null));
-  [...(alertas.altos||[])].filter(a=>a.pid===String(p.id)).forEach(a=>add('warn', a.titulo, /evolu/i.test(a.titulo)?'Evoluções':null));
+  const add = (nivel, txt, aba, acao) => pend.push({nivel, txt, aba, acao});
+  [...(alertas.criticos||[])].filter(a=>a.pid===String(p.id)).forEach(a=>add('crit', a.titulo, a.aba||null, a.acao));
+  [...(alertas.altos||[])].filter(a=>a.pid===String(p.id)).forEach(a=>add('warn', a.titulo, a.aba||null, a.acao));
   if(fin && fin.nAtras) add('crit', fin.nAtras+(fin.nAtras===1?' cobrança atrasada':' cobranças atrasadas')+' · '+fmtMoeda(fin.atras), 'Financeiro');
   if(fin && fin.pend) add('warn', fin.pend+(fin.pend===1?' pedido':' pedidos')+' esperando aprovação da gestão', 'Financeiro');
-  if(semReg.length) add('warn', semReg.length+(semReg.length===1?' sessão passou':' sessões passaram')+' sem presença marcada na agenda', null);
-  if(seguidas>=2) add('crit', seguidas+' faltas seguidas', null);
+  if(semReg.length) add('warn', semReg.length+(semReg.length===1?' sessão passou':' sessões passaram')+' sem presença marcada na agenda', 'presenca');
+  if(seguidas>=2) add('crit', seguidas+' faltas seguidas', 'Plano e horários');
   const abertas = ms.filter(m=>String(m.status||'')==='aberta');
   if(abertas.length) add('warn', abertas.length+(abertas.length===1?' mensagem esperando resposta':' mensagens esperando resposta'), 'Mensagens');
   const ativo = !p.status || String(p.status).toLowerCase()==='ativo';
   if(ativo && _vg.histOk && !prox) add('warn', 'Nenhuma sessão marcada daqui para frente', 'Plano e horários');
-  futuras.filter(e=>e.aviso).forEach(e=>add('warn', 'Avisou que não vem em '+dLonga(e.inicio), null));
+  futuras.filter(e=>e.aviso).forEach(e=>add('warn', 'Avisou que não vem em '+dLonga(e.inicio), 'remarcar:'+e.agenda_email+'|'+e.id));
   const faltam = [['telefone','telefone'],['email','e-mail'],['cpf','CPF'],['data_nascimento','data de nascimento'],['endereco','endereço']].filter(([k])=>!String(p[k]||'').trim()).map(x=>x[1]);
   if(faltam.length) add('info', 'Cadastro sem '+faltam.join(', '), 'editar');
   if(currentRole!=='profissional' && p.email && String(p.acesso||'').toLowerCase()!=='liberado') add('info', 'Ainda sem acesso à área do paciente', 'Área do paciente');
@@ -10832,7 +10859,7 @@ function desenharVisaoGeral() {
     </div>
     <div class="vg-card">
       <div class="vg-k">Pendências ${pend.length?`<span class="vg-n">${pend.length}</span>`:''}</div>
-      ${pend.length ? pend.map(x=>`<div class="vg-pend ${x.nivel}"><i></i><span>${esc(x.txt)}</span>${x.aba?`<button class="ff-link" onclick="${x.aba==='editar'?`editarPaciente('${esc(_currentLinha)}','${esc(p.id)}')`:`irAba('${esc(x.aba)}')`}">${x.aba==='editar'?'completar':'abrir'}</button>`:''}</div>`).join('')
+      ${pend.length ? pend.map(x=>`<div class="vg-pend ${x.nivel}${x.aba?' vg-pend-link':''}"${x.aba?` role="button" tabindex="0" onclick="resolverPendenciaVG('${esc(x.aba)}','${esc(x.acao||'')}')"`:''}><i></i><span>${esc(x.txt)}</span>${x.aba?`<b class="ff-link">${x.aba==='editar'||x.aba==='ficha'?'preencher':x.acao==='novo_pts'?'elaborar':'resolver'} ›</b>`:''}</div>`).join('')
         : `<div class="vg-tudo">Tudo em dia com ${esc(String(p.nome||'').split(' ')[0])}.</div>`}
     </div>
   </div>
@@ -11668,19 +11695,102 @@ async function loadContadores() {
   });
 }
 
+// ── PENDÊNCIAS CLICÁVEIS ──
+// Cada pendência leva direto ao que precisa ser feito: a aba certa da ficha,
+// o formulário do PTS já aberto, a marcação de presença ou o atendimento.
+const ABA_FICHA_LINHA = {infantil:'Checklist', mulher:'Checklist', reabilitacao:'Dados', geriatria:'Checklist', mental:'Checklist', integrativas:'Checklist'};
+const LINHAS_COM_ABA = {'PTS':['reabilitacao','infantil','mulher','geriatria','mental','integrativas'], 'ficha':['reabilitacao','infantil','mulher','geriatria','mental','integrativas'],
+  'Casa Segura':['geriatria'], 'My Score':['pilates'], 'Pós-Alta':['reabilitacao','mulher'], 'Reuniões':['infantil','geriatria'], 'Orientações':['reabilitacao']};
+const esperar = async (fn, ms=6000) => { const t0 = Date.now(); while(Date.now()-t0 < ms) { const v = fn(); if(v) return v; await new Promise(r=>setTimeout(r,120)); } return null; };
+function abaExiste(nome) { return [...document.querySelectorAll('#pgLinhas .tabs .tab, .tabs .tab')].some(t=>t.textContent.trim()===nome); }
+
+async function abrirPendencia(pid, aba, acao) {
+  const pacs = await carregarTodosPacientes();
+  const p = pacs.find(x=>String(x.id)===String(pid));
+  if(!p) { showToast('Você não tem acesso à ficha deste paciente','err'); return; }
+  const linhas = linhasDoPaciente(p);
+  const prefer = LINHAS_COM_ABA[aba] || null;
+  const linha = (prefer && linhas.find(l=>prefer.includes(l))) || linhas[0] || '';
+  await openLinha(linha);
+  await openPaciente(linha, pid);
+  if(aba) setTimeout(()=>resolverPendenciaVG(aba, acao), 80);
+}
+
+async function resolverPendenciaVG(aba, acao) {
+  const p = (_vg && _vg.p) || {};
+  if(aba==='editar') return editarPaciente(_currentLinha, p.id);
+  if(aba==='presenca') return marcarPresencasPendentes();
+  if(aba.startsWith('remarcar:')) { const [email, id] = aba.slice(9).split('|'); return abrirAtendimentoNaAgenda(email, id); }
+  const nome = aba==='ficha' ? (ABA_FICHA_LINHA[_currentLinha]||'Checklist') : aba;
+  if(!abaExiste(nome)) {
+    // A aba é de outra linha do paciente (ex.: PTS aberto pela linha do Pilates)
+    const prefer = LINHAS_COM_ABA[aba] || [];
+    const outra = linhasDoPaciente(p).find(l=>l!==_currentLinha && prefer.includes(l));
+    if(outra) { await openPaciente(outra, p.id); return setTimeout(()=>resolverPendenciaVG(aba, acao), 80); }
+    showToast('Essa parte da ficha não existe nesta linha de cuidado','err'); return;
+  }
+  irAba(nome);
+  if(acao==='novo_pts') {
+    const ok = await esperar(()=>document.getElementById('histForm_pts') && Array.isArray(_hist.pts));
+    if(ok) { novoRegistroHist('pts', p.id); const f = document.getElementById('histForm_pts'); if(f) f.scrollIntoView({behavior:'smooth', block:'start'}); }
+  }
+}
+
+// Sessões que passaram sem presença: marca tudo de uma vez, sem ir à agenda
+function marcarPresencasPendentes() {
+  if(!_vg) return;
+  const lista = _vg.passadas.filter(e=>e.status!=='realizado' && !ehAusencia(e.status));
+  const dL = iso => maiuscula(new Date(iso).toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'2-digit',year:'2-digit'}))+' · '+horaDe(iso);
+  document.getElementById('sheetTitle').textContent = 'Presença pendente';
+  document.getElementById('sheetBody').innerHTML = `<div class="pt-nota" style="margin-top:0">Sessões de ${esc(_vg.p.nome)} que já passaram e ainda não têm presença marcada.</div>
+    ${lista.map(e=>`<div class="pp-linha" id="ppl_${esc(e.id)}">
+      <div><b>${esc(dL(e.inicio))}</b><small>${esc([e.servico, e.profissional].filter(Boolean).join(' · '))}</small></div>
+      <div class="pp-bts2">
+        <button class="agx-ac" onclick="presencaRapida('${esc(e.agenda_email)}','${esc(e.id)}','realizado',this)">✓ Realizado</button>
+        <button class="agx-ac falta" onclick="presencaRapida('${esc(e.agenda_email)}','${esc(e.id)}','falta',this)">✕ Faltou</button>
+        <button class="agx-ac just" onclick="presencaRapida('${esc(e.agenda_email)}','${esc(e.id)}','justificada',this)">⦸ Justificada</button>
+      </div></div>`).join('') || '<div class="pt-nota">Nada pendente.</div>'}`;
+  openSheet();
+}
+async function presencaRapida(email, id, status, btn) {
+  const linha = btn.closest('.pp-linha'); linha.querySelectorAll('button').forEach(b=>b.disabled=true);
+  const r = await api('status_evento',{agenda_email:email, evento_id:id, status});
+  if(!r.ok) { linha.querySelectorAll('button').forEach(b=>b.disabled=false); return showToast(r.erro||'Erro','err'); }
+  const e = _vg && _vg.sess.find(x=>x.id===id); if(e) e.status = status;
+  linha.innerHTML = `<div><b>${{realizado:'Realizado',falta:'Faltou',justificada:'Ausência justificada'}[status]}</b><small>${r.lancamento==='pacote'?'descontado do pacote':r.lancamento==='lancado'?'lançado no Financeiro':''}</small></div>`;
+  linha.classList.add('ok');
+  desenharVisaoGeral();
+}
+
+// Leva ao atendimento na agenda (para remarcar quem avisou que não vem)
+async function abrirAtendimentoNaAgenda(email, id) {
+  const e = _vg && _vg.sess.find(x=>x.id===id);
+  if(e) { const d = new Date(e.inicio); _agDia = new Date(d); _agDia.setHours(0,0,0,0); _agSemana = inicioDaSemana(d); }
+  loadPage('agenda');
+  const ok = await esperar(()=>_ag && (_ag.eventos||[]).some(x=>x.id===id && x.agenda_email===email), 8000);
+  if(ok) detalheAtendimento(email, id); else showToast('Não achei esse atendimento na agenda','err');
+}
+
 // Percorre as fichas de todos os pacientes e deriva pendências reais
 // Paciente ativo sem evolução por mais que isso vira pendência
 const DIAS_SEM_EVOLUCAO = 14;
 
 async function calcularAlertas() {
   const pacs = await carregarTodosPacientes();
-  const [res, resReun, resPosAlta, resScore, resUlt] = await Promise.all([
+  const [res, resReun, resPosAlta, resScore, resUlt, resPts] = await Promise.all([
     api('listar',{tabela:'checklists'}),
     api('listar',{tabela:'reunioes'}),
     api('listar',{tabela:'monitoramentos'}),
     api('listar',{tabela:'myscore'}),
     api('ultimas_evolucoes',{}),
+    api('listar',{tabela:'pts'}),
   ]);
+  // PTS registrado na aba PTS conta como elaborado (antes só valia o
+  // "PTS elaborado" marcado no checklist, que a Reabilitação nem tem)
+  const ptsPorPac = {};
+  (resPts && resPts.ok ? resPts.dados||[] : []).forEach(r=>{ const k = String(r.paciente_id); const o = ptsPorPac[k] = ptsPorPac[k] || {tem:false, aprovado:false};
+    o.tem = true; if(String(r.status||'').toLowerCase()==='aprovado') o.aprovado = true;
+    const v = parseInt(r.versao,10)||0; if(v >= (o.v||0)) { o.v = v; o.prazo = r.prazo_reavaliacao || o.prazo; } });
   // Última evolução de cada paciente: o servidor já manda pronto (só a data).
   // Servidor antigo, sem essa ação: baixa as evoluções como antes.
   // Os registros internos da Avaliação infantil não contam como atendimento.
@@ -11727,14 +11837,20 @@ async function calcularAlertas() {
     const cfg = {label: rotuloLinhas(p.linha)};
     const meta = `${p.nome} • ${cfg.label} • ${p.terapeuta_nome||'sem terapeuta'}`;
 
-    if(d.pts_elaborado && !d.pts_aprovado)
-      criticos.push({titulo:'PTS aguardando aprovação', meta});
-    if(!Object.keys(d).length)
-      altos.push({titulo:'Ficha ainda não iniciada', meta});
-    else if(!d.pts_elaborado)
-      altos.push({titulo:'PTS pendente de elaboração', meta});
+    // Pilates não tem checklist nem PTS: só entra nas outras pendências
+    const linhasClin = linhasDoPaciente(p).filter(l=>l!=='pilates');
+    const pts = ptsPorPac[String(p.id)] || {};
+    const elaborado = !!(d.pts_elaborado || pts.tem), aprovado = !!(d.pts_aprovado || pts.aprovado);
+    if(linhasClin.length) {
+      if(elaborado && !aprovado && currentRole!=='profissional')
+        criticos.push({titulo:'PTS aguardando aprovação', meta, aba:'PTS'});
+      if(!Object.keys(d).length)
+        altos.push({titulo: linhasClin[0]==='reabilitacao' ? 'Dados iniciais da reabilitação não preenchidos' : 'Checklist inicial não preenchido', meta, aba:'ficha'});
+      if(!elaborado)
+        altos.push({titulo:'PTS pendente de elaboração', meta, aba:'PTS', acao:'novo_pts'});
+    }
     if(linhasDoPaciente(p).includes('geriatria') && d.cs_visita && !d.cs_relatorio)
-      altos.push({titulo:'Relatório Casa Segura pendente', meta});
+      altos.push({titulo:'Relatório Casa Segura pendente', meta, aba:'Casa Segura'});
 
     // Paciente em atendimento sem evolução recente. Pilates fica de fora:
     // a aula em grupo não gera evolução individual a cada encontro.
@@ -11745,23 +11861,23 @@ async function calcularAlertas() {
       const dias = desde ? Math.round((hoje-desde)/86400000) : null;
       if(dias!=null && dias > DIAS_SEM_EVOLUCAO)
         altos.push({titulo: ult ? `Sem evolução há ${dias} dias` : 'Nenhuma evolução registrada',
-                    meta: ult ? `${meta} • última em ${fmtDataBR(ult)}` : meta});
+                    meta: ult ? `${meta} • última em ${fmtDataBR(ult)}` : meta, aba:'Evoluções'});
     }
 
     const prazos = [
-      ['Reavaliação PTS',      d.prazo_reavaliacao],
-      ['Prazo Casa Segura',    d.cs_prazo],
-      ['Contato pós-alta',     (ultimoPosAlta[String(p.id)]||{}).proximo_contato],
-      ['Reavaliação My Score', (ultimoScore[String(p.id)]||{}).proxima],
+      ['Reavaliação PTS',      (ptsPorPac[String(p.id)]||{}).prazo || d.prazo_reavaliacao, 'PTS'],
+      ['Prazo Casa Segura',    d.cs_prazo, 'Casa Segura'],
+      ['Contato pós-alta',     (ultimoPosAlta[String(p.id)]||{}).proximo_contato, 'Pós-Alta'],
+      ['Reavaliação My Score', (ultimoScore[String(p.id)]||{}).proxima, 'My Score'],
     ];
-    prazos.forEach(([rotulo, valor])=>{
+    prazos.forEach(([rotulo, valor, aba])=>{
       if(!valor) return;
       const dt = dataLocal(valor); if(!dt) return;
       const dias = Math.round((dt-hoje)/86400000);
       const quando = dt.toLocaleDateString('pt-BR');
-      if(dias < 0)       criticos.push({titulo:rotulo+' vencida', meta:`${p.nome} • ${quando}`});
-      else if(dias <= 7) criticos.push({titulo:rotulo+' vence em '+dias+'d', meta:`${p.nome} • ${quando}`});
-      else if(dias <= 30) proximos.push({titulo:rotulo+' — '+p.nome, meta:`${quando} • ${cfg.label}`});
+      if(dias < 0)       criticos.push({titulo:rotulo+' vencida', meta:`${p.nome} • ${quando}`, aba});
+      else if(dias <= 7) criticos.push({titulo:rotulo+' vence em '+dias+'d', meta:`${p.nome} • ${quando}`, aba});
+      else if(dias <= 30) proximos.push({titulo:rotulo+' — '+p.nome, meta:`${quando} • ${cfg.label}`, aba});
     });
     [criticos, altos, proximos].forEach((l,k)=>l.slice(n0[k]).forEach(a=>a.pid=String(p.id)));
   });
@@ -11777,7 +11893,7 @@ async function calcularAlertas() {
       const p = pacPorId[String(r.paciente_id)];
       const cfg = LINHAS[(p&&p.linha)||''] || {label:(p&&p.linha)||''};
       const quando = dt.toLocaleDateString('pt-BR');
-      proximos.push({pid:String(r.paciente_id),
+      proximos.push({pid:String(r.paciente_id), aba:'Reuniões',
         titulo: (r.tipo||'Reunião')+' — '+(p?p.nome:'Paciente'),
         meta: `${quando} • ${cfg.label}`
       });
@@ -12358,8 +12474,8 @@ function blocoAlertas(titulo, cor, itens, classe, ic) {
   if(!itens.length) return '';
   return `<div class="card">
     <div class="card-title"><div class="ct-bar" style="background:var(${cor})"></div>${titulo}</div>
-    ${itens.map(a=>`<div class="astrip ${classe}"><div class="astrip-icon">${icone(ic,18)}</div>
-      <div><div class="astrip-title">${esc(a.titulo)}</div><div class="astrip-meta">${esc(a.meta)}</div></div></div>`).join('')}
+    ${itens.map(a=>`<div class="astrip ${classe}"${a.pid?` role="button" tabindex="0" style="cursor:pointer" onclick="abrirPendencia('${esc(a.pid)}','${esc(a.aba||'')}','${esc(a.acao||'')}')"`:''}><div class="astrip-icon">${icone(ic,18)}</div>
+      <div style="flex:1"><div class="astrip-title">${esc(a.titulo)}</div><div class="astrip-meta">${esc(a.meta)}</div></div>${a.pid?`<span class="astrip-ir">${a.acao==='novo_pts'?'elaborar':a.aba==='ficha'?'preencher':'resolver'} ›</span>`:''}</div>`).join('')}
   </div>`;
 }
 
@@ -12389,7 +12505,7 @@ async function loadAlertas() {
     blocoAlertas('Alta Prioridade','--amber',altos,'warn','relogio') +
     (proximos.length?`<div class="card">
       <div class="card-title"><div class="ct-bar" style="background:var(--sky)"></div>Próximos 30 dias</div>
-      ${proximos.map(a=>`<div class="tl-item"><div class="tl-dot future"><svg class="ico" aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg></div>
+      ${proximos.map(a=>`<div class="tl-item"${a.pid?` style="cursor:pointer" onclick="abrirPendencia('${esc(a.pid)}','${esc(a.aba||'')}')"`:''}><div class="tl-dot future"><svg class="ico" aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/></svg></div>
         <div><div class="tl-title">${esc(a.titulo)}</div><div class="tl-meta">${esc(a.meta)}</div></div></div>`).join('')}
     </div>`:'');
 
