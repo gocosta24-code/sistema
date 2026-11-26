@@ -465,6 +465,23 @@ input,select,textarea{outline:none;}
 .loading-spin{width:24px;height:24px;border:2px solid var(--bor);border-top-color:var(--teal);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px;}
 
 /* AGENDA EM GRADE */
+.agx-navbar{display:flex;flex-direction:column;gap:10px;margin-bottom:12px;}
+.agx-navbar .agx-nav{flex:none;}
+.agx-rot-btn{position:relative;cursor:pointer;display:inline-flex;align-items:center;gap:6px;border-radius:10px;padding:2px 8px;}
+.agx-rot-btn:hover{background:var(--sur2);}
+.agx-rot-btn span{font-size:12px;color:var(--ink3);}
+.agx-data{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;}
+.agx-semana-tira{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;max-width:620px;}
+.agx-tdia{display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 2px;border-radius:12px;background:var(--sur);border:1px solid var(--bor);font:inherit;color:var(--ink2);cursor:pointer;}
+.agx-tdia span{font-size:11px;text-transform:capitalize;color:var(--ink3);}
+.agx-tdia b{font-size:16px;}
+.agx-tdia small{font-size:10.5px;color:var(--ink3);}
+.agx-tdia.hoje b{color:var(--teal);}
+.agx-tdia.fer{background:repeating-linear-gradient(135deg,var(--sur),var(--sur) 5px,var(--sur2) 5px,var(--sur2) 10px);}
+.agx-tdia.on{background:var(--teal);border-color:var(--teal);color:#fff;}
+.agx-tdia.on span,.agx-tdia.on small,.agx-tdia.on b{color:#fff;}
+.agx-hc-link{cursor:pointer;}
+.agx-hc-link:hover .agx-dn{text-decoration:underline;}
 .agx-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
 .agx-nav{display:flex;align-items:center;gap:6px;flex:1;min-width:0;}
 .agx-ic{width:34px;height:34px;border-radius:50%;background:var(--sur);border:1px solid var(--bor);font-size:20px;line-height:1;color:var(--ink2);display:grid;place-items:center;flex-shrink:0;}
@@ -5803,6 +5820,24 @@ function trocarSemanaAgenda(n) {
   else desenharAgenda(true);
 }
 function filtrarAgenda(email) { _agFiltro = email; desenharAgenda(); }
+// Vai direto para uma data (escolhida no calendário, na tira de dias ou no cabeçalho da semana)
+function irParaDataAgenda(iso, vista) {
+  if(!iso) return;
+  const d = new Date(iso+'T00:00:00'); if(isNaN(d)) return;
+  _agDia = d;
+  if(vista && vista!==_agVista) { _agVista = vista; try{ localStorage.setItem('ag_vista', vista); }catch(e){} }
+  const semana = inicioDaSemana(d);
+  if(diaISO(semana)!==diaISO(_agSemana)) { _agSemana = semana; const el=document.getElementById('agGrade'); if(el) el.style.opacity=.5; loadAgenda(); }
+  else desenharAgenda(true);
+}
+// Setas do teclado trocam o dia/semana (fora de campos de texto e com a gaveta fechada)
+document.addEventListener('keydown', ev=>{
+  if(_activePage!=='agenda' || _agVista==='mapa' || ev.altKey || ev.ctrlKey || ev.metaKey) return;
+  if(/input|textarea|select/i.test((ev.target||{}).tagName||'') || (ev.target||{}).isContentEditable) return;
+  const ov = document.getElementById('sheetOv'); if(ov && ov.classList.contains('open')) return;
+  if(ev.key==='ArrowLeft') { ev.preventDefault(); trocarSemanaAgenda(-1); }
+  else if(ev.key==='ArrowRight') { ev.preventDefault(); trocarSemanaAgenda(1); }
+});
 function vistaAgenda(v) { _agVista = v; try{ localStorage.setItem('ag_vista', v); }catch(e){} desenharAgenda(true); }
 
 function desenharAgenda(rolar) {
@@ -5817,14 +5852,20 @@ function desenharAgenda(rolar) {
   const ehHoje = _agVista==='dia' ? agMesmoDia(_agDia,new Date()) : diaISO(inicioDaSemana(new Date()))===diaISO(_agSemana);
   const toque = matchMedia('(hover:none)').matches;
 
+  const naveg = _agVista!=='mapa';
   el.innerHTML = `
-  <div class="agx-bar">
+  ${naveg ? `<div class="agx-navbar">
     <div class="agx-nav">
-      <button class="agx-ic" onclick="trocarSemanaAgenda(-1)" aria-label="${_agVista==='dia'?'Dia anterior':'Semana anterior'}">‹</button>
+      <button class="agx-ic" onclick="trocarSemanaAgenda(-1)" aria-label="${_agVista==='dia'?'Dia anterior':'Semana anterior'}" title="${_agVista==='dia'?'Dia anterior':'Semana anterior'} (seta ←)">‹</button>
       <button class="agx-hoje${ehHoje?' on':''}" onclick="trocarSemanaAgenda(0)">Hoje</button>
-      <button class="agx-ic" onclick="trocarSemanaAgenda(1)" aria-label="${_agVista==='dia'?'Próximo dia':'Próxima semana'}">›</button>
-      <strong class="agx-rot">${esc(rotulo)}</strong>
+      <button class="agx-ic" onclick="trocarSemanaAgenda(1)" aria-label="${_agVista==='dia'?'Próximo dia':'Próxima semana'}" title="${_agVista==='dia'?'Próximo dia':'Próxima semana'} (seta →)">›</button>
+      <label class="agx-rot agx-rot-btn" title="Escolher uma data">${esc(rotulo)} <span aria-hidden="true">▾</span>
+        <input type="date" class="agx-data" value="${diaISO(_agVista==='dia'?_agDia:_agSemana)}" onchange="irParaDataAgenda(this.value)" onclick="try{this.showPicker()}catch(e){}" aria-label="Ir para a data"></label>
     </div>
+    ${_agVista==='dia' ? `<div class="agx-semana-tira">${[0,1,2,3,4,5,6].map(i=>{ const d = somaDias(_agSemana,i), n = _ag.eventos.filter(e=>!e.dia_inteiro && e.tipo!=='reuniao' && agMesmoDia(new Date(e.inicio),d) && (!_agFiltro||e.agenda_email===_agFiltro)).length;
+      return `<button class="agx-tdia${agMesmoDia(d,_agDia)?' on':''}${agMesmoDia(d,new Date())?' hoje':''}${agFeriadoDe(d,_agFiltro||'')?' fer':''}" onclick="irParaDataAgenda('${diaISO(d)}')"><span>${esc(d.toLocaleDateString('pt-BR',{weekday:'short'}).replace('.',''))}</span><b>${d.getDate()}</b><small>${n||'–'}</small></button>`; }).join('')}</div>` : ''}
+  </div>` : ''}
+  <div class="agx-bar">
     <div class="agx-seg" role="tablist">${[['dia','Dia'],['semana','Semana'],['lista','Lista'],['mapa','Mapa do Pilates']].map(([v,t])=>`<button class="${_agVista===v?'on':''}" onclick="vistaAgenda('${v}')">${t}</button>`).join('')}</div>
     ${currentRole==='admin' || ehRecepcao() ? `<button class="backbtn" onclick="lembretesWhats(1)" title="Mensagem pronta para cada paciente de amanhã">Lembretes de amanhã</button>` : ''}
     ${currentRole==='admin' ? `<button class="backbtn" onclick="editarSalas()">Salas e capacidade</button>` : ''}
@@ -5932,7 +5973,7 @@ function gradeAgenda(varias) {
     const n = eventosDaColuna(c).length, hojeCol = agMesmoDia(c.dia, hoje);
     if(porSala) return `<div class="agx-hc"><div class="agx-hn">${c.semSala?'<span style="color:var(--ink3)">Sem sala</span>':'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 21V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v16M2 21h20M15 12h.01"/></svg>'+esc(c.sala)}</div><div class="agx-hs">${n} ${n===1?'atendimento':'atendimentos'}</div></div>`;
     if(porProf) return `<div class="agx-hc"><div class="agx-hn"><i style="background:${agCor(c.email)}"></i>${esc(c.prof.nome)}</div>${agFeriadoDe(c.dia,c.email)?`<div class="agx-hs" style="color:var(--rose);font-weight:600">${esc(agFeriadoDe(c.dia,c.email).titulo)}</div>`:`<div class="agx-hs">${n} ${n===1?'atendimento':'atendimentos'}</div>`}</div>`;
-    return `<div class="agx-hc${hojeCol?' hoje':''}"><div class="agx-hd"><span class="agx-dn">${c.dia.getDate()}</span><div><div class="agx-hn">${esc(maiuscula(c.dia.toLocaleDateString('pt-BR',{weekday:_agVista==='dia'?'long':'short'}).replace('.','')))}</div>${agFeriadoDe(c.dia,c.email)?`<div class="agx-hs" style="color:var(--rose);font-weight:600">${esc(agFeriadoDe(c.dia,c.email).titulo)}</div>`:`<div class="agx-hs">${n||'Livre'}${n?(n===1?' atendimento':' atendimentos'):''}</div>`}</div></div></div>`;
+    return `<div class="agx-hc${hojeCol?' hoje':''}${_agVista==='semana'?' agx-hc-link':''}"${_agVista==='semana'?` role="button" tabindex="0" title="Abrir o dia" onclick="irParaDataAgenda('${diaISO(c.dia)}','dia')"`:''}><div class="agx-hd"><span class="agx-dn">${c.dia.getDate()}</span><div><div class="agx-hn">${esc(maiuscula(c.dia.toLocaleDateString('pt-BR',{weekday:_agVista==='dia'?'long':'short'}).replace('.','')))}</div>${agFeriadoDe(c.dia,c.email)?`<div class="agx-hs" style="color:var(--rose);font-weight:600">${esc(agFeriadoDe(c.dia,c.email).titulo)}</div>`:`<div class="agx-hs">${n||'Livre'}${n?(n===1?' atendimento':' atendimentos'):''}</div>`}</div></div></div>`;
   }).join('');
 
   let horas = '';
