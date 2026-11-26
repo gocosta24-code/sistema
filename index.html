@@ -2912,6 +2912,14 @@ async function salvarPaciente(linha, idExistente) {
   }
 
   limparSujo();
+  if(_leadConversao) {
+    const lc = _leadConversao; _leadConversao = null;
+    if(!lc.vinculado && !idExistente && res.id) {
+      const r = await api('converter_lead',{id:lc.leadId, paciente_id:res.id});
+      if(!r.ok) showToast('Paciente cadastrado, mas o lead não foi vinculado: '+(r.erro||''),'err');
+    }
+    if(typeof loadLeads==='function' && document.getElementById('leadsBody')) loadLeads();
+  }
   showToast(idExistente ? nome+' atualizado' : nome+' cadastrado. Gestão e coordenação foram avisadas','ok');
   _pacientesCache = {};
   _todosPacientes = null;
@@ -7988,7 +7996,8 @@ async function abrirLead(id) {
               onclick="converterLead('${esc(l.id)}','${esc(l.paciente_id)}')">Confirmar virada de cliente</button>
           </div>`
         : `<div class="fg" style="margin-top:14px"><label class="fl">Virou paciente?</label>
-            <div class="pt-nota" style="margin-top:0">Aponte para um cadastro que já existe — não cria paciente novo.</div>
+            <button class="addbtn" style="margin-top:4px" onclick="virarPaciente('${esc(l.id)}')">Cadastrar como paciente</button>
+            <div class="pt-nota">Abre o cadastro já preenchido com os dados do lead. Ou, se a pessoa já tem cadastro, vincule abaixo:</div>
             <input class="fi" id="ldBuscaPac" list="ldPacientes" value="${esc(l.para_quem==='outra'?(l.paciente_nome||''):'')}" placeholder="Buscar paciente pelo nome"
                    style="margin-top:6px">
             <datalist id="ldPacientes"></datalist>
@@ -8036,6 +8045,9 @@ async function moverLead(id) {
   const estagio = document.getElementById('ldEstagio').value;
   const obs = (document.getElementById('ldObs').value||'').trim();
   const motivo = (document.getElementById('ldMotivo')||{}).value||'';
+  // "Virou paciente": em vez de só mudar a etapa, abre o cadastro do paciente
+  const lAtual = (_leads||[]).find(x=>String(x.id)===String(id));
+  if(_leadCfg.ganho && estagio===_leadCfg.ganho && lAtual && lAtual.estagio!==_leadCfg.ganho) return virarPaciente(id);
 
   if(estagio===_leadCfg.perdido && !motivo) {
     err.textContent='Escolha o motivo da perda.'; err.style.display='block'; return;
@@ -8061,11 +8073,45 @@ async function converterLead(id, pacienteId) {
     if(!p){ showToast('Paciente não encontrado. Cadastre primeiro em Linhas.','err'); return; }
     alvo = p.id; nomeAlvo = p.nome;
   }
-  const res = await api('converter_lead',{id, paciente_id:alvo});
-  if(!res.ok){ showToast('Erro: '+(res.erro||''),'err'); return; }
-  await loadLeads();
-  abrirLead(id);
-  showToast(''+(nomeAlvo?'Vinculado a '+nomeAlvo:'Virou cliente!'),'ok');
+  if(!pacienteId) return virarPaciente(id, alvo);
+  return virarPaciente(id);
+}
+
+// Lead → paciente: abre a tela de cadastro já preenchida com o que o lead tem.
+// Lead sem cadastro: o paciente é criado ao salvar e o lead fica vinculado.
+// Lead com cadastro (portal) ou ligado a um paciente que já existe: vincula na
+// hora e abre o cadastro dele para completar.
+let _leadConversao = null;
+async function virarPaciente(leadId, pacienteExistenteId) {
+  const l = (_leads||[]).find(x=>String(x.id)===String(leadId)); if(!l) return;
+  const pacs = await carregarTodosPacientes();
+  const alvoId = pacienteExistenteId || l.paciente_id || '';
+  if(alvoId) {
+    const r = await api('converter_lead',{id:leadId, paciente_id:alvoId});
+    if(!r.ok) { showToast('Erro: '+(r.erro||''),'err'); return; }
+  }
+  const outra = l.para_quem==='outra' && l.paciente_nome;
+  const doLead = {
+    nome: outra ? l.paciente_nome : l.nome, telefone: l.telefone||'', email: outra ? '' : (l.email||''),
+    data_nascimento: l.data_nascimento||'', linha: l.linha||'',
+    responsavel: outra ? l.nome+(l.parentesco?' · '+String(l.parentesco).toLowerCase():'') : '',
+    observacoes: l.observacoes||''
+  };
+  const existente = alvoId ? pacs.find(x=>String(x.id)===String(alvoId)) : null;
+  // Completa só o que está vazio no cadastro; o que já existe não é tocado
+  const p = existente ? Object.assign({}, existente, ...Object.entries(doLead).filter(([k,v])=>v && !String(existente[k]||'').trim()).map(([k,v])=>({[k]:v}))) : doLead;
+  if(existente) p.status = String(existente.status||'').toLowerCase()==='lead' ? 'Ativo' : existente.status;
+  const linha = linhasDoPaciente(p).find(k=>LINHAS[k]) || (LINHAS[l.linha] ? l.linha : Object.keys(LINHAS)[0]);
+  _leadConversao = {leadId, vinculado: !!alvoId, nome: p.nome};
+  _pacientesCache = {}; if(existente) _pacientesCache[linha] = [existente];
+  document.getElementById('sheetBody').innerHTML = loadingHTML();
+  openSheet();
+  await openFormNovoPaciente(linha, p);
+  document.getElementById('sheetTitle').textContent = existente ? 'Cadastro de '+p.nome : 'Cadastrar '+(p.nome||'paciente');
+  const corpo = document.getElementById('sheetBody');
+  corpo.insertAdjacentHTML('afterbegin', `<div class="aus-box" style="margin-top:0">🎉 <b>${esc(p.nome||'')}</b> ${existente?'virou paciente.':'vai virar paciente.'} Os dados do lead já estão preenchidos: complete o cadastro${existente?'':' e toque em <b>Cadastrar Paciente</b>'}.${l.para_quem==='outra'?' Quem entrou em contato foi '+esc(l.nome)+(l.parentesco?' · '+esc(String(l.parentesco).toLowerCase()):'')+', registrado como responsável.':''}</div>`);
+  if(!existente) setTimeout(()=>sugerirExistente(linha), 50);
+  if(existente) { await loadLeads(); showToast(p.nome+' virou paciente','ok'); }
 }
 
 function novoLead(existente) {
@@ -12210,6 +12256,7 @@ function sugerirExistente(linha) {
 }
 async function vincularNaLinha(id, linha, btn) {
   const p = (await carregarTodosPacientes()).find(x=>String(x.id)===String(id)); if(!p) return;
+  if(_leadConversao && !_leadConversao.vinculado) { const lc = _leadConversao; _leadConversao = null; limparSujo(); return virarPaciente(lc.leadId, id); }
   if(!linha) { limparSujo(); return abrirCliente(id, true); }
   btn.disabled = true; btn.textContent = 'Incluindo…';
   const linhas = [...new Set([...linhasDoPaciente(p), linha])];
