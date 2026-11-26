@@ -124,6 +124,49 @@ function bell(n,v){
   s+=`<line x1="${x.toFixed(1)}" x2="${x.toFixed(1)}" y1="${base}" y2="${(y-2).toFixed(1)}" stroke="#fff" stroke-width="3.5"/><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="10" fill="${ZC[zn]}" stroke="#fff" stroke-width="3"/><text x="${x.toFixed(1)}" y="${base+33}" text-anchor="middle" font-size="13" font-weight="700" fill="#3A2A1F">você: ${fN(v,1)}</text>`;
   return s+'</svg>'}
 
+/* ---------- imagem do resultado (JPG 1080×1350, bom para WhatsApp) ---------- */
+let _ult=null;
+const nomeArq=u=>'resultado-forca-'+u.pn.toLowerCase().normalize('NFD').replace(/[^a-z]/g,'')+'.jpg';
+function baixar(b){const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=nomeArq(_ult);document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500)}
+const carregaImg=src=>new Promise(res=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>res(null);i.src=src});
+function linhasDe(ctx,txt,larg){const pal=txt.split(' ');const out=[];let l='';for(const p of pal){const t=l?l+' '+p:p;if(ctx.measureText(t).width>larg&&l){out.push(l);l=p}else l=t}if(l)out.push(l);return out}
+function quebra(ctx,txt,x,y,larg,alt){const pal=txt.split(' ');let l='';for(const p of pal){const t=l?l+' '+p:p;if(ctx.measureText(t).width>larg&&l){ctx.fillText(l,x,y);y+=alt;l=p}else l=t}if(l){ctx.fillText(l,x,y);y+=alt}return y}
+function pilula(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}
+async function gerarImagem(u){
+  const r=u.r,W=1080,H=1350,c=document.createElement('canvas');c.width=W;c.height=H;const g=c.getContext('2d');
+  try{await document.fonts.ready}catch(e){}
+  const serif='Lora, Georgia, serif',sans='"Instrument Sans", Arial, sans-serif';
+  g.fillStyle='#F3EDE3';g.fillRect(0,0,W,H);
+  const logo=await carregaImg('../logo-simbolo.png');if(logo)g.drawImage(logo,70,58,64,64);
+  g.fillStyle='#6B5A4C';g.font=`600 22px ${sans}`;g.fillText('CASA OLIVEIRA SAÚDE',150,84);g.fillStyle='#3A2A1F';g.font=`500 30px ${serif}`;g.fillText('Teste de força das mãos',150,118);
+  g.font=`600 52px ${serif}`;g.fillText(u.pn+', o seu resultado',70,205);
+  g.fillStyle='#6B5A4C';g.font=`400 27px ${sans}`;g.fillText('Comparado a '+u.grpT+' · '+r.age+' anos · '+new Date().toLocaleDateString('pt-BR'),70,246);
+  // cartões das mãos
+  const n=r.maos.length,cw=n===2?458:940,top=280,ch=n===2?540:600;
+  for(let i=0;i<n;i++){const m=r.maos[i],x=70+i*(cw+24);
+    g.fillStyle='#FFFCF7';pilula(g,x,top,cw,ch,28);g.fill();g.strokeStyle='#E4D8C6';g.lineWidth=2;g.stroke();
+    g.fillStyle='#3A2A1F';g.font=`600 32px ${serif}`;g.fillText(m.t,x+30,top+56);
+    g.font=`600 84px ${serif}`;g.fillText(fN(m.v,1),x+30,top+150);const wv=g.measureText(fN(m.v,1)).width;g.font=`500 28px ${sans}`;g.fillStyle='#6B5A4C';g.fillText('kgf',x+40+wv,top+150);
+    g.font=`700 24px ${sans}`;const tw=g.measureText(ZT[m.zn]).width+36;g.fillStyle=ZC[m.zn];pilula(g,x+30,top+176,tw,44,22);g.fill();g.fillStyle='#fff';g.fillText(ZT[m.zn],x+48,top+206);
+    const svg=bell(m.n,m.v).replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" width="680" height="340" font-family="Arial" ');
+    const im=await carregaImg('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg));const iw=cw-40;if(im)g.drawImage(im,x+20,top+232,iw,iw/2);
+    g.fillStyle='#3A2A1F';g.font=`400 23px ${sans}`;quebra(g,'Esperado: cerca de '+fN(m.n.m)+' kgf. Maior que '+Math.max(1,Math.min(99,m.pc))+' em cada 100 pessoas dessa faixa.',x+30,top+232+iw/2+38,cw-60,30);
+  }
+  // convite: mede o texto antes para a caixa caber
+  const y=top+ch+30,L=860,blocos=[];
+  g.font=`400 26px ${sans}`;blocos.push({f:`400 26px ${sans}`,c:'#E6D9C8',l:linhasDe(g,u.gancho,L),gap:0});
+  blocos.push({f:`400 26px ${sans}`,c:'#E6D9C8',l:linhasDe(g,'Pilates com fisioterapeuta e turmas reduzidas: força, postura, equilíbrio e mobilidade.',L),gap:10});
+  g.font=`700 27px ${sans}`;blocos.push({f:`700 27px ${sans}`,c:'#FFFFFF',l:linhasDe(g,'Aula experimental cortesia. Planos trimestral e semestral com avaliação física completa.',L),gap:12});
+  g.font=`600 25px ${sans}`;blocos.push({f:`600 25px ${sans}`,c:'#F3EDE3',l:linhasDe(g,'WhatsApp '+WHATS_CASA_TXT+' · Rua Dr. Samuel Porto, 396 · Saúde',L),gap:16});
+  const alt=92+blocos.reduce((s,b)=>s+b.gap+b.l.length*35,0)+28;
+  g.fillStyle='#3A2A1F';pilula(g,70,y,940,alt,28);g.fill();
+  g.fillStyle='#FFFFFF';g.font=`600 38px ${serif}`;g.fillText(u.pior.zn<=1?'Força se recupera.':'Vamos cuidar dessa força?',110,y+62);
+  let yy=y+108;blocos.forEach(b=>{yy+=b.gap;g.font=b.f;g.fillStyle=b.c;b.l.forEach(t=>{g.fillText(t,110,yy);yy+=35})});
+  g.fillStyle='#6B5A4C';g.font=`400 19px ${sans}`;g.fillText('Referência: Massy-Westropp et al., 2011. Rastreio: não substitui a avaliação.',70,H-60);
+  g.font=`italic 500 24px ${serif}`;g.textAlign='right';g.fillText('Não é clínica, é Casa.',W-70,H-60);g.textAlign='left';
+  return await new Promise(res=>c.toBlob(res,'image/jpeg',.92));
+}
+
 /* ---------- envio ao sistema (com fila para quando a internet cair) ---------- */
 const FILA='camp_fila', FEITOS='camp_feitos';
 const fila=()=>{try{return JSON.parse(LS(FILA)||'[]')}catch(e){return[]}};
@@ -227,22 +270,40 @@ function resultado(r){
     ${mesmo?'':`<div class="idade">Sua força equivale à média de ${r.sexo==='F'?'mulheres':'homens'} de <b>${fx}</b>.</div>`}
     ${m.baixa?`<div class="alerta"><b>Atenção:</b> abaixo de ${r.sexo==='M'?27:16} kgf é considerado força reduzida pelo consenso europeu de sarcopenia (EWGSOP2). Vale uma avaliação.</div>`:''}</div>`};
   const pior=r.maos.reduce((a,b)=>b.zn<a.zn?b:a);
-  const gancho=pior.zn<=1?'Seu resultado mostra espaço para recuperar força, e isso se treina em qualquer idade.':pior.zn>=4?'Que resultado! Manter essa força é um dos melhores investimentos para envelhecer com autonomia.':'Você está na faixa esperada. A força das mãos acompanha a dos músculos do corpo todo, e vale cuidar dela.';
-  const txt=`Oi, ${pn}! Aqui é da Casa Oliveira 💛\n\nSeu resultado no teste de força das mãos:\n${r.maos.map(m=>`• ${m.t}: ${fN(m.v,1)} kgf (${ZT[m.zn].toLowerCase()})`).join('\n')}\n\nPara ${grpT}, o esperado é cerca de ${r.maos.map(m=>fN(m.n.m)+' kgf').join(' e ')}.\n\n${gancho} Se quiser entender o que esse resultado diz sobre você e o que fazer com ele, a gente conversa numa avaliação. É só responder esta mensagem.\n\nCasa Oliveira Saúde · Rua Dr. Samuel Porto, 396 · Saúde`;
+  // Mensagem e convite: Pilates com aula experimental (cortesia); avaliação completa nos planos trimestral e semestral
+  const gancho=pior.zn<=1?'A força das mãos acompanha a força do corpo todo, e ela se recupera em qualquer idade com o exercício certo.'
+    :pior.zn>=4?'Que resultado! Manter essa força é um dos melhores cuidados para envelhecer com autonomia.'
+    :'Você está na faixa esperada. A força das mãos acompanha a do corpo todo, e vale cuidar dela para mantê-la ao longo dos anos.';
+  const pilates='No Pilates da Casa Oliveira, com turmas reduzidas e acompanhamento de fisioterapeuta, você trabalha força, postura, equilíbrio e mobilidade, do jeito certo para o seu corpo.';
+  const convite='Que tal conhecer numa aula experimental, cortesia da Casa? E nos planos trimestral e semestral, a avaliação física completa está incluída, para acompanhar a sua evolução.';
+  const txt=`Oi, ${pn}! Aqui é da Casa Oliveira 💛\n\nSeu resultado no teste de força das mãos:\n${r.maos.map(m=>`• ${m.t}: ${fN(m.v,1)} kgf (${ZT[m.zn].toLowerCase()})`).join('\n')}\nPara ${grpT}, o esperado é cerca de ${r.maos.map(m=>fN(m.n.m)+' kgf').join(' e ')}.\n\n${gancho}\n\n${pilates}\n\n${convite} É só responder esta mensagem que a gente combina o melhor horário.\n\nCasa Oliveira Saúde · Rua Dr. Samuel Porto, 396 · Saúde (perto do metrô Saúde)`;
   const telP=r.tel.replace(/\D/g,'');const waP='https://wa.me/55'+telP+'?text='+encodeURIComponent(txt);
+  _ult={r,txt,waP,pn,grpT,gancho,pior};
   app.innerHTML=`
   <div class="card">
     <div class="res-top"><p class="ola">${esc(pn)}, este é o seu resultado</p><p class="sub">Comparado a ${esc(grpT)} · ${r.age} anos</p></div>
     ${r.maos.map(cartao).join('')}
     <p class="ref">Referência: Massy-Westropp et al., BMC Research Notes, 2011 (2.678 adultos, média de 3 tentativas). Força reduzida: EWGSOP2, 2019. É um rastreio: não substitui a avaliação.</p>
   </div>
-  <div class="cta"><h2>${pior.zn<=1?'Força se recupera.':'E agora?'}</h2><p>${gancho}</p><p style="margin-top:8px">Na Casa Oliveira, a avaliação olha força, equilíbrio e mobilidade e vira um programa de cuidado feito para você.</p><p style="margin-top:8px"><b>WhatsApp ${WHATS_CASA_TXT}</b> · Rua Dr. Samuel Porto, 396 · Saúde</p></div>
+  <div class="cta"><h2>${pior.zn<=1?'Força se recupera.':'Vamos cuidar dessa força?'}</h2><p>${gancho}</p><p style="margin-top:8px">${pilates}</p><p style="margin-top:8px"><b>Aula experimental cortesia.</b> Nos planos trimestral e semestral, a avaliação física completa está incluída.</p><p style="margin-top:8px"><b>WhatsApp ${WHATS_CASA_TXT}</b> · Rua Dr. Samuel Porto, 396 · Saúde</p></div>
   <div class="btns noprint">
-    ${r.aceita?`<a class="go wa" style="display:flex;align-items:center;justify-content:center;text-decoration:none" href="${waP}" target="_blank" rel="noopener">Enviar resultado no WhatsApp de ${esc(pn)}</a>`:`<p class="hint" style="text-align:center">Sem autorização de contato: o resultado não é enviado por WhatsApp.</p>`}
+    ${r.aceita?`<button class="go wa" id="envImg">Enviar imagem do resultado e mensagem</button>
+    <a class="go sec" style="display:flex;align-items:center;justify-content:center;text-decoration:none" href="${waP}" target="_blank" rel="noopener">Enviar só a mensagem no WhatsApp de ${esc(pn)}</a>`:`<p class="hint" style="text-align:center">Sem autorização de contato: o resultado não é enviado por WhatsApp.</p>`}
+    <button class="go sec" id="baixar">Baixar imagem do resultado (JPG)</button>
     <button class="go" id="prox">Próximo participante</button>
+    <p class="hint" id="envMsg" style="text-align:center"></p>
   </div>`;
   window.scrollTo({top:0,behavior:'smooth'});
   $('#prox').onclick=()=>{form();window.scrollTo({top:0})};
+  const bx=$('#baixar'), en=$('#envImg');
+  bx.onclick=async()=>{bx.disabled=true;const b=await gerarImagem(_ult);bx.disabled=false;baixar(b)};
+  if(en)en.onclick=async()=>{en.disabled=true;en.textContent='Preparando a imagem…';
+    const b=await gerarImagem(_ult);en.disabled=false;en.textContent='Enviar imagem do resultado e mensagem';
+    const file=new File([b],nomeArq(_ult),{type:'image/jpeg'});
+    // No celular: abre o compartilhar com a imagem e o texto (escolha o WhatsApp e a pessoa)
+    if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],text:_ult.txt});return}catch(e){if(e&&e.name==='AbortError')return}}
+    // No computador: baixa a imagem e abre a conversa com a mensagem; é só anexar a imagem
+    baixar(b);window.open(_ult.waP,'_blank');$('#envMsg').textContent='A imagem foi baixada: anexe na conversa do WhatsApp que abriu.'};
 }
 topo();form();if(fila().length)enviarFila();
 })();
